@@ -1,0 +1,163 @@
+/****************************************************************************
+ **
+ ** Copyright (c) 2014 Digia Plc
+ ** For any questions to Digia, please use contact form at http://qt.digia.com/
+ **
+ ** All Rights Reserved.
+ **
+ ** NOTICE: All information contained herein is, and remains
+ ** the property of Digia Plc and its suppliers,
+ ** if any. The intellectual and technical concepts contained
+ ** herein are proprietary to Digia Plc
+ ** and its suppliers and may be covered by Finnish and Foreign Patents,
+ ** patents in process, and are protected by trade secret or copyright law.
+ ** Dissemination of this information or reproduction of this material
+ ** is strictly forbidden unless prior written permission is obtained
+ ** from Digia Plc.
+ ****************************************************************************/
+
+#ifndef SCXMLPARSER_H
+#define SCXMLPARSER_H
+
+#include "scxmlstatetable.h"
+
+#include <QStringList>
+#include <QString>
+
+QT_BEGIN_NAMESPACE
+class QXmlStreamAttributes;
+class QXmlStreamReader;
+class QHistoryState;
+QT_END_NAMESPACE
+
+namespace Scxml {
+
+struct ParserState {
+    enum Kind {
+        Scxml,
+        State,
+        Parallel,
+        Transition,
+        Initial,
+        Final,
+        OnEntry,
+        OnExit,
+        History,
+        Raise,
+        If,
+        ElseIf,
+        Else,
+        Foreach,
+        Log,
+        DataModel,
+        Data,
+        DataElement,
+        Assign,
+        DoneData,
+        Content,
+        Param,
+        Script,
+        Send,
+        Cancel,
+        Invoke,
+        Finalize,
+        None
+    };
+    Kind kind;
+    QString chars;
+    ExecutableContent::Instruction *instruction;
+    QString initialId;
+    /*
+    // use anonymous union and structs? removes implicit copy constructor...
+    // transition
+    QString event; // and raise
+    QString cond;  // and if, elseif
+    QString target;
+    QString type;
+
+    QString initialId; // state
+
+    // foreach
+    QString array;
+    QString item;
+    QString index;
+
+    // log
+    QString label;
+    QString expr;
+    // DataValue
+    QJsonValue jsonValue;*/
+
+    bool collectChars();
+
+    ParserState(Kind kind=None) :
+        kind(kind) { }
+    ~ParserState() { }
+
+    bool validChild(ParserState::Kind child) const;
+    static bool validChild(ParserState::Kind parent, ParserState::Kind child);
+    static bool isExecutableContent(ParserState::Kind kind);
+};
+
+struct ErrorMessage
+{
+    enum Severity {
+        Debug,
+        Info,
+        Error
+    };
+    Severity severity;
+    QString msg;
+    QString parserState;
+    ErrorMessage(Severity severity = Severity::Error,
+                 const QString &msg = QStringLiteral("UnknownError"),
+                 const QString &parserState = QString())
+        : severity(severity), msg(msg), parserState(parserState){ }
+};
+
+struct ParsingOptions {
+    ParsingOptions() { }
+};
+
+class ScxmlParser
+{
+public:
+    enum State {
+        StartingParsing,
+        ParsingScxml,
+        ParsingError,
+        FinishedParsing,
+    };
+
+    ScxmlParser(QIODevice * device);
+    void parse();
+    void addError(const QString &msg, ErrorMessage::Severity severity = ErrorMessage::Error);
+    void addError(const char *msg, ErrorMessage::Severity severity = ErrorMessage::Error);
+    std::function<bool(const QString &)> errorDumper() {
+        return [this](const QString &msg) -> bool { this->addError(msg); return true; };
+    }
+    StateTable *table() {
+        return m_table;
+    }
+
+private:
+    bool maybeId(const QXmlStreamAttributes &attributes, QObject *obj);
+    bool checkAttributes(const QXmlStreamAttributes &attributes, const char *attribStr);
+    bool checkAttributes(const QXmlStreamAttributes &attributes, QStringList requiredNames,
+                         QStringList optionalNames);
+
+    StateTable *m_table;
+    ScxmlTransition *m_currentTransition;
+    QState *m_currentParent;
+    QAbstractState *m_currentState;
+
+    QXmlStreamReader *m_reader;
+    QVector<ParserState> m_stack;
+    State m_state;
+    QList<ErrorMessage> m_errors;
+    ParsingOptions m_options;
+};
+
+} // namespace Scxml
+
+#endif // SCXMLPARSER_H
