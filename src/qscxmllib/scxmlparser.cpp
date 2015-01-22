@@ -247,7 +247,8 @@ void ScxmlParser::parse()
             } else if (elName == QLatin1String("data")) {
                 if (!checkAttributes(attributes, "id|src,expr")) return;
                 QString dataName = attributes.value("id").toString();
-
+                QStringRef src = attributes.value("src");
+                QStringRef expr = attributes.value("expr");
                 //maybeId()
                 m_stack.append(ParserState(ParserState::Data));
             } else if (elName == QLatin1String("assign")) {
@@ -498,7 +499,7 @@ bool ParserState::validChild(ParserState::Kind parent, ParserState::Kind child)
         return isExecutableContent(child);
         return false;
     case ParserState::History:
-        // return (child == ParserState::Transition); // not supported by the current qstatemachine
+        return (child == ParserState::Transition);
         return false;
     case ParserState::Raise:
         return false;

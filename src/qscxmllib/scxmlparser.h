@@ -67,26 +67,6 @@ struct ParserState {
     QString chars;
     ExecutableContent::Instruction *instruction;
     QString initialId;
-    /*
-    // use anonymous union and structs? removes implicit copy constructor...
-    // transition
-    QString event; // and raise
-    QString cond;  // and if, elseif
-    QString target;
-    QString type;
-
-    QString initialId; // state
-
-    // foreach
-    QString array;
-    QString item;
-    QString index;
-
-    // log
-    QString label;
-    QString expr;
-    // DataValue
-    QJsonValue jsonValue;*/
 
     bool collectChars();
 

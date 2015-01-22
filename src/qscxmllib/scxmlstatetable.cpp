@@ -148,9 +148,19 @@ void InstructionVisitor::accept(Instruction *instruction) {
     case Instruction::Cancel:
         visitCancel(static_cast<Cancel *>(instruction));
         break;
-    case Instruction::Invoke:
+    case Instruction::Invoke: {
         visitInvoke(static_cast<Invoke *>(instruction));
+        auto invokeInstruction = static_cast<Invoke *>(instruction);
+        if (!visitInvoke(invokeInstruction))
+            break;
+        if (!visitSequence(&invokeInstruction->finalize))
+            break;
+        for (int i = 0; i < invokeInstruction->finalize.statements.size(); ++i)
+            accept(invokeInstruction->finalize.statements[i].data());
+        endVisitSequence(&invokeInstruction->finalize);
+        endVisitInvoke(invokeInstruction);
         break;
+    }
     case Instruction::Sequence: {
         auto sequenceInstruction = static_cast<InstructionSequence *>(instruction);
         if (!visitSequence(sequenceInstruction))
@@ -175,6 +185,11 @@ void If::execute()
     }
     if (conditions.size() < blocks.size())
         blocks[conditions.size()].execute();
+}
+
+Send::~Send()
+{
+    delete content; content = 0;
 }
 
 } // namespace ExecutableContent
@@ -288,7 +303,6 @@ bool StateTable::evalBool(const QString &expr) const
     return expr.isEmpty(); // to do
 }
 
-
 void StateTable::beginSelectTransitions(QEvent *event)
 {
     if (event && event->type() != QEvent::None) {
@@ -382,42 +396,68 @@ void StateTable::assignEvent() {
         m_dataModelJSValues.setProperty(QStringLiteral("_event"), _event.jsValue(m_engine));
 }
 
-bool StateTable::init(QJSEngine *engine, ErrorDumper)
+bool loopOnSubStates(QState *startState,
+                  std::function<bool(QState *)> enteringState,
+                  std::function<void(QState *)> exitingState,
+                  std::function<void(QAbstractState *)> inAbstractState)
 {
-    setEngine(engine);
     QList<int> pos;
-    QState *parentAtt = this;
-    QObjectList childs = children();
+    QState *parentAtt = startState;
+    QObjectList childs = startState->children();
     pos << 0;
-    bool res = true;
     while (!pos.isEmpty()) {
         bool goingDeeper = false;
         for (int i = pos.last(); i < childs.size() ; ++i) {
-            if (QState *s = qobject_cast<QState *>(childs.at(i))) {
-                pos.last() = i + 1;
-                parentAtt = s;
-                childs = s->children();
-                pos << 0;
-                goingDeeper = ! childs.isEmpty();
-                break;
+            if (QAbstractState *as = qobject_cast<QAbstractState *>(childs.at(i))) {
+                if (QState *s = qobject_cast<QState *>(as)) {
+                    if (enteringState && !enteringState(s))
+                        continue;
+                    pos.last() = i + 1;
+                    parentAtt = s;
+                    childs = s->children();
+                    pos << 0;
+                    goingDeeper = !childs.isEmpty();
+                    break;
+                } else if (inAbstractState) {
+                    inAbstractState(as);
+                }
             }
         }
         if (!goingDeeper) {
             do {
-                if (ScxmlState *s = qobject_cast<ScxmlState *>(parentAtt))
-                    if (!s->init())
-                        res = false;
-                foreach (QAbstractTransition *t, parentAtt->transitions()) {
-                    if (ScxmlTransition *scTransition = qobject_cast<ScxmlTransition *>(t))
-                        scTransition->init();
-                }
-                parentAtt = parentAtt->parentState();
                 pos.removeLast();
+                if (pos.isEmpty())
+                    break;
+                if (exitingState)
+                    exitingState(parentAtt);
+                parentAtt = parentAtt->parentState();
                 childs = parentAtt->children();
             } while (!pos.isEmpty() && pos.last() >= childs.size());
         }
     }
     return true;
+}
+
+bool StateTable::init(QJSEngine *engine, ErrorDumper)
+{
+    setEngine(engine);
+    bool res = true;
+    loopOnSubStates(this, 0, [&res](QState *state) {
+        if (ScxmlState *s = qobject_cast<ScxmlState *>(state))
+            if (!s->init())
+                res = false;
+        foreach (QAbstractTransition *t, state->transitions()) {
+            if (ScxmlTransition *scTransition = qobject_cast<ScxmlTransition *>(t))
+                if (!scTransition->init())
+                    res = false;
+        }
+    });
+    foreach (QAbstractTransition *t, transitions()) {
+        if (ScxmlTransition *scTransition = qobject_cast<ScxmlTransition *>(t))
+            if (!scTransition->init())
+                res = false;
+    }
+    return res;
 }
 
 QJSEngine *StateTable::engine() const
@@ -662,21 +702,29 @@ StateTable *ScxmlState::table() const {
 
 bool ScxmlState::init()
 {
-    if (!m_onEntryInstruction.init())
+    if (!onEntryInstruction.init())
         return false;
-    if (!m_onExitInstruction.init())
+    if (!onExitInstruction.init())
         return false;
     return true;
 }
 
+QString ScxmlState::stateLocation() const
+{
+    StateTable *t = table();
+    QString id = (t ? t->objectId(const_cast<ScxmlState *>(this), true) : QString());
+    QString name = objectName();
+    return QStringLiteral("State %1 (%2)").arg(id, name);
+}
+
 void ScxmlState::onEntry(QEvent *event) {
     QState::onEntry(event);
-    m_onEntryInstruction.execute();
+    onEntryInstruction.execute();
 }
 
 void ScxmlState::onExit(QEvent *event) {
     QState::onExit(event);
-    m_onExitInstruction.execute();
+    onExitInstruction.execute();
 }
 
 StateTable *ScxmlFinalState::table() const {
@@ -715,6 +763,8 @@ QStringList XmlNode::texts() const {
 }
 
 QString XmlNode::text() const {
+    if (isText())
+        return m_name.mid(1);
     QStringList res;
     foreach (const XmlNode &node, m_childs)
         if (node.isText())
@@ -763,7 +813,7 @@ bool XmlNode::loopOnText(std::function<bool (const QString &)> l) const {
     return true;
 }
 
-bool XmlNode::loopOnChilds(std::function<bool (const XmlNode &)> l) {
+bool XmlNode::loopOnChilds(std::function<bool (const XmlNode &)> l) const {
     foreach (const XmlNode &n, m_childs) {
         if (!l(n))
             return false;
@@ -777,6 +827,45 @@ bool XmlNode::loopOnTags(std::function<bool (const XmlNode &)> l) const {
             return false;
     }
     return true;
+}
+
+void XmlNode::dump(QXmlStreamWriter &s) const
+{
+    if (isText()) {
+        s.writeCharacters(text());
+    } else {
+        s.writeStartElement(m_namespace, m_name);
+        s.writeAttributes(m_attributes);
+        loopOnChilds([this, &s](const XmlNode &node) { node.dump(s); return true; }); // avoid recursion?
+        s.writeEndElement();
+    }
+}
+
+bool ScxmlInitialState::init()
+{
+    bool res = true;
+    if (transitions().size() != 1) {
+        qCWarning(scxmlLog) << "An initial state (like " << stateLocation() << " in "
+                            << (parentState() ? parentState()->objectName() : QStringLiteral("*null*"))
+                            << "should have exactly one transition.";
+        res = false;
+    } else if (ScxmlTransition *t = qobject_cast<ScxmlTransition *>(transitions().first())){
+        if (!t->eventSelector.isEmpty() || !t->conditionalExp.isEmpty()) {
+            qCWarning(scxmlLog) << "A transition of an initial state (like " << stateLocation() << " in "
+                                << (parentState() ? parentState()->objectName() : QStringLiteral("*null*"))
+                                << ") should have no event or condition";
+        }
+    }
+    foreach (QObject *child, children()) {
+        if (qobject_cast<QState *>(child)) {
+            qCWarning(scxmlLog) << "An initial state (like " << stateLocation() << " in "
+                                << (parentState() ? parentState()->objectName() : QStringLiteral("*null*"))
+                                << "should have no substates.";
+            res = false;
+            break;
+        }
+    }
+    return res;
 }
 
 } // namespace Scxml
