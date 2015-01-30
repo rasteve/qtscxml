@@ -27,7 +27,7 @@
 #include <QJSEngine>
 
 namespace Scxml {
-SCXML_EXPORT Q_LOGGING_CATEGORY(scxmlLog, "scxml.table")
+Q_LOGGING_CATEGORY(scxmlLog, "scxml.table")
 
 QEvent::Type ScxmlEvent::scxmlEventType = (QEvent::Type)QEvent::registerEventType();
 
@@ -241,7 +241,7 @@ QString StateTable::objectId(QObject *obj, bool strict) {
     if (!nameAtt.isEmpty()) { // try to use objectname if it does not clash with a subObject
         QObject *subObj = findChild<QObject *>(nameAtt);
         if ((!subObj || subObj == obj) && m_idObjects.value(nameAtt).data() == 0) {
-            addId(nameAtt, obj, 0, true);
+            addId(nameAtt, obj, Q_NULLPTR, true);
             return nameAtt;
         }
         QObject *objAtt = obj;
@@ -283,7 +283,7 @@ QString StateTable::objectId(QObject *obj, bool strict) {
             return path.join(QLatin1Char('.'));
     }
     QString idStr = QString(QStringLiteral("@%1").arg((size_t)(void *)obj));
-    addId(idStr, obj, 0, true);
+    addId(idStr, obj, Q_NULLPTR, true);
     return idStr;
 }
 
@@ -442,7 +442,7 @@ bool StateTable::init(QJSEngine *engine, ErrorDumper)
 {
     setEngine(engine);
     bool res = true;
-    loopOnSubStates(this, 0, [&res](QState *state) {
+    loopOnSubStates(this, std::function<bool(QState *)>(), [&res](QState *state) {
         if (ScxmlState *s = qobject_cast<ScxmlState *>(state))
             if (!s->init())
                 res = false;

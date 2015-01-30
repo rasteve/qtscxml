@@ -31,14 +31,16 @@ static Q_LOGGING_CATEGORY(scxmlParserLog, "scxml.parser")
 
 namespace Scxml {
 
-ScxmlParser::ScxmlParser(QIODevice *device) :
-    m_reader(new QXmlStreamReader(device)), m_state(StartingParsing) { }
+ScxmlParser::ScxmlParser(QIODevice *device)
+    : m_reader(new QXmlStreamReader(device))
+    , m_state(StartingParsing)
+    , m_table(new StateTable)
+{ }
 
 void ScxmlParser::parse()
 {
     while (!m_reader->atEnd()) {
         QXmlStreamReader::TokenType tt = m_reader->readNext();
-        qCDebug(scxmlParserLog) << "parse, tt=" << tt;
         switch (tt) {
         case QXmlStreamReader::NoToken:
             // The reader has not yet read anything.
@@ -104,7 +106,7 @@ void ScxmlParser::parse()
                     return;
                 }
                 if (attributes.value(QLatin1String("version")) != QLatin1String("1.0")) {
-                    addError("unsupporter scxml version, expected 1.0 in scxml tag");
+                    addError("unsupported scxml version, expected 1.0 in scxml tag");
                     return;
                 }
                 ParserState pNew = ParserState(ParserState::Scxml);
@@ -289,17 +291,25 @@ void ScxmlParser::parse()
                 return;
             case ParserState::State:
                 m_currentState = m_currentParent = m_currentParent->parentState();
+                break;
             case ParserState::Parallel:
                 m_currentState = m_currentParent = m_currentParent->parentState();
+                break;
             case ParserState::Transition:
+                break;
             case ParserState::Initial:
                 m_currentState = m_currentParent;
+                break;
             case ParserState::Final:
                 m_currentState = m_currentParent;
+                break;
             case ParserState::OnEntry:
+                break;
             case ParserState::OnExit:
+                break;
             case ParserState::History:
                 m_currentState = m_currentParent;
+                break;
             case ParserState::Raise:
             case ParserState::If:
             case ParserState::ElseIf:
@@ -391,20 +401,20 @@ bool ScxmlParser::checkAttributes(const QXmlStreamAttributes &attributes, const 
     QString allAttrib = QString::fromLatin1(attribStr);
     QStringList attrSplit = allAttrib.split(QLatin1Char('|'));
     QStringList requiredNames, optionalNames;
-    requiredNames = attrSplit.value(0).split(QLatin1Char(','));
-    optionalNames = attrSplit.value(1).split(QLatin1Char(','));
+    requiredNames = attrSplit.value(0).split(QLatin1Char(','), QString::SkipEmptyParts);
+    optionalNames = attrSplit.value(1).split(QLatin1Char(','), QString::SkipEmptyParts);
     if (attrSplit.size() > 2) {
         addError("Internal error, invalid attribStr in checkAttributes");
         m_state = ParsingError;
     }
-    return checkAttributes(attributes, attribStr);
+    return checkAttributes(attributes, requiredNames, optionalNames);
 }
 
 bool ScxmlParser::checkAttributes(const QXmlStreamAttributes &attributes, QStringList requiredNames, QStringList optionalNames)
 {
     foreach (const QXmlStreamAttribute &attribute, attributes) {
-        QString name = attribute.name().toString();
-        if (!requiredNames.removeOne(name) && !optionalNames.contains(name)) {
+        const QString name = attribute.name().toString();
+        if (attribute.namespaceUri().isEmpty() && !requiredNames.removeOne(name) && !optionalNames.contains(name)) {
             addError(QStringLiteral("Unexpected attribute '%1'").arg(name));
             m_state = ParsingError;
             return false;

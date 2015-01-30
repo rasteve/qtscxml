@@ -16,6 +16,8 @@
  ** from Digia Plc.
  ****************************************************************************/
 
+#pragma once
+
 #include "scxmlglobals.h"
 #include <QState>
 #include <QFinalState>
@@ -46,7 +48,7 @@ class QTextStream;
 QT_END_NAMESPACE
 
 namespace Scxml {
-Q_DECLARE_LOGGING_CATEGORY(scxmlLog)
+SCXML_EXPORT Q_DECLARE_LOGGING_CATEGORY(scxmlLog)
 struct XmlNode;
 
 class SCXML_EXPORT ScxmlEvent: public QEvent {
@@ -87,9 +89,9 @@ private:
 typedef std::function<bool(const QString &)> ErrorDumper;
 
 bool loopOnSubStates(QState *startState,
-                  std::function<bool(QState *)> enteringState = 0,
-                  std::function<void(QState *)> exitingState = 0,
-                  std::function<void(QAbstractState *)> inAbstractState = 0);
+                  std::function<bool(QState *)> enteringState = Q_NULLPTR,
+                  std::function<void(QState *)> exitingState = Q_NULLPTR,
+                  std::function<void(QAbstractState *)> inAbstractState = Q_NULLPTR);
 
 class SCXML_EXPORT StateTable: public QStateMachine
 {
@@ -159,7 +161,7 @@ public:
     }
 
     bool addId(const QString &idStr, QObject *value,
-               std::function<bool(const QString &)> errorDumper = 0, bool overwrite = false);
+               std::function<bool(const QString &)> errorDumper = Q_NULLPTR, bool overwrite = false);
 
     QJSValue datamodelJSValues() const;
 

@@ -120,18 +120,21 @@ public:
         return m_table;
     }
 
+    State state() const { return m_state; }
+    QList<ErrorMessage> errors() const { return m_errors; }
+
 private:
     bool maybeId(const QXmlStreamAttributes &attributes, QObject *obj);
     bool checkAttributes(const QXmlStreamAttributes &attributes, const char *attribStr);
     bool checkAttributes(const QXmlStreamAttributes &attributes, QStringList requiredNames,
                          QStringList optionalNames);
 
-    StateTable *m_table;
-    ScxmlTransition *m_currentTransition;
-    QState *m_currentParent;
-    QAbstractState *m_currentState;
+    StateTable *m_table = 0;
+    ScxmlTransition *m_currentTransition = 0;
+    QState *m_currentParent = 0;
+    QAbstractState *m_currentState = 0;
 
-    QXmlStreamReader *m_reader;
+    QXmlStreamReader *m_reader = 0;
     QVector<ParserState> m_stack;
     State m_state;
     QList<ErrorMessage> m_errors;
