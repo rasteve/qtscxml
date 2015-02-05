@@ -26,19 +26,28 @@
 #include <QSignalTransition>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QFile>
+#include <QFileInfo>
 
 static Q_LOGGING_CATEGORY(scxmlParserLog, "scxml.parser")
 
 namespace Scxml {
 
-ScxmlParser::ScxmlParser(QIODevice *device)
-    : m_reader(new QXmlStreamReader(device))
+ScxmlParser::ScxmlParser(QFile *device)
+    : m_table(0)
+    , m_currentTransition(0)
+    , m_currentParent(0)
+    , m_currentState(0)
+    , m_basedir(QFileInfo(device->fileName()).absolutePath())
+    , m_reader(new QXmlStreamReader(device))
     , m_state(StartingParsing)
-    , m_table(new StateTable)
 { }
 
 void ScxmlParser::parse()
 {
+    m_table = new StateTable;
+    m_currentParent = m_table;
+    m_currentState = m_table;
     while (!m_reader->atEnd()) {
         QXmlStreamReader::TokenType tt = m_reader->readNext();
         switch (tt) {
@@ -138,6 +147,7 @@ void ScxmlParser::parse()
                 if (!name.isEmpty())
                     m_table->_name = name.toString();
                 m_currentState = m_currentParent = m_table;
+                pNew.instructionContainer = &m_table->m_initialSetup;
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("state")) {
                 if (!checkAttributes(attributes, "|id,initial")) return;
@@ -156,15 +166,18 @@ void ScxmlParser::parse()
                 m_stack.append(ParserState(ParserState::Parallel));
             } else if (elName == QLatin1String("initial")) {
                 if (!checkAttributes(attributes, "")) return;
-                addError("Specification of the initial state through the initial tag not supported.");
-                m_stack.append(ParserState(ParserState::Initial));
+                ParserState pNew(ParserState::Initial);
+                QState *newState = new ScxmlInitialState(m_currentParent);
+                m_currentState = m_currentParent = newState;
+                m_stack.append(pNew);
             } else if (elName == QLatin1String("transition")) {
                 if (!checkAttributes(attributes, "|event,cond,target,type")) return;
                 m_currentTransition = new ScxmlTransition(m_currentParent,
                                 attributes.value("event").toString(),
-                                attributes.value("target").toString(),
+                                attributes.value("target").toString().split(QLatin1Char(' ')),
                                 attributes.value("cond").toString());
                 ParserState pNew = ParserState(ParserState::Transition);
+                pNew.instructionContainer = &m_currentTransition->instructionsOnTransition;
                 QStringRef type = attributes.value("type");
                 if (!type.isEmpty() && type != QLatin1String("internal")) {
                     addError(QStringLiteral("only internal transitions are supported"));
@@ -179,10 +192,38 @@ void ScxmlParser::parse()
                 m_stack.append(ParserState(ParserState::Final));
             } else if (elName == QLatin1String("onentry")) {
                 if (!checkAttributes(attributes, "")) return;
-                m_stack.append(ParserState(ParserState::OnEntry));
+                ParserState pNew(ParserState::OnEntry);
+                switch (m_stack.last().kind) {
+                case ParserState::Final:
+                    pNew.instructionContainer = &qobject_cast<ScxmlFinalState *>(m_currentState)->onEntryInstruction;
+                    break;
+                case ParserState::State:
+                case ParserState::Parallel:
+                    pNew.instructionContainer = &qobject_cast<ScxmlState *>(m_currentState)->onEntryInstruction;
+                    break;
+                default:
+                    addError("unexpected container state for onentry");
+                    m_state = ParsingError;
+                    break;
+                }
+                m_stack.append(pNew);
             } else if (elName == QLatin1String("onexit")) {
                 if (!checkAttributes(attributes, "")) return;
-                m_stack.append(ParserState(ParserState::OnExit));
+                ParserState pNew(ParserState::OnExit);
+                switch (m_stack.last().kind) {
+                case ParserState::Final:
+                    pNew.instructionContainer = &qobject_cast<ScxmlFinalState *>(m_currentState)->onExitInstruction;
+                    break;
+                case ParserState::State:
+                case ParserState::Parallel:
+                    pNew.instructionContainer = &qobject_cast<ScxmlState *>(m_currentState)->onExitInstruction;
+                    break;
+                default:
+                    addError("unexpected container state for onexit");
+                    m_state = ParsingError;
+                    break;
+                }
+                m_stack.append(pNew);
             } else if (elName == QLatin1String("history")) {
                 if (!checkAttributes(attributes, "|id,type")) return;
                 QHistoryState *newState = new QHistoryState(m_currentParent);
@@ -248,29 +289,107 @@ void ScxmlParser::parse()
                 m_stack.append(ParserState(ParserState::DataModel));
             } else if (elName == QLatin1String("data")) {
                 if (!checkAttributes(attributes, "id|src,expr")) return;
-                QString dataName = attributes.value("id").toString();
-                QStringRef src = attributes.value("src");
-                QStringRef expr = attributes.value("expr");
-                //maybeId()
+                ScxmlData data;
+                data.id = attributes.value("id").toString();
+                data.src = attributes.value("src").toString();
+                data.expr = attributes.value("expr").toString();
+                data.context = m_currentParent;
+                table()->m_data.append(data);
                 m_stack.append(ParserState(ParserState::Data));
             } else if (elName == QLatin1String("assign")) {
-                m_stack.append(ParserState(ParserState::Assign));
+                if (!checkAttributes(attributes, "location|expr")) return;
+                ParserState pNew = ParserState(ParserState::Assign);
+                ExecutableContent::AssignExpression *assign = new ExecutableContent::AssignExpression;
+                assign->location = attributes.value(QLatin1String("location")).toString();
+                assign->expression = attributes.value(QLatin1String("expr")).toString();
+                pNew.instruction = assign;
+                m_stack.append(pNew);
             } else if (elName == QLatin1String("donedata")) {
-                m_stack.append(ParserState(ParserState::DoneData));
+                if (!checkAttributes(attributes, "")) return;
+                ParserState pNew = ParserState(ParserState::DoneData);
+                m_stack.append(pNew);
             } else if (elName == QLatin1String("content")) {
-                m_stack.append(ParserState(ParserState::Content));
+                if (!checkAttributes(attributes, "")) return;
+                ParserState pNew = ParserState(ParserState::Content);
+                m_stack.append(pNew);
             } else if (elName == QLatin1String("param")) {
-                m_stack.append(ParserState(ParserState::Param));
+                if (!checkAttributes(attributes, "name|expr,location")) return;
+                ParserState pNew = ParserState(ParserState::Param);
+                ExecutableContent::Param param;
+                param.name = attributes.value(QLatin1String("name")).toString();
+                param.expr = attributes.value(QLatin1String("expr")).toString();
+                param.location = attributes.value(QLatin1String("location")).toString();
+                if (m_stack.last().kind == ParserState::DoneData) {
+                    static_cast<ScxmlFinalState *>(m_currentState)->doneData.params.append(param);
+                } else if (m_stack.last().kind == ParserState::Send) {
+                    static_cast<ExecutableContent::Send *>(m_stack.last().instruction)->params.append(param);
+                } else if (m_stack.last().kind == ParserState::Invoke) {
+                    static_cast<ExecutableContent::Send *>(m_stack.last().instruction)->params.append(param);
+                } else {
+                    addError(QStringLiteral("unexpected parent of param %1").arg(m_stack.last().kind));
+                    m_state = ParsingError;
+                }
+                m_stack.append(pNew);
             } else if (elName == QLatin1String("script")) {
-                m_stack.append(ParserState(ParserState::Script));
+                if (!checkAttributes(attributes, "|src")) return;
+                ParserState pNew = ParserState(ParserState::Script);
+                ExecutableContent::JavaScript *script = new ExecutableContent::JavaScript;
+                script->src = attributes.value(QLatin1String("src")).toString();
+                pNew.instruction = script;
+                m_stack.append(pNew);
             } else if (elName == QLatin1String("send")) {
-                m_stack.append(ParserState(ParserState::Send));
+                if (!checkAttributes(attributes, "|event,eventexpr,id,idlocation,type,typeexpr,namelist,delay,delayexpr,target,targetexpr")) return;
+                ParserState pNew = ParserState(ParserState::Send);
+                ExecutableContent::Send *send = new ExecutableContent::Send;
+                send->event = attributes.value(QLatin1String("event")).toString();
+                send->eventexpr = attributes.value(QLatin1String("eventexpr")).toString();
+                send->delay = attributes.value(QLatin1String("delay")).toString();
+                send->delayexpr = attributes.value(QLatin1String("delayexpr")).toString();
+                send->id = attributes.value(QLatin1String("id")).toString();
+                send->idLocation = attributes.value(QLatin1String("idlocation")).toString();
+                send->type = attributes.value(QLatin1String("type")).toString();
+                send->typeexpr = attributes.value(QLatin1String("typeexpr")).toString();
+                send->target = attributes.value(QLatin1String("target")).toString();
+                send->targetexpr = attributes.value(QLatin1String("targetexpr")).toString();
+                send->namelist = attributes.value(QLatin1String("namelist")).toString().split(QLatin1Char(' '));
+                send->content = 0;
+                pNew.instruction = send;
+                m_stack.append(pNew);
             } else if (elName == QLatin1String("cancel")) {
-                m_stack.append(ParserState(ParserState::Cancel));
+                if (!checkAttributes(attributes, "|sendid,sendidexpr")) return;
+                ParserState pNew = ParserState(ParserState::Cancel);
+                ExecutableContent::Cancel *cancel = new ExecutableContent::Cancel;
+                cancel->sendid = attributes.value(QLatin1String("sendid")).toString();
+                cancel->sendidexpr = attributes.value(QLatin1String("sendidexpr")).toString();
+                pNew.instruction = cancel;
+                m_stack.append(pNew);
             } else if (elName == QLatin1String("invoke")) {
-                m_stack.append(ParserState(ParserState::Invoke));
+                if (!checkAttributes(attributes, "|event,eventexpr,id,idlocation,type,typeexpr,namelist,delay,delayexpr")) return;
+                ParserState pNew = ParserState(ParserState::Invoke);
+                ExecutableContent::Invoke *invoke = new ExecutableContent::Invoke;
+                invoke->src = attributes.value(QLatin1String("src")).toString();
+                invoke->srcexpr = attributes.value(QLatin1String("srcexpr")).toString();
+                invoke->id = attributes.value(QLatin1String("id")).toString();
+                invoke->idLocation = attributes.value(QLatin1String("idlocation")).toString();
+                invoke->type = attributes.value(QLatin1String("type")).toString();
+                invoke->typeexpr = attributes.value(QLatin1String("typeexpr")).toString();
+                QStringRef autoforwardS = attributes.value(QLatin1String("autoforward"));
+                if (QStringRef::compare(autoforwardS, QLatin1String("true"), Qt::CaseInsensitive) == 0
+                        || QStringRef::compare(autoforwardS, QLatin1String("yes"), Qt::CaseInsensitive) == 0
+                        || QStringRef::compare(autoforwardS, QLatin1String("t"), Qt::CaseInsensitive) == 0
+                        || QStringRef::compare(autoforwardS, QLatin1String("y"), Qt::CaseInsensitive) == 0
+                        || autoforwardS == QLatin1String("1"))
+                    invoke->autoforward = true;
+                else
+                    invoke->autoforward = false;
+                invoke->namelist = attributes.value(QLatin1String("namelist")).toString().split(QLatin1Char(' '));
+                pNew.instruction = invoke;
+                m_stack.append(pNew);
             } else if (elName == QLatin1String("finalize")) {
-                m_stack.append(ParserState(ParserState::Finalize));
+                ParserState pNew(ParserState::Finalize);
+                Q_ASSERT(m_stack.last().instruction->instructionKind() == ExecutableContent::Instruction::Invoke);
+                pNew.instructionContainer = &static_cast<ExecutableContent::Invoke *>(m_stack.last().instruction)->finalize;
+                m_stack.append(pNew);
             } else {
                 qCWarning(scxmlParserLog) << "unexpected element " << elName;
             }
@@ -290,44 +409,79 @@ void ScxmlParser::parse()
                 m_state = FinishedParsing;
                 return;
             case ParserState::State:
-                m_currentState = m_currentParent = m_currentParent->parentState();
-                break;
             case ParserState::Parallel:
                 m_currentState = m_currentParent = m_currentParent->parentState();
                 break;
-            case ParserState::Transition:
+            case ParserState::Initial: {
+                if (m_currentParent->transitions().size() != 1) {
+                    addError("initial state should have exactly one transition");
+                    m_state = ParsingError;
+                    return;
+                }
+                ScxmlTransition *t = qobject_cast<ScxmlTransition *>(m_currentParent->transitions().first());
+                if (!t->eventSelector.isEmpty()
+                        || !t->conditionalExp.isEmpty()) {
+                    addError("transition in initial state should have no event or condition");
+                    m_state = ParsingError;
+                    return;
+                }
+                QState *parentParent = m_currentParent->parentState();
+                if (!t->instructionsOnTransition.statements.isEmpty() || t->targetIds().size() > 1) {
+                    if (!parentParent || parentParent->childMode() == QState::ParallelStates) {
+                        addError("initial state of parallel states not supported");
+                        m_state = ParsingError;
+                        return;
+                    }
+                    parentParent->setInitialState(m_currentParent);
+                } else {
+                    if (!t->targetIds().isEmpty()) // else error?
+                        m_stack.last().initialId = t->targetIds().first();
+                    delete m_currentParent;
+                }
+                m_currentState = m_currentParent = parentParent;
                 break;
-            case ParserState::Initial:
-                m_currentState = m_currentParent;
-                break;
+            }
             case ParserState::Final:
+            case ParserState::History:
                 m_currentState = m_currentParent;
                 break;
+            case ParserState::Transition:
+                Q_ASSERT(m_currentTransition);
+                m_currentParent->addTransition(m_currentTransition);
+                m_currentTransition = 0;
             case ParserState::OnEntry:
                 break;
             case ParserState::OnExit:
                 break;
-            case ParserState::History:
-                m_currentState = m_currentParent;
+            case ParserState::ElseIf:
+            case ParserState::Else:
                 break;
             case ParserState::Raise:
             case ParserState::If:
-            case ParserState::ElseIf:
-            case ParserState::Else:
             case ParserState::Foreach:
             case ParserState::Log:
-            case ParserState::DataModel:
-            case ParserState::Data:
-            case ParserState::DataElement:
             case ParserState::Assign:
-            case ParserState::DoneData:
-            case ParserState::Content:
-            case ParserState::Param:
             case ParserState::Script:
             case ParserState::Send:
             case ParserState::Cancel:
-            case ParserState::Invoke:
+            case ParserState::Invoke: {
+                ExecutableContent::InstructionSequence *instructions = m_stack.last().instructionContainer;
+                if (!instructions) {
+                    addError("got executable content within an element that did not set insttuctionContainer");
+                    m_state = ParsingError;
+                    return;
+                }
+                instructions->statements.append(ExecutableContent::Instruction::Ptr(p.instruction));
+                p.instruction = 0;
+                break;
+            }
             case ParserState::Finalize:
+            case ParserState::DataModel:
+            case ParserState::Data:
+            case ParserState::DataElement:
+            case ParserState::DoneData:
+            case ParserState::Content:
+            case ParserState::Param:
             case ParserState::None:
                 break;
             }
@@ -360,6 +514,7 @@ void ScxmlParser::parse()
     if (m_reader->hasError()
             && m_reader->error() != QXmlStreamReader::PrematureEndOfDocumentError) {
         addError("Error parsing scxml file");
+        addError(m_reader->errorString());
         m_state = ParsingError;
     }
 }
@@ -369,6 +524,17 @@ void ScxmlParser::addError(const QString &msg, ErrorMessage::Severity severity)
     m_errors.append(ErrorMessage(severity, msg, QStringLiteral("%1:%2 %3").arg(m_reader->lineNumber())
                                  .arg(m_reader->columnNumber())
                                  .arg((m_reader->error() != QXmlStreamReader::NoError) ? m_reader->errorString() : QString())));
+    switch (severity){
+    case ErrorMessage::Debug:
+        qCDebug(scxmlLog) << m_errors.last().msg << m_errors.last().parserState;
+        break;
+    case ErrorMessage::Info:
+        qCWarning(scxmlLog) << m_errors.last().msg << m_errors.last().parserState;
+        break;
+    case ErrorMessage::Error:
+        qCWarning(scxmlLog) << m_errors.last().msg << m_errors.last().parserState;
+        break;
+    }
     if (severity == ErrorMessage::Error)
         m_state = ParsingError;
 }
@@ -407,6 +573,12 @@ bool ScxmlParser::checkAttributes(const QXmlStreamAttributes &attributes, const 
         addError("Internal error, invalid attribStr in checkAttributes");
         m_state = ParsingError;
     }
+    foreach (const QString &rName, requiredNames)
+        if (rName.isEmpty())
+            requiredNames.removeOne(rName);
+    foreach (const QString &oName, optionalNames)
+        if (oName.isEmpty())
+            optionalNames.removeOne(oName);
     return checkAttributes(attributes, requiredNames, optionalNames);
 }
 

@@ -17,6 +17,7 @@
  ****************************************************************************/
 
 #include "../qscxmllib/scxmlparser.h"
+#include "../qscxmllib/scxmldumper.h"
 
 #include <QCoreApplication>
 #include <QFile>
@@ -32,5 +33,15 @@ int main(int argc, char *argv[])
         return -1;
     }
     Scxml::ScxmlParser parser(&file);
+    parser.parse();
+    QFile outF(a.arguments().value(2, QLatin1String("out.scxml")));
+    outF.open(QFile::WriteOnly);
+    QXmlStreamWriter w(&outF);
+    w.setAutoFormattingIndent(2);
+    w.setAutoFormatting(true);
+    Scxml::ScxmlDumper dumper(w);
+    dumper.dump(parser.table());
+    outF.close();
+    a.exit();
     return a.exec();
 }

@@ -217,7 +217,7 @@ bool StateTable::addId(const QString &idStr, QObject *value, std::function<bool 
         }
     }
     if (m_warnIndirectIdClashes) {
-        auto oldVal = idToValue<QObject>(idStr);
+        auto oldVal = idToValue<QObject>(idStr, true);
         if (oldVal != 0 && oldVal != value)
             if (errorDumper) errorDumper(QStringLiteral("id '%1' shadows indirectly accessible ").arg(idStr));
     }
@@ -532,10 +532,10 @@ QJSValue ScxmlEvent::jsValue(QJSEngine *engine) const {
     return res;
 }
 
-ScxmlTransition::ScxmlTransition(QState *sourceState, const QString &eventSelector, const QString &targetId, const QString &conditionalExp, ExecutableContent::Instruction *instruction) :
+ScxmlTransition::ScxmlTransition(QState *sourceState, const QString &eventSelector, const QStringList &targetIds, const QString &conditionalExp, const ExecutableContent::InstructionSequence &instructions) :
     QAbstractTransition(sourceState), eventSelector(eventSelector),
-    instructionOnTransition(instruction), conditionalExp(conditionalExp),
-    m_targetId(targetId), m_bound(false) { }
+    instructionsOnTransition(instructions), conditionalExp(conditionalExp),
+    m_targetIds(targetIds), m_bound(false) { }
 
 StateTable *ScxmlTransition::table() const {
     if (sourceState())
@@ -604,16 +604,20 @@ bool ScxmlTransition::clear() {
 
 bool ScxmlTransition::init() {
     StateTable *stateTable = table();
-    if (!m_targetId.isEmpty()) {
-        QAbstractState *target = stateTable->idToValue<QAbstractState>(m_targetId);
-        if (!target) {
-            qCWarning(scxmlLog) << "ScxmlTransition could not resolve target state for id "
-                                << m_targetId << " for " << transitionLocation();
-            return false;
+    if (!m_targetIds.isEmpty()) {
+        QList<QAbstractState *> targets;
+        foreach (const QString &tId, m_targetIds) {
+            QAbstractState *target = stateTable->idToValue<QAbstractState>(tId);
+            if (!target) {
+                qCWarning(scxmlLog) << "ScxmlTransition could not resolve target state for id "
+                                    << tId << " for " << transitionLocation();
+                return false;
+            }
+            targets << target;
         }
-        setTargetState(target);
-    } else if (targetState()) {
-        setTargetState(0); // avoid?
+        setTargetStates(targets);
+    } else if (!targetStates().isEmpty()) {
+        setTargetStates(QList<QAbstractState *>()); // avoid?
     }
     if (stateTable->dataBinding() == StateTable::EarlyBinding) {
         m_bound = true;
@@ -694,6 +698,7 @@ void ScxmlTransition::onTransition(QEvent *)
         bind();
         m_bound = t->dataBinding() == StateTable::LateBinding;
     }
+    instructionsOnTransition.execute();
 }
 
 StateTable *ScxmlState::table() const {
@@ -733,21 +738,21 @@ StateTable *ScxmlFinalState::table() const {
 
 bool ScxmlFinalState::init()
 {
-    if (!m_onEntryInstruction.init())
+    if (!onEntryInstruction.init())
         return false;
-    if (!m_onExitInstruction.init())
+    if (!onExitInstruction.init())
         return false;
     return true;
 }
 
 void ScxmlFinalState::onEntry(QEvent *event) {
     QFinalState::onEntry(event);
-    m_onEntryInstruction.execute();
+    onEntryInstruction.execute();
 }
 
 void ScxmlFinalState::onExit(QEvent *event) {
     QFinalState::onExit(event);
-    m_onExitInstruction.execute();
+    onExitInstruction.execute();
 }
 
 bool XmlNode::isText() const {

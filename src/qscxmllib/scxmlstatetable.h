@@ -16,8 +16,8 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#pragma once
-
+#ifndef SCXMLSTATETABLE_H
+#define SCXMLSTATETABLE_H
 #include "scxmlglobals.h"
 #include <QState>
 #include <QFinalState>
@@ -87,11 +87,68 @@ private:
 
 
 typedef std::function<bool(const QString &)> ErrorDumper;
+struct ScxmlData {
+    QString id;
+    QString src;
+    QString expr;
+    QState *context;
+};
+
+typedef std::function<bool(const QString &)> ErrorDumper;
+class ScxmlParser;
 
 bool loopOnSubStates(QState *startState,
                   std::function<bool(QState *)> enteringState = Q_NULLPTR,
                   std::function<void(QState *)> exitingState = Q_NULLPTR,
                   std::function<void(QAbstractState *)> inAbstractState = Q_NULLPTR);
+class StateTable;
+
+namespace ExecutableContent {
+
+// dirty mix: AST, but directly executable...
+struct SCXML_EXPORT Instruction {
+public:
+    typedef QSharedPointer<Instruction> Ptr; // avoid smart pointer and simply delete in InstructionSequence destructor?
+    enum Kind {
+        Raise,
+        Send,
+        Log,
+        JavaScript,
+        AssignJson,
+        AssignExpression,
+        If,
+        Foreach,
+        Cancel,
+        Invoke,
+        Sequence
+    };
+    virtual ~Instruction() { }
+
+    StateTable *table() const;
+    QString instructionLocation();
+
+    virtual void execute() = 0;
+    virtual Kind instructionKind() const = 0;
+    virtual bool init();
+    virtual void clear() { }
+    virtual bool bind() { return true; }
+
+    QAbstractState *parentState;
+    QAbstractTransition *transition;
+};
+
+struct SCXML_EXPORT InstructionSequence : public Instruction {
+    void execute() Q_DECL_OVERRIDE;
+
+    Kind instructionKind() const Q_DECL_OVERRIDE {
+        return Sequence;
+    }
+    bool bind() Q_DECL_OVERRIDE;
+
+    QList<Instruction::Ptr> statements;
+};
+
+} // namespace ExecutableContent
 
 class SCXML_EXPORT StateTable: public QStateMachine
 {
@@ -218,64 +275,29 @@ public:
     typedef QHash<QString, QString> Dict;
     QList<Dict> _ioprocessors;
 private:
+    ExecutableContent::InstructionSequence m_initialSetup;
     QHash<QString, QPointer<QObject> > m_idObjects;
     QHash<QObject *, QString> m_objectIds;
     DataModelType m_dataModel;
+    QVector<ScxmlData> m_data;
     QJSEngine *m_engine;
     QJSValue m_dataModelJSValues;
     BindingMethod m_dataBinding;
     bool m_warnIndirectIdClashes;
+    friend class ScxmlParser;
 };
 
 namespace ExecutableContent {
-
-// dirty mix: AST, but directly executable...
-struct SCXML_EXPORT Instruction {
-public:
-    typedef QSharedPointer<Instruction> Ptr; // avoid smart pointer and simply delete in InstructionSequence destructor?
-    enum Kind {
-        Raise,
-        Send,
-        Log,
-        JavaScript,
-        AssignJson,
-        AssignExpression,
-        If,
-        Foreach,
-        Cancel,
-        Invoke,
-        Sequence
-    };
-    virtual ~Instruction() { }
-
-    StateTable *table() const;
-    QString instructionLocation();
-
-    virtual void execute() = 0;
-    virtual Kind instructionKind() const = 0;
-    virtual bool init();
-    virtual void clear() { }
-    virtual bool bind() { return true; }
-
-    QAbstractState *parentState;
-    QAbstractTransition *transition;
-};
-
-struct SCXML_EXPORT InstructionSequence : public Instruction {
-    void execute() Q_DECL_OVERRIDE;
-
-    Kind instructionKind() const Q_DECL_OVERRIDE {
-        return Sequence;
-    }
-    bool bind() Q_DECL_OVERRIDE;
-
-    QList<Instruction::Ptr> statements;
-};
 
 struct SCXML_EXPORT Param {
     QString name;
     QString expr;
     QString location;
+};
+
+struct SCXML_EXPORT DoneData {
+    XmlNode *content;
+    QVector<Param> params;
 };
 
 struct SCXML_EXPORT Send : public Instruction {
@@ -319,6 +341,7 @@ struct SCXML_EXPORT Script : public Instruction {
 
 struct SCXML_EXPORT JavaScript : public Script {
     QJSValue compiledFunction;
+    Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::JavaScript; }
     void execute() Q_DECL_OVERRIDE;
 };
 
@@ -401,7 +424,6 @@ public:
 };
 
 } // namespace ExecutableContent
-
 // this transition is used only to ensure that the signal is forwarded to the state machine
 // (mess with private api instead?), it never triggers, because it will have the incorrect
 // precedence as we add it late...
@@ -436,9 +458,9 @@ class SCXML_EXPORT ScxmlTransition : public QAbstractTransition {
 public:
     typedef QSharedPointer<ConcreteSignalTransition> TransitionPtr;
     ScxmlTransition(QState * sourceState = 0, const QString &eventSelector = QString(),
-                    const QString &targetId = QString(),
+                    const QStringList &targetIds = QStringList(),
                     const QString &conditionalExp = QString(),
-                    ExecutableContent::Instruction *instruction = 0);
+                    const ExecutableContent::InstructionSequence &instruction = ExecutableContent::InstructionSequence());
     StateTable *table() const;
 
     QString transitionLocation() const;
@@ -449,12 +471,13 @@ public:
     virtual bool bind();
 
     QString eventSelector;
-    ExecutableContent::Instruction *instructionOnTransition;
+    ExecutableContent::InstructionSequence instructionsOnTransition;
     QString conditionalExp;
+    QStringList targetIds() const { return m_targetIds; }
 protected:
     void onTransition(QEvent *event);
 private:
-    QString m_targetId;
+    QStringList m_targetIds;
     QList<TransitionPtr> m_concreteTransitions;
     bool m_bound;
 };
@@ -479,6 +502,7 @@ class SCXML_EXPORT ScxmlInitialState: public ScxmlState
 {
     Q_OBJECT
 public:
+    ScxmlInitialState(QState *parent): ScxmlState(parent) { }
     virtual bool init() Q_DECL_OVERRIDE;
 };
 
@@ -490,12 +514,17 @@ public:
     ScxmlFinalState(QState *parent) : QFinalState(parent) { }
     StateTable *table() const;
     virtual bool init();
+
+    ExecutableContent::InstructionSequence onEntryInstruction;
+    ExecutableContent::InstructionSequence onExitInstruction;
+    ExecutableContent::DoneData doneData;
 protected:
     void onEntry(QEvent * event) Q_DECL_OVERRIDE;
     void onExit(QEvent * event) Q_DECL_OVERRIDE;
+    QJSValue jsDoneData();
 private:
-    ExecutableContent::InstructionSequence m_onEntryInstruction;
-    ExecutableContent::InstructionSequence m_onExitInstruction;
+    QJSValue m_jsDoneData;
+    friend class ScxmlParser;
 };
 
 // Simple basic Xml "dom" to support the scxml xpath data model without qtxml dependency
@@ -529,3 +558,4 @@ protected:
 };
 
 } // namespace Scxml
+#endif // SCXMLSTATETABLE_H

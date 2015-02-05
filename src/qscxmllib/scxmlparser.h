@@ -28,6 +28,7 @@ QT_BEGIN_NAMESPACE
 class QXmlStreamAttributes;
 class QXmlStreamReader;
 class QHistoryState;
+class QFile;
 QT_END_NAMESPACE
 
 namespace Scxml {
@@ -66,6 +67,7 @@ struct ParserState {
     Kind kind;
     QString chars;
     ExecutableContent::Instruction *instruction;
+    ExecutableContent::InstructionSequence *instructionContainer;
     QString initialId;
 
     bool collectChars();
@@ -109,7 +111,7 @@ public:
         FinishedParsing,
     };
 
-    ScxmlParser(QIODevice * device);
+    ScxmlParser(QFile *device);
     void parse();
     void addError(const QString &msg, ErrorMessage::Severity severity = ErrorMessage::Error);
     void addError(const char *msg, ErrorMessage::Severity severity = ErrorMessage::Error);
@@ -129,12 +131,13 @@ private:
     bool checkAttributes(const QXmlStreamAttributes &attributes, QStringList requiredNames,
                          QStringList optionalNames);
 
-    StateTable *m_table = 0;
-    ScxmlTransition *m_currentTransition = 0;
-    QState *m_currentParent = 0;
-    QAbstractState *m_currentState = 0;
+    StateTable *m_table;
+    ScxmlTransition *m_currentTransition;
+    QState *m_currentParent;
+    QAbstractState *m_currentState;
+    QString m_basedir;
 
-    QXmlStreamReader *m_reader = 0;
+    QXmlStreamReader *m_reader;
     QVector<ParserState> m_stack;
     State m_state;
     QList<ErrorMessage> m_errors;

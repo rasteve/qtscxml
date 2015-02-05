@@ -20,6 +20,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QHistoryState>
 
 namespace Scxml {
 
@@ -337,16 +338,16 @@ bool ScxmlDumper::enterState(QState *state)
 {
     if (state->parentState() && state->parentState()->initialState() == state)
         if (ScxmlInitialState *i = qobject_cast<ScxmlInitialState *>(state)) {
-        writeStartElement("initial");
-        if (!i->transitions().isEmpty())
-            dumpTransition(i->transitions().first());
-        writeEndElement();
-        if (i->transitions().size() != 1) {
-            qCWarning(scxmlLog) << "initial element" << i->stateLocation()
-                                << " should have exactly one transition";
+            writeStartElement("initial");
+            if (!i->transitions().isEmpty())
+                dumpTransition(i->transitions().first());
+            writeEndElement();
+            if (i->transitions().size() != 1) {
+                qCWarning(scxmlLog) << "initial element" << i->stateLocation()
+                                    << " should have exactly one transition";
+            }
+            return false;
         }
-        return false;
-    }
     switch (state->childMode()) {
     case QState::ExclusiveStates:
         writeStartElement("state");
@@ -364,20 +365,76 @@ bool ScxmlDumper::enterState(QState *state)
             dumpInstruction(&ss->onEntryInstruction);
             writeEndElement();
         }
+        if (!ss->onExitInstruction.statements.isEmpty()) {
+            writeStartElement("onexit");
+            dumpInstruction(&ss->onEntryInstruction);
+            writeEndElement();
+        }
     }
     return true;
 }
 
 void ScxmlDumper::exitState(QState *state)
 {
-    Q_UNUSED(state);
-    Q_ASSERT(false);
+    foreach (QAbstractTransition *t, state->transitions())
+        dumpTransition(t);
+    writeEndElement();
 }
 
 void ScxmlDumper::inAbstractState(QAbstractState *state)
 {
-    Q_UNUSED(state);
-    Q_ASSERT(false);
+    if (ScxmlFinalState *finalState = qobject_cast<ScxmlFinalState *>(state)) {
+        writeStartElement("final");
+        writeAttribute("id", table->objectId(state));
+        if (!finalState->onEntryInstruction.statements.isEmpty()) {
+            writeStartElement("onentry");
+            dumpInstruction(&finalState->onEntryInstruction);
+            writeEndElement();
+        }
+        if (!finalState->onExitInstruction.statements.isEmpty()) {
+            writeStartElement("onexit");
+            dumpInstruction(&finalState->onEntryInstruction);
+            writeEndElement();
+        }
+        if (finalState->doneData.content || !finalState->doneData.params.isEmpty()) {
+            writeStartElement("donedata");
+            if (finalState->doneData.content)
+                finalState->doneData.content->dump(s);
+            foreach (const ExecutableContent::Param &p, finalState->doneData.params) {
+                writeStartElement("param");
+                writeAttribute("name", p.name);
+                if (!p.expr.isEmpty())
+                    writeAttribute("expr", p.expr);
+                if (!p.location.isEmpty())
+                    writeAttribute("location", p.location);
+                writeEndElement(); // param
+            }
+            writeEndElement(); // donedata
+        }
+        writeEndElement(); // final
+    } else if (qobject_cast<QFinalState *>(state)) {
+        writeStartElement("final");
+        writeAttribute("id", table->objectId(state));
+        writeEndElement(); // final
+    } else if (QHistoryState *historyState = qobject_cast<QHistoryState *>(state)) {
+        writeStartElement("history");
+        writeAttribute("id", table->objectId(state));
+        switch (historyState->historyType()) {
+        case QHistoryState::ShallowHistory:
+            writeAttribute("type", "shallow");
+            break;
+        case QHistoryState::DeepHistory:
+            writeAttribute("type", "deep");
+            break;
+        }
+        writeStartElement("transition");
+        writeAttribute("target", table->objectId(historyState->defaultState())); // having multiple parallel states not supported by the framework
+        writeEndElement(); // transition
+        writeEndElement(); // history
+    } else {
+        qCWarning(scxmlLog) << "Unexpected abstract state of class "
+                            << state->metaObject()->className() << " when dumping abstract state";
+    }
 }
 
 
