@@ -1,0 +1,4 @@
+.DS_Store
+/tests/3rdparty/scion-tests/node_modules
+*~
+*.pro.user
