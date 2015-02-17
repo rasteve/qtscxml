@@ -3,6 +3,5 @@ TEMPLATE = subdirs
 CONFIG += ordered
 
 SUBDIRS += \
-    qscxmllib \
-    qscxmlparse \
-    qscxmlserver
+    src
+#    tests

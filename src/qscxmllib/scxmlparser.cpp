@@ -33,15 +33,46 @@ static Q_LOGGING_CATEGORY(scxmlParserLog, "scxml.parser")
 
 namespace Scxml {
 
-ScxmlParser::ScxmlParser(QFile *device)
+ScxmlParser::ScxmlParser(QXmlStreamReader *reader, const QString &basedir)
     : m_table(0)
     , m_currentTransition(0)
     , m_currentParent(0)
     , m_currentState(0)
-    , m_basedir(QFileInfo(device->fileName()).absolutePath())
-    , m_reader(new QXmlStreamReader(device))
+    , m_basedir(basedir)
+    , m_reader(reader)
     , m_state(StartingParsing)
 { }
+
+void ScxmlParser::ensureInitialState(const QString &initialId)
+{
+    if (!initialId.isEmpty()) {
+        QAbstractState *initialState = table()->idToValue<QAbstractState>(initialId, true);
+        if (initialState) {
+            m_currentParent->setInitialState(initialState);
+        } else {
+            addError(QStringLiteral("could not resolve '%1', for the initial state of %2")
+                     .arg(initialId, table()->objectId(m_currentParent)));
+            m_state = ParsingError;
+            return;
+        }
+    }
+    if (!m_currentParent->initialState()) {
+        QAbstractState *firstState = 0;
+        loopOnSubStates(m_currentParent, [&firstState](QState *s) -> bool {
+            if (!firstState)
+                firstState = s;
+            return false;
+        }, 0, [&firstState](QAbstractState *s) -> void {
+            if (!firstState)
+                firstState = s;
+        });
+        if (firstState) {
+            qDebug() << "setting initial state of" << table()->objectId(m_currentParent) << " to "
+                     << table()->objectId(firstState);
+            m_currentParent->setInitialState(firstState);
+        }
+    }
+}
 
 void ScxmlParser::parse()
 {
@@ -166,6 +197,11 @@ void ScxmlParser::parse()
                 m_stack.append(ParserState(ParserState::Parallel));
             } else if (elName == QLatin1String("initial")) {
                 if (!checkAttributes(attributes, "")) return;
+                if (m_currentParent->childMode() == QState::ParallelStates) {
+                    addError(QStringLiteral("Explicit initial state for parallel states not supported (only implicitly through the initial states of its substates)"));
+                    m_state = ParsingError;
+                    return;
+                }
                 ParserState pNew(ParserState::Initial);
                 QState *newState = new ScxmlInitialState(m_currentParent);
                 m_currentState = m_currentParent = newState;
@@ -406,10 +442,20 @@ void ScxmlParser::parse()
             m_stack.removeLast();
             switch (p.kind) {
             case ParserState::Scxml:
+                ensureInitialState(p.initialId);
                 m_state = FinishedParsing;
                 return;
             case ParserState::State:
+                ensureInitialState(p.initialId);
+                m_currentState = m_currentParent = m_currentParent->parentState();
+                break;
             case ParserState::Parallel:
+                if (!p.initialId.isEmpty()) {
+                    addError(QStringLiteral("initial states (like '%1'), not supported for parallel state %2")
+                             .arg(p.initialId, table()->objectId(m_currentParent)));
+                    m_state = ParsingError;
+                    return;
+                }
                 m_currentState = m_currentParent = m_currentParent->parentState();
                 break;
             case ParserState::Initial: {
@@ -427,6 +473,7 @@ void ScxmlParser::parse()
                 }
                 QState *parentParent = m_currentParent->parentState();
                 if (!t->instructionsOnTransition.statements.isEmpty() || t->targetIds().size() > 1) {
+                    qDebug() << "setting initial state using substate and eventless transition";
                     if (!parentParent || parentParent->childMode() == QState::ParallelStates) {
                         addError("initial state of parallel states not supported");
                         m_state = ParsingError;

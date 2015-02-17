@@ -1,3 +1,4 @@
+QT += core_private
 HEADERS += \
     $$PWD/scxmlparser.h \
     $$PWD/scxmlstatetable.h \

@@ -263,8 +263,13 @@ signals:
                      const QString &origintype = QString(), const QString &invokeid = QString());
 
     void log(const QString &label, const QString &msg);
+    void reachedStableState(bool didChange);
 protected:
     void beginSelectTransitions(QEvent *event) Q_DECL_OVERRIDE;
+    void beginMicrostep(QEvent *event) Q_DECL_OVERRIDE;
+    void endMicrostep(QEvent *event) Q_DECL_OVERRIDE;
+    void noMicrostep() Q_DECL_OVERRIDE;
+    void processedPendingEvents(bool didChange) Q_DECL_OVERRIDE;
     virtual void assignEvent();
 
 public:
@@ -274,7 +279,9 @@ public:
     QString _name;
     typedef QHash<QString, QString> Dict;
     QList<Dict> _ioprocessors;
+    QStringList currentStates();
 private:
+    Q_DECLARE_PRIVATE(QStateMachine)
     ExecutableContent::InstructionSequence m_initialSetup;
     QHash<QString, QPointer<QObject> > m_idObjects;
     QHash<QObject *, QString> m_objectIds;

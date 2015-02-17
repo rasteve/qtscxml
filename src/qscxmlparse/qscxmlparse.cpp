@@ -21,18 +21,27 @@
 
 #include <QCoreApplication>
 #include <QFile>
+#include <QFileInfo>
 
 #include <iostream>
 
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
-    QFile file(a.arguments().value(1));
-    if (!file.open(QFile::ReadOnly)) {
-        std::cout << "could not open file " << a.arguments().value(1).toStdString();
+    QString fileName = a.arguments().value(1);
+    if (fileName.isEmpty()) {
+        std::cout << "no filename given:"
+                  << QFileInfo(a.arguments().value(0)).completeBaseName().toStdString()
+                  << " file.scxml" << std::endl;
         return -1;
     }
-    Scxml::ScxmlParser parser(&file);
+    QFile file(fileName);
+    if (!file.open(QFile::ReadOnly)) {
+        std::cout << "could not open file " << fileName.toStdString();
+        return -1;
+    }
+    QXmlStreamReader reader(&file);
+    Scxml::ScxmlParser parser(&reader, QFileInfo(file.fileName()).absolutePath());
     parser.parse();
     QFile outF(a.arguments().value(2, QLatin1String("out.scxml")));
     outF.open(QFile::WriteOnly);

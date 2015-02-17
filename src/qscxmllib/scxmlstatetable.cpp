@@ -25,6 +25,7 @@
 #include <QString>
 #include <QLoggingCategory>
 #include <QJSEngine>
+#include <QtCore/private/qstatemachine_p.h>
 
 namespace Scxml {
 Q_LOGGING_CATEGORY(scxmlLog, "scxml.table")
@@ -389,6 +390,39 @@ void StateTable::beginSelectTransitions(QEvent *event)
         _event.clear();
     }
     assignEvent();
+}
+
+void StateTable::beginMicrostep(QEvent *event)
+{
+    qCDebug(scxmlLog) << _name << " started microstep from state (" << currentStates() << ")"
+                      << "with event " << _event.name() << " from event type " << event->type();
+}
+
+void StateTable::endMicrostep(QEvent *event)
+{
+    Q_UNUSED(event);
+    qCDebug(scxmlLog) << _name << " finished microstep in state (" << currentStates() << ")";
+}
+
+void StateTable::noMicrostep()
+{
+    qCDebug(scxmlLog) << _name << " had no transition, stays in state (" << currentStates() << ")";
+}
+
+void StateTable::processedPendingEvents(bool didChange)
+{
+    qCDebug(scxmlLog) << _name << " finishedPendingEvents " << didChange << " in state ("
+                      << currentStates() << ")";
+    emit reachedStableState(didChange);
+}
+
+
+QStringList StateTable::currentStates() {
+    QStringList res;
+    foreach (const QAbstractState *s, d_func()->configuration)
+        res.append(objectId(const_cast<QAbstractState *>(s)));
+    res.sort();
+    return res;
 }
 
 void StateTable::assignEvent() {

@@ -95,6 +95,17 @@ struct ErrorMessage
                  const QString &msg = QStringLiteral("UnknownError"),
                  const QString &parserState = QString())
         : severity(severity), msg(msg), parserState(parserState){ }
+    QString severityString() const {
+        switch (severity) {
+        case Debug:
+            return QStringLiteral("Debug: ");
+        case Info:
+            return QStringLiteral("Info: ");
+        case Error:
+            return QStringLiteral("Error: ");
+        }
+        return QStringLiteral("Severity%1: ").arg(severity);
+    }
 };
 
 struct ParsingOptions {
@@ -111,7 +122,7 @@ public:
         FinishedParsing,
     };
 
-    ScxmlParser(QFile *device);
+    ScxmlParser(QXmlStreamReader *xmlReader, const QString &basedir);
     void parse();
     void addError(const QString &msg, ErrorMessage::Severity severity = ErrorMessage::Error);
     void addError(const char *msg, ErrorMessage::Severity severity = ErrorMessage::Error);
@@ -130,6 +141,7 @@ private:
     bool checkAttributes(const QXmlStreamAttributes &attributes, const char *attribStr);
     bool checkAttributes(const QXmlStreamAttributes &attributes, QStringList requiredNames,
                          QStringList optionalNames);
+    void ensureInitialState(const QString &initialId);
 
     StateTable *m_table;
     ScxmlTransition *m_currentTransition;
