@@ -148,6 +148,7 @@ private:
     QState *m_currentParent;
     QAbstractState *m_currentState;
     QString m_basedir;
+    QStringList m_namespacesToIgnore;
 
     QXmlStreamReader *m_reader;
     QVector<ParserState> m_stack;

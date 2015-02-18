@@ -632,8 +632,19 @@ bool ScxmlParser::checkAttributes(const QXmlStreamAttributes &attributes, const 
 bool ScxmlParser::checkAttributes(const QXmlStreamAttributes &attributes, QStringList requiredNames, QStringList optionalNames)
 {
     foreach (const QXmlStreamAttribute &attribute, attributes) {
+        QStringRef ns = attribute.namespaceUri();
+        if (!ns.isEmpty() && ns != QLatin1String("http://www.w3.org/2005/07/scxml")) {
+            foreach (const QString &nsToIgnore, m_namespacesToIgnore) {
+                if (ns == nsToIgnore)
+                    continue;
+            }
+            m_namespacesToIgnore << ns.toString();
+            addError(QStringLiteral("Ignoring unexpected namespace %1").arg(ns.toString()),
+                     ErrorMessage::Info);
+            continue;
+        }
         const QString name = attribute.name().toString();
-        if (attribute.namespaceUri().isEmpty() && !requiredNames.removeOne(name) && !optionalNames.contains(name)) {
+        if (!requiredNames.removeOne(name) && !optionalNames.contains(name)) {
             addError(QStringLiteral("Unexpected attribute '%1'").arg(name));
             m_state = ParsingError;
             return false;
