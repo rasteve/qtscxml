@@ -122,6 +122,13 @@ public:
         Invoke,
         Sequence
     };
+    Instruction(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
+        : parentState(parentState), transition(transition) {
+        if (!parentState && !transition) {
+            qCDebug(scxmlLog) << "scxml: unbound instruction";
+        }
+    }
+
     virtual ~Instruction() { }
 
     StateTable *table() const;
@@ -138,6 +145,8 @@ public:
 };
 
 struct SCXML_EXPORT InstructionSequence : public Instruction {
+    InstructionSequence(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
+        : Instruction(parentState, transition) { }
     void execute() Q_DECL_OVERRIDE;
 
     Kind instructionKind() const Q_DECL_OVERRIDE {
@@ -246,7 +255,7 @@ public:
     QString evalValueStr(const QString &expr);
     bool evalBool(const QString &expr) const;
     ErrorDumper errorDumper();
-    virtual bool init(QJSEngine *engine, ErrorDumper);
+    virtual bool init(QJSEngine *engine);
     QJSEngine *engine() const;
     void setEngine(QJSEngine *engine);
     Q_INVOKABLE void submitEvent1(const QString &event) {
@@ -256,12 +265,15 @@ public:
     Q_INVOKABLE void submitEvent2(const QString &event,  QVariant data) {
         submitEvent(event, data);
     }
-signals:
     void submitEvent(const QString &event,  QVariant data,
                      ScxmlEvent::EventType type = ScxmlEvent::External,
                      const QString &sendid = QString(), const QString &origin = QString(),
                      const QString &origintype = QString(), const QString &invokeid = QString());
+    void submitDelayedEvent(int delay, const QString &event, QVariant data, ScxmlEvent::EventType type,
+                            const QString &sendid, const QString &origin, const QString &origintype,
+                            const QString &invokeid);
 
+signals:
     void log(const QString &label, const QString &msg);
     void reachedStableState(bool didChange);
 protected:
@@ -308,6 +320,8 @@ struct SCXML_EXPORT DoneData {
 };
 
 struct SCXML_EXPORT Send : public Instruction {
+    Send(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
+        : Instruction(parentState, transition) { }
     QString event;
     QString eventexpr;
     QString type;
@@ -327,12 +341,16 @@ struct SCXML_EXPORT Send : public Instruction {
 };
 
 struct SCXML_EXPORT Raise : public Instruction {
+    Raise(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
+        : Instruction(parentState, transition) { }
     QString event;
     void execute() Q_DECL_OVERRIDE { table()->submitEvent(event, QVariant(), ScxmlEvent::Internal); }
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::Raise; }
 };
 
 struct SCXML_EXPORT Log : public Instruction {
+    Log(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
+        : Instruction(parentState, transition) { }
     QString label;
     QString expr;
     virtual void execute() Q_DECL_OVERRIDE {
@@ -342,17 +360,23 @@ struct SCXML_EXPORT Log : public Instruction {
 };
 
 struct SCXML_EXPORT Script : public Instruction {
+    Script(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
+        : Instruction(parentState, transition) { }
     QString source;
     QString src;
 };
 
 struct SCXML_EXPORT JavaScript : public Script {
+    JavaScript(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
+        : Script(parentState, transition) { }
     QJSValue compiledFunction;
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::JavaScript; }
     void execute() Q_DECL_OVERRIDE;
 };
 
 struct SCXML_EXPORT AssignExpression : public Instruction {
+    AssignExpression(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
+        : Instruction(parentState, transition) { }
     QString location;
     QString expression;
     XmlNode *content;
@@ -364,12 +388,16 @@ struct SCXML_EXPORT AssignExpression : public Instruction {
 };
 
 struct SCXML_EXPORT AssignJson : public Instruction {
+    AssignJson(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
+        : Instruction(parentState, transition) { }
     QString location;
     QJsonValue value;
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::AssignJson; }
 };
 
 struct SCXML_EXPORT If : public Instruction {
+    If(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
+        : Instruction(parentState, transition) { }
     QStringList conditions;
     QVector<InstructionSequence> blocks;
     void execute() Q_DECL_OVERRIDE;
@@ -377,6 +405,8 @@ struct SCXML_EXPORT If : public Instruction {
 };
 
 struct SCXML_EXPORT Foreach : public Instruction {
+    Foreach(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
+        : Instruction(parentState, transition) { }
     QString array;
     QString item;
     QString index;
@@ -386,6 +416,8 @@ struct SCXML_EXPORT Foreach : public Instruction {
 };
 
 struct SCXML_EXPORT Cancel : public Instruction {
+    Cancel(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
+        : Instruction(parentState, transition) { }
     QString sendid;
     QString sendidexpr;
     void execute() Q_DECL_OVERRIDE { Q_ASSERT(false); }
@@ -393,6 +425,8 @@ struct SCXML_EXPORT Cancel : public Instruction {
 };
 
 struct SCXML_EXPORT Invoke : public Instruction {
+    Invoke(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
+        : Instruction(parentState, transition) { }
     QString type;
     QString typeexpr;
     QString src;
@@ -466,8 +500,7 @@ public:
     typedef QSharedPointer<ConcreteSignalTransition> TransitionPtr;
     ScxmlTransition(QState * sourceState = 0, const QString &eventSelector = QString(),
                     const QStringList &targetIds = QStringList(),
-                    const QString &conditionalExp = QString(),
-                    const ExecutableContent::InstructionSequence &instruction = ExecutableContent::InstructionSequence());
+                    const QString &conditionalExp = QString());
     StateTable *table() const;
 
     QString transitionLocation() const;
@@ -493,7 +526,7 @@ class SCXML_EXPORT ScxmlState: public QState
 {
     Q_OBJECT
 public:
-    ScxmlState(QState *parent) : QState(parent) { }
+    ScxmlState(QState *parent) : QState(parent), onEntryInstruction(this), onExitInstruction(this) { }
     StateTable *table() const;
     virtual bool init();
     QString stateLocation() const;

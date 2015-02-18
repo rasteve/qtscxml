@@ -196,7 +196,7 @@ Send::~Send()
 } // namespace ExecutableContent
 
 StateTable::StateTable(QState *parent)
-    : QStateMachine(parent), m_dataModel(None), m_engine(0), m_dataBinding(EarlyBinding), m_warnIndirectIdClashes(true)  { }
+    : QStateMachine(parent), m_initialSetup(this), m_dataModel(None), m_engine(0), m_dataBinding(EarlyBinding), m_warnIndirectIdClashes(true)  { }
 
 bool StateTable::addId(const QString &idStr, QObject *value, std::function<bool (const QString &)> errorDumper, bool overwrite)
 {
@@ -318,17 +318,7 @@ void StateTable::beginSelectTransitions(QEvent *event)
             ScxmlEvent::EventType eventType = ScxmlEvent::External;
             QObject *s = e->sender();
             if (s == this) {
-                if (signalName.startsWith(QLatin1String("submitEvent"))) {
-                    QVariantList args = e->arguments();
-                    QString eventName = args[0].toString();
-                    eventType = (ScxmlEvent::EventType)args[2].toInt();
-                    _event.reset(eventName, eventType, QVariantList() << args[1],
-                            /* m_sendid   */ args[3].toString(),
-                            /* origin     */ args[4].toString(),
-                            /* origintype */ args[5].toString(),
-                            /* invokeid   */ args[6].toString());
-                    break;
-                } else if (signalName.startsWith("event_")){
+                if (signalName.startsWith("event_")){
                     _event.reset(signalName.mid(6), eventType, e->arguments());
                     break;
                 } else {
@@ -472,7 +462,7 @@ bool loopOnSubStates(QState *startState,
     return true;
 }
 
-bool StateTable::init(QJSEngine *engine, ErrorDumper)
+bool StateTable::init(QJSEngine *engine)
 {
     setEngine(engine);
     bool res = true;
@@ -502,6 +492,23 @@ QJSEngine *StateTable::engine() const
 void StateTable::setEngine(QJSEngine *engine)
 {
     m_engine = engine;
+}
+
+void StateTable::submitEvent(const QString &event, QVariant data, ScxmlEvent::EventType type,
+                             const QString &sendid, const QString &origin,
+                             const QString &origintype, const QString &invokeid)
+{
+    ScxmlEvent *e = new ScxmlEvent(event, type, QVariantList() << data, sendid, origin, origintype, invokeid);
+    postEvent(e);
+}
+
+void StateTable::submitDelayedEvent(int delay, const QString &event, QVariant data,
+                                    ScxmlEvent::EventType type, const QString &sendid,
+                                    const QString &origin, const QString &origintype,
+                                    const QString &invokeid)
+{
+    ScxmlEvent *e = new ScxmlEvent(event, type, QVariantList() << data, sendid, origin, origintype, invokeid);
+    postDelayedEvent(e, delay);
 }
 
 ScxmlEvent::ScxmlEvent(QString name, ScxmlEvent::EventType eventType, QVariantList datas, const QString &sendid, const QString &origin, const QString &origintype, const QString &invokeid)
@@ -566,9 +573,9 @@ QJSValue ScxmlEvent::jsValue(QJSEngine *engine) const {
     return res;
 }
 
-ScxmlTransition::ScxmlTransition(QState *sourceState, const QString &eventSelector, const QStringList &targetIds, const QString &conditionalExp, const ExecutableContent::InstructionSequence &instructions) :
+ScxmlTransition::ScxmlTransition(QState *sourceState, const QString &eventSelector, const QStringList &targetIds, const QString &conditionalExp) :
     QAbstractTransition(sourceState), eventSelector(eventSelector),
-    instructionsOnTransition(instructions), conditionalExp(conditionalExp),
+    instructionsOnTransition(sourceState, this), conditionalExp(conditionalExp),
     m_targetIds(targetIds), m_bound(false) { }
 
 StateTable *ScxmlTransition::table() const {

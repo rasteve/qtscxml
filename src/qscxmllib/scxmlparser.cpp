@@ -280,14 +280,14 @@ void ScxmlParser::parse()
             } else if (elName == QLatin1String("raise")) {
                 if (!checkAttributes(attributes, "event")) return;
                 ParserState pNew = ParserState(ParserState::Raise);
-                ExecutableContent::Raise *raiseI = new ExecutableContent::Raise;
+                ExecutableContent::Raise *raiseI = new ExecutableContent::Raise(m_currentParent, m_currentTransition);
                 raiseI->event = attributes.value(QLatin1String("event")).toString();
                 pNew.instruction = raiseI;
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("if")) {
                 if (!checkAttributes(attributes, "cond")) return;
                 ParserState pNew = ParserState(ParserState::If);
-                ExecutableContent::If *ifI = new ExecutableContent::If;
+                ExecutableContent::If *ifI = new ExecutableContent::If(m_currentParent, m_currentTransition);
                 ifI->conditions.append(attributes.value(QLatin1String("cond")).toString());
                 ifI->blocks.append(ExecutableContent::InstructionSequence());
                 pNew.instruction = ifI;
@@ -306,7 +306,7 @@ void ScxmlParser::parse()
             } else if (elName == QLatin1String("foreach")) {
                 if (!checkAttributes(attributes, "array,item|index")) return;
                 ParserState pNew = ParserState(ParserState::Foreach);
-                ExecutableContent::Foreach *foreachI = new ExecutableContent::Foreach;
+                ExecutableContent::Foreach *foreachI = new ExecutableContent::Foreach(m_currentParent, m_currentTransition);
                 foreachI->array = attributes.value(QLatin1String("array")).toString();
                 foreachI->item = attributes.value(QLatin1String("item")).toString();
                 foreachI->index = attributes.value(QLatin1String("index")).toString();
@@ -315,7 +315,7 @@ void ScxmlParser::parse()
             } else if (elName == QLatin1String("log")) {
                 if (!checkAttributes(attributes, "|label,expr")) return;
                 ParserState pNew = ParserState(ParserState::Log);
-                ExecutableContent::Log *logI = new ExecutableContent::Log;
+                ExecutableContent::Log *logI = new ExecutableContent::Log(m_currentParent, m_currentTransition);
                 logI->label = attributes.value(QLatin1String("label")).toString();
                 logI->expr = attributes.value(QLatin1String("expr")).toString();
                 pNew.instruction = logI;
@@ -335,7 +335,7 @@ void ScxmlParser::parse()
             } else if (elName == QLatin1String("assign")) {
                 if (!checkAttributes(attributes, "location|expr")) return;
                 ParserState pNew = ParserState(ParserState::Assign);
-                ExecutableContent::AssignExpression *assign = new ExecutableContent::AssignExpression;
+                ExecutableContent::AssignExpression *assign = new ExecutableContent::AssignExpression(m_currentParent, m_currentTransition);
                 assign->location = attributes.value(QLatin1String("location")).toString();
                 assign->expression = attributes.value(QLatin1String("expr")).toString();
                 pNew.instruction = assign;
@@ -369,14 +369,14 @@ void ScxmlParser::parse()
             } else if (elName == QLatin1String("script")) {
                 if (!checkAttributes(attributes, "|src")) return;
                 ParserState pNew = ParserState(ParserState::Script);
-                ExecutableContent::JavaScript *script = new ExecutableContent::JavaScript;
+                ExecutableContent::JavaScript *script = new ExecutableContent::JavaScript(m_currentParent, m_currentTransition);
                 script->src = attributes.value(QLatin1String("src")).toString();
                 pNew.instruction = script;
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("send")) {
                 if (!checkAttributes(attributes, "|event,eventexpr,id,idlocation,type,typeexpr,namelist,delay,delayexpr,target,targetexpr")) return;
                 ParserState pNew = ParserState(ParserState::Send);
-                ExecutableContent::Send *send = new ExecutableContent::Send;
+                ExecutableContent::Send *send = new ExecutableContent::Send(m_currentParent, m_currentTransition);
                 send->event = attributes.value(QLatin1String("event")).toString();
                 send->eventexpr = attributes.value(QLatin1String("eventexpr")).toString();
                 send->delay = attributes.value(QLatin1String("delay")).toString();
@@ -394,7 +394,7 @@ void ScxmlParser::parse()
             } else if (elName == QLatin1String("cancel")) {
                 if (!checkAttributes(attributes, "|sendid,sendidexpr")) return;
                 ParserState pNew = ParserState(ParserState::Cancel);
-                ExecutableContent::Cancel *cancel = new ExecutableContent::Cancel;
+                ExecutableContent::Cancel *cancel = new ExecutableContent::Cancel(m_currentParent, m_currentTransition);
                 cancel->sendid = attributes.value(QLatin1String("sendid")).toString();
                 cancel->sendidexpr = attributes.value(QLatin1String("sendidexpr")).toString();
                 pNew.instruction = cancel;
@@ -402,7 +402,7 @@ void ScxmlParser::parse()
             } else if (elName == QLatin1String("invoke")) {
                 if (!checkAttributes(attributes, "|event,eventexpr,id,idlocation,type,typeexpr,namelist,delay,delayexpr")) return;
                 ParserState pNew = ParserState(ParserState::Invoke);
-                ExecutableContent::Invoke *invoke = new ExecutableContent::Invoke;
+                ExecutableContent::Invoke *invoke = new ExecutableContent::Invoke(m_currentParent, m_currentTransition);
                 invoke->src = attributes.value(QLatin1String("src")).toString();
                 invoke->srcexpr = attributes.value(QLatin1String("srcexpr")).toString();
                 invoke->id = attributes.value(QLatin1String("id")).toString();
