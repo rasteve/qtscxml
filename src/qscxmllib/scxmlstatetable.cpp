@@ -16,7 +16,7 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include "scxmlstatetable.h"
+#include "scxmlstatetable_p.h"
 
 #include <QAbstractState>
 #include <QAbstractTransition>
@@ -195,8 +195,16 @@ Send::~Send()
 
 } // namespace ExecutableContent
 
-StateTable::StateTable(QState *parent)
-    : QStateMachine(parent), m_initialSetup(this), m_dataModel(None), m_engine(0), m_dataBinding(EarlyBinding), m_warnIndirectIdClashes(true)  { }
+StateTable::StateTable(QObject *parent)
+    : QStateMachine(*new StateTablePrivate, parent), m_initialSetup(this), m_dataModel(None)
+    , m_engine(0), m_dataBinding(EarlyBinding), m_warnIndirectIdClashes(true)
+{ }
+
+StateTable::StateTable(StateTablePrivate &dd, QObject *parent)
+    : QStateMachine(dd, parent), m_initialSetup(this), m_dataModel(None), m_engine(0)
+    , m_dataBinding(EarlyBinding), m_warnIndirectIdClashes(true)
+{ }
+
 
 bool StateTable::addId(const QString &idStr, QObject *value, std::function<bool (const QString &)> errorDumper, bool overwrite)
 {
@@ -394,18 +402,30 @@ void StateTable::endMicrostep(QEvent *event)
     qCDebug(scxmlLog) << _name << " finished microstep in state (" << currentStates() << ")";
 }
 
-void StateTable::noMicrostep()
+void StateTablePrivate::noMicrostep()
 {
-    qCDebug(scxmlLog) << _name << " had no transition, stays in state (" << currentStates() << ")";
+    Q_Q(StateTable);
+    qCDebug(scxmlLog) << q->_name << " had no transition, stays in state (" << q->currentStates() << ")";
 }
 
-void StateTable::processedPendingEvents(bool didChange)
+void StateTablePrivate::processedPendingEvents(bool didChange)
 {
-    qCDebug(scxmlLog) << _name << " finishedPendingEvents " << didChange << " in state ("
-                      << currentStates() << ")";
-    emit reachedStableState(didChange);
+    Q_Q(StateTable);
+    qCDebug(scxmlLog) << q->_name << " finishedPendingEvents " << didChange << " in state ("
+                      << q->currentStates() << ")";
+    emit q->reachedStableState(didChange);
 }
 
+void StateTablePrivate::beginMacrostep()
+{
+}
+
+void StateTablePrivate::endMacrostep(bool didChange)
+{
+    Q_Q(StateTable);
+    qCDebug(scxmlLog) << q->_name << " endMacrostep " << didChange << " in state ("
+                      << q->currentStates() << ")";
+}
 
 QStringList StateTable::currentStates() {
     QStringList res;

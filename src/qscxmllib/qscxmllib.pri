@@ -3,7 +3,8 @@ HEADERS += \
     $$PWD/scxmlparser.h \
     $$PWD/scxmlstatetable.h \
     $$PWD/scxmlglobals.h \
-    $$PWD/scxmldumper.h
+    $$PWD/scxmldumper.h \
+    $$PWD/scxmlstatetable_p.h
 
 SOURCES += \
     $$PWD/scxmlparser.cpp \

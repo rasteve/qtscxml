@@ -159,6 +159,7 @@ struct SCXML_EXPORT InstructionSequence : public Instruction {
 
 } // namespace ExecutableContent
 
+class StateTablePrivate;
 class SCXML_EXPORT StateTable: public QStateMachine
 {
     Q_OBJECT
@@ -175,7 +176,8 @@ public:
         LateBinding
     };
 
-    StateTable(QState *parent = 0);
+    StateTable(QObject *parent = 0);
+    StateTable(StateTablePrivate &dd, QObject *parent);
 
     // returns the value corresponding to the given scxml id
     template <typename T>
@@ -280,8 +282,6 @@ protected:
     void beginSelectTransitions(QEvent *event) Q_DECL_OVERRIDE;
     void beginMicrostep(QEvent *event) Q_DECL_OVERRIDE;
     void endMicrostep(QEvent *event) Q_DECL_OVERRIDE;
-    void noMicrostep() Q_DECL_OVERRIDE;
-    void processedPendingEvents(bool didChange) Q_DECL_OVERRIDE;
     virtual void assignEvent();
 
 public:
@@ -293,7 +293,7 @@ public:
     QList<Dict> _ioprocessors;
     QStringList currentStates();
 private:
-    Q_DECLARE_PRIVATE(QStateMachine)
+    Q_DECLARE_PRIVATE(StateTable)
     ExecutableContent::InstructionSequence m_initialSetup;
     QHash<QString, QPointer<QObject> > m_idObjects;
     QHash<QObject *, QString> m_objectIds;
