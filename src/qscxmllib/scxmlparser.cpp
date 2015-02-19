@@ -62,7 +62,7 @@ void ScxmlParser::ensureInitialState(const QString &initialId)
             if (!firstState)
                 firstState = s;
             return false;
-        }, 0, [&firstState](QAbstractState *s) -> void {
+        }, Q_NULLPTR, [&firstState](QAbstractState *s) -> void {
             if (!firstState)
                 firstState = s;
         });
