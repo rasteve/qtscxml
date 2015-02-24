@@ -41,6 +41,7 @@ public:
     void dump(StateTable *table);
     void writeStartElement(const char *name) { s.writeStartElement(QLatin1String(name)); }
     void writeAttribute(const char *name, const char *value)  { s.writeAttribute(QLatin1String(name), QLatin1String(value)); }
+    void writeAttribute(const char *name, QByteArray value)  { s.writeAttribute(QLatin1String(name), QString::fromUtf8(value)); }
     void writeAttribute(const char *name, const QString &value)  { s.writeAttribute(QLatin1String(name), value); }
     void writeAttribute(const QString &name, const QString &value)  { s.writeAttribute(name, value); }
     void writeEndElement() { s.writeEndElement(); }

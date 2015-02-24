@@ -17,6 +17,7 @@
  ****************************************************************************/
 
 #include "scxmlcppdumper.h"
+#include <algorithm>
 
 namespace Scxml {
 
@@ -27,13 +28,13 @@ const char *headerStart =
 void CppDumper::dump(StateTable *table)
 {
     this->table = table;
-   QByteArray className = options.basename;
+   QString className = options.basename;
    if (!className.isEmpty())
-       className.append('_');
-   className.append(table->_name.toUtf8());
+       className.append(QLatin1Char('_'));
+   className.append(table->_name);
    if (!className.isEmpty())
-       className.append('_');
-   className.append(QByteArray("StateMachine"));
+       className.append(QLatin1Char('_'));
+   className.append(l("StateMachine"));
     s << l(headerStart);
     if (!options.namespaceName.isEmpty())
         s << l("namespace ") << options.namespaceName << l(" {\n");
@@ -64,28 +65,27 @@ void CppDumper::dumpDeclareStates()
 
 void CppDumper::dumpDeclareSignalsForEvents()
 {
-    QSet<QString> knownEvents;
+    QSet<QByteArray> knownEvents;
     loopOnSubStates(table, [&knownEvents](QState *state) -> bool {
         foreach (QAbstractTransition *t, state->transitions()) {
             if (ScxmlTransition *scxmlT = qobject_cast<ScxmlTransition *>(t)) {
-                if (!scxmlT->eventSelector.isEmpty())
-                    foreach (const QString &event, scxmlT->eventSelector.split(QLatin1Char(' ')))
-                        knownEvents.insert(event);
+                foreach (const QByteArray &event, scxmlT->eventSelector)
+                    knownEvents.insert(event);
             }
         }
         return true;
     }, Q_NULLPTR, Q_NULLPTR);
-    QStringList knownEventsList = knownEvents.toList();
-    knownEventsList.sort();
+    QList<QByteArray> knownEventsList = knownEvents.toList();
+    std::sort(knownEventsList.begin(), knownEventsList.end());
     bool hasSignals = false;
-    foreach (QString event, knownEventsList) {
-        if (event.startsWith(l("done.")) || event.startsWith(l("qsignal."))
-                || event.startsWith(l("qevent.")))
+    foreach (QByteArray event, knownEventsList) {
+        if (event.startsWith(b("done.")) || event.startsWith(b("qsignal."))
+                || event.startsWith(b("qevent.")))
             continue;
         if (!hasSignals)
             s << l("signals:\n");
         hasSignals = true;
-        s << l("void event_") << event.replace(QLatin1Char('.'), QLatin1String("_")) << "();\n";
+        s << l("void event_") << event.replace('.', '_') << "();\n";
     }
     if (hasSignals)
         s << l("public:\n");
@@ -100,7 +100,7 @@ void CppDumper::dumpInit()
 {
     s << l("    bool init(QJSEngine *engine) Q_DECL_OVERRIDE {\n");
     loopOnSubStates(table, [this](QState *state) -> bool {
-        QString stateName = table->objectId(state, false);
+        QString stateName = QString::fromUtf8(table->objectId(state, false));
         s << l("        state_") << stateName << l(" = new Scxml::ScxmlState(");
         if (state->parentState())
             s << table->objectId(state->parentState(), false);
@@ -109,7 +109,7 @@ void CppDumper::dumpInit()
           << l(");\n");
         return true;
     }, Q_NULLPTR, [this](QAbstractState *state) -> void {
-        QString stateName = table->objectId(state, false);
+        QString stateName = QString::fromUtf8(table->objectId(state, false));
         s << l("        state_") << stateName << l(" = new ")
           << b(state->metaObject()->className()) << l("(");
         if (state->parentState())
@@ -121,8 +121,8 @@ void CppDumper::dumpInit()
     loopOnSubStates(table, [this](QState *state) -> bool {
         foreach (QAbstractTransition *t, state->transitions()) {
             if (Scxml::ScxmlTransition *scTransition = qobject_cast<Scxml::ScxmlTransition *>(t)) {
-                scTransition->eventSelector;
-                scTransition->conditionalExp;
+                s << scTransition->eventSelector.join(' ');
+                cEscape(scTransition->conditionalExp);
             }
         }
         return true;

@@ -56,33 +56,34 @@ public:
     static QEvent::Type scxmlEventType;
     enum EventType { Platform, Internal, External };
 
-    ScxmlEvent(QString name = QString(), EventType eventType = External,
-               QVariantList datas = QVariantList(),
-               const QString &sendid = QString (), const QString &origin = QString (),
-               const QString &origintype = QString (), const QString &invokeid = QString());
+    ScxmlEvent(const QByteArray &name = QByteArray(), EventType eventType = External,
+               QVariantList datas = QVariantList(), const QByteArray &sendid = QByteArray (),
+               const QString &origin = QString (), const QString &origintype = QString (),
+               const QByteArray &invokeid = QByteArray());
 
-    QString name() const { return m_name; }
+    QByteArray name() const { return m_name; }
     QString scxmlType() const;
-    QString sendid() const { return m_sendid; }
+    QByteArray sendid() const { return m_sendid; }
     QString origin() const { return m_origin; }
     QString origintype() const { return m_origintype; }
-    QString invokeid() const { return m_invokeid; }
+    QByteArray invokeid() const { return m_invokeid; }
     QVariant data() const;
     QVariantList datas() const { return m_datas; }
-    void reset(QString name, EventType eventType = External, QVariantList datas = QVariantList(),
-               const QString &sendid = QString (), const QString &origin = QString (),
-               const QString &origintype = QString (), const QString &invokeid = QString());
+    void reset(const QByteArray &name, EventType eventType = External,
+               QVariantList datas = QVariantList(), const QByteArray &sendid = QByteArray(),
+               const QString &origin = QString(), const QString &origintype = QString(),
+               const QByteArray &invokeid = QByteArray());
     void clear();
     QJSValue jsValue(QJSEngine *engine) const;
 
 private:
-    QString m_name;
+    QByteArray m_name;
     EventType m_type;
     QVariantList m_datas; // extra data
-    QString m_sendid; // if set, or id of <send> if failure
+    QByteArray m_sendid; // if set, or id of <send> if failure
     QString m_origin; // uri to answer by setting the target of send, empty for internal and platform events
     QString m_origintype; // type to answer by setting the type of send, empty for internal and platform events
-    QString m_invokeid; // id of the invocation that triggered the child process if this was invoked
+    QByteArray m_invokeid; // id of the invocation that triggered the child process if this was invoked
 };
 
 
@@ -94,7 +95,6 @@ struct ScxmlData {
     QState *context;
 };
 
-typedef std::function<bool(const QString &)> ErrorDumper;
 class ScxmlParser;
 
 bool loopOnSubStates(QState *startState,
@@ -181,60 +181,60 @@ public:
 
     // returns the value corresponding to the given scxml id
     template <typename T>
-    T *idToValue(const QString &idStr, bool strict = false) {
+    T *idToValue(const QByteArray &idVal, bool strict = false) {
         QObject *obj = 0;
-        if (m_idObjects.contains(idStr)) {
-            obj = m_idObjects.value(idStr).data();
+        if (m_idObjects.contains(idVal)) {
+            obj = m_idObjects.value(idVal).data();
             if (!obj)
-                m_idObjects.remove(idStr); // expensive to remove the other side in m_objectIds without storing more
+                m_idObjects.remove(idVal); // expensive to remove the other side in m_objectIds without storing more
         }
         if (strict || obj)
             return qobject_cast<T *>(obj); // if we match a key do not look further even if object is different
-        qCDebug(scxmlLog) << "non cached scxml id access attempt for value " << idStr;
-        if (idStr.contains(QLatin1Char('.'))) {
-            QStringList pieces = idStr.split(QLatin1Char('.'));
+        qCDebug(scxmlLog) << "non cached scxml id access attempt for value " << idVal;
+        if (idVal.contains('.')) {
+            QList<QByteArray> pieces = idVal.split('.');
             QObject *newVal = idToValue<QObject>(pieces.at(0));
             pieces.removeFirst();
             while (newVal && !pieces.isEmpty()) {
                 if (StateTable *newSt = qobject_cast<StateTable *>(newVal)) {
-                    T *res = newSt->idToValue<T>(pieces.join(QLatin1Char('.')));
+                    T *res = newSt->idToValue<T>(pieces.join('.'));
                     if (res) {
-                        m_idObjects[idStr] = res; // do not cache?
-                        m_objectIds[res] = idStr;
+                        m_idObjects[idVal] = res; // do not cache?
+                        m_objectIds[res] = idVal;
                     }
                     return res;
                 } else if (newVal) {
-                    QString pathPiece = pieces.first();
+                    QByteArray pathPiece = pieces.first();
                     pieces.removeFirst();
                     if (pieces.isEmpty()) {
-                        T *res = newVal->findChild<T *>(pathPiece);
+                        T *res = newVal->findChild<T *>(QString::fromUtf8(pathPiece));
                         if (res) {
-                            m_idObjects[idStr] = res; // do not cache?
-                            m_objectIds[res] = idStr;
+                            m_idObjects[idVal] = res; // do not cache?
+                            m_objectIds[res] = idVal;
                         }
                         return res;
                     }
-                    newVal = newVal->findChild<QObject *>(pathPiece);
+                    newVal = newVal->findChild<QObject *>(QString::fromUtf8(pathPiece));
                 }
             }
             Q_ASSERT(!newVal);
             return 0;
         }
-        T *res = this->findChild<T *>(idStr);
+        T *res = this->findChild<T *>(QString::fromUtf8(idVal));
         if (res) {
-            m_idObjects[idStr] = res; // do not cache?
-            m_objectIds[res] = idStr;
+            m_idObjects[idVal] = res; // do not cache?
+            m_objectIds[res] = idVal;
         }
         return res;
     }
 
-    bool addId(const QString &idStr, QObject *value,
+    bool addId(const QByteArray &idStr, QObject *value,
                std::function<bool(const QString &)> errorDumper = Q_NULLPTR, bool overwrite = false);
 
     QJSValue datamodelJSValues() const;
 
     // tries to build an scxml id for the given object
-    QString objectId(QObject *obj, bool strict = false);
+    QByteArray objectId(QObject *obj, bool strict = false);
 
     void setDataModel(DataModelType dt) {
         m_dataModel = dt;
@@ -261,19 +261,19 @@ public:
     QJSEngine *engine() const;
     void setEngine(QJSEngine *engine);
     Q_INVOKABLE void submitEvent1(const QString &event) {
-        submitEvent(event, QVariant());
+        submitEvent(event.toUtf8(), QVariant());
     }
 
     Q_INVOKABLE void submitEvent2(const QString &event,  QVariant data) {
-        submitEvent(event, data);
+        submitEvent(event.toUtf8(), data);
     }
-    void submitEvent(const QString &event,  QVariant data,
+    void submitEvent(const QByteArray &event,  QVariant data,
                      ScxmlEvent::EventType type = ScxmlEvent::External,
-                     const QString &sendid = QString(), const QString &origin = QString(),
-                     const QString &origintype = QString(), const QString &invokeid = QString());
-    void submitDelayedEvent(int delay, const QString &event, QVariant data, ScxmlEvent::EventType type,
-                            const QString &sendid, const QString &origin, const QString &origintype,
-                            const QString &invokeid);
+                     const QByteArray &sendid = QByteArray(), const QString &origin = QString(),
+                     const QString &origintype = QString(), const QByteArray &invokeid = QByteArray());
+    void submitDelayedEvent(int delay, const QByteArray &event, QVariant data, ScxmlEvent::EventType type,
+                            const QByteArray &sendid, const QString &origin, const QString &origintype,
+                            const QByteArray &invokeid);
 
 signals:
     void log(const QString &label, const QString &msg);
@@ -290,13 +290,13 @@ public:
     QString _sessionid;
     QString _name;
     typedef QHash<QString, QString> Dict;
-    QList<Dict> _ioprocessors;
-    QStringList currentStates();
+    QStringList _ioprocessors;
+    QList<QByteArray> currentStates();
 private:
     Q_DECLARE_PRIVATE(StateTable)
     ExecutableContent::InstructionSequence m_initialSetup;
-    QHash<QString, QPointer<QObject> > m_idObjects;
-    QHash<QObject *, QString> m_objectIds;
+    QHash<QByteArray, QPointer<QObject> > m_idObjects;
+    QHash<QObject *, QByteArray> m_objectIds;
     DataModelType m_dataModel;
     QVector<ScxmlData> m_data;
     QJSEngine *m_engine;
@@ -343,8 +343,9 @@ struct SCXML_EXPORT Send : public Instruction {
 struct SCXML_EXPORT Raise : public Instruction {
     Raise(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
         : Instruction(parentState, transition) { }
-    QString event;
-    void execute() Q_DECL_OVERRIDE { table()->submitEvent(event, QVariant(), ScxmlEvent::Internal); }
+    QByteArray event;
+    void execute() Q_DECL_OVERRIDE {
+        table()->submitEvent(event, QVariant(), ScxmlEvent::Internal); }
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::Raise; }
 };
 
@@ -498,8 +499,8 @@ class SCXML_EXPORT ScxmlTransition : public QAbstractTransition {
     Q_OBJECT
 public:
     typedef QSharedPointer<ConcreteSignalTransition> TransitionPtr;
-    ScxmlTransition(QState * sourceState = 0, const QString &eventSelector = QString(),
-                    const QStringList &targetIds = QStringList(),
+    ScxmlTransition(QState * sourceState = 0, const QList<QByteArray> &eventSelector = QList<QByteArray>(),
+                    const QList<QByteArray> &targetIds = QList<QByteArray>(),
                     const QString &conditionalExp = QString());
     StateTable *table() const;
 
@@ -510,14 +511,14 @@ public:
     virtual bool init();
     virtual bool bind();
 
-    QString eventSelector;
-    ExecutableContent::InstructionSequence instructionsOnTransition;
+    QList<QByteArray> eventSelector;
     QString conditionalExp;
-    QStringList targetIds() const { return m_targetIds; }
+    ExecutableContent::InstructionSequence instructionsOnTransition;
+    QList<QByteArray> targetIds() const { return m_targetIds; }
 protected:
     void onTransition(QEvent *event);
 private:
-    QStringList m_targetIds;
+    QList<QByteArray> m_targetIds;
     QList<TransitionPtr> m_concreteTransitions;
     bool m_bound;
 };

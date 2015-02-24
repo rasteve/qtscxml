@@ -115,20 +115,20 @@ protected:
         case QJsonValue::String: { // ugly, use direct escaping?
             QJsonArray arr;
             QJsonDocument doc(arr);
-            QString json = doc.toJson(QJsonDocument::Compact);
-            int from = json.indexOf(QLatin1Char('['));
-            int to = json.lastIndexOf(QLatin1Char(']'));
-            s.s.writeCharacters(json.mid(from + 1, to - from - 1));
+            QByteArray json = doc.toJson(QJsonDocument::Compact);
+            int from = json.indexOf('[');
+            int to = json.lastIndexOf(']');
+            s.s.writeCharacters(QString::fromUtf8(json.mid(from + 1, to - from - 1)));
             break;
         }
         case QJsonValue::Array: {
             QJsonDocument doc(assign->value.toArray());
-            s.s.writeCharacters(doc.toJson());
+            s.s.writeCharacters(QString::fromUtf8(doc.toJson()));
             break;
         }
         case QJsonValue::Object: {
             QJsonDocument doc(assign->value.toObject());
-            s.s.writeCharacters(doc.toJson());
+            s.s.writeCharacters(QString::fromUtf8(doc.toJson()));
             break;
         }
         case QJsonValue::Undefined:
@@ -310,7 +310,7 @@ void ScxmlDumper::dumpTransition(QAbstractTransition *transition)
     QString event = QStringLiteral("unknown");
     QString cond;
     if (ScxmlTransition *t = qobject_cast<ScxmlTransition *>(transition)) {
-        event = t->eventSelector;
+        event = QString::fromUtf8(t->eventSelector.join(' '));
         cond = t->conditionalExp;
     }
     if (!event.isEmpty())
@@ -320,7 +320,7 @@ void ScxmlDumper::dumpTransition(QAbstractTransition *transition)
     QList<QAbstractState *> targets = transition->targetStates();
     QStringList targetNames;
     for (int i = 0; i < targets.size(); ++i)
-        targetNames[i] = table->objectId(targets.at(i));
+        targetNames[i] = QString::fromUtf8(table->objectId(targets.at(i)));
     if (!targetNames.isEmpty())
         writeAttribute("target", targetNames.join(QLatin1Char(' ')));
     writeAttribute("type", "internal");

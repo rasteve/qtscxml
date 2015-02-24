@@ -17,11 +17,14 @@
  ****************************************************************************/
 #ifndef SCXMLGLOBALS_H
 #define SCXMLGLOBALS_H
-
+#include <qglobal.h>
 #ifdef SCXML_LIBRARY
 #define SCXML_EXPORT Q_DECL_EXPORT
 #else
 #define SCXML_EXPORT
+#endif
+#ifdef QT_DEBUG
+#define SCXML_DEBUG
 #endif
 #endif // SCXMLGLOBALS_H
 

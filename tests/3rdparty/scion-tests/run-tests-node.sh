@@ -10,7 +10,7 @@ sleep 1
 
 #run the client
 node scxml-test-framework/lib/test-client.js \
-  scxml-test-framework/test/actionSend/send1.scxml
+  scxml-test-framework/test/actionSend/send4.scxml
 #  scxml-test-framework/test/actionSend/*.scxml \
 #  scxml-test-framework/test/assign-current-small-step/*.scxml \
 #  scxml-test-framework/test/atom3-basic-tests/*.scxml \

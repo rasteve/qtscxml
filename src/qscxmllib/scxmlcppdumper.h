@@ -25,8 +25,8 @@ namespace Scxml {
 
 struct SCXML_EXPORT CppDumpOptions : public DumpOptions
 {
-    QByteArray basename;
-    QByteArray namespaceName;
+    QString basename;
+    QString namespaceName;
 };
 
 class CppDumper

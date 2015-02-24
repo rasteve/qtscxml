@@ -68,7 +68,7 @@ struct ParserState {
     QString chars;
     ExecutableContent::Instruction *instruction;
     ExecutableContent::InstructionSequence *instructionContainer;
-    QString initialId;
+    QByteArray initialId;
 
     bool collectChars();
 
@@ -141,7 +141,7 @@ private:
     bool checkAttributes(const QXmlStreamAttributes &attributes, const char *attribStr);
     bool checkAttributes(const QXmlStreamAttributes &attributes, QStringList requiredNames,
                          QStringList optionalNames);
-    void ensureInitialState(const QString &initialId);
+    void ensureInitialState(const QByteArray &initialId);
 
     StateTable *m_table;
     ScxmlTransition *m_currentTransition;

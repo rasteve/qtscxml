@@ -12,3 +12,4 @@ SOURCES += \
     $$PWD/scxmlstatetable.cpp \
     $$PWD/scxmldumper.cpp \
     $$PWD/scxmlcppdumper.cpp
+DEFINES += QT_NO_CAST_FROM_ASCII

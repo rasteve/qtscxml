@@ -110,8 +110,8 @@ void Session::reachedStableState(bool didChange) {
         QJsonObject obj;
         obj.insert(QStringLiteral("sessionToken"), QJsonValue(id));
         QJsonArray nextConf;
-        foreach (const QString &stateId, stateMachine->currentStates())
-            nextConf << QJsonValue(stateId);
+        foreach (const QByteArray &stateId, stateMachine->currentStates())
+            nextConf << QJsonValue(QString::fromUtf8(stateId));
         obj.insert(QStringLiteral("nextConfiguration"), nextConf);
         res.setObject(obj);
         QByteArray reply = res.toJson();
@@ -128,8 +128,8 @@ void Session::runningChanged(bool running) {
         QJsonObject obj;
         obj.insert(QStringLiteral("sessionToken"), QJsonValue(id));
         QJsonArray nextConf;
-        foreach (const QString &stateId, stateMachine->currentStates())
-            nextConf << QJsonValue(stateId);
+        foreach (const QByteArray &stateId, stateMachine->currentStates())
+            nextConf << QJsonValue(QString::fromUtf8(stateId));
         obj.insert(QStringLiteral("nextConfiguration"), nextConf);
         obj.insert(QStringLiteral("stopped"), QJsonValue(true));
         res.setObject(obj);
@@ -187,7 +187,7 @@ void Session::replyFinished(QTcpSocket *socket, QNetworkReply *initialLoad) {
 
 bool Session::handleRequest(QTcpSocket *socket, const QJsonDocument &request) {
     QJsonObject event = request.object().value(QLatin1String("event")).toObject();
-    QString eventName = event.value(QLatin1String("name")).toString();
+    QByteArray eventName = event.value(QLatin1String("name")).toString().toUtf8();
     if (!eventName.isEmpty()) {
         Q_ASSERT(!replySocket);
         replySocket = socket;
@@ -205,18 +205,18 @@ bool Session::handleRequest(QTcpSocket *socket, const QJsonDocument &request) {
         // remove ifs and rely on defaults?
         if (event.contains(QLatin1String("data")))
             data = event.value(QLatin1String("data")).toVariant();
-        QString sendid;
+        QByteArray sendid;
         if (event.contains(QLatin1String("sendid")))
-            sendid = event.value(QLatin1String("sendid")).toString();
+            sendid = event.value(QLatin1String("sendid")).toString().toUtf8();
         QString origin;
         if (event.contains(QLatin1String("origin")))
             origin = event.value(QLatin1String("origin")).toString();
         QString origintype;
         if (event.contains(QLatin1String("origintype")))
             origintype = event.value(QLatin1String("origintype")).toString();
-        QString invokeid;
+        QByteArray invokeid;
         if (event.contains(QLatin1String("invokeid")))
-            invokeid = event.value(QLatin1String("invokeid")).toString();
+            invokeid = event.value(QLatin1String("invokeid")).toString().toUtf8();
         qCDebug(scxmlServerLog) << "submitting event" << eventName;
         stateMachine->submitEvent(eventName, data, type, sendid, origin, origintype, invokeid);
         return true;
@@ -487,7 +487,7 @@ struct ReadRequest {
                     continuation(socket, requestLine, headers, data);
                 } else if (state != Finished) {
                     state = Failed;
-                    errorHandler(socket, QByteArray("Failed to parse request"));
+                    errorHandler(socket, QLatin1String("Failed to parse request"));
                 }
             } else if (bytesRead == 0) {
                 shouldStop = true;
