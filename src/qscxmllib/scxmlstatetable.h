@@ -179,6 +179,10 @@ public:
     StateTable(QObject *parent = 0);
     StateTable(StateTablePrivate &dd, QObject *parent);
 
+    StateTable *table() {
+        return this;
+    }
+
     // returns the value corresponding to the given scxml id
     template <typename T>
     T *idToValue(const QByteArray &idVal, bool strict = false) {
@@ -254,12 +258,21 @@ public:
     //void toQml(QTextStream &qml);
     //bool writeDiffs(std::function<bool(const QString &)> diffDumper, const StateTable &other);
     void doLog(const QString &label, const QString &msg);
-    QString evalValueStr(const QString &expr);
-    bool evalBool(const QString &expr) const;
+    QString evalValueStr(const QString &expr, std::function<QString()> context,
+                         const QString &defaultValue = QString());
+    int evalValueInt(const QString &expr, std::function<QString()> context,
+                     int defaultValue);
+    bool evalValueBool(const QString &expr, std::function<QString()> context,
+                       bool defaultValue = false);
     ErrorDumper errorDumper();
-    virtual bool init(QJSEngine *engine);
+    virtual bool init();
     QJSEngine *engine() const;
     void setEngine(QJSEngine *engine);
+    Q_INVOKABLE void submitError(const QByteArray &type, const QString &msg) {
+        qCDebug(scxmlLog) << "machine " << _name << " had error " << type << ":" << msg;
+        submitEvent(type, msg);
+    }
+
     Q_INVOKABLE void submitEvent1(const QString &event) {
         submitEvent(event.toUtf8(), QVariant());
     }
@@ -267,13 +280,14 @@ public:
     Q_INVOKABLE void submitEvent2(const QString &event,  QVariant data) {
         submitEvent(event.toUtf8(), data);
     }
-    void submitEvent(const QByteArray &event,  QVariant data,
+    void submitEvent(const QByteArray &event, QVariant data = QVariant(),
                      ScxmlEvent::EventType type = ScxmlEvent::External,
                      const QByteArray &sendid = QByteArray(), const QString &origin = QString(),
                      const QString &origintype = QString(), const QByteArray &invokeid = QByteArray());
-    void submitDelayedEvent(int delay, const QByteArray &event, QVariant data, ScxmlEvent::EventType type,
-                            const QByteArray &sendid, const QString &origin, const QString &origintype,
-                            const QByteArray &invokeid);
+    void submitDelayedEvent(int delay, const QByteArray &event, QVariant data = QVariant(),
+                            ScxmlEvent::EventType type = ScxmlEvent::External,
+                            const QByteArray &sendid = QByteArray(), const QString &origin = QString(),
+                            const QString &origintype = QString(), const QByteArray &invokeid = QByteArray());
 
 signals:
     void log(const QString &label, const QString &msg);
@@ -355,7 +369,9 @@ struct SCXML_EXPORT Log : public Instruction {
     QString label;
     QString expr;
     virtual void execute() Q_DECL_OVERRIDE {
-        table()->doLog(label, table()->evalValueStr(expr));
+        table()->doLog(label, table()->evalValueStr(expr,
+                                                    [this]()->QString { return instructionLocation(); },
+                                                    QString()));
     }
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::Log; }
 };
@@ -495,13 +511,11 @@ Qt::GroupSwitchModifier
 QMouseEventTransition // no, add?
 */
 
-class SCXML_EXPORT ScxmlTransition : public QAbstractTransition {
+class SCXML_EXPORT ScxmlBaseTransition : public QAbstractTransition {
     Q_OBJECT
 public:
     typedef QSharedPointer<ConcreteSignalTransition> TransitionPtr;
-    ScxmlTransition(QState * sourceState = 0, const QList<QByteArray> &eventSelector = QList<QByteArray>(),
-                    const QList<QByteArray> &targetIds = QList<QByteArray>(),
-                    const QString &conditionalExp = QString());
+    ScxmlBaseTransition(QState * sourceState = 0, const QList<QByteArray> &eventSelector = QList<QByteArray>());
     StateTable *table() const;
 
     QString transitionLocation() const;
@@ -509,14 +523,33 @@ public:
     bool eventTest(QEvent *event) Q_DECL_OVERRIDE;
     virtual bool clear();
     virtual bool init();
-    virtual bool bind();
+
+    virtual QList<QByteArray> targetIds() const;
+
+    QList<QByteArray> eventSelector;
+protected:
+    void onTransition(QEvent *event) Q_DECL_OVERRIDE;
+private:
+    QList<TransitionPtr> m_concreteTransitions;
+};
+
+class SCXML_EXPORT ScxmlTransition : public ScxmlBaseTransition {
+    Q_OBJECT
+public:
+    typedef QSharedPointer<ConcreteSignalTransition> TransitionPtr;
+    ScxmlTransition(QState * sourceState = 0, const QList<QByteArray> &eventSelector = QList<QByteArray>(),
+                    const QList<QByteArray> &targetIds = QList<QByteArray>(),
+                    const QString &conditionalExp = QString());
+
+    bool eventTest(QEvent *event) Q_DECL_OVERRIDE;
+    bool init() Q_DECL_OVERRIDE;
+    QList<QByteArray> targetIds() const  Q_DECL_OVERRIDE { return m_targetIds; }
 
     QList<QByteArray> eventSelector;
     QString conditionalExp;
     ExecutableContent::InstructionSequence instructionsOnTransition;
-    QList<QByteArray> targetIds() const { return m_targetIds; }
 protected:
-    void onTransition(QEvent *event);
+    void onTransition(QEvent *event) Q_DECL_OVERRIDE;
 private:
     QList<QByteArray> m_targetIds;
     QList<TransitionPtr> m_concreteTransitions;

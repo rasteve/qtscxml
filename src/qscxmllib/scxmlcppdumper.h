@@ -35,18 +35,22 @@ public:
     CppDumper(QTextStream &stream, const CppDumpOptions &options) : s(stream), options(options) { }
     void dump(StateTable *table);
     QTextStream &s;
+
+    static QByteArray cEscape(const QByteArray &str);
+    static QString cEscape(const QString &str);
+    static QString cEscape(const char *str) { return cEscape(QString::fromLatin1(str)); }
 private:
     void dumpDeclareStates();
     void dumpDeclareSignalsForEvents();
     void dumpExecutableContent();
+    void dumpInstructions(ExecutableContent::Instruction &i);
     void dumpInit();
 
     static QByteArray b(const char *str) { return QByteArray(str); }
     static QLatin1String l (const char *str) { return QLatin1String(str); }
-    static QString cEscape(const QString &str);
-    static QString cEscape(const char *str) { return cEscape(str); }
 
     StateTable *table;
+    QString mainClassName;
     CppDumpOptions options;
 };
 

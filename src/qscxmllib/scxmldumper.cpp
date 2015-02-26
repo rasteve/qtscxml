@@ -26,7 +26,7 @@ namespace Scxml {
 
 namespace {
 using namespace ExecutableContent;
-class SCXML_EXPORT DumpInstructionVisitor : public InstructionVisitor {
+class DumpInstructionVisitor : public InstructionVisitor {
 public:
     DumpInstructionVisitor(ScxmlDumper &dumper) : s(dumper) { }
 protected:

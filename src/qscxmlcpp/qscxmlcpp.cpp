@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     QXmlStreamReader reader(&file);
     Scxml::ScxmlParser parser(&reader, QFileInfo(file.fileName()).absolutePath());
     parser.parse();
-    QFile outF(a.arguments().value(2, QLatin1String("out.cpp")));
+    QFile outF(a.arguments().value(2, QFileInfo(fileName).baseName() + QLatin1String(".h")));
     outF.open(QFile::WriteOnly);
     QTextStream w(&outF);
     Scxml::CppDumpOptions options;

@@ -88,7 +88,8 @@ void JavaScript::execute()
         compiledFunction = e->evaluate(QStringLiteral("function() {\n%1\n}").arg(source),
                                        QStringLiteral("<%1>").arg(instructionLocation()), 0);
         if (!compiledFunction.isCallable()) {
-            qWarning(scxmlLog) << "Error compiling" << instructionLocation() << " ignoring execution";
+            qWarning(scxmlLog) << "Error compiling" << instructionLocation() << ":"
+                               << compiledFunction.toString()  << ", ignoring execution";
             return;
         }
     }
@@ -179,7 +180,7 @@ void If::execute()
 {
     StateTable *t = table();
     for (int i = 0; i < conditions.size(); ++i) {
-        if (t->evalBool(conditions.at(i))) {
+        if (t->evalValueBool(conditions.at(i), [this]() -> QString { return instructionLocation(); })) {
             blocks[i].execute();
             return;
         }
@@ -306,14 +307,53 @@ void StateTable::doLog(const QString &label, const QString &msg)
     emit log(label, msg);
 }
 
-QString StateTable::evalValueStr(const QString &expr)
+QString StateTable::evalValueStr(const QString &expr, std::function<QString()> context,
+                                 const QString &defaultValue)
 {
-    return expr;
+    QJSEngine *e = engine();
+    if (e) {
+        QJSValue v = e->evaluate(QStringLiteral("(function(){ return (\n%1\n).toString(); })()").arg(expr),
+                                 QStringLiteral("<expr>"), 0);
+        if (v.isError()) {
+            submitError(QByteArray("error.execution"),
+                        QStringLiteral("%1 in %2").arg(v.toString(), context()));
+        } else {
+            return v.toString();
+        }
+    }
+    return defaultValue;
 }
 
-bool StateTable::evalBool(const QString &expr) const
+int StateTable::evalValueInt(const QString &expr, std::function<QString()> context, int defaultValue)
 {
-    return expr.isEmpty(); // to do
+    QJSEngine *e = engine();
+    if (e) {
+        QJSValue v = e->evaluate(QStringLiteral("(function(){ return (\n%1\n)|0; })()").arg(expr),
+                                 QStringLiteral("<expr>"), 0);
+        if (v.isError()) {
+            submitError(QByteArray("error.execution"),
+                        QStringLiteral("%1 in %2").arg(v.toString(), context()));
+        } else {
+            return v.toInt();
+        }
+    }
+    return defaultValue;
+}
+
+bool StateTable::evalValueBool(const QString &expr, std::function<QString()> context, bool defaultValue)
+{
+    QJSEngine *e = engine();
+    if (e) {
+        QJSValue v = e->evaluate(QStringLiteral("(function(){ return !!(\n%1\n); })()").arg(expr),
+                                 QStringLiteral("<expr>"), 0);
+        if (v.isError()) {
+            submitError(QByteArray("error.execution"),
+                        QStringLiteral("%1 in %2").arg(v.toString(), context()));
+        } else {
+            return v.toBool();
+        }
+    }
+    return defaultValue;
 }
 
 void StateTable::beginSelectTransitions(QEvent *event)
@@ -488,9 +528,8 @@ bool loopOnSubStates(QState *startState,
     return true;
 }
 
-bool StateTable::init(QJSEngine *engine)
+bool StateTable::init()
 {
-    setEngine(engine);
     bool res = true;
     loopOnSubStates(this, std::function<bool(QState *)>(), [&res](QState *state) {
         if (ScxmlState *s = qobject_cast<ScxmlState *>(state))
@@ -603,39 +642,33 @@ QJSValue ScxmlEvent::jsValue(QJSEngine *engine) const {
     return res;
 }
 
-ScxmlTransition::ScxmlTransition(QState *sourceState, const QList<QByteArray> &eventSelector,
-                                 const QList<QByteArray> &targetIds, const QString &conditionalExp) :
-    QAbstractTransition(sourceState), eventSelector(eventSelector),
-    conditionalExp(conditionalExp), instructionsOnTransition(sourceState, this),
-    m_targetIds(targetIds), m_bound(false) { }
+/////////////
+ScxmlBaseTransition::ScxmlBaseTransition(QState *sourceState, const QList<QByteArray> &eventSelector) :
+    QAbstractTransition(sourceState), eventSelector(eventSelector) { }
 
-StateTable *ScxmlTransition::table() const {
+StateTable *ScxmlBaseTransition::table() const {
     if (sourceState())
         return qobject_cast<StateTable *>(sourceState()->machine());
     qCWarning(scxmlLog) << "could not resolve StateTable in " << transitionLocation();
     return 0;
 }
 
-QString ScxmlTransition::transitionLocation() const {
+QString ScxmlBaseTransition::transitionLocation() const {
     if (QState *state = sourceState()) {
         QString stateName;
         if (StateTable *stateTable = table())
             stateName = QString::fromUtf8(stateTable->objectId(state, true));
         else
             stateName = state->objectName();
-        int transitionIndex = state->transitions().indexOf(const_cast<ScxmlTransition *>(this));
+        int transitionIndex = state->transitions().indexOf(const_cast<ScxmlBaseTransition *>(this));
         return QStringLiteral("transition #%1 in state %2").arg(transitionIndex).arg(stateName);
     }
     return QStringLiteral("unbound transition @%1").arg((size_t)(void*)this);
 }
 
-bool ScxmlTransition::eventTest(QEvent *event) {
-    if (eventSelector.isEmpty()) {
-        if (conditionalExp.isEmpty() || table()->evalBool(conditionalExp))
-            return true;
-        else
-            return false;
-    }
+bool ScxmlBaseTransition::eventTest(QEvent *event) {
+    if (eventSelector.isEmpty())
+        return true;
     if (event->type() == QEvent::None)
         return false;
     StateTable *stateTable = table();
@@ -643,16 +676,16 @@ bool ScxmlTransition::eventTest(QEvent *event) {
     bool selected = false;
     foreach (const QByteArray &eventStr, eventSelector) {
         if (eventName.startsWith(eventStr)) {
-            if (event->type() != QEvent::StateMachineSignal && event->type() != ScxmlEvent::scxmlEventType) {
-                qCWarning(scxmlLog) << "unexpected triggering of event " << eventName
-                                    << " with type " << event->type() << " detected in "
-                                    << transitionLocation();
-            }
             char nextC = '.';
             if (eventName.size() > eventStr.size())
                 nextC = eventName.at(eventStr.size());
             if (nextC == '.' || nextC == '(') {
                 selected = true;
+                if (event->type() != QEvent::StateMachineSignal && event->type() != ScxmlEvent::scxmlEventType) {
+                    qCWarning(scxmlLog) << "unexpected triggering of event " << eventName
+                                        << " with type " << event->type() << " detected in "
+                                        << transitionLocation();
+                }
                 break;
             }
         }
@@ -675,43 +708,17 @@ bool ScxmlTransition::eventTest(QEvent *event) {
         }
     }
 #endif
-    if (selected && !conditionalExp.isEmpty() && !stateTable->evalBool(conditionalExp))
-        selected = false;
     return selected;
 }
 
-bool ScxmlTransition::clear() {
+bool ScxmlBaseTransition::clear() {
     foreach (TransitionPtr t, m_concreteTransitions)
         sourceState()->removeTransition(t.data());
     m_concreteTransitions.clear();
     return true;
 }
 
-bool ScxmlTransition::init() {
-    StateTable *stateTable = table();
-    if (!m_targetIds.isEmpty()) {
-        QList<QAbstractState *> targets;
-        foreach (const QByteArray &tId, m_targetIds) {
-            QAbstractState *target = stateTable->idToValue<QAbstractState>(tId);
-            if (!target) {
-                qCWarning(scxmlLog) << "ScxmlTransition could not resolve target state for id "
-                                    << tId << " for " << transitionLocation();
-                return false;
-            }
-            targets << target;
-        }
-        setTargetStates(targets);
-    } else if (!targetStates().isEmpty()) {
-        setTargetStates(QList<QAbstractState *>()); // avoid?
-    }
-    if (stateTable->dataBinding() == StateTable::EarlyBinding) {
-        m_bound = true;
-        return bind();
-    }
-    return true;
-}
-
-bool ScxmlTransition::bind() {
+bool ScxmlBaseTransition::init() {
     Q_ASSERT(m_concreteTransitions.isEmpty());
     if (eventSelector.isEmpty())
         return true;
@@ -779,13 +786,58 @@ bool ScxmlTransition::bind() {
     return !failure;
 }
 
+QList<QByteArray> ScxmlBaseTransition::targetIds() const {
+    QList<QByteArray> res;
+    if (StateTable *t = table()) {
+        foreach (QAbstractState *s, targetStates())
+            res << t->objectId(s, true);
+    }
+    return res;
+}
+
+void ScxmlBaseTransition::onTransition(QEvent *event)
+{
+}
+
+/////////////
+ScxmlTransition::ScxmlTransition(QState *sourceState, const QList<QByteArray> &eventSelector,
+                                 const QList<QByteArray> &targetIds, const QString &conditionalExp) :
+    ScxmlBaseTransition(sourceState, eventSelector), eventSelector(eventSelector),
+    conditionalExp(conditionalExp), instructionsOnTransition(sourceState, this),
+    m_targetIds(targetIds) { }
+
+bool ScxmlTransition::eventTest(QEvent *event) {
+    if (ScxmlBaseTransition::eventTest(event)
+            && (conditionalExp.isEmpty()
+                || table()->evalValueBool(conditionalExp, [this]() -> QString {
+                                          return transitionLocation();
+                                          })))
+        return true;
+    return false;
+}
+
+bool ScxmlTransition::init() {
+    StateTable *stateTable = table();
+    if (!m_targetIds.isEmpty()) {
+        QList<QAbstractState *> targets;
+        foreach (const QByteArray &tId, m_targetIds) {
+            QAbstractState *target = stateTable->idToValue<QAbstractState>(tId);
+            if (!target) {
+                qCWarning(scxmlLog) << "ScxmlTransition could not resolve target state for id "
+                                    << tId << " for " << transitionLocation();
+                return false;
+            }
+            targets << target;
+        }
+        setTargetStates(targets);
+    } else if (!targetStates().isEmpty()) {
+        setTargetStates(QList<QAbstractState *>()); // avoid?
+    }
+    return ScxmlBaseTransition::init();
+}
+
 void ScxmlTransition::onTransition(QEvent *)
 {
-    StateTable *t = table();
-    if (t->dataBinding() != StateTable::EarlyBinding && !m_bound) {
-        bind();
-        m_bound = t->dataBinding() == StateTable::LateBinding;
-    }
     instructionsOnTransition.execute();
 }
 

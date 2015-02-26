@@ -179,7 +179,8 @@ void Session::replyFinished(QTcpSocket *socket, QNetworkReply *initialLoad) {
             QObject::connect(stateMachine, &Scxml::StateTable::reachedStableState,
                              [this](bool didChange) { reachedStableState(didChange);});
             QJSEngine *jsEngine = new QJSEngine;
-            stateMachine->init(jsEngine);
+            stateMachine->setEngine(jsEngine);
+            stateMachine->init();
             stateMachine->start();
         }
     }
