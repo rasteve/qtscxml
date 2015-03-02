@@ -476,9 +476,13 @@ void StateTablePrivate::endMacrostep(bool didChange)
 }
 #endif
 
-QList<QByteArray> StateTable::currentStates() {
+QList<QByteArray> StateTable::currentStates(bool compress) {
+    QSet<QAbstractState *> config = d_func()->configuration;
+    if (compress)
+        foreach (const QAbstractState *s, d_func()->configuration)
+            config.remove(s->parentState());
     QList<QByteArray> res;
-    foreach (const QAbstractState *s, d_func()->configuration)
+    foreach (const QAbstractState *s, config)
         res.append(objectId(const_cast<QAbstractState *>(s)));
     std::sort(res.begin(), res.end());
     return res;

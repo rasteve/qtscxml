@@ -305,7 +305,7 @@ public:
     QString _name;
     typedef QHash<QString, QString> Dict;
     QStringList _ioprocessors;
-    QList<QByteArray> currentStates();
+    QList<QByteArray> currentStates(bool compress = true);
 private:
     Q_DECLARE_PRIVATE(StateTable)
     ExecutableContent::InstructionSequence m_initialSetup;
