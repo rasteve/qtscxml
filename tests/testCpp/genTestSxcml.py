@@ -62,7 +62,7 @@ while True:
         breathLevel.pop()
     if depthLevel < 0:
         break
-f.write("</scxml>")
+f.write("</scxml>\n")
 f.close()
 print "totalStates: ", nStates
 print "totalTransitions: ", tTotal
