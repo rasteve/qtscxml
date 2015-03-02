@@ -545,15 +545,12 @@ public:
     bool init() Q_DECL_OVERRIDE;
     QList<QByteArray> targetIds() const  Q_DECL_OVERRIDE { return m_targetIds; }
 
-    QList<QByteArray> eventSelector;
     QString conditionalExp;
     ExecutableContent::InstructionSequence instructionsOnTransition;
 protected:
     void onTransition(QEvent *event) Q_DECL_OVERRIDE;
 private:
     QList<QByteArray> m_targetIds;
-    QList<TransitionPtr> m_concreteTransitions;
-    bool m_bound;
 };
 
 class SCXML_EXPORT ScxmlState: public QState
