@@ -89,7 +89,7 @@ private:
 
 int main(int argc, char *argv[])
 {
-#if QT_VERSION < QT_VERSION_CHECK(5, 5)
+#if QT_VERSION < QT_VERSION_CHECK(5, 5, 0)
     qCWarning(scxmlServerLog) << "testing requires the new state machine API";
     Q_ASSERT(false);
 #endif
