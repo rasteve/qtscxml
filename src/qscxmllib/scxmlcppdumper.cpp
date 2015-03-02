@@ -444,7 +444,7 @@ void CppDumper::dumpInit()
         QString stateName = QString::fromUtf8(table->objectId(state, false));
         s << l("        state_") << stateName << l(" = new Scxml::ScxmlState(");
         if (state->parentState() && state->parentState() != table)
-            s << table->objectId(state->parentState(), false);
+            s << "state_" << table->objectId(state->parentState(), false);
         else
             s << "this";
         s << l(");\n");
@@ -467,8 +467,10 @@ void CppDumper::dumpInit()
         QString stateName = QString::fromUtf8(table->objectId(state, false));
         s << l("        state_") << stateName << l(" = new ")
           << b(state->metaObject()->className()) << l("(");
-        if (state->parentState())
-            s << table->objectId(state->parentState(), false);
+        if (state->parentState() && state->parentState() != table)
+            s << "state_" << table->objectId(state->parentState(), false);
+        else
+            s << "this";
         s << l(");\n");
         s << l("        addId(QByteArray(\"") << stateName << l("\", state_") << stateName
           << l(");\n");
@@ -539,6 +541,7 @@ void CppDumper::dumpInit()
                         s << l("\n                << state_") << table->objectId(tState, true);
                     s << l(");\n");
                 }
+                s << l("            transition->init();");
                 s << l("        }\n");
             }
         }
