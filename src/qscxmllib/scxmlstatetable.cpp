@@ -448,6 +448,8 @@ void StateTable::endMicrostep(QEvent *event)
     qCDebug(scxmlLog) << _name << " finished microstep in state (" << currentStates() << ")";
 }
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
+
 void StateTablePrivate::noMicrostep()
 {
     Q_Q(StateTable);
@@ -472,6 +474,7 @@ void StateTablePrivate::endMacrostep(bool didChange)
     qCDebug(scxmlLog) << q->_name << " endMacrostep " << didChange << " in state ("
                       << q->currentStates() << ")";
 }
+#endif
 
 QList<QByteArray> StateTable::currentStates() {
     QList<QByteArray> res;

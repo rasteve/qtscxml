@@ -26,12 +26,12 @@ namespace Scxml {
 
 class StateTablePrivate: public QStateMachinePrivate {
     Q_DECLARE_PUBLIC(StateTable)
-
+#if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
     void noMicrostep() Q_DECL_OVERRIDE;
     void processedPendingEvents(bool didChange) Q_DECL_OVERRIDE;
     void beginMacrostep() Q_DECL_OVERRIDE;
     void endMacrostep(bool didChange) Q_DECL_OVERRIDE;
-
+#endif
 };
 
 }
