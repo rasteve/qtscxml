@@ -35,7 +35,6 @@
         </onentry>
 
         <transition target="c" event="r"/>
-        <transition target="f1"/>
     </state>
 
     <state id="c">

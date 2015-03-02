@@ -32,7 +32,6 @@
     <state id="b" initial="b1">
         <state id="b1">
             <transition event="s" target="b2"/>
-            <transition target="b3"/>
         </state>
 
         <state id="b2">
