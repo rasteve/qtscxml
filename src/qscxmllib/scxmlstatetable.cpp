@@ -807,9 +807,26 @@ void ScxmlBaseTransition::onTransition(QEvent *event)
 }
 
 /////////////
+
+static QList<QByteArray> filterEmpty(const QList<QByteArray> &events) {
+    QList<QByteArray> res;
+    int oldI = 0;
+    for (int i = 0; i < events.size(); ++i) {
+        if (events.at(i).isEmpty()) {
+            res.append(events.mid(oldI, i - oldI));
+            oldI = i + 1;
+        }
+    }
+    if (oldI > 0) {
+        res.append(events.mid(oldI));
+        return res;
+    }
+    return events;
+}
+
 ScxmlTransition::ScxmlTransition(QState *sourceState, const QList<QByteArray> &eventSelector,
                                  const QList<QByteArray> &targetIds, const QString &conditionalExp) :
-    ScxmlBaseTransition(sourceState, eventSelector), eventSelector(eventSelector),
+    ScxmlBaseTransition(sourceState, filterEmpty(eventSelector)),
     conditionalExp(conditionalExp), instructionsOnTransition(sourceState, this),
     m_targetIds(targetIds) { }
 
