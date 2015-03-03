@@ -804,6 +804,7 @@ QList<QByteArray> ScxmlBaseTransition::targetIds() const {
 
 void ScxmlBaseTransition::onTransition(QEvent *event)
 {
+    Q_UNUSED(event);
 }
 
 /////////////
