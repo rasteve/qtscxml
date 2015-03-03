@@ -68,8 +68,6 @@ void ScxmlParser::ensureInitialState(const QByteArray &initialId)
                 firstState = s;
         });
         if (firstState) {
-            qDebug() << "setting initial state of" << table()->objectId(m_currentParent) << " to "
-                     << table()->objectId(firstState);
             m_currentParent->setInitialState(firstState);
         }
     }
