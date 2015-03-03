@@ -307,11 +307,14 @@ void CppDumper::dump(StateTable *table)
         s << l("namespace ") << options.namespaceName << l(" {\n");
     s << l("class ") << mainClassName << l(" : public Scxml::StateTable {\n");
     s << "Q_OBJECT\n";
-    dumpDeclareStates();
+    s << "public:\n";
+    s << l("    ") << mainClassName << l("(QObject *parent = 0) : Scxml::StateTable(parent) { }\n");
+    s << l("    ") << mainClassName << l("(Scxml::StateTablePrivate &dd, QObject *parent) : Scxml::StateTable(dd, parent) { }\n");
     dumpDeclareSignalsForEvents();
     dumpExecutableContent();
     s << "public:\n";
     dumpInit();
+    dumpDeclareStates();
     s << l("};\n");
     if (!options.namespaceName.isEmpty())
         s << l("} // namespace ") << options.namespaceName << l("\n");
