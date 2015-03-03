@@ -543,7 +543,7 @@ void CppDumper::dumpInit()
                         s << l("\n                << &state_") << tState;
                     s << l(");\n");
                 }
-                s << l("            transition->init();");
+                s << l("            transition->init();\n");
                 s << l("        }\n");
             }
         }
