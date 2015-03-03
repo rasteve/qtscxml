@@ -557,7 +557,8 @@ class SCXML_EXPORT ScxmlState: public QState
 {
     Q_OBJECT
 public:
-    ScxmlState(QState *parent) : QState(parent), onEntryInstruction(this), onExitInstruction(this) { }
+    ScxmlState(QState *parent = 0) : QState(parent), onEntryInstruction(this), onExitInstruction(this) { }
+    ScxmlState(QStatePrivate &dd, QState *parent = 0) : QState(dd, parent), onEntryInstruction(this), onExitInstruction(this) { }
     StateTable *table() const;
     virtual bool init();
     QString stateLocation() const;
