@@ -472,7 +472,7 @@ void CppDumper::dumpInit()
         else
             s << "this";
         s << l(");\n");
-        s << l("        addId(QByteArray(\"") << stateName << l("\", state_") << stateName
+        s << l("        addId(QByteArray(\"") << stateName << l("\"), state_") << stateName
           << l(");\n");
         if (ScxmlFinalState *sState = qobject_cast<ScxmlFinalState *>(state)) {
             if (!sState->onEntryInstruction.statements.isEmpty()) {
