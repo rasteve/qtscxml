@@ -534,14 +534,14 @@ void CppDumper::dumpInit()
                       << tIndex << l("_") << stateName << l("(")
                       << sourceState << l(", eventSelector);\n");
                 }
-                QList<QAbstractState *> targetStates = scTransition->targetStates();
+                QList<QByteArray> targetStates = scTransition->targetIds();
                 if (targetStates.size() == 1) {
-                    s << l("            transition.setTargetState(state_")
-                      << table->objectId(targetStates.first(), true) << l(");\n");
+                    s << l("            transition->setTargetState(&state_")
+                      << targetStates.first() << l(");\n");
                 } else if (targetStates.size() > 1) {
-                    s << l("            transition.setTargetStates(QList<QAbstractState *>() ");
-                    foreach (QAbstractState *tState, targetStates)
-                        s << l("\n                << state_") << table->objectId(tState, true);
+                    s << l("            transition->setTargetStates(QList<QAbstractState *>() ");
+                    foreach (const QByteArray &tState, targetStates)
+                        s << l("\n                << &state_") << tState;
                     s << l(");\n");
                 }
                 s << l("            transition->init();");
