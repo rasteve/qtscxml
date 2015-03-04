@@ -27,12 +27,12 @@
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
-    StateMachine sm;
     QElapsedTimer t;
     t.start();
+
+    StateMachine sm;
     sm.init();
+
     std::cout << "instantiation:" << t.elapsed() << " ms" << std::endl;
     return 0;
-    //sm.start();
-    //return a.exec();
 }

@@ -15,11 +15,11 @@
 
 import random
 """stupid generator of a large scxml state machine"""
-nStatesMax=1000
-depth=10
+nStatesMax=10
+depth=5
 breath=10
-nTransitions=10
-nEvents=1000
+nTransitions=8
+nEvents=100
 
 nStates = 0
 tTotal = 0
@@ -50,7 +50,7 @@ while True:
             tTotal += 1
             target = random.choice(knownStates)
             event = ("E%d" % random.randint(1,nEvents))
-            f.write("""<transition event="%s" target="%s" />""" % (event, target))
+            f.write("""<transition event="%s" target="%s" />\n""" % (event, target))
         f.write("</state>\n")
         sIndex[depthLevel] += 1
         if (nStates < nStatesMax and breathLevel[depthLevel] > sIndex[depthLevel]):

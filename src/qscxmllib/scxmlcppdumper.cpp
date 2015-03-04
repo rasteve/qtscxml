@@ -23,6 +23,86 @@ namespace Scxml {
 
 namespace {
 using namespace ExecutableContent;
+
+
+QByteArray cEscape(const QByteArray &str)
+{ // should handle even trigraphs?
+    QByteArray res;
+    int lastI = 0;
+    for (int i = 0; i < str.length(); ++i) {
+        unsigned char c = str.at(i);
+        if (c < ' ' || c == '\\' || c == '\"') {
+            res.append(str.mid(lastI, i - lastI));
+            lastI = i + 1;
+            if (c == '\\') {
+                res.append("\\\\");
+            } else if (c == '\"') {
+                res.append("\"");
+            } else {
+                char buf[4];
+                buf[0] = '\\';
+                buf[3] = '0' + (c & 0x7);
+                c >>= 3;
+                buf[2] = '0' + (c & 0x7);
+                c >>= 3;
+                buf[1] = '0' + (c & 0x7);
+                res.append(&buf[0], 4);
+            }
+        }
+    }
+    if (lastI != 0) {
+        res.append(str.mid(lastI));
+        return res;
+    }
+    return str;
+}
+
+QString cEscape(const QString &str)
+{// should handle even trigraphs?
+    QString res;
+    int lastI = 0;
+    for (int i = 0; i < str.length(); ++i) {
+        QChar c = str.at(i);
+        if (c < QLatin1Char(' ') || c == QLatin1Char('\\') || c == QLatin1Char('\"')) {
+            res.append(str.mid(lastI, i - lastI));
+            lastI = i + 1;
+            if (c == QLatin1Char('\\')) {
+                res.append(QLatin1String("\\\\"));
+            } else if (c == QLatin1Char('\"')) {
+                res.append(QLatin1String("\""));
+            } else {
+                char buf[6];
+                ushort cc = c.unicode();
+                buf[0] = '\\';
+                buf[1] = 'u';
+                for (int i = 0; i < 4; ++i) {
+                    buf[5 - i] = '0' + (cc & 0xF);
+                    cc >>= 4;
+                }
+                res.append(QLatin1String(&buf[0], 6));
+            }
+        }
+    }
+    if (lastI != 0) {
+        res.append(str.mid(lastI));
+        return res;
+    }
+    return str;
+}
+
+//QString cEscape(const char *str)
+//{
+//    return cEscape(QString::fromLatin1(str));
+//}
+
+QString qba(const QByteArray &bytes)
+{
+    QString str = QString::fromLatin1("QByteArray::fromRawData(\"");
+    auto esc = cEscape(bytes);
+    str += QString::fromLatin1(esc) + QLatin1String("\", ") + QString::number(esc.length()) + QLatin1String(")");
+    return str;
+}
+
 class DumpCppInstructionVisitor : public InstructionVisitor {
     QLatin1String l(const char *str) { return QLatin1String(str); }
     QTextStream &s;
@@ -48,8 +128,7 @@ protected:
 
     void visitRaise(Raise *r) Q_DECL_OVERRIDE {
         maybeTable();
-        indented() << l("sTable->submitEvent(QByteArray(\"")
-                   << CppDumper::cEscape(r->event) << l("\"));\n");
+        indented() << l("sTable->submitEvent(") << qba(r->event) << l(");") << endl;
     }
 
     void visitSend(Send *send) Q_DECL_OVERRIDE {
@@ -57,9 +136,9 @@ protected:
         if (!send->delayexpr.isEmpty() || !send->delay.isEmpty()) {
             if (!send->delayexpr.isEmpty()) {
                 indented() << l("int delay = sTable->evalValueInt(QStringLiteral(\"")
-                  << CppDumper::cEscape(send->delayexpr)
+                  << cEscape(send->delayexpr)
                   << l("\"), []() -> QString { return QStringLiteral(\"")
-                  << CppDumper::cEscape(send->instructionLocation())
+                  << cEscape(send->instructionLocation())
                   << l("\"); }, 0);\n");
             } else {
                 bool ok;
@@ -78,14 +157,15 @@ protected:
             indented() << l("sTable->submitEvent(");
         }
         if (!send->eventexpr.isEmpty()) {
-            s << l("sTable->evalStr(QStringLiteral(\"") << CppDumper::cEscape(send->eventexpr) << l("\"),\n");
+            s << l("sTable->evalStr(QStringLiteral(\"") << cEscape(send->eventexpr)
+              << l("\"),\n");
         } else {
-            s << l("QByteArray(\"") << send->event << l("\"),\n");
+            s << qba(send->event) << endl;
             if (send->event.isEmpty())
                 qCWarning(scxmlLog) << "missing event from send in " << send->instructionLocation();
         }
         /*if (!send->targetexpr.isEmpty()) {
-            l("sTable->evalStr(QStringLiteral(\"") << CppDumper::cEscape(send->targetexpr) << l("\"),\n");
+            l("sTable->evalStr(QStringLiteral(\"") << cEscape(send->targetexpr) << l("\"),\n");
             s.writeAttribute("targetexpr", send->targetexpr);
         else if (!send->target.isEmpty())
             s.writeAttribute("target", send->target);
@@ -118,8 +198,8 @@ protected:
 
     void visitLog(Log *log) Q_DECL_OVERRIDE {
         maybeTable();
-        indented() << l("sTable->doLog(QStringLiteral(\"") << CppDumper::cEscape(log->label) << l("\",\n");
-        indented() << l("    sTable->evalValueStr( QStringLiteral(\"") << CppDumper::cEscape(log->expr) << l("\")));\n");
+        indented() << l("sTable->doLog(QStringLiteral(\"") << cEscape(log->label) << l("\",\n");
+        indented() << l("    sTable->evalValueStr( QStringLiteral(\"") << cEscape(log->expr) << l("\")));\n");
     }
 
     void visitJavaScript(JavaScript *script) Q_DECL_OVERRIDE {
@@ -285,7 +365,6 @@ protected:
     void endVisitSequence(InstructionSequence *) Q_DECL_OVERRIDE { }
 
 };
-
 } // anonymous namespace
 
 const char *headerStart =
@@ -304,27 +383,49 @@ void CppDumper::dump(StateTable *table)
    mainClassName.append(l("StateMachine"));
     s << l(headerStart);
     if (!options.namespaceName.isEmpty())
-        s << l("namespace ") << options.namespaceName << l(" {\n");
-    s << l("class ") << mainClassName << l(" : public Scxml::StateTable {\n");
-    s << "Q_OBJECT\n";
-    s << "public:\n";
-    s << l("    ") << mainClassName << l("(QObject *parent = 0) : Scxml::StateTable(parent) { }\n");
-    s << l("    ") << mainClassName << l("(Scxml::StateTablePrivate &dd, QObject *parent) : Scxml::StateTable(dd, parent) { }\n");
+        s << l("namespace ") << options.namespaceName << l(" {") << endl;
+    s << l("class ") << mainClassName << l(" : public Scxml::StateTable {") << endl;
+    s << QLatin1String("    Q_OBJECT\n");
+    s << QLatin1String("public:\n");
+    dumpConstructor();
     dumpDeclareSignalsForEvents();
     dumpExecutableContent();
-    s << "public:\n";
+    s << l("public:") << endl;
     dumpInit();
     dumpDeclareStates();
-    s << l("};\n");
+    s << l("};") << endl;
     if (!options.namespaceName.isEmpty())
-        s << l("} // namespace ") << options.namespaceName << l("\n");
+        s << l("} // namespace ") << options.namespaceName << endl;
 }
 
+void CppDumper::dumpConstructor()
+{
+    s << l("    ") << mainClassName << l("(QObject *parent = 0) : Scxml::StateTable(parent)") << endl;
+    loopOnSubStates(table, [this](QState *state) -> bool {
+        QString stateName = QString::fromUtf8(this->table->objectId(state, false));
+        s << l("        , state_") << stateName << l("(");
+        if (state->parentState() && state->parentState() != this->table)
+            s << "&state_" << this->table->objectId(state->parentState(), false);
+        else
+            s << "this";
+        s << l(")") << endl;
+        return true;
+    }, Q_NULLPTR, [this](QAbstractState *state) -> void {
+        QString stateName = QString::fromUtf8(this->table->objectId(state, false));
+        s << l("        , state_") << stateName << l("(");
+        if (state->parentState() && state->parentState() != this->table)
+            s << "&state_" << this->table->objectId(state->parentState(), false);
+        else
+            s << "this";
+        s << l(");") << endl;
+    });
+    s << l("    {}") << endl;
+}
 
 void CppDumper::dumpDeclareStates()
 {
     loopOnSubStates(table, [this](QState *state) -> bool {
-        s << l("Scxml::ScxmlState state_") << table->objectId(state, false) << l(";\n");
+        s << l("    Scxml::ScxmlState state_") << table->objectId(state, false) << l(";") << endl;
         return true;
     }, Q_NULLPTR, [this](QAbstractState *state) -> void {
         s << b(state->metaObject()->className()) << l(" state_") << table->objectId(state, false)
@@ -352,9 +453,9 @@ void CppDumper::dumpDeclareSignalsForEvents()
                 || event.startsWith(b("qevent.")))
             continue;
         if (!hasSignals)
-            s << l("signals:\n");
+            s << endl << l("signals:") << endl;
         hasSignals = true;
-        s << l("void event_") << event.replace('.', '_') << "();\n";
+        s << l("    void event_") << event.replace('.', '_') << l("();") << endl;
     }
     if (hasSignals)
         s << l("public:\n");
@@ -444,14 +545,9 @@ void CppDumper::dumpInit()
 {
     s << l("    bool init() Q_DECL_OVERRIDE {\n");
     loopOnSubStates(table, [this](QState *state) -> bool {
-        QString stateName = QString::fromUtf8(table->objectId(state, false));
-        s << l("        state_") << stateName << l(".setParent(");
-        if (state->parentState() && state->parentState() != table)
-            s << "&state_" << table->objectId(state->parentState(), false);
-        else
-            s << "this";
-        s << l(");\n");
-        s << l("        addId(QByteArray(\"") << stateName << l("\"), &state_") << stateName
+        QByteArray rawStateName = table->objectId(state, false);
+        QString stateName = QString::fromUtf8(rawStateName);
+        s << l("        addId(") << qba(rawStateName) << l(", &state_") << stateName
           << l(");\n");
         if (ScxmlState *sState = qobject_cast<ScxmlState *>(state)) {
             if (!sState->onEntryInstruction.statements.isEmpty()) {
@@ -467,14 +563,9 @@ void CppDumper::dumpInit()
         }
         return true;
     }, Q_NULLPTR, [this](QAbstractState *state) -> void {
-        QString stateName = QString::fromUtf8(table->objectId(state, false));
-        s << l("        state_") << stateName << l(".setParent(");
-        if (state->parentState() && state->parentState() != table)
-            s << "&state_" << table->objectId(state->parentState(), false);
-        else
-            s << "this";
-        s << l(");\n");
-        s << l("        addId(QByteArray(\"") << stateName << l("\"), &state_") << stateName
+        QByteArray rawStateName = table->objectId(state, false);
+        QString stateName = QString::fromUtf8(rawStateName);
+        s << l("        addId(") << qba(rawStateName) << l(", &state_") << stateName
           << l(");\n");
         if (ScxmlFinalState *sState = qobject_cast<ScxmlFinalState *>(state)) {
             if (!sState->onEntryInstruction.statements.isEmpty()) {
@@ -491,7 +582,7 @@ void CppDumper::dumpInit()
     });
     if (table->initialState()) {
         s << l("\n        setInitialState(&state_")
-          << table->objectId(table->initialState(), true) << l(");\n\n");
+          << table->objectId(table->initialState(), true) << l(");") << endl;
     }
     loopOnSubStates(table, [this](QState *state) -> bool {
         QByteArray stateName = table->objectId(state);
@@ -511,7 +602,7 @@ void CppDumper::dumpInit()
                         if (!first)
                             s << l("\n               ");
                         first = false;
-                        s << l(" << QByteArray(\"") << cEscape(eSelector) << l("\")");
+                        s << l(" << ") << qba(eSelector);
                     }
                     s << l(";\n");
                 }
@@ -551,71 +642,6 @@ void CppDumper::dumpInit()
     }, Q_NULLPTR, Q_NULLPTR);
     s << l("        return true;\n");
     s << l("    }\n");
-}
-
-QByteArray CppDumper::cEscape(const QByteArray &str)
-{ // should handle even trigraphs?
-    QByteArray res;
-    int lastI = 0;
-    for (int i = 0; i < str.length(); ++i) {
-        unsigned char c = str.at(i);
-        if (c < ' ' || c == '\\' || c == '\"') {
-            res.append(str.mid(lastI, i - lastI));
-            lastI = i + 1;
-            if (c == '\\') {
-                res.append("\\\\");
-            } else if (c == '\"') {
-                res.append("\"");
-            } else {
-                char buf[4];
-                buf[0] = '\\';
-                buf[3] = '0' + (c & 0x7);
-                c >>= 3;
-                buf[2] = '0' + (c & 0x7);
-                c >>= 3;
-                buf[1] = '0' + (c & 0x7);
-                res.append(&buf[0], 4);
-            }
-        }
-    }
-    if (lastI != 0) {
-        res.append(str.mid(lastI));
-        return res;
-    }
-    return str;
-}
-
-QString CppDumper::cEscape(const QString &str)
-{// should handle even trigraphs?
-    QString res;
-    int lastI = 0;
-    for (int i = 0; i < str.length(); ++i) {
-        QChar c = str.at(i);
-        if (c < QLatin1Char(' ') || c == QLatin1Char('\\') || c == QLatin1Char('\"')) {
-            res.append(str.mid(lastI, i - lastI));
-            lastI = i + 1;
-            if (c == QLatin1Char('\\')) {
-                res.append(QLatin1String("\\\\"));
-            } else if (c == QLatin1Char('\"')) {
-                res.append(QLatin1String("\""));
-            } else {
-                char buf[6];
-                ushort cc = c.unicode();
-                buf[0] = '\\';
-                buf[1] = 'u';
-                for (int i = 0; i < 4; ++i) {
-                    buf[5 - i] = '0' + (cc & 0xF);
-                    cc >>= 4;
-                }
-                res.append(QLatin1String(&buf[0], 6));
-            }
-        }
-    }
-    if (lastI != 0) {
-        res.append(str.mid(lastI));
-        return res;
-    }
-    return str;
 }
 
 } // namespace Scxml

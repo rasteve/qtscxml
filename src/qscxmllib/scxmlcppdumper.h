@@ -36,10 +36,8 @@ public:
     void dump(StateTable *table);
     QTextStream &s;
 
-    static QByteArray cEscape(const QByteArray &str);
-    static QString cEscape(const QString &str);
-    static QString cEscape(const char *str) { return cEscape(QString::fromLatin1(str)); }
 private:
+    void dumpConstructor();
     void dumpDeclareStates();
     void dumpDeclareSignalsForEvents();
     void dumpExecutableContent();

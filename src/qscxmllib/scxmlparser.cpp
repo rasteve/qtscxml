@@ -385,7 +385,7 @@ void ScxmlParser::parse()
                 if (!checkAttributes(attributes, "|event,eventexpr,id,idlocation,type,typeexpr,namelist,delay,delayexpr,target,targetexpr")) return;
                 ParserState pNew = ParserState(ParserState::Send);
                 ExecutableContent::Send *send = new ExecutableContent::Send(m_currentParent, m_currentTransition);
-                send->event = attributes.value(QLatin1String("event")).toString();
+                send->event = attributes.value(QLatin1String("event")).toUtf8();
                 send->eventexpr = attributes.value(QLatin1String("eventexpr")).toString();
                 send->delay = attributes.value(QLatin1String("delay")).toString();
                 send->delayexpr = attributes.value(QLatin1String("delayexpr")).toString();

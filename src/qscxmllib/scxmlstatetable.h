@@ -340,7 +340,7 @@ struct SCXML_EXPORT DoneData {
 struct SCXML_EXPORT Send : public Instruction {
     Send(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
         : Instruction(parentState, transition) { }
-    QString event;
+    QByteArray event;
     QString eventexpr;
     QString type;
     QString typeexpr;
