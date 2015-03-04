@@ -2,3 +2,13 @@
 /tests/3rdparty/scion-tests/node_modules
 *~
 *.pro.user
+*.o
+Makefile
+.qmake.stash
+*.app
+moc_*.cpp
+*.dylib
+*.moc
+/src/qscxmlcpp/qscxmlcpp
+/tests/testCpp/testCpp
+
