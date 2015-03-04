@@ -1,8 +1,9 @@
 QT       += core qml
 QT       -= gui
 
-TARGET = qscxmlparse
+TARGET = testCpp
 CONFIG   += console c++11
+CONFIG -= app_bundle
 
 TEMPLATE = app
 
