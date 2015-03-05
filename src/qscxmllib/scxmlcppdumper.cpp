@@ -365,62 +365,102 @@ protected:
     void endVisitSequence(InstructionSequence *) Q_DECL_OVERRIDE { }
 
 };
-} // anonymous namespace
 
 const char *headerStart =
         "#include <qscxmllib/scxmlstatetable.h>\n"
         "\n";
+} // anonymous namespace
 
 void CppDumper::dump(StateTable *table)
 {
     this->table = table;
-   mainClassName = options.basename;
-   if (!mainClassName.isEmpty())
-       mainClassName.append(QLatin1Char('_'));
-   mainClassName.append(table->_name);
-   if (!mainClassName.isEmpty())
-       mainClassName.append(QLatin1Char('_'));
-   mainClassName.append(l("StateMachine"));
-    s << l(headerStart);
+    mainClassName = options.basename;
+    if (!mainClassName.isEmpty())
+        mainClassName.append(QLatin1Char('_'));
+    mainClassName.append(table->_name);
+    if (!mainClassName.isEmpty())
+        mainClassName.append(QLatin1Char('_'));
+    mainClassName.append(l("StateMachine"));
+
+    // Generate the .h file:
+    h << l(headerStart);
     if (!options.namespaceName.isEmpty())
-        s << l("namespace ") << options.namespaceName << l(" {") << endl;
-    s << l("class ") << mainClassName << l(" : public Scxml::StateTable {") << endl;
-    s << QLatin1String("    Q_OBJECT\n");
-    s << QLatin1String("public:\n");
-    dumpConstructor();
+        h << l("namespace ") << options.namespaceName << l(" {") << endl;
+    h << l("class ") << mainClassName << l(" : public Scxml::StateTable {") << endl;
+    h << QLatin1String("    Q_OBJECT\n\n");
+    h << QLatin1String("public:\n");
+    h << l("    ") << mainClassName << l("(QObject *parent = 0);") << endl;
+    h << l("    ~") << mainClassName << "();" << endl;
+    h << endl
+      << l("    bool init() Q_DECL_OVERRIDE;") << endl;
+
     dumpDeclareSignalsForEvents();
+
+    h << endl
+      << l("private:") << endl
+      << l("    struct Data;") << endl
+      << l("    struct Data *d;") << endl
+      << l("};") << endl;
+
+    if (!options.namespaceName.isEmpty())
+        h << l("} // namespace ") << options.namespaceName << endl;
+
+    // Generate the .cpp file:
+    cpp << l("#include \"") << headerName << l("\"") << endl
+        << endl;
+    if (!options.namespaceName.isEmpty())
+        h << l("namespace ") << options.namespaceName << l(" {") << endl;
+
+    cpp << l("struct ") << mainClassName << l("::Data {") << endl;
+
+    dumpConstructor();
+    cpp << endl;
     dumpExecutableContent();
-    s << l("public:") << endl;
     dumpInit();
+
+    cpp << endl
+        << l("    Scxml::StateTable *table;") << endl;
     dumpDeclareStates();
     dumpDeclareTranstions();
-    s << l("};") << endl;
+
+    cpp << l("};") << endl
+        << endl;
+    cpp << mainClassName << l("::") << mainClassName << l("(QObject *parent)") << endl
+        << l("    : Scxml::StateTable(parent)") << endl
+        << l("    , d(new Data(this))") << endl
+        << l("{}") << endl
+        << endl;
+    cpp << mainClassName << l("::~") << mainClassName << l("()") << endl
+        << l("{ delete d; }") << endl
+        << endl;
+    cpp << l("bool ") << mainClassName << l("::init()") << endl
+        << l("{ return d->init(); }") << endl;
     if (!options.namespaceName.isEmpty())
-        s << l("} // namespace ") << options.namespaceName << endl;
+        h << l("} // namespace ") << options.namespaceName << endl;
 }
 
 void CppDumper::dumpConstructor()
 {
-    s << l("    ") << mainClassName << l("(QObject *parent = 0) : Scxml::StateTable(parent)") << endl;
+    cpp << l("    Data(Scxml::StateTable *table) : table(table)") << endl;
 
     // States:
     loopOnSubStates(table, [this](QState *state) -> bool {
         QString stateName = QString::fromUtf8(this->table->objectId(state, false));
-        s << l("        , state_") << stateName << l("(");
+        cpp << l("        , state_") << stateName << l("(");
         if (state->parentState() && state->parentState() != this->table)
-            s << "&state_" << this->table->objectId(state->parentState(), false);
+            cpp << "&state_" << this->table->objectId(state->parentState(), false);
         else
-            s << "this";
-        s << l(")") << endl;
+            cpp << "table";
+        cpp << l(")") << endl;
         return true;
     }, Q_NULLPTR, [this](QAbstractState *state) -> void {
         QString stateName = QString::fromUtf8(this->table->objectId(state, false));
-        s << l("        , state_") << stateName << l("(");
+        cpp << l("        , state_") << stateName << l("(");
         if (state->parentState() && state->parentState() != this->table)
-            s << "&state_" << this->table->objectId(state->parentState(), false);
+            cpp << "&state_" << this->table->objectId(state->parentState(), false);
         else
-            s << "this";
-        s << l(");") << endl;
+            cpp << "table";
+        cpp << l(");") << endl;
     });
 
     // Transitions:
@@ -433,7 +473,7 @@ void CppDumper::dumpConstructor()
             if (scTransition == nullptr)
                 continue;
 
-            s << l("        , ") << transitionName(scTransition, false, tIndex, stateName) << l("(");
+            cpp << l("        , ") << transitionName(scTransition, false, tIndex, stateName) << l("(");
 
             QByteArray sourceState = table->objectId(t->sourceState(), true);
             if (sourceState.isEmpty())
@@ -441,25 +481,25 @@ void CppDumper::dumpConstructor()
             else
                 sourceState.prepend(QByteArray("&state_"));
 
-            s << sourceState << l(", QList<QByteArray>()");
+            cpp << sourceState << l(", QList<QByteArray>()");
             foreach (const QByteArray &eSelector, scTransition->eventSelector) {
-                s << l(" << ") << qba(eSelector);
+                cpp << l(" << ") << qba(eSelector);
             }
-            s << l(")") << endl;
+            cpp << l(")") << endl;
         }
         return true;
     }, nullptr, nullptr);
 
-    s << l("    {}") << endl;
+    cpp << l("    {}") << endl;
 }
 
 void CppDumper::dumpDeclareStates()
 {
     loopOnSubStates(table, [this](QState *state) -> bool {
-        s << l("    Scxml::ScxmlState state_") << table->objectId(state, false) << l(";") << endl;
+        cpp << l("    Scxml::ScxmlState state_") << table->objectId(state, false) << l(";") << endl;
         return true;
     }, Q_NULLPTR, [this](QAbstractState *state) -> void {
-        s << b(state->metaObject()->className()) << l(" state_") << table->objectId(state, false)
+        cpp << b(state->metaObject()->className()) << l(" state_") << table->objectId(state, false)
           << l(";\n");
     });
 }
@@ -475,12 +515,12 @@ void CppDumper::dumpDeclareTranstions()
                 continue;
 
             if (scTransition->conditionalExp.isEmpty()) {
-                s << l("    Scxml::ScxmlBaseTransition");
+                cpp << l("    Scxml::ScxmlBaseTransition");
             } else {
-                s << l("    Transition_") << stateName << l("_") << tIndex;
+                cpp << l("    ") << transitionName(scTransition, true, tIndex, stateName);
             }
 
-            s << l(" ") << transitionName(scTransition, false, tIndex, stateName) << l(";\n");
+            cpp << l(" ") << transitionName(scTransition, false, tIndex, stateName) << l(";\n");
         }
         return true;
     }, nullptr, nullptr);
@@ -506,12 +546,10 @@ void CppDumper::dumpDeclareSignalsForEvents()
                 || event.startsWith(b("qevent.")))
             continue;
         if (!hasSignals)
-            s << endl << l("signals:") << endl;
+            h << endl << l("signals:") << endl;
         hasSignals = true;
-        s << l("    void event_") << event.replace('.', '_') << l("();") << endl;
+        h << l("    void event_") << event.replace('.', '_') << l("();") << endl;
     }
-    if (hasSignals)
-        s << l("public:\n");
 }
 
 void CppDumper::dumpExecutableContent()
@@ -523,23 +561,23 @@ void CppDumper::dumpExecutableContent()
         if (ScxmlState *sState = qobject_cast<ScxmlState *>(state)) {
             if (!sState->onEntryInstruction.statements.isEmpty()) {
                 if (!inSlots) {
-                    s << l("public slots:\n");
+                    cpp << l("public slots:\n");
                     inSlots = true;
                 }
-                s << l("        void onEnter_") << stateName
+                cpp << l("        void onEnter_") << stateName
                   << l("() {\n");
                 dumpInstructions(sState->onEntryInstruction);
-                s << l("        }\n");
+                cpp << l("        }\n");
             }
             if (!sState->onExitInstruction.statements.isEmpty()) {
                 if (!inSlots) {
-                    s << l("public slots:\n");
+                    cpp << l("public slots:\n");
                     inSlots = true;
                 }
-                s << l("        void onExit_") << stateName
+                cpp << l("        void onExit_") << stateName
                   << l("() {\n");
                 dumpInstructions(sState->onEntryInstruction);
-                s << l("        }\n\n");
+                cpp << l("        }\n\n");
             }
         }
         for (int tIndex = 0; tIndex < state->transitions().size(); ++tIndex) {
@@ -549,68 +587,68 @@ void CppDumper::dumpExecutableContent()
                     if (scTransition->instructionsOnTransition.statements.isEmpty())
                         continue;
                     if (!inSlots) {
-                        s << l("public slots:\n");
+                        cpp << l("public slots:\n");
                         inSlots = true;
                     }
-                    s << l("        void onTransition_") << stateName << l("_") << tIndex
-                      << l("() {\n");
+                    cpp << l("        void on") << transitionName(scTransition, true, tIndex, stateName)
+                        << l("() {\n");
                     dumpInstructions(scTransition->instructionsOnTransition);
-                    s << l("        }\n\n");
+                    cpp << l("        }\n\n");
                 } else {
                     if (inSlots) { // avoid ?
-                        s << l("public:\n");
+                        cpp << l("public:\n");
                         inSlots = false;
                     }
-                    s << l("    class ") << transitionName(scTransition, true, tIndex, stateName) << " : Scxml::ScxmlBaseTransition {\n";
+                    cpp << l("    class ") << transitionName(scTransition, true, tIndex, stateName) << " : Scxml::ScxmlBaseTransition {\n";
                     if (!scTransition->conditionalExp.isEmpty()) { // we could cache the function calculating the test
-                        s << l("        bool eventTest(QEvent *event) Q_DECL_OVERRIDE {\n");
-                        s << l("            if (ScxmlBaseTransition::testEvent(e)\n");
-                        s << l("                    && table()->evalBool(\"")
-                          << cEscape(scTransition->conditionalExp) << l("\")\n");
-                        s << l("                return true;\n");
-                        s << l("            return false;\n");
-                        s << l("        }\n");
+                        cpp << l("        bool eventTest(QEvent *event) Q_DECL_OVERRIDE {\n");
+                        cpp << l("            if (ScxmlBaseTransition::testEvent(e)\n");
+                        cpp << l("                    && table()->evalBool(\"")
+                            << cEscape(scTransition->conditionalExp) << l("\")\n");
+                        cpp << l("                return true;\n");
+                        cpp << l("            return false;\n");
+                        cpp << l("        }\n");
                     }
                     if (!scTransition->instructionsOnTransition.statements.isEmpty()) {
-                        s << l("    protected:\n");
-                        s << l("        void onTransition(QEvent *event) Q_DECL_OVERRIDE {\n");
+                        cpp << l("    protected:\n");
+                        cpp << l("        void onTransition(QEvent *event) Q_DECL_OVERRIDE {\n");
                         dumpInstructions(scTransition->instructionsOnTransition);
-                        s << l("        }\n");
+                        cpp << l("        }\n");
                     }
-                    s << l("    };\n\n");
+                    cpp << l("    };\n\n");
                 }
             }
         }
         return true;
     }, Q_NULLPTR, Q_NULLPTR);
     if (inSlots) {
-        s << l("public:\n");
+        cpp << l("public:\n");
     }
 }
 
 void CppDumper::dumpInstructions(ExecutableContent::Instruction &i)
 {
-    DumpCppInstructionVisitor visitor(s);
+    DumpCppInstructionVisitor visitor(cpp);
     visitor.accept(&i);
 }
 
 void CppDumper::dumpInit()
 {
-    s << l("    bool init() Q_DECL_OVERRIDE {\n");
+    cpp << l("    bool init() {\n");
     loopOnSubStates(table, [this](QState *state) -> bool {
         QByteArray rawStateName = table->objectId(state, false);
         QString stateName = QString::fromUtf8(rawStateName);
-        s << l("        addId(") << qba(rawStateName) << l(", &state_") << stateName
+        cpp << l("        table->addId(") << qba(rawStateName) << l(", &state_") << stateName
           << l(");\n");
         if (ScxmlState *sState = qobject_cast<ScxmlState *>(state)) {
             if (!sState->onEntryInstruction.statements.isEmpty()) {
-                s << l("        QObject::connect(&state_") << stateName
-                  << l(", &QAbstractState::entered, this, &") << mainClassName << l("::onEnter_")
+                cpp << l("        QObject::connect(&state_") << stateName
+                  << l(", &QAbstractState::entered, table, &") << mainClassName << l("::onEnter_")
                   << stateName << l(");\n");
             }
             if (!sState->onExitInstruction.statements.isEmpty()) {
-                s << l("        QObject::connect(&state_") << stateName
-                  << l(", &QAbstractState::exited, this, &") << mainClassName << l("::onExit_")
+                cpp << l("        QObject::connect(&state_") << stateName
+                  << l(", &QAbstractState::exited, table, &") << mainClassName << l("::onExit_")
                   << stateName << l(");\n");
             }
         }
@@ -618,29 +656,29 @@ void CppDumper::dumpInit()
     }, Q_NULLPTR, [this](QAbstractState *state) -> void {
         QByteArray rawStateName = table->objectId(state, false);
         QString stateName = QString::fromUtf8(rawStateName);
-        s << l("        addId(") << qba(rawStateName) << l(", &state_") << stateName
+        cpp << l("        table->addId(") << qba(rawStateName) << l(", &state_") << stateName
           << l(");\n");
         if (ScxmlFinalState *sState = qobject_cast<ScxmlFinalState *>(state)) {
             if (!sState->onEntryInstruction.statements.isEmpty()) {
-                s << l("        QObject::connect(&state_") << stateName
-                  << l(", &QAbstractState::entered, this, &") << mainClassName << l("::onEnter_")
+                cpp << l("        QObject::connect(&state_") << stateName
+                  << l(", &QAbstractState::entered, table, &") << mainClassName << l("::onEnter_")
                   << stateName << l(");\n");
             }
             if (!sState->onExitInstruction.statements.isEmpty()) {
-                s << l("        QObject::connect(&state_") << stateName
-                  << l(", &QAbstractState::exited, this, &") << mainClassName << l("::onExit_")
+                cpp << l("        QObject::connect(&state_") << stateName
+                  << l(", &QAbstractState::exited, table, &") << mainClassName << l("::onExit_")
                   << stateName << l(");\n");
             }
         }
     });
     if (table->initialState()) {
-        s << l("\n        setInitialState(&state_")
+        cpp << l("\n        table->setInitialState(&state_")
           << table->objectId(table->initialState(), true) << l(");") << endl;
     }
     loopOnSubStates(table, [this](QState *state) -> bool {
         QByteArray stateName = table->objectId(state);
         if (state->childMode() == QState::ExclusiveStates && state->initialState()) {
-            s << l("\n        state_") << stateName << l(".setInitialState(&state_")
+            cpp << l("\n        state_") << stateName << l(".setInitialState(&state_")
               << table->objectId(state->initialState(), true) << l(");\n\n");
         }
         for (int tIndex = 0; tIndex < state->transitions().size(); ++tIndex) {
@@ -649,29 +687,30 @@ void CppDumper::dumpInit()
                 QString scName = transitionName(scTransition, false, tIndex, stateName);
                 if (scTransition->conditionalExp.isEmpty()) {
                     if (!scTransition->instructionsOnTransition.statements.isEmpty()) {
-                        s << l("        QObject::connect(&") << scName
-                          << l(", &QAbstractTransition::triggered, this, &")
+                        cpp << l("        QObject::connect(&") << scName
+                          << l(", &QAbstractTransition::triggered, table, &")
                           << mainClassName << l("::onTransition_") << tIndex << l("_") << stateName
                           << l(");\n");
                     }
                 }
                 QList<QByteArray> targetStates = scTransition->targetIds();
                 if (targetStates.size() == 1) {
-                    s << l("        ") << scName << l(".setTargetState(&state_")
+                    cpp << l("        ") << scName << l(".setTargetState(&state_")
                       << targetStates.first() << l(");\n");
                 } else if (targetStates.size() > 1) {
-                    s << l("        ") << scName << l(".setTargetStates(QList<QAbstractState *>() ");
+                    cpp << l("        ") << scName << l(".setTargetStates(QList<QAbstractState *>() ");
                     foreach (const QByteArray &tState, targetStates)
-                        s << l("\n            << &state_") << tState;
-                    s << l(");\n");
+                        cpp << l("\n            << &state_") << tState;
+                    cpp << l(");\n");
                 }
-                s << l("        ") << scName << l(".init();\n");
+                cpp << l("        ") << scName << l(".init();\n");
             }
         }
         return true;
     }, Q_NULLPTR, Q_NULLPTR);
-    s << l("        return true;\n");
-    s << l("    }\n");
+    cpp << endl;
+    cpp << l("        return true;\n");
+    cpp << l("    }\n");
 }
 
 QString CppDumper::transitionName(ScxmlTransition *transition, bool upcase, int tIndex,

@@ -11,7 +11,8 @@ HEADERS += \
     out.h
 
 SOURCES += \
-    testcpp.cpp
+    testcpp.cpp \
+    out.cpp
 
 OTHER_FILES += genTestSxcml.py
 
