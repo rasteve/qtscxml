@@ -39,6 +39,7 @@ public:
 private:
     void dumpConstructor();
     void dumpDeclareStates();
+    void dumpDeclareTranstions();
     void dumpDeclareSignalsForEvents();
     void dumpExecutableContent();
     void dumpInstructions(ExecutableContent::Instruction &i);
@@ -46,6 +47,9 @@ private:
 
     static QByteArray b(const char *str) { return QByteArray(str); }
     static QLatin1String l (const char *str) { return QLatin1String(str); }
+
+    QString transitionName(ScxmlTransition *transition, bool upcase = false, int tIndex = -1,
+                           const QByteArray &stateName = QByteArray());
 
     StateTable *table;
     QString mainClassName;

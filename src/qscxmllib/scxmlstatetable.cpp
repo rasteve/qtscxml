@@ -541,9 +541,9 @@ void StateTable::setupDataModel()
 }
 
 bool loopOnSubStates(QState *startState,
-                  std::function<bool(QState *)> enteringState,
-                  std::function<void(QState *)> exitingState,
-                  std::function<void(QAbstractState *)> inAbstractState)
+                     std::function<bool(QState *)> enteringState,
+                     std::function<void(QState *)> exitingState,
+                     std::function<void(QAbstractState *)> inAbstractState)
 {
     QList<int> pos;
     QState *parentAtt = startState;
