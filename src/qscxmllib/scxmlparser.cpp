@@ -505,12 +505,19 @@ void ScxmlParser::parse()
             case ParserState::ElseIf:
             case ParserState::Else:
                 break;
+            case ParserState::Script:
+                if (!p.chars.trimmed().isEmpty()) {
+                    ExecutableContent::Script *scriptI = static_cast<ExecutableContent::Script*>(p.instruction);
+                    scriptI->source = p.chars.trimmed();
+                    if (!scriptI->src.isEmpty())
+                        addError("both scr and source content given to script, will ignore inline content");
+                }
+                // fallthrough
             case ParserState::Raise:
             case ParserState::If:
             case ParserState::Foreach:
             case ParserState::Log:
             case ParserState::Assign:
-            case ParserState::Script:
             case ParserState::Send:
             case ParserState::Cancel:
             case ParserState::Invoke: {

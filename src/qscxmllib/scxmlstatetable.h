@@ -253,6 +253,8 @@ public:
         return m_dataBinding;
     }
 
+    void initializeDataFor(QState *);
+
     //void toScxml(QXmlStreamWriter &dumper);
     //void toCpp(QTextStream &dumper);
     //void toQml(QTextStream &qml);
@@ -264,6 +266,8 @@ public:
                      int defaultValue);
     bool evalValueBool(const QString &expr, std::function<QString()> context,
                        bool defaultValue = false);
+    QJSValue evalJSValue(const QString &expr, std::function<QString()> context,
+                         QJSValue defaultValue = QJSValue(), bool noRaise = false);
     ErrorDumper errorDumper();
     virtual bool init();
     QJSEngine *engine() const;
@@ -297,6 +301,7 @@ protected:
     void beginMicrostep(QEvent *event) Q_DECL_OVERRIDE;
     void endMicrostep(QEvent *event) Q_DECL_OVERRIDE;
     virtual void assignEvent();
+    void setupDataModel();
 
 public:
     // use q_property for these?
@@ -557,8 +562,12 @@ class SCXML_EXPORT ScxmlState: public QState
 {
     Q_OBJECT
 public:
-    ScxmlState(QState *parent = 0) : QState(parent), onEntryInstruction(this), onExitInstruction(this) { }
-    ScxmlState(QStatePrivate &dd, QState *parent = 0) : QState(dd, parent), onEntryInstruction(this), onExitInstruction(this) { }
+    ScxmlState(QState *parent = 0)
+        : QState(parent), onEntryInstruction(this) , onExitInstruction(this)
+        , m_dataInitialized(false) { }
+    ScxmlState(QStatePrivate &dd, QState *parent = 0)
+        : QState(dd, parent), onEntryInstruction(this), onExitInstruction(this)
+        , m_dataInitialized(false) { }
     StateTable *table() const;
     virtual bool init();
     QString stateLocation() const;
@@ -568,6 +577,7 @@ public:
 protected:
     void onEntry(QEvent * event) Q_DECL_OVERRIDE;
     void onExit(QEvent * event) Q_DECL_OVERRIDE;
+    bool m_dataInitialized;
 };
 
 class SCXML_EXPORT ScxmlInitialState: public ScxmlState

@@ -85,7 +85,7 @@ void JavaScript::execute()
                            << " as no engine is available";
     }
     if (!compiledFunction.isCallable()) {
-        compiledFunction = e->evaluate(QStringLiteral("function() {\n%1\n}").arg(source),
+        compiledFunction = e->evaluate(QStringLiteral("(function() {\n%1\n})").arg(src.isEmpty() ? source : src),
                                        QStringLiteral("<%1>").arg(instructionLocation()), 0);
         if (!compiledFunction.isCallable()) {
             qWarning(scxmlLog) << "Error compiling" << instructionLocation() << ":"
@@ -95,7 +95,7 @@ void JavaScript::execute()
     }
     QJSValue res = compiledFunction.callWithInstance(t->datamodelJSValues());
     if (res.isError()) {
-        //t->error()
+        t->submitError(QByteArray("error.execution"), QStringLiteral("%1 in %2").arg(res.toString(), instructionLocation()));
     }
 }
 
@@ -301,6 +301,22 @@ QByteArray StateTable::objectId(QObject *obj, bool strict) {
     return idStr;
 }
 
+void StateTable::initializeDataFor(QState *s) {
+    if (!engine())
+        return;
+    foreach (const ScxmlData &data, m_data) {
+        if (data.context == s) {
+            QJSValue v;
+            if (!data.expr.isEmpty())
+                v = evalJSValue(data.expr, [this, &data]() -> QString {
+                    return QStringLiteral("initializeDataFor with data for %1 defined in state %2)")
+                            .arg(data.id, QString::fromUtf8(objectId(data.context)));
+                });
+            m_dataModelJSValues.setProperty(data.id, v);
+        }
+    }
+}
+
 void StateTable::doLog(const QString &label, const QString &msg)
 {
     qCDebug(scxmlLog) << label << ":" << msg;
@@ -354,6 +370,20 @@ bool StateTable::evalValueBool(const QString &expr, std::function<QString()> con
         }
     }
     return defaultValue;
+}
+
+QJSValue StateTable::evalJSValue(const QString &expr, std::function<QString()> context,
+                     QJSValue defaultValue, bool noRaise)
+{
+    QString getData = QStringLiteral("(function(){ return (\n%1\n); })()").arg(expr);
+    QJSValue v = engine()->evaluate(getData, QStringLiteral("<expr>"), 0);
+    if (v.isError() && !noRaise) {
+        submitError(QByteArray("error.execution"),
+                    QStringLiteral("Error in %1: %2\n<expr>:'%3'")
+                    .arg(context(), v.toString(), getData));
+        v = defaultValue;
+    }
+    return v;
 }
 
 void StateTable::beginSelectTransitions(QEvent *event)
@@ -493,6 +523,22 @@ void StateTable::assignEvent() {
         m_dataModelJSValues.setProperty(QStringLiteral("_event"), _event.jsValue(m_engine));
 }
 
+void StateTable::setupDataModel()
+{
+    if (!engine())
+        return;
+    foreach (const ScxmlData &data ,m_data) {
+        QJSValue v;
+        if ((dataBinding() == EarlyBinding || !data.context || data.context == this)
+                && !data.expr.isEmpty())
+            v = evalJSValue(data.expr, [this, &data]() -> QString {
+                return QStringLiteral("setupDataModel with data for %1 defined in state '%2'")
+                        .arg(data.id, QString::fromUtf8(objectId(data.context)));
+            });
+        m_dataModelJSValues.setProperty(data.id, v);
+    }
+}
+
 bool loopOnSubStates(QState *startState,
                   std::function<bool(QState *)> enteringState,
                   std::function<void(QState *)> exitingState,
@@ -548,6 +594,7 @@ bool StateTable::init()
                     res = false;
         }
     });
+    setupDataModel();
     foreach (QAbstractTransition *t, transitions()) {
         if (ScxmlTransition *scTransition = qobject_cast<ScxmlTransition *>(t))
             if (!scTransition->init())
@@ -564,6 +611,8 @@ QJSEngine *StateTable::engine() const
 void StateTable::setEngine(QJSEngine *engine)
 {
     m_engine = engine;
+    if (engine)
+        m_dataModelJSValues = engine->globalObject();
 }
 
 void StateTable::submitEvent(const QByteArray &event, QVariant data, ScxmlEvent::EventType type,
@@ -872,6 +921,7 @@ StateTable *ScxmlState::table() const {
 
 bool ScxmlState::init()
 {
+    m_dataInitialized = (table()->dataBinding() == StateTable::EarlyBinding);
     if (!onEntryInstruction.init())
         return false;
     if (!onExitInstruction.init())
@@ -888,6 +938,11 @@ QString ScxmlState::stateLocation() const
 }
 
 void ScxmlState::onEntry(QEvent *event) {
+    if (!m_dataInitialized) {
+        m_dataInitialized = true;
+        // this might actually be a bit too late (parallel states might already have been entered)
+        table()->initializeDataFor(this);
+    }
     QState::onEntry(event);
     onEntryInstruction.execute();
 }
