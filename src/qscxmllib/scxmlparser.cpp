@@ -290,20 +290,25 @@ void ScxmlParser::parse()
                 ParserState pNew = ParserState(ParserState::If);
                 ExecutableContent::If *ifI = new ExecutableContent::If(m_currentParent, m_currentTransition);
                 ifI->conditions.append(attributes.value(QLatin1String("cond")).toString());
-                ifI->blocks.append(ExecutableContent::InstructionSequence());
+                ifI->blocks.append(ExecutableContent::InstructionSequence(m_currentParent, m_currentTransition));
                 pNew.instruction = ifI;
+                pNew.instructionContainer = &ifI->blocks.last();
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("elseif")) {
                 if (!checkAttributes(attributes, "cond")) return;
                 Q_ASSERT(m_stack.last().instruction->instructionKind() == ExecutableContent::Instruction::If);
                 ExecutableContent::If *ifI = static_cast<ExecutableContent::If *>(m_stack.last().instruction);
                 ifI->conditions.append(attributes.value(QLatin1String("cond")).toString());
-                ifI->blocks.append(ExecutableContent::InstructionSequence());
+                ifI->blocks.append(ExecutableContent::InstructionSequence(m_currentParent, m_currentTransition));
+                m_stack.last().instructionContainer = &ifI->blocks.last();
+                m_stack.append(ParserState(ParserState::ElseIf));
             } else if (elName == QLatin1String("else")) {
                 if (!checkAttributes(attributes, "")) return;
                 Q_ASSERT(m_stack.last().instruction->instructionKind() == ExecutableContent::Instruction::If);
                 ExecutableContent::If *ifI = static_cast<ExecutableContent::If *>(m_stack.last().instruction);
-                ifI->blocks.append(ExecutableContent::InstructionSequence());
+                ifI->blocks.append(ExecutableContent::InstructionSequence(m_currentParent, m_currentTransition));
+                m_stack.last().instructionContainer = &ifI->blocks.last();
+                m_stack.append(ParserState(ParserState::Else));
             } else if (elName == QLatin1String("foreach")) {
                 if (!checkAttributes(attributes, "array,item|index")) return;
                 ParserState pNew = ParserState(ParserState::Foreach);
