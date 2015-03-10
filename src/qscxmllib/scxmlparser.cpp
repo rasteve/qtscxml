@@ -772,11 +772,12 @@ bool ParserState::validChild(ParserState::Kind parent, ParserState::Kind child)
         return (child == ParserState::DataElement);
     case ParserState::DoneData:
         return (child == ParserState::Content || child == ParserState::Param);
+    case ParserState::Send:
+        return (child == ParserState::Param || child == ParserState::Content
+                || isExecutableContent(child));
     case ParserState::Content:
-
     case ParserState::Param:
     case ParserState::Script:
-    case ParserState::Send:
     case ParserState::Cancel:
     case ParserState::Invoke:
     case ParserState::Finalize:
