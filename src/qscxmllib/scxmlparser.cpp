@@ -274,7 +274,7 @@ void ScxmlParser::parse()
                     m_state = ParsingError;
                     return;
                 }
-                ParserState pNew = ParserState(ParserState::State);
+                ParserState pNew = ParserState(ParserState::History);
                 m_currentState = newState;
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("raise")) {
