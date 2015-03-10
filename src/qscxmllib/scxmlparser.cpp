@@ -97,8 +97,6 @@ void ScxmlParser::parse()
             if (!m_stack.isEmpty() || m_state != FinishedParsing) {
                 addError("document finished without a proper scxml item");
                 m_state = ParsingError;
-            } else {
-                m_state = FinishedParsing;
             }
             break;
         case QXmlStreamReader::StartElement:
@@ -138,6 +136,8 @@ void ScxmlParser::parse()
                     addError("found scxml tag mid stream");
                     m_state = ParsingError;
                     return;
+                } else {
+                    m_state = ParsingScxml;
                 }
                 if (!checkAttributes(attributes, "version|initial,datamodel,binding,name")) return;
                 if (m_reader->namespaceUri() != QLatin1String("http://www.w3.org/2005/07/scxml")) {
@@ -449,7 +449,10 @@ void ScxmlParser::parse()
             switch (p.kind) {
             case ParserState::Scxml:
                 ensureInitialState(p.initialId);
-                m_state = FinishedParsing;
+                if (m_state == ParsingScxml)
+                    m_state = FinishedParsing;
+                else
+                    m_state = ParsingError;
                 return;
             case ParserState::State:
                 ensureInitialState(p.initialId);
