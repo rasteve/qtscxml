@@ -457,7 +457,13 @@ void ScxmlParser::parse()
                 return;
             case ParserState::State:
                 ensureInitialState(p.initialId);
-                m_currentState = m_currentParent = m_currentParent->parentState();
+                if (!m_currentParent->parentState()) {
+                    addError(QStringLiteral("empty parent state for state %1")
+                             .arg(QString::fromUtf8(table()->objectId(m_currentParent))));
+                    m_state = ParsingError;
+                } else {
+                    m_currentState = m_currentParent = m_currentParent->parentState();
+                }
                 break;
             case ParserState::Parallel:
                 if (!p.initialId.isEmpty()) {
