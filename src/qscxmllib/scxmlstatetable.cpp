@@ -879,7 +879,7 @@ ScxmlTransition::ScxmlTransition(QState *sourceState, const QList<QByteArray> &e
                                  const QList<QByteArray> &targetIds, const QString &conditionalExp) :
     ScxmlBaseTransition(sourceState, filterEmpty(eventSelector)),
     conditionalExp(conditionalExp), instructionsOnTransition(sourceState, this),
-    m_targetIds(targetIds) { }
+    m_targetIds(filterEmpty(targetIds)) { }
 
 bool ScxmlTransition::eventTest(QEvent *event) {
     if (ScxmlBaseTransition::eventTest(event)
