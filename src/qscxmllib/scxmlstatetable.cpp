@@ -85,7 +85,7 @@ void JavaScript::execute()
                            << " as no engine is available";
     }
     if (!compiledFunction.isCallable()) {
-        compiledFunction = e->evaluate(QStringLiteral("(function() {\n%1\n})").arg(src.isEmpty() ? source : src),
+        compiledFunction = e->evaluate(QStringLiteral("(function() {\n%1\n})").arg(source),
                                        QStringLiteral("<%1>").arg(instructionLocation()), 0);
         if (!compiledFunction.isCallable()) {
             qWarning(scxmlLog) << "Error compiling" << instructionLocation() << ":"
@@ -93,6 +93,7 @@ void JavaScript::execute()
             return;
         }
     }
+    qCDebug(scxmlLog) << "executing " << source;
     QJSValue res = compiledFunction.callWithInstance(t->datamodelJSValues());
     if (res.isError()) {
         t->submitError(QByteArray("error.execution"), QStringLiteral("%1 in %2").arg(res.toString(), instructionLocation()));
