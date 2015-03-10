@@ -28,17 +28,18 @@
 #include <QJsonObject>
 #include <QFile>
 #include <QFileInfo>
+#include <QDir>
 
 static Q_LOGGING_CATEGORY(scxmlParserLog, "scxml.parser")
 
 namespace Scxml {
 
-ScxmlParser::ScxmlParser(QXmlStreamReader *reader, const QString &basedir)
+ScxmlParser::ScxmlParser(QXmlStreamReader *reader, LoaderFunction loader)
     : m_table(0)
     , m_currentTransition(0)
     , m_currentParent(0)
     , m_currentState(0)
-    , m_basedir(basedir)
+    , m_loader(loader)
     , m_reader(reader)
     , m_state(StartingParsing)
 { }
@@ -514,12 +515,28 @@ void ScxmlParser::parse()
             case ParserState::Else:
                 break;
             case ParserState::Script:
+            {
+                ExecutableContent::Script *scriptI = static_cast<ExecutableContent::Script*>(p.instruction);
                 if (!p.chars.trimmed().isEmpty()) {
-                    ExecutableContent::Script *scriptI = static_cast<ExecutableContent::Script*>(p.instruction);
                     scriptI->source = p.chars.trimmed();
                     if (!scriptI->src.isEmpty())
-                        addError("both scr and source content given to script, will ignore inline content");
+                        addError("both scr and source content given to script, will ignore external content");
+                } else if (!scriptI->src.isEmpty()) {
+                    if (!m_loader) {
+                        addError("cannot parse a document with external dependencies without a loader");
+                        m_state = ParsingError;
+                    } else {
+                        bool ok;
+                        QByteArray data = m_loader(scriptI->src, ok, this);
+                        if (!ok) {
+                            addError("failed to load external dependency");
+                            m_state = ParsingError;
+                        } else {
+                            scriptI->source = QString::fromUtf8(data);
+                        }
+                    }
                 }
+            }
                 // fallthrough
             case ParserState::Raise:
             case ParserState::If:
@@ -674,6 +691,29 @@ bool ScxmlParser::checkAttributes(const QXmlStreamAttributes &attributes, QStrin
         return false;
     }
     return true;
+}
+
+ScxmlParser::LoaderFunction ScxmlParser::loaderForDir(const QString &basedir)
+{
+    return [basedir](const QString &path, bool &ok, ScxmlParser *parser) -> QByteArray {
+        ok = false;
+        QFileInfo fInfo(path);
+        if (fInfo.isRelative())
+            fInfo = QFileInfo(QDir(basedir).filePath(path));
+        if (!fInfo.exists()) {
+            parser->addError(QStringLiteral("src attribute resolves to non existing file (%1)").arg(fInfo.absoluteFilePath()));
+        } else {
+            QFile f(fInfo.absoluteFilePath());
+            if (f.open(QFile::ReadOnly)) {
+                ok = true;
+                return f.readAll();
+            } else {
+                parser->addError(QStringLiteral("Failure opening file %1: %2")
+                         .arg(fInfo.absoluteFilePath(), f.errorString()));
+            }
+        }
+        return QByteArray();
+    };
 }
 
 bool Scxml::ParserState::collectChars() {

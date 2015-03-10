@@ -33,6 +33,9 @@
 #include <QNetworkReply>
 #include <QObject>
 #include <QMetaObject>
+#include <QFileInfo>
+#include <QDir>
+#include <QEventLoop>
 
 #include <iostream>
 
@@ -42,16 +45,19 @@ class Server;
 
 class Session {
 public:
-    Session(Server *server, const QString &id) : id(id), stateMachine(0), server(server), replySocket(0) { }
+    Session(Server *server, const QString &id, const QUrl &baseUrl)
+        : id(id), stateMachine(0), server(server), replySocket(0), baseUrl(baseUrl) { }
     void reachedStableState(bool didChange);
     void runningChanged(bool running);
     void replyFinished(QTcpSocket *socket, QNetworkReply *initialLoad);
     bool handleRequest(QTcpSocket *socket, const QJsonDocument &request);
+    QByteArray loadPath(const QString &path, bool &ok, Scxml::ScxmlParser *parser);
 
     QString id;
     Scxml::StateTable *stateMachine;
     Server *server;
     QTcpSocket *replySocket;
+    QUrl baseUrl;
 };
 
 class Server : public QObject
@@ -73,18 +79,19 @@ public:
     void handleRequest(QTcpSocket *socket, QByteArray requestLine, QHash<QByteArray, QByteArray> headers, QByteArray data);
 
     QString newId() {
-        return QString::number(++lastSession);
+        return QString::number(++m_lastSession);
     }
     QTcpServer *server() { return m_server; }
+    QNetworkAccessManager *manager() const { return m_manager; }
 
 public slots:
     void handleNewConnection();
 
 private:
     QTcpServer *m_server;
-    QNetworkAccessManager *manager;
-    int lastSession;
-    QHash<QString, Session*> sessions;
+    QNetworkAccessManager *m_manager;
+    int m_lastSession;
+    QHash<QString, Session*> m_sessions;
 };
 
 int main(int argc, char *argv[])
@@ -156,7 +163,10 @@ void Session::replyFinished(QTcpSocket *socket, QNetworkReply *initialLoad) {
         QByteArray scxmlDoc = initialLoad->readAll();
         qCDebug(scxmlServerLog) << "scxml document load finished:" << scxmlDoc;
         QXmlStreamReader xmlReader(scxmlDoc);
-        Scxml::ScxmlParser parser(&xmlReader, QString());
+        Scxml::ScxmlParser parser(&xmlReader,
+                                  [this](const QString &path, bool &ok, Scxml::ScxmlParser *parser) {
+            return loadPath(path, ok, parser);
+        });
         parser.parse();
         if (parser.state() != Scxml::ScxmlParser::FinishedParsing) {
             QByteArray res = QByteArray("Error parsing scxml: \n");
@@ -232,23 +242,47 @@ bool Session::handleRequest(QTcpSocket *socket, const QJsonDocument &request) {
     }
 }
 
+QByteArray Session::loadPath(const QString &path, bool &ok, Scxml::ScxmlParser *parser)
+{
+    QFileInfo fInfo(path);
+    if (fInfo.isRelative())
+        fInfo = QFileInfo(QDir(QFileInfo(baseUrl.path()).path()).filePath(path));
+    QUrl urlToLoad(baseUrl);
+    urlToLoad.setPath(fInfo.filePath());
+    QNetworkReply *reply = server->manager()->get(QNetworkRequest(urlToLoad));
+    QByteArray data;
+    if (reply) {
+        QEventLoop loop;
+        QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+        loop.exec();
+        data = reply->readAll();
+        reply->deleteLater();
+    }
+    ok = reply && reply->error() == QNetworkReply::NoError;
+    if (ok) {
+        qCDebug(scxmlServerLog) << "loaded " << urlToLoad;
+    } else {
+        parser->addError(QStringLiteral("Failed to load %1: %2").arg(urlToLoad.toString(), reply->errorString()));
+    }
+    return data;
+}
 
 Server::Server(QObject *parent)
     : QObject(parent)
     , m_server(new QTcpServer(this))
-    , manager(new QNetworkAccessManager)
-    , lastSession(0)
+    , m_manager(new QNetworkAccessManager)
+    , m_lastSession(0)
 {
     connect(m_server, &QTcpServer::newConnection, this, &Server::handleNewConnection);
 }
 
 Server::~Server() {
-    QHashIterator<QString, Session *> i(sessions);
+    QHashIterator<QString, Session *> i(m_sessions);
     while (i.hasNext()) {
         i.next();
         delete i.value();
     }
-    sessions.clear();
+    m_sessions.clear();
 }
 
 bool Server::start(QString port, const QHostAddress &address) {
@@ -265,10 +299,10 @@ bool Server::start(QString port, const QHostAddress &address) {
 }
 
 void Server::removeSession(const QString &sessionId) {
-    Session *s = sessions.value(sessionId);
+    Session *s = m_sessions.value(sessionId);
     if (s) {
         delete s;
-        sessions.remove(sessionId);
+        m_sessions.remove(sessionId);
     }
 }
 
@@ -657,9 +691,10 @@ void Server::handleRequest(QTcpSocket *socket, QByteArray requestLine, QHash<QBy
     } else if (doc.object().contains(QLatin1String("load"))) {
         QString loadUrl = doc.object().value(QLatin1String("load")).toString();
         qCDebug(scxmlServerLog) << "requesting scxml from " << loadUrl;
-        QNetworkReply *reply = manager->get(QNetworkRequest(QUrl(loadUrl)));
-        Session *newSession = new Session(this, newId());
-        sessions.insert(newSession->id, newSession);
+        QUrl baseUrl(loadUrl);
+        QNetworkReply *reply = m_manager->get(QNetworkRequest(baseUrl));
+        Session *newSession = new Session(this, newId(), baseUrl);
+        m_sessions.insert(newSession->id, newSession);
         QMetaObject::Connection c = QObject::connect(reply, &QNetworkReply::finished, [reply, newSession, socket](){
             newSession->replyFinished(socket, reply);
         });
@@ -668,7 +703,7 @@ void Server::handleRequest(QTcpSocket *socket, QByteArray requestLine, QHash<QBy
             newSession->replyFinished(socket, reply);
         }
     } else if (doc.object().contains(QLatin1String("sessionToken"))) {
-        Session *session = sessions.value(doc.object().value(QLatin1String("sessionToken")).toString());
+        Session *session = m_sessions.value(doc.object().value(QLatin1String("sessionToken")).toString());
         if (session) {
             qCDebug(scxmlServerLog) << "forwarding request:" << doc.toJson();
             session->handleRequest(socket, doc);

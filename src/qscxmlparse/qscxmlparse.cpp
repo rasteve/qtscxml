@@ -41,7 +41,8 @@ int main(int argc, char *argv[])
         return -1;
     }
     QXmlStreamReader reader(&file);
-    Scxml::ScxmlParser parser(&reader, QFileInfo(file.fileName()).absolutePath());
+    Scxml::ScxmlParser parser(&reader,
+                              Scxml::ScxmlParser::loaderForDir(QFileInfo(file.fileName()).absolutePath()));
     parser.parse();
     QFile outF(a.arguments().value(2, QLatin1String("out.scxml")));
     outF.open(QFile::WriteOnly);

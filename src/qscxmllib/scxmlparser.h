@@ -115,6 +115,9 @@ struct ParsingOptions {
 class ScxmlParser
 {
 public:
+    typedef std::function<QByteArray(const QString &, bool &, ScxmlParser *parser)> LoaderFunction;
+    static LoaderFunction loaderForDir(const QString &basedir);
+
     enum State {
         StartingParsing,
         ParsingScxml,
@@ -122,7 +125,7 @@ public:
         FinishedParsing,
     };
 
-    ScxmlParser(QXmlStreamReader *xmlReader, const QString &basedir);
+    ScxmlParser(QXmlStreamReader *xmlReader, LoaderFunction loader = Q_NULLPTR);
     void parse();
     void addError(const QString &msg, ErrorMessage::Severity severity = ErrorMessage::Error);
     void addError(const char *msg, ErrorMessage::Severity severity = ErrorMessage::Error);
@@ -147,7 +150,7 @@ private:
     ScxmlTransition *m_currentTransition;
     QState *m_currentParent;
     QAbstractState *m_currentState;
-    QString m_basedir;
+    LoaderFunction m_loader;
     QStringList m_namespacesToIgnore;
 
     QXmlStreamReader *m_reader;
