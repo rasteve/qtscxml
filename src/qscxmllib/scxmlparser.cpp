@@ -807,4 +807,4 @@ bool Scxml::ParserState::isExecutableContent(Scxml::ParserState::Kind kind) {
     return false;
 }
 
-} // namespace QScxml
+} // namespace Scxml
