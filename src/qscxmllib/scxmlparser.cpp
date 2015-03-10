@@ -318,6 +318,7 @@ void ScxmlParser::parse()
                 foreachI->item = attributes.value(QLatin1String("item")).toString();
                 foreachI->index = attributes.value(QLatin1String("index")).toString();
                 pNew.instruction = foreachI;
+                pNew.instructionContainer = &foreachI->block;
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("log")) {
                 if (!checkAttributes(attributes, "|label,expr")) return;

@@ -433,7 +433,7 @@ struct SCXML_EXPORT If : public Instruction {
 
 struct SCXML_EXPORT Foreach : public Instruction {
     Foreach(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
-        : Instruction(parentState, transition) { }
+        : Instruction(parentState, transition), block(parentState, transition) { }
     QString array;
     QString item;
     QString index;
