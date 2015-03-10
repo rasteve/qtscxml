@@ -124,9 +124,8 @@ public:
     };
     Instruction(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
         : parentState(parentState), transition(transition) {
-        if (!parentState && !transition) {
+        if (!parentState && !transition)
             qCDebug(scxmlLog) << "scxml: unbound instruction";
-        }
     }
 
     virtual ~Instruction() { }
