@@ -28,41 +28,76 @@
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
-    QString fileName = a.arguments().value(1);
-    if (fileName.isEmpty()) {
-        std::cout << "no filename given:"
-                  << QFileInfo(a.arguments().value(0)).completeBaseName().toStdString()
-                  << " file.scxml" << std::endl;
-        return -1;
+    QStringList args = a.arguments();
+    QString usage = QStringLiteral("\nusage: %1 [-namespace <namespace>] [-o <base/out/name>] [-oh <header/out>] [-ocpp <cpp/out>] [-use-private-api]\n"
+                                   "      [-basename <stateMachineClassName>] <input.scxml>\n\n"
+                                   "compiles the given input.scxml file to a header and cpp file\n")
+            .arg(QFileInfo(args.value(0)).baseName());
+    Scxml::CppDumpOptions options;
+    QString scxmlFileName;
+    QString outFileName;
+    QString outHFileName;
+    QString outCppFileName;
+    for (int iarg = 1; iarg < args.size(); ++iarg) {
+        QString arg = args.at(iarg);
+        if (arg == QLatin1String("-namespace")) {
+            options.namespaceName = args.value(++iarg);
+        } else if (arg == QLatin1String("-o")) {
+            outFileName = args.value(++iarg);
+        } else if (arg == QLatin1String("-oh")) {
+            outHFileName = args.value(++iarg);
+        } else if (arg == QLatin1String("-ocpp")) {
+            outCppFileName = args.value(++iarg);
+        } else if (arg == QLatin1String("-use-private-api")) {
+            options.usePrivateApi = true;
+        } else if (arg == QLatin1String("-basename")) {
+            options.basename = args.value(++iarg);
+        } else if (scxmlFileName.isEmpty()) {
+            scxmlFileName = arg;
+        } else {
+            std::cerr << "Unexpected argument:" << arg.toStdString()
+                      << usage.toStdString() << std::endl;
+            exit(-1);
+        }
     }
-    QFile file(fileName);
+    if (scxmlFileName.isEmpty()) {
+        std::cerr << "No input filename given:" << usage.toStdString() << std::endl;
+        exit(-2);
+    }
+    QFile file(scxmlFileName);
     if (!file.open(QFile::ReadOnly)) {
-        std::cout << "Error: could not open input file " << fileName.toStdString();
-        return -2;
+        std::cerr << "Error: could not open input file " << scxmlFileName.toStdString();
+        exit(-3);
     }
+    if (outFileName.isEmpty())
+        outFileName = QFileInfo(scxmlFileName).baseName();
+    if (outHFileName.isEmpty())
+        outHFileName = outFileName + QLatin1String(".h");
+    if (outCppFileName.isEmpty())
+        outCppFileName = outFileName + QLatin1String(".cpp");
 
     QXmlStreamReader reader(&file);
     Scxml::ScxmlParser parser(&reader,
                               Scxml::ScxmlParser::loaderForDir(QFileInfo(file.fileName()).absolutePath()));
     parser.parse();
 
-    QFile outH(a.arguments().value(2, QFileInfo(fileName).baseName() + QLatin1String(".h")));
+    QFile outH(outHFileName);
     if (!outH.open(QFile::WriteOnly)) {
         std::cerr << "Error: cannot open " << outH.fileName().toStdString()
-                  << ": " << outH.errorString().toStdString();
-        return -3;
+                  << ": " << outH.errorString().toStdString() << usage.toStdString() << std::endl;
+        exit(-4);
     }
 
-    QFile outCpp(a.arguments().value(2, QFileInfo(fileName).baseName() + QLatin1String(".cpp")));
+    QFile outCpp(outCppFileName);
     if (!outCpp.open(QFile::WriteOnly)) {
         std::cerr << "Error: cannot open " << outCpp.fileName().toStdString()
-                  << ": " << outCpp.errorString().toStdString();
-        return -4;
+                  << ": " << outCpp.errorString().toStdString()
+                  << usage.toStdString() << std::endl;
+        exit(-5);
     }
 
     QTextStream h(&outH);
     QTextStream c(&outCpp);
-    Scxml::CppDumpOptions options;
     Scxml::CppDumper dumper(h, c, outH.fileName(), options);
     dumper.dump(parser.table());
     outH.close();
