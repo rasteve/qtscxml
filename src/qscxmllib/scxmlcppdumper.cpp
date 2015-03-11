@@ -375,12 +375,12 @@ void CppDumper::dump(StateTable *table)
 {
     this->table = table;
     mainClassName = options.basename;
-    if (!mainClassName.isEmpty())
-        mainClassName.append(QLatin1Char('_'));
-    mainClassName.append(table->_name);
-    if (!mainClassName.isEmpty())
-        mainClassName.append(QLatin1Char('_'));
-    mainClassName.append(l("StateMachine"));
+    if (mainClassName.isEmpty()) {
+        mainClassName = table->_name;
+        if (!mainClassName.isEmpty())
+            mainClassName.append(QLatin1Char('_'));
+        mainClassName.append(l("StateMachine"));
+    }
 
     // Generate the .h file:
     h << l(headerStart);
