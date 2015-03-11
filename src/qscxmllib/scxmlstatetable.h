@@ -39,6 +39,7 @@
 #include <QLoggingCategory>
 #include <QAbstractTransition>
 #include <QUrl>
+#include <QVariantList>
 #include <functional>
 
 QT_BEGIN_NAMESPACE
@@ -57,7 +58,8 @@ public:
     enum EventType { Platform, Internal, External };
 
     ScxmlEvent(const QByteArray &name = QByteArray(), EventType eventType = External,
-               QVariantList datas = QVariantList(), const QByteArray &sendid = QByteArray (),
+               const QVariantList &datas = QVariantList(), const QStringList &dataNames = QStringList(),
+               const QByteArray &sendid = QByteArray (),
                const QString &origin = QString (), const QString &origintype = QString (),
                const QByteArray &invokeid = QByteArray());
 
@@ -80,6 +82,7 @@ private:
     QByteArray m_name;
     EventType m_type;
     QVariantList m_datas; // extra data
+    QStringList m_dataNames; // extra data
     QByteArray m_sendid; // if set, or id of <send> if failure
     QString m_origin; // uri to answer by setting the target of send, empty for internal and platform events
     QString m_origintype; // type to answer by setting the type of send, empty for internal and platform events
@@ -273,21 +276,26 @@ public:
     void setEngine(QJSEngine *engine);
     Q_INVOKABLE void submitError(const QByteArray &type, const QString &msg) {
         qCDebug(scxmlLog) << "machine " << _name << " had error " << type << ":" << msg;
-        submitEvent(type, msg);
+        submitEvent(type, QVariantList() << QVariant(msg));
     }
 
     Q_INVOKABLE void submitEvent1(const QString &event) {
-        submitEvent(event.toUtf8(), QVariant());
+        submitEvent(event.toUtf8(), QVariantList());
     }
 
     Q_INVOKABLE void submitEvent2(const QString &event,  QVariant data) {
-        submitEvent(event.toUtf8(), data);
+        QVariantList datas;
+        if (data.isValid())
+            datas << data;
+        submitEvent(event.toUtf8(), datas);
     }
-    void submitEvent(const QByteArray &event, QVariant data = QVariant(),
+    void submitEvent(const QByteArray &event, const QVariantList &datas = QVariantList(),
+                     const QStringList &dataNames = QStringList(),
                      ScxmlEvent::EventType type = ScxmlEvent::External,
                      const QByteArray &sendid = QByteArray(), const QString &origin = QString(),
                      const QString &origintype = QString(), const QByteArray &invokeid = QByteArray());
-    void submitDelayedEvent(int delay, const QByteArray &event, QVariant data = QVariant(),
+    void submitDelayedEvent(int delay, const QByteArray &event, const QVariantList &datas = QVariantList(),
+                            const QStringList &dataNames = QStringList(),
                             ScxmlEvent::EventType type = ScxmlEvent::External,
                             const QByteArray &sendid = QByteArray(), const QString &origin = QString(),
                             const QString &origintype = QString(), const QByteArray &invokeid = QByteArray());
@@ -363,7 +371,7 @@ struct SCXML_EXPORT Raise : public Instruction {
         : Instruction(parentState, transition) { }
     QByteArray event;
     void execute() Q_DECL_OVERRIDE {
-        table()->submitEvent(event, QVariant(), ScxmlEvent::Internal); }
+        table()->submitEvent(event, QVariantList(), QStringList(), ScxmlEvent::Internal); }
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::Raise; }
 };
 

@@ -616,28 +616,31 @@ void StateTable::setEngine(QJSEngine *engine)
         m_dataModelJSValues = engine->globalObject();
 }
 
-void StateTable::submitEvent(const QByteArray &event, QVariant data, ScxmlEvent::EventType type,
+void StateTable::submitEvent(const QByteArray &event, const QVariantList &datas,
+                             const QStringList &dataNames, ScxmlEvent::EventType type,
                              const QByteArray &sendid, const QString &origin,
                              const QString &origintype, const QByteArray &invokeid)
 {
-    ScxmlEvent *e = new ScxmlEvent(event, type, QVariantList() << data, sendid, origin, origintype, invokeid);
+    ScxmlEvent *e = new ScxmlEvent(event, type, datas, dataNames, sendid, origin, origintype, invokeid);
     postEvent(e);
 }
 
-void StateTable::submitDelayedEvent(int delay, const QByteArray &event, QVariant data,
-                                    ScxmlEvent::EventType type, const QByteArray &sendid,
+void StateTable::submitDelayedEvent(int delay, const QByteArray &event, const QVariantList &datas,
+                                    const QStringList &dataNames, ScxmlEvent::EventType type,
+                                    const QByteArray &sendid,
                                     const QString &origin, const QString &origintype,
                                     const QByteArray &invokeid)
 {
-    ScxmlEvent *e = new ScxmlEvent(event, type, QVariantList() << data, sendid, origin, origintype, invokeid);
+    ScxmlEvent *e = new ScxmlEvent(event, type, datas, dataNames, sendid, origin, origintype, invokeid);
     postDelayedEvent(e, delay);
 }
 
-ScxmlEvent::ScxmlEvent(const QByteArray &name, ScxmlEvent::EventType eventType, QVariantList datas,
+ScxmlEvent::ScxmlEvent(const QByteArray &name, ScxmlEvent::EventType eventType,
+                       const QVariantList &datas, const QStringList &dataNames,
                        const QByteArray &sendid, const QString &origin,
                        const QString &origintype, const QByteArray &invokeid)
-    : QEvent(scxmlEventType), m_name(name), m_type(eventType), m_datas(datas),
-      m_sendid(sendid), m_origin(origin), m_origintype(origintype), m_invokeid(invokeid)
+    : QEvent(scxmlEventType), m_name(name), m_type(eventType), m_datas(datas), m_dataNames(dataNames)
+    , m_sendid(sendid), m_origin(origin), m_origintype(origintype), m_invokeid(invokeid)
 { }
 
 QString ScxmlEvent::scxmlType() const {
