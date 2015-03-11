@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     QCoreApplication a(argc, argv);
     QStringList args = a.arguments();
     QString usage = QStringLiteral("\nusage: %1 [-namespace <namespace>] [-o <base/out/name>] [-oh <header/out>] [-ocpp <cpp/out>] [-use-private-api]\n"
-                                   "      [-basename <stateMachineClassName>] <input.scxml>\n\n"
+                                   "      [-basename <stateMachineClassName>] [-name-qobjects] <input.scxml>\n\n"
                                    "compiles the given input.scxml file to a header and cpp file\n")
             .arg(QFileInfo(args.value(0)).baseName());
     Scxml::CppDumpOptions options;
@@ -52,6 +52,8 @@ int main(int argc, char *argv[])
             options.usePrivateApi = true;
         } else if (arg == QLatin1String("-basename")) {
             options.basename = args.value(++iarg);
+        } else if (arg == QLatin1String("-name-qobjects")) {
+            options.nameQObjects = true;
         } else if (scxmlFileName.isEmpty()) {
             scxmlFileName = arg;
         } else {

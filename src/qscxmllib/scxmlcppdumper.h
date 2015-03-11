@@ -25,10 +25,11 @@ namespace Scxml {
 
 struct SCXML_EXPORT CppDumpOptions : public DumpOptions
 {
-    CppDumpOptions() : usePrivateApi(false) { }
+    CppDumpOptions() : usePrivateApi(false), nameQObjects(false) { }
     QString basename;
     QString namespaceName;
     bool usePrivateApi;
+    bool nameQObjects;
 };
 
 class CppDumper

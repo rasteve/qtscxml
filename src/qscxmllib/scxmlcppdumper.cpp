@@ -640,6 +640,11 @@ void CppDumper::dumpInit()
         QString stateName = QString::fromUtf8(rawStateName);
         cpp << l("        table->addId(") << qba(rawStateName) << l(", &state_") << stateName
           << l(");\n");
+        if (options.nameQObjects)
+            cpp << l("        state_") << stateName << l(".setObjectName(QStringLiteral(\"") << cEscape(stateName)
+                << l("\"));\n");
+        if (state->childMode() == QState::ParallelStates)
+            cpp << l("        state_") << stateName << l(".setChildMode(QState::ParallelStates);\n");
         if (ScxmlState *sState = qobject_cast<ScxmlState *>(state)) {
             if (!sState->onEntryInstruction.statements.isEmpty()) {
                 cpp << l("        QObject::connect(&state_") << stateName
@@ -658,6 +663,9 @@ void CppDumper::dumpInit()
         QString stateName = QString::fromUtf8(rawStateName);
         cpp << l("        table->addId(") << qba(rawStateName) << l(", &state_") << stateName
           << l(");\n");
+        if (options.nameQObjects)
+            cpp << l("        state_") << stateName << l(".setObjectName(QStringLiteral(\"") << cEscape(stateName)
+                << l("\"));\n");
         if (ScxmlFinalState *sState = qobject_cast<ScxmlFinalState *>(state)) {
             if (!sState->onEntryInstruction.statements.isEmpty()) {
                 cpp << l("        QObject::connect(&state_") << stateName
