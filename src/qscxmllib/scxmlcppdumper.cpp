@@ -540,15 +540,15 @@ void CppDumper::dumpDeclareSignalsForEvents()
     }, Q_NULLPTR, Q_NULLPTR);
     QList<QByteArray> knownEventsList = knownEvents.toList();
     std::sort(knownEventsList.begin(), knownEventsList.end());
-    bool hasSignals = false;
+    bool hasSlots = false;
     foreach (QByteArray event, knownEventsList) {
         if (event.startsWith(b("done.")) || event.startsWith(b("qsignal."))
                 || event.startsWith(b("qevent.")))
             continue;
-        if (!hasSignals)
-            h << endl << l("signals:") << endl;
-        hasSignals = true;
-        h << l("    void event_") << event.replace('.', '_') << l("();") << endl;
+        if (!hasSlots)
+            h << endl << l("public slots:") << endl;
+        hasSlots = true;
+        h << l("    void event_") << event.replace('.', '_') << l("() { submitEvent(") << qba(event) << l("); }") << endl;
     }
 }
 
