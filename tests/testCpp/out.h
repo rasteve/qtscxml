@@ -50,5 +50,5 @@ public slots:
 
 private:
     struct Data;
-    struct Data *d;
+    struct Data *data;
 };

@@ -413,7 +413,7 @@ void CppDumper::dump(StateTable *table)
     h << endl
       << l("private:") << endl
       << l("    struct Data;") << endl
-      << l("    struct Data *d;") << endl
+      << l("    struct Data *data;") << endl
       << l("};") << endl;
 
     if (!options.namespaceName.isEmpty())
@@ -441,14 +441,14 @@ void CppDumper::dump(StateTable *table)
         << endl;
     cpp << mainClassName << l("::") << mainClassName << l("(QObject *parent)") << endl
         << l("    : Scxml::StateTable(parent)") << endl
-        << l("    , d(new Data(this))") << endl
+        << l("    , data(new Data(this))") << endl
         << l("{}") << endl
         << endl;
     cpp << mainClassName << l("::~") << mainClassName << l("()") << endl
-        << l("{ delete d; }") << endl
+        << l("{ delete data; }") << endl
         << endl;
     cpp << l("bool ") << mainClassName << l("::init()") << endl
-        << l("{ return d->init(); }") << endl;
+        << l("{ return data->init(); }") << endl;
     if (!options.namespaceName.isEmpty())
         h << l("} // namespace ") << options.namespaceName << endl;
 }

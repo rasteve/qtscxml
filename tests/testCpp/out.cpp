@@ -253,11 +253,11 @@ struct StateMachine::Data {
 
 StateMachine::StateMachine(QObject *parent)
     : Scxml::StateTable(parent)
-    , d(new Data(this))
+    , data(new Data(this))
 {}
 
 StateMachine::~StateMachine()
-{ delete d; }
+{ delete data; }
 
 bool StateMachine::init()
-{ return d->init(); }
+{ return data->init(); }
