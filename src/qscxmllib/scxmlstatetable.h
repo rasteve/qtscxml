@@ -533,6 +533,8 @@ class SCXML_EXPORT ScxmlBaseTransition : public QAbstractTransition {
 public:
     typedef QSharedPointer<ConcreteSignalTransition> TransitionPtr;
     ScxmlBaseTransition(QState * sourceState = 0, const QList<QByteArray> &eventSelector = QList<QByteArray>());
+    ScxmlBaseTransition(QAbstractTransitionPrivate &dd, QState *parent,
+                        const QList<QByteArray> &eventSelector = QList<QByteArray>());
     StateTable *table() const;
 
     QString transitionLocation() const;

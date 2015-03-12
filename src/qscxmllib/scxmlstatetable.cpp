@@ -706,6 +706,11 @@ QJSValue ScxmlEvent::jsValue(QJSEngine *engine) const {
 ScxmlBaseTransition::ScxmlBaseTransition(QState *sourceState, const QList<QByteArray> &eventSelector) :
     QAbstractTransition(sourceState), eventSelector(eventSelector) { }
 
+ScxmlBaseTransition::ScxmlBaseTransition(QAbstractTransitionPrivate &dd, QState *parent,
+                                         const QList<QByteArray> &eventSelector)
+    : QAbstractTransition(dd, parent), eventSelector(eventSelector)
+{ }
+
 StateTable *ScxmlBaseTransition::table() const {
     if (sourceState())
         return qobject_cast<StateTable *>(sourceState()->machine());
