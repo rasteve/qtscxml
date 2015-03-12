@@ -56,7 +56,7 @@ private:
     static QByteArray b(const char *str) { return QByteArray(str); }
     static QLatin1String l (const char *str) { return QLatin1String(str); }
 
-    QString transitionName(ScxmlTransition *transition, bool upcase = false, int tIndex = -1,
+    QString transitionName(QAbstractTransition *transition, bool upcase = false, int tIndex = -1,
                            const QByteArray &stateName = QByteArray());
 
     StateTable *table;

@@ -735,7 +735,7 @@ void CppDumper::dumpInit()
     cpp << l("    }\n");
 }
 
-QString CppDumper::transitionName(ScxmlTransition *transition, bool upcase, int tIndex,
+QString CppDumper::transitionName(QAbstractTransition *transition, bool upcase, int tIndex,
                                   const QByteArray &stateName)
 {
     Q_ASSERT(transition->sourceState());
