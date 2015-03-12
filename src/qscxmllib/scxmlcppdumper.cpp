@@ -203,6 +203,8 @@ protected:
     }
 
     void visitJavaScript(JavaScript *script) Q_DECL_OVERRIDE {
+        Q_UNUSED(script)
+
         /*s.writeStartElement("script");
         if (!script->src.isEmpty())
             s.writeAttribute("src", script->src);
@@ -212,6 +214,8 @@ protected:
     }
 
     void visitAssignJson(AssignJson *assign) Q_DECL_OVERRIDE {
+        Q_UNUSED(assign)
+
         /*s.writeStartElement("assign");
         s.writeAttribute("location", assign->location);
         QJsonValue &v = assign->value;
@@ -255,6 +259,8 @@ protected:
     }
 
     void visitAssignExpression(AssignExpression *assign) Q_DECL_OVERRIDE {
+        Q_UNUSED(assign)
+
         /*
         s.writeStartElement("assign");
         s.writeAttribute("location", assign->location);
@@ -266,6 +272,8 @@ protected:
     }
 
     void visitCancel(Cancel *c) Q_DECL_OVERRIDE {
+        Q_UNUSED(c)
+
         /*s.writeStartElement("cancel");
         if (!c->sendidexpr.isEmpty())
             s.writeAttribute("sendidexpr", c->sendidexpr);
@@ -274,6 +282,8 @@ protected:
     }
 
     bool visitInvoke(Invoke *invoke) Q_DECL_OVERRIDE {
+        Q_UNUSED(invoke)
+
         /*s.writeStartElement("invoke");
         if (!invoke->typeexpr.isEmpty())
             s.writeAttribute("typeexpr", invoke->typeexpr);
@@ -317,6 +327,8 @@ protected:
     void endVisitInvoke(Invoke *) Q_DECL_OVERRIDE { }
 
     bool visitIf(If *ifI) Q_DECL_OVERRIDE {
+        Q_UNUSED(ifI)
+
         /*s.writeStartElement("if");
         int maxI = ifI->conditions.size();
         if (ifI->blocks.size() < maxI) {
@@ -350,6 +362,8 @@ protected:
 
     void endVisitIf(If *) Q_DECL_OVERRIDE { }
     bool visitForeach(Foreach *foreachI) {
+        Q_UNUSED(foreachI)
+
         /*s.writeStartElement("foreach");
         s.writeAttribute("array", foreachI->array);
         s.writeAttribute("item", foreachI->item);
