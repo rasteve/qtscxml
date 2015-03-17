@@ -657,7 +657,7 @@ QString ScxmlEvent::scxmlType() const {
 
 QVariant ScxmlEvent::data() const {
     if (!m_datas.isEmpty()) {
-        if (m_datas.length() == 1)
+        if (m_datas.length() >= 1)
             return m_datas.first();
         return m_datas;
     }
