@@ -115,7 +115,7 @@ struct ParsingOptions {
     ParsingOptions() { }
 };
 
-class ScxmlParser
+class SCXML_EXPORT ScxmlParser
 {
 public:
     typedef std::function<QByteArray(const QString &, bool &, ScxmlParser *parser)> LoaderFunction;

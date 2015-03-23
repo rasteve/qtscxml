@@ -1,13 +1,13 @@
-include (../../src/qscxmllib/qscxmllib.pri)
+option(host_build)
 
-QT += testlib
+QT += testlib qscxmllib
 CONFIG += testcase
 
 QT += core qml
 QT -= gui
 
 TARGET = tst_cppgen
-CONFIG += console
+CONFIG += console c++11
 CONFIG -= app_bundle
 
 TEMPLATE = app
@@ -15,3 +15,4 @@ TEMPLATE = app
 SOURCES += \
     tst_cppgen.cpp
 
+load(qt_tool)

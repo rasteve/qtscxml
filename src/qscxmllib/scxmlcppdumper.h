@@ -34,7 +34,7 @@ struct SCXML_EXPORT CppDumpOptions : public DumpOptions
     bool nameQObjects;
 };
 
-class CppDumper
+class SCXML_EXPORT CppDumper
 {
 public:
     CppDumper(QTextStream &headerStream, QTextStream &cppStream, const QString &headerName, const CppDumpOptions &options)

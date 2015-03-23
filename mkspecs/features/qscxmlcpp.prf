@@ -1,0 +1,34 @@
+qtPrepareTool(QMAKE_QSCXMLCPP, qscxmlcpp)
+
+isEmpty(QSCXMLCPP_DIR):QSCXMLCPP_DIR = .
+
+qscxmlcpp.commands = $$QMAKE_QSCXMLCPP -name-qobjects ${QMAKE_FILE_IN}
+qscxmlcpp.depends = ${QMAKE_FILE_IN}
+qscxmlcpp.output = $$QSCXMLCPP_DIR/${QMAKE_FILE_BASE}$${first(QMAKE_EXT_H)}
+qscxmlcpp.input = STATECHARTS
+qscxmlcpp.variable_out = QSCXMLCPP_HEADERS
+qscxmlcpp.CONFIG += no_link target_predeps
+qscxmlcpp.name = QSCXMLCPP ${QMAKE_FILE_IN}
+QMAKE_EXTRA_COMPILERS += qscxmlcpp
+
+load(moc)
+qscxmlcpp_moc.input = QSCXMLCPP_HEADERS
+qscxmlcpp_moc.commands = $$moc_header.commands
+qscxmlcpp_moc.output = $$moc_header.output
+qscxmlcpp_moc.variable_out = $$moc_header.variable_out
+qscxmlcpp_moc.dependency_type = $$moc_header.dependency_type
+qscxmlcpp_moc.name = sc_$$moc_header.name
+QMAKE_EXTRA_COMPILERS += qscxmlcpp_moc
+
+qscxmlcpp_sm.name = QScxmlCpp Cpp
+qscxmlcpp_sm.input = STATECHARTS
+qscxmlcpp_sm.variable_out = GENERATED_SOURCES
+qscxmlcpp_sm.commands = $$escape_expand(\\n) # force creation of rule
+qscxmlcpp_sm.output = $$QSCXMLCPP_DIR/${QMAKE_FILE_BASE}$${first(QMAKE_EXT_CPP)}
+QMAKE_EXTRA_COMPILERS += qscxmlcpp_sm
+
+!isEmpty(STATECHARTS) {
+    INCLUDEPATH += $$absolute_path($$QSCXMLCPP_DIR, $$OUT_PWD)
+    INCLUDEPATH += $$shadowed($$_PRO_FILE_PWD_)
+    INCLUDEPATH += $$_PRO_FILE_PWD_
+}

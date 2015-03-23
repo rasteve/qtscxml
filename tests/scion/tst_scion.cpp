@@ -19,7 +19,7 @@
 #include <QtTest/QtTest>
 #include <QJsonDocument>
 
-#include <qscxmllib/scxmlparser.h>
+#include <QScxmlLib/scxmlparser.h>
 
 #include "../3rdparty/scion.h"
 

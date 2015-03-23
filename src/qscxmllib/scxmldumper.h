@@ -34,7 +34,7 @@ struct SCXML_EXPORT ScxmlDumpOptions : public DumpOptions
 
 };
 
-class ScxmlDumper
+class SCXML_EXPORT ScxmlDumper
 {
 public:
     ScxmlDumper(QXmlStreamWriter &stream) : s(stream) { }

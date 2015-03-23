@@ -1,13 +1,13 @@
-include (../../src/qscxmllib/qscxmllib.pri)
+option(host_build)
 
-QT += testlib
+QT += testlib qscxmllib
 CONFIG += testcase
 
 QT += core qml
 QT -= gui
 
 TARGET = tst_scion
-CONFIG += console
+CONFIG += console c++11
 CONFIG -= app_bundle
 
 TEMPLATE = app
@@ -19,3 +19,5 @@ SOURCES += \
 
 HEADERS += \
     $$PWD/../3rdparty/scion.h
+
+load(qt_tool)

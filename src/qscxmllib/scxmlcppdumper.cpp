@@ -446,7 +446,7 @@ protected:
 };
 
 const char *headerStart =
-        "#include <qscxmllib/scxmlstatetable.h>\n"
+        "#include <QScxmlLib/scxmlstatetable.h>\n"
         "\n";
 } // anonymous namespace
 

@@ -1,14 +1,13 @@
-QT       += core qml
+option(host_build)
+QT       += core qml qscxmllib
 QT       -= gui network
 
 TARGET = qscxmlserver
 CONFIG   += console c++11
 
-TEMPLATE = app
-
 HEADERS +=
 
 SOURCES += \
-    qscxmlserver.cpp \
+    qscxmlserver.cpp
 
-include (../qscxmllib/qscxmllib.pri)
+load(qt_tool)

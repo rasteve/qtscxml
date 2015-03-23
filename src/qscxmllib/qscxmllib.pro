@@ -1,17 +1,24 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2014-12-08T11:32:41
-#
-#-------------------------------------------------
+TARGET = QScxmlLib
+MODULE = qscxmllib
 
-QT       += core qml
+QT       += core core-private qml
 
-QT       -= gui
+load(qt_module)
 
-TARGET = qscxmllib
 CONFIG   += c++11
-DEFINES  += SCXML_LIBRARY
+DEFINES  += SCXML_LIBRARY \
+            QT_NO_CAST_FROM_ASCII
 
-TEMPLATE = lib
+HEADERS += \
+    scxmlparser.h \
+    scxmlstatetable.h \
+    scxmlglobals.h \
+    scxmldumper.h \
+    scxmlstatetable_p.h \
+    scxmlcppdumper.h
 
-include(qscxmllib.pri)
+SOURCES += \
+    scxmlparser.cpp \
+    scxmlstatetable.cpp \
+    scxmldumper.cpp \
+    scxmlcppdumper.cpp

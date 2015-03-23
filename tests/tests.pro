@@ -1,7 +1,8 @@
 TEMPLATE = subdirs
-#CONFIG += ordered
+CONFIG += ordered no_docs_target
 
 SUBDIRS += \
+    auto \
     cppgen \
     scion \
     testCpp

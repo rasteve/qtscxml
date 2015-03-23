@@ -1,7 +1,14 @@
+load(qt_parts)
+FEATURES += \
+    mkspecs/features/qscxmlcpp.prf
 
-TEMPLATE = subdirs
-CONFIG += ordered
+features.files = $$FEATURES
+features.path = $$[QT_HOST_DATA]/mkspecs/features/
 
-SUBDIRS += \
-    src \
-    tests
+INSTALLS += features
+
+OTHER_FILES += \
+    $$FEATURES \
+    .qmake.conf \
+    sync.profile \
+    .gitignore

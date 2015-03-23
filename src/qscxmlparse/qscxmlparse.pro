@@ -1,14 +1,12 @@
-QT       += core qml
-QT       -= gui
+option(host_build)
+QT       += core qml qscxmllib
 
 TARGET = qscxmlparse
 CONFIG   += console c++11
 
-TEMPLATE = app
-
 HEADERS +=
 
 SOURCES += \
-    qscxmlparse.cpp \
+    qscxmlparse.cpp
 
-include (../qscxmllib/qscxmllib.pri)
+load(qt_tool)

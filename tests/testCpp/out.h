@@ -1,4 +1,4 @@
-#include <qscxmllib/scxmlstatetable.h>
+#include <QScxmlLib/scxmlstatetable.h>
 
 class StateMachine : public Scxml::StateTable {
     Q_OBJECT

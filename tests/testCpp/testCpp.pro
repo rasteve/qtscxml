@@ -1,4 +1,6 @@
-QT       += core qml
+option(host_build)
+
+QT       += core qml qscxmllib
 QT       -= gui
 
 TARGET = testCpp
@@ -16,4 +18,4 @@ SOURCES += \
 
 OTHER_FILES += genTestSxcml.py
 
-include (../../src/qscxmllib/qscxmllib.pri)
+load(qt_tool)
