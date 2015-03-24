@@ -215,8 +215,8 @@ void ScxmlParser::parse()
                 ParserState pNew = ParserState(ParserState::Transition);
                 pNew.instructionContainer = &m_currentTransition->instructionsOnTransition;
                 QStringRef type = attributes.value(QLatin1String("type"));
-                if (!type.isEmpty() && type != QLatin1String("internal")) {
-                    addError(QStringLiteral("only internal transitions are supported"));
+                if (!type.isEmpty() && type != QLatin1String("external")) {
+                    addError(QStringLiteral("only external transitions are supported"));
                     m_state = ParsingError;
                 }
                 m_stack.append(pNew);
