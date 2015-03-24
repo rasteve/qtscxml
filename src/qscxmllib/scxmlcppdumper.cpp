@@ -390,7 +390,7 @@ void CppDumper::dump(StateTable *table)
     this->table = table;
     mainClassName = options.basename;
     if (mainClassName.isEmpty()) {
-        mainClassName = table->_name;
+        mainClassName = mangleId(table->_name);
         if (!mainClassName.isEmpty())
             mainClassName.append(QLatin1Char('_'));
         mainClassName.append(l("StateMachine"));
@@ -459,27 +459,27 @@ void CppDumper::dumpConstructor()
 
     // States:
     loopOnSubStates(table, [this](QState *state) -> bool {
-        QString stateName = QString::fromUtf8(this->table->objectId(state, false));
+        QString stateName = mangledName(state);
         cpp << l("        , state_") << stateName << l("(");
         if (state->parentState() && state->parentState() != this->table)
-            cpp << "&state_" << this->table->objectId(state->parentState(), false);
+            cpp << "&state_" << mangledName(state->parentState());
         else
             cpp << "table";
         cpp << l(")") << endl;
         return true;
     }, Q_NULLPTR, [this](QAbstractState *state) -> void {
-        QString stateName = QString::fromUtf8(this->table->objectId(state, false));
+        QString stateName = mangledName(state);
         cpp << l("        , state_") << stateName << l("(");
         if (state->parentState() && state->parentState() != this->table)
-            cpp << "&state_" << this->table->objectId(state->parentState(), false);
+            cpp << "&state_" << mangledName(state->parentState());
         else
             cpp << "table";
-        cpp << l(");") << endl;
+        cpp << l(")") << endl;
     });
 
     // Transitions:
     loopOnSubStates(table, [this](QState *state) -> bool {
-        QByteArray stateName = this->table->objectId(state, false);
+        QString stateName = mangledName(state);
         QList<QAbstractTransition *> transitions = state->transitions();
         for (int tIndex = 0; tIndex < transitions.size(); ++tIndex) {
             QAbstractTransition *t = transitions.at(tIndex);
@@ -489,11 +489,11 @@ void CppDumper::dumpConstructor()
 
             cpp << l("        , ") << transitionName(scTransition, false, tIndex, stateName) << l("(");
 
-            QByteArray sourceState = table->objectId(t->sourceState(), true);
+            QString sourceState = mangledName(t->sourceState());
             if (sourceState.isEmpty())
-                sourceState = QByteArray("0");
+                sourceState = QLatin1String("0");
             else
-                sourceState.prepend(QByteArray("&state_"));
+                sourceState.prepend(QLatin1String("&state_"));
 
             cpp << sourceState << l(", QList<QByteArray>()");
             foreach (const QByteArray &eSelector, scTransition->eventSelector) {
@@ -510,10 +510,10 @@ void CppDumper::dumpConstructor()
 void CppDumper::dumpDeclareStates()
 {
     loopOnSubStates(table, [this](QState *state) -> bool {
-        cpp << l("    Scxml::ScxmlState state_") << table->objectId(state, false) << l(";") << endl;
+        cpp << l("    Scxml::ScxmlState state_") << mangledName(state) << l(";") << endl;
         return true;
     }, Q_NULLPTR, [this](QAbstractState *state) -> void {
-        cpp << b(state->metaObject()->className()) << l(" state_") << table->objectId(state, false)
+        cpp << b(state->metaObject()->className()) << l(" state_") << mangledName(state)
           << l(";\n");
     });
 }
@@ -521,7 +521,7 @@ void CppDumper::dumpDeclareStates()
 void CppDumper::dumpDeclareTranstions()
 {
     loopOnSubStates(table, [this](QState *state) -> bool {
-        QByteArray stateName = table->objectId(state);
+        QString stateName = mangledName(state);
         for (int tIndex = 0; tIndex < state->transitions().size(); ++tIndex) {
             QAbstractTransition *t = state->transitions().at(tIndex);
             Scxml::ScxmlTransition *scTransition = qobject_cast<Scxml::ScxmlTransition *>(t);
@@ -571,7 +571,7 @@ void CppDumper::dumpExecutableContent()
     // dump special transitions
     bool inSlots = false;
     loopOnSubStates(table, [this, &inSlots](QState *state) -> bool {
-        QByteArray stateName = table->objectId(state);
+        QString stateName = mangledName(state);
         if (ScxmlState *sState = qobject_cast<ScxmlState *>(state)) {
             if (!sState->onEntryInstruction.statements.isEmpty()) {
                 if (!inSlots) {
@@ -651,12 +651,12 @@ void CppDumper::dumpInit()
     cpp << l("    bool init() {\n");
     loopOnSubStates(table, [this](QState *state) -> bool {
         QByteArray rawStateName = table->objectId(state, false);
-        QString stateName = QString::fromUtf8(rawStateName);
+        QString stateName = mangleId(rawStateName);
         cpp << l("        table->addId(") << qba(rawStateName) << l(", &state_") << stateName
           << l(");\n");
         if (options.nameQObjects)
-            cpp << l("        state_") << stateName << l(".setObjectName(QStringLiteral(\"") << cEscape(stateName)
-                << l("\"));\n");
+            cpp << l("        state_") << stateName
+                << l(".setObjectName(QStringLiteral(\"") << cEscape(rawStateName) << l("\"));\n");
         if (state->childMode() == QState::ParallelStates)
             cpp << l("        state_") << stateName << l(".setChildMode(QState::ParallelStates);\n");
         if (ScxmlState *sState = qobject_cast<ScxmlState *>(state)) {
@@ -674,12 +674,12 @@ void CppDumper::dumpInit()
         return true;
     }, Q_NULLPTR, [this](QAbstractState *state) -> void {
         QByteArray rawStateName = table->objectId(state, false);
-        QString stateName = QString::fromUtf8(rawStateName);
+        QString stateName = mangleId(rawStateName);
         cpp << l("        table->addId(") << qba(rawStateName) << l(", &state_") << stateName
           << l(");\n");
         if (options.nameQObjects)
-            cpp << l("        state_") << stateName << l(".setObjectName(QStringLiteral(\"") << cEscape(stateName)
-                << l("\"));\n");
+            cpp << l("        state_") << stateName
+                << l(".setObjectName(QStringLiteral(\"") << cEscape(rawStateName) << l("\"));\n");
         if (ScxmlFinalState *sState = qobject_cast<ScxmlFinalState *>(state)) {
             if (!sState->onEntryInstruction.statements.isEmpty()) {
                 cpp << l("        QObject::connect(&state_") << stateName
@@ -695,13 +695,13 @@ void CppDumper::dumpInit()
     });
     if (table->initialState()) {
         cpp << l("\n        table->setInitialState(&state_")
-          << table->objectId(table->initialState(), true) << l(");") << endl;
+          << mangledName(table->initialState()) << l(");") << endl;
     }
     loopOnSubStates(table, [this](QState *state) -> bool {
-        QByteArray stateName = table->objectId(state);
+        QString stateName = mangledName(state);
         if (state->childMode() == QState::ExclusiveStates && state->initialState()) {
             cpp << l("\n        state_") << stateName << l(".setInitialState(&state_")
-              << table->objectId(state->initialState(), true) << l(");\n\n");
+              << mangledName(state->initialState()) << l(");\n\n");
         }
         for (int tIndex = 0; tIndex < state->transitions().size(); ++tIndex) {
             QAbstractTransition *t = state->transitions().at(tIndex);
@@ -718,11 +718,11 @@ void CppDumper::dumpInit()
                 QList<QByteArray> targetStates = scTransition->targetIds();
                 if (targetStates.size() == 1) {
                     cpp << l("        ") << scName << l(".setTargetState(&state_")
-                      << targetStates.first() << l(");\n");
+                      << mangleId(targetStates.first()) << l(");\n");
                 } else if (targetStates.size() > 1) {
                     cpp << l("        ") << scName << l(".setTargetStates(QList<QAbstractState *>() ");
                     foreach (const QByteArray &tState, targetStates)
-                        cpp << l("\n            << &state_") << tState;
+                        cpp << l("\n            << &state_") << mangleId(tState);
                     cpp << l(");\n");
                 }
                 cpp << l("        ") << scName << l(".init();\n");
@@ -736,7 +736,7 @@ void CppDumper::dumpInit()
 }
 
 QString CppDumper::transitionName(QAbstractTransition *transition, bool upcase, int tIndex,
-                                  const QByteArray &stateName)
+                                  const QString &stateName)
 {
     Q_ASSERT(transition->sourceState());
     if (tIndex < 0)
@@ -744,14 +744,36 @@ QString CppDumper::transitionName(QAbstractTransition *transition, bool upcase, 
     Q_ASSERT(tIndex >= 0);
     QString stateNameStr;
     if (stateName.isEmpty())
-        stateNameStr = QString::fromUtf8(table->objectId(transition->sourceState()));
+        stateNameStr = mangledName(transition->sourceState());
     else
-        stateNameStr = QString::fromUtf8(stateName);
+        stateNameStr = stateName;
     QString name = QStringLiteral("transition_%1_%2")
             .arg(stateNameStr, QString::number(tIndex));
     if (upcase)
         name[0] = QLatin1Char('T');
     return name;
+}
+
+QString CppDumper::mangledName(QAbstractState *state)
+{
+    QString mangledName = mangledStateNames.value(state);
+    if (!mangledName.isEmpty())
+        return mangledName;
+
+    mangledName = mangleId(table->objectId(state, false));
+    mangledStateNames.insert(state, mangledName);
+    return mangledName;
+}
+
+QString CppDumper::mangleId(const QString &id)
+{
+    QString mangled(id);
+    mangled = mangled.replace(QLatin1Char('_'), QLatin1String("__"));
+    mangled = mangled.replace(QLatin1Char(':'), QLatin1String("_colon_"));
+    mangled = mangled.replace(QLatin1Char('-'), QLatin1String("_dash_"));
+    mangled = mangled.replace(QLatin1Char('@'), QLatin1String("_at_"));
+    mangled = mangled.replace(QLatin1Char('.'), QLatin1String("_dot_"));
+    return mangled;
 }
 
 } // namespace Scxml

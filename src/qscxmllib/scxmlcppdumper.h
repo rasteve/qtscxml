@@ -44,6 +44,12 @@ public:
     QTextStream &cpp;
     QString headerName;
 
+    static QString mangleId(const QString &id);
+    static QString mangleId(const QByteArray &id)
+    {
+        return mangleId(QString::fromUtf8(id));
+    }
+
 private:
     void dumpConstructor();
     void dumpDeclareStates();
@@ -57,11 +63,14 @@ private:
     static QLatin1String l (const char *str) { return QLatin1String(str); }
 
     QString transitionName(QAbstractTransition *transition, bool upcase = false, int tIndex = -1,
-                           const QByteArray &stateName = QByteArray());
+                           const QString &stateName = QString());
 
     StateTable *table;
     QString mainClassName;
     CppDumpOptions options;
+    QMap<QAbstractState *, QString> mangledStateNames;
+
+    QString mangledName(QAbstractState *state);
 };
 
 } // namespace Scxml

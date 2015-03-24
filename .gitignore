@@ -12,3 +12,4 @@ moc_*.cpp
 /src/qscxmlcpp/qscxmlcpp
 /tests/testCpp/testCpp
 
+tst_cppgen
