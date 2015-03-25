@@ -23,6 +23,8 @@
 
 namespace Scxml {
 
+struct MainClass;
+
 struct SCXML_EXPORT CppDumpOptions : public DumpOptions
 {
     CppDumpOptions() : usePrivateApi(false), nameQObjects(false) { }
@@ -54,8 +56,7 @@ private:
     void dumpConstructor();
     void dumpDeclareStates();
     void dumpDeclareTranstions();
-    void dumpDeclareSignalsForEvents();
-    void dumpImplementSignalsForEvents();
+    void dumpSlotsForEvents(MainClass &clazz);
     void dumpExecutableContent();
     void dumpInstructions(ExecutableContent::Instruction &i);
     void dumpInit();

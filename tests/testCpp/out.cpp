@@ -75,6 +75,7 @@ struct StateMachine::Data {
         table->addId(QByteArray::fromRawData("s_2_1_2_1_1_3", 13), &state_s__2__1__2__1__1__3);
 
         table->setInitialState(&state_s__1);
+
         transition_s__1_0.setTargetState(&state_s__1);
         transition_s__1_0.init();
         transition_s__1_1.setTargetState(&state_s__1);
@@ -107,6 +108,7 @@ struct StateMachine::Data {
         transition_s__2__1_3.init();
         transition_s__2__1_4.setTargetState(&state_s__2__1__1);
         transition_s__2__1_4.init();
+
         transition_s__2__1__1_0.setTargetState(&state_s__2);
         transition_s__2__1__1_0.init();
         transition_s__2__1__1_1.setTargetState(&state_s__2);
@@ -154,6 +156,7 @@ struct StateMachine::Data {
         transition_s__2__1__2__1__1_3.init();
         transition_s__2__1__2__1__1_4.setTargetState(&state_s__2__1__1);
         transition_s__2__1__2__1__1_4.init();
+
         transition_s__2__1__2__1__1__1_0.setTargetState(&state_s__2__1__1);
         transition_s__2__1__2__1__1__1_0.init();
         transition_s__2__1__2__1__1__1_1.setTargetState(&state_s__2__1__2__1__1__1);
@@ -164,6 +167,7 @@ struct StateMachine::Data {
         transition_s__2__1__2__1__1__1_3.init();
         transition_s__2__1__2__1__1__1_4.setTargetState(&state_s__1);
         transition_s__2__1__2__1__1__1_4.init();
+
         transition_s__2__1__2__1__1__2_0.setTargetState(&state_s__2__1__1);
         transition_s__2__1__2__1__1__2_0.init();
         transition_s__2__1__2__1__1__2_1.setTargetState(&state_s__2__1);
@@ -172,6 +176,7 @@ struct StateMachine::Data {
         transition_s__2__1__2__1__1__2_2.init();
         transition_s__2__1__2__1__1__2_3.setTargetState(&state_s__2__1__2__1);
         transition_s__2__1__2__1__1__2_3.init();
+
         transition_s__2__1__2__1__1__3_0.setTargetState(&state_s__2__1__2__1);
         transition_s__2__1__2__1__1__3_0.init();
         transition_s__2__1__2__1__1__3_1.setTargetState(&state_s__2__1__2);
