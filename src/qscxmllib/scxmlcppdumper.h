@@ -55,6 +55,7 @@ private:
     void dumpDeclareStates();
     void dumpDeclareTranstions();
     void dumpDeclareSignalsForEvents();
+    void dumpImplementSignalsForEvents();
     void dumpExecutableContent();
     void dumpInstructions(ExecutableContent::Instruction &i);
     void dumpInit();

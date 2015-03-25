@@ -449,6 +449,7 @@ void CppDumper::dump(StateTable *table)
         << endl;
     cpp << l("bool ") << mainClassName << l("::init()") << endl
         << l("{ return data->init(); }") << endl;
+    dumpImplementSignalsForEvents();
     if (!options.namespaceName.isEmpty())
         h << l("} // namespace ") << options.namespaceName << endl;
 }
@@ -562,7 +563,31 @@ void CppDumper::dumpDeclareSignalsForEvents()
         if (!hasSlots)
             h << endl << l("public slots:") << endl;
         hasSlots = true;
-        h << l("    void event_") << event.replace('.', '_') << l("() { submitEvent(") << qba(event) << l("); }") << endl;
+        h << l("    void event_") << event.replace('.', '_') << l("();") << endl;
+    }
+}
+
+void CppDumper::dumpImplementSignalsForEvents()
+{
+    QSet<QByteArray> knownEvents;
+    loopOnSubStates(table, [&knownEvents](QState *state) -> bool {
+        foreach (QAbstractTransition *t, state->transitions()) {
+            if (ScxmlTransition *scxmlT = qobject_cast<ScxmlTransition *>(t)) {
+                foreach (const QByteArray &event, scxmlT->eventSelector)
+                    knownEvents.insert(event);
+            }
+        }
+        return true;
+    }, Q_NULLPTR, Q_NULLPTR);
+    QList<QByteArray> knownEventsList = knownEvents.toList();
+    std::sort(knownEventsList.begin(), knownEventsList.end());
+    foreach (QByteArray event, knownEventsList) {
+        if (event.startsWith(b("done.")) || event.startsWith(b("qsignal."))
+                || event.startsWith(b("qevent.")))
+            continue;
+        cpp << endl
+            << l("void ") << mainClassName << l("::event_") << event.replace('.', '_')
+            << l("()\n{ submitEvent(") << qba(event) << l("); }") << endl;
     }
 }
 
