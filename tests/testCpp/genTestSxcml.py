@@ -1,4 +1,4 @@
-# Copyright (c) 2014 Digia Plc
+# Copyright (c) 2015 Digia Plc
 # For any questions to Digia, please use contact form at http://qt.digia.com/
 #
 # All Rights Reserved.
