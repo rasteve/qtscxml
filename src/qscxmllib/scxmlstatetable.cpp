@@ -200,7 +200,9 @@ Send::~Send()
 StateTable::StateTable(QObject *parent)
     : QStateMachine(*new StateTablePrivate, parent), m_initialSetup(this), m_dataModel(None)
     , m_engine(0), m_dataBinding(EarlyBinding), m_warnIndirectIdClashes(true)
-{ }
+{
+    connect(this, &QStateMachine::finished, this, &StateTable::onFinished);
+}
 
 StateTable::StateTable(StateTablePrivate &dd, QObject *parent)
     : QStateMachine(dd, parent), m_initialSetup(this), m_dataModel(None), m_engine(0)

@@ -46,23 +46,7 @@ static QSet<QString> weDieOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test155.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test156.txml")
            // the ones below here require <send> to work
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test172.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test173.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test174.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test175.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test176.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test178.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test179.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test183.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test185.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test186.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test187.txml") // sub state machine?
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test194.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test198.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test199.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test200.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test200.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test201.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test201.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test205.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test205.txml")
@@ -373,7 +357,10 @@ bool TestScion::runTest(StateTable *stateMachine, const QJsonObject &testDescrip
         return false;
     }
     stateMachine->start();
-    if (!stableStateSpy.wait(SpyWaitTime)) { qWarning() << "failed to reach stable state"; return false; }
+    if (!stableStateSpy.wait(SpyWaitTime)) {
+        qWarning() << "Failed to reach stable initial state!";
+        return false;
+    }
 
     if (!verifyStates(stateMachine, testDescription, QLatin1String("initialConfiguration")))
         return false;

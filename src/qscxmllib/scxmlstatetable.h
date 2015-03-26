@@ -303,6 +303,13 @@ public:
 signals:
     void log(const QString &label, const QString &msg);
     void reachedStableState(bool didChange);
+
+private slots:
+    void onFinished() {
+        // The final state is also a stable state.
+        emit reachedStableState(true);
+    }
+
 protected:
     void beginSelectTransitions(QEvent *event) Q_DECL_OVERRIDE;
     void beginMicrostep(QEvent *event) Q_DECL_OVERRIDE;
@@ -362,7 +369,17 @@ struct SCXML_EXPORT Send : public Instruction {
     QVector<Param> params;
     XmlNode *content;
     ~Send();
-    void execute() Q_DECL_OVERRIDE { Q_ASSERT(false); /*to implement*/ }
+    void execute() Q_DECL_OVERRIDE {
+        Q_ASSERT(table() && table()->engine());
+        QByteArray e = event;
+        if (e.isEmpty())
+            e = table()->evalJSValue(eventexpr,
+                                     [this]() -> QString {
+                                         return QStringLiteral("%1 with expression %2")
+                                         .arg(instructionLocation(), eventexpr);
+                                     }).toString().toUtf8();
+        table()->submitEvent(e);
+    }
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::Send; }
 };
 
