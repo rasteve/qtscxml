@@ -49,7 +49,7 @@ void ScxmlParser::ensureInitialState(const QByteArray &initialId)
     if (!initialId.isEmpty()) {
         QAbstractState *initialState = table()->idToValue<QAbstractState>(initialId, true);
         if (initialState) {
-            m_currentParent->setInitialState(initialState);
+            currentParent()->setInitialState(initialState);
         } else {
             addError(QStringLiteral("could not resolve '%1', for the initial state of %2")
                      .arg(QString::fromUtf8(initialId),
@@ -58,9 +58,9 @@ void ScxmlParser::ensureInitialState(const QByteArray &initialId)
             return;
         }
     }
-    if (!m_currentParent->initialState()) {
+    if (!currentParent()->initialState()) {
         QAbstractState *firstState = 0;
-        loopOnSubStates(m_currentParent, [&firstState](QState *s) -> bool {
+        loopOnSubStates(currentParent(), [&firstState](QState *s) -> bool {
             if (!firstState)
                 firstState = s;
             return false;
@@ -69,9 +69,16 @@ void ScxmlParser::ensureInitialState(const QByteArray &initialId)
                 firstState = s;
         });
         if (firstState) {
-            m_currentParent->setInitialState(firstState);
+            currentParent()->setInitialState(firstState);
         }
     }
+}
+
+QState *ScxmlParser::currentParent() const
+{
+    QState *parent = qobject_cast<QState*>(m_currentParent);
+    Q_ASSERT(!m_currentParent || parent);
+    return parent;
 }
 
 void ScxmlParser::parse()
@@ -182,7 +189,7 @@ void ScxmlParser::parse()
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("state")) {
                 if (!checkAttributes(attributes, "|id,initial")) return;
-                QState *newState = new ScxmlState(m_currentParent);
+                QState *newState = new ScxmlState(currentParent());
                 if (!maybeId(attributes, newState)) return;
                 ParserState pNew = ParserState(ParserState::State);
                 pNew.initialId = attributes.value(QLatin1String("initial")).toUtf8();
@@ -190,25 +197,25 @@ void ScxmlParser::parse()
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("parallel")) {
                 if (!checkAttributes(attributes, "|id")) return;
-                QState *newState = new ScxmlState(m_currentParent);
+                QState *newState = new ScxmlState(currentParent());
                 if (!maybeId(attributes, newState)) return;
                 newState->setChildMode(QState::ParallelStates);
                 m_currentState = m_currentParent = newState;
                 m_stack.append(ParserState(ParserState::Parallel));
             } else if (elName == QLatin1String("initial")) {
                 if (!checkAttributes(attributes, "")) return;
-                if (m_currentParent->childMode() == QState::ParallelStates) {
+                if (currentParent()->childMode() == QState::ParallelStates) {
                     addError(QStringLiteral("Explicit initial state for parallel states not supported (only implicitly through the initial states of its substates)"));
                     m_state = ParsingError;
                     return;
                 }
                 ParserState pNew(ParserState::Initial);
-                QState *newState = new ScxmlInitialState(m_currentParent);
+                QState *newState = new ScxmlInitialState(currentParent());
                 m_currentState = m_currentParent = newState;
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("transition")) {
                 if (!checkAttributes(attributes, "|event,cond,target,type")) return;
-                m_currentTransition = new ScxmlTransition(m_currentParent,
+                m_currentTransition = new ScxmlTransition(currentParent(),
                                 attributes.value(QLatin1String("event")).toUtf8().split(' '),
                                 attributes.value(QLatin1String("target")).toUtf8().split(' '),
                                 attributes.value(QLatin1String("cond")).toString());
@@ -222,15 +229,16 @@ void ScxmlParser::parse()
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("final")) {
                 if (!checkAttributes(attributes, "|id")) return;
-                QFinalState *newState = new QFinalState(m_currentParent);
+                ScxmlFinalState *newState = new ScxmlFinalState(currentParent());
                 if (!maybeId(attributes, newState)) return;
-                m_currentState = newState;
+                m_currentState = m_currentParent = newState;
                 m_stack.append(ParserState(ParserState::Final));
             } else if (elName == QLatin1String("onentry")) {
                 if (!checkAttributes(attributes, "")) return;
                 ParserState pNew(ParserState::OnEntry);
                 switch (m_stack.last().kind) {
                 case ParserState::Final:
+                    Q_ASSERT(qobject_cast<ScxmlFinalState *>(m_currentState));
                     pNew.instructionContainer = &qobject_cast<ScxmlFinalState *>(m_currentState)->onEntryInstruction;
                     break;
                 case ParserState::State:
@@ -262,7 +270,7 @@ void ScxmlParser::parse()
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("history")) {
                 if (!checkAttributes(attributes, "|id,type")) return;
-                QHistoryState *newState = new QHistoryState(m_currentParent);
+                QHistoryState *newState = new QHistoryState(currentParent());
                 if (!maybeId(attributes, newState)) return;
                 QStringRef type = attributes.value(QLatin1String("type"));
                 if (type.isEmpty() || type == QLatin1String("shallow")) {
@@ -275,7 +283,7 @@ void ScxmlParser::parse()
                     return;
                 }
                 ParserState pNew = ParserState(ParserState::History);
-                m_currentState = newState;
+                m_currentState = m_currentParent = newState;
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("raise")) {
                 if (!checkAttributes(attributes, "event")) return;
@@ -337,7 +345,7 @@ void ScxmlParser::parse()
                 data.id = attributes.value(QLatin1String("id")).toString();
                 data.src = attributes.value(QLatin1String("src")).toString();
                 data.expr = attributes.value(QLatin1String("expr")).toString();
-                data.context = m_currentParent;
+                data.context = currentParent();
                 table()->m_data.append(data);
                 m_stack.append(ParserState(ParserState::Data));
             } else if (elName == QLatin1String("assign")) {
@@ -477,12 +485,12 @@ void ScxmlParser::parse()
                 m_currentState = m_currentParent = m_currentParent->parentState();
                 break;
             case ParserState::Initial: {
-                if (m_currentParent->transitions().size() != 1) {
+                if (currentParent()->transitions().size() != 1) {
                     addError("initial state should have exactly one transition");
                     m_state = ParsingError;
                     return;
                 }
-                ScxmlTransition *t = qobject_cast<ScxmlTransition *>(m_currentParent->transitions().first());
+                ScxmlTransition *t = qobject_cast<ScxmlTransition *>(currentParent()->transitions().first());
                 if (!t->eventSelector.isEmpty()
                         || !t->conditionalExp.isEmpty()) {
                     addError("transition in initial state should have no event or condition");
@@ -508,11 +516,11 @@ void ScxmlParser::parse()
             }
             case ParserState::Final:
             case ParserState::History:
-                m_currentState = m_currentParent;
+                m_currentState = m_currentParent = m_currentParent->parentState();
                 break;
             case ParserState::Transition:
                 Q_ASSERT(m_currentTransition);
-                m_currentParent->addTransition(m_currentTransition);
+                currentParent()->addTransition(m_currentTransition);
                 m_currentTransition = 0;
             case ParserState::OnEntry:
                 break;

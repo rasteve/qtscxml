@@ -13,3 +13,5 @@ moc_*.cpp
 /tests/testCpp/testCpp
 
 tst_cppgen
+qrc_*.cpp
+tst_scion

@@ -72,8 +72,11 @@ struct ParserState {
 
     bool collectChars();
 
-    ParserState(Kind kind=None) :
-        kind(kind) { }
+    ParserState(Kind kind=None)
+        : kind(kind)
+        , instruction(0)
+        , instructionContainer(0)
+    {}
     ~ParserState() { }
 
     bool validChild(ParserState::Kind child) const;
@@ -146,9 +149,11 @@ private:
                          QStringList optionalNames);
     void ensureInitialState(const QByteArray &initialId);
 
+    QState *currentParent() const;
+
     StateTable *m_table;
     ScxmlTransition *m_currentTransition;
-    QState *m_currentParent;
+    QAbstractState *m_currentParent;
     QAbstractState *m_currentState;
     LoaderFunction m_loader;
     QStringList m_namespacesToIgnore;

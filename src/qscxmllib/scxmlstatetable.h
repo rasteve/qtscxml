@@ -607,7 +607,11 @@ class SCXML_EXPORT ScxmlFinalState: public QFinalState
 {
     Q_OBJECT
 public:
-    ScxmlFinalState(QState *parent) : QFinalState(parent) { }
+    ScxmlFinalState(QState *parent)
+        : QFinalState(parent)
+        , onEntryInstruction(this)
+        , onExitInstruction(this)
+    {}
     StateTable *table() const;
     virtual bool init();
 

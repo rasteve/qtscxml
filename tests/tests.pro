@@ -3,4 +3,5 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     cppgen \
+    scion \
     testCpp
