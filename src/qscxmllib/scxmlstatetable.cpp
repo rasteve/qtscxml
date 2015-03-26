@@ -23,6 +23,7 @@
 #include <QState>
 #include <QHash>
 #include <QString>
+#include <QTimer>
 #include <QLoggingCategory>
 #include <QJSEngine>
 #include <QtCore/private/qstatemachine_p.h>
@@ -31,6 +32,44 @@ namespace Scxml {
 Q_LOGGING_CATEGORY(scxmlLog, "scxml.table")
 
 QEvent::Type ScxmlEvent::scxmlEventType = (QEvent::Type)QEvent::registerEventType();
+
+namespace {
+int parseTime(const QString &t, bool *ok = 0)
+{
+    if (t.isEmpty()) {
+        if (ok)
+            *ok = false;
+        return -1;
+    }
+    bool negative = false;
+    int startPos = 0;
+    if (t[0] == QLatin1Char('-')) {
+        negative = true;
+        ++startPos;
+    } else if (t[0] == QLatin1Char('+')) {
+        ++startPos;
+    }
+    int pos = startPos;
+    for (int endPos = t.length(); pos < endPos; ++pos) {
+        auto c = t[pos];
+        if (c < QLatin1Char('0') || c > QLatin1Char('9'))
+            break;
+    }
+    if (pos == startPos) {
+        if (ok) *ok = false;
+        return -1;
+    }
+    int value = t.midRef(startPos, pos - startPos).toInt(ok);
+    if (ok && !*ok) return -1;
+    if (t.length() == pos + 1 && t[pos] == QLatin1Char('s')) {
+        value *= 1000;
+    } else if (t.length() != pos + 2 || t[pos] != QLatin1Char('m') || t[pos + 1] != QLatin1Char('s')) {
+        if (ok) *ok = false;
+        return -1;
+    }
+    return negative ? -value : value;
+}
+} // anonymous namespace
 
 namespace ExecutableContent {
 
@@ -193,6 +232,50 @@ void If::execute()
 Send::~Send()
 {
     delete content; content = 0;
+}
+
+void Send::execute()
+{
+    Q_ASSERT(table() && table()->engine());
+    if (!delayexpr.isEmpty()) {
+        delay = table()->evalValueStr(delayexpr,
+                                      [this]() -> QString {
+                                          return QStringLiteral("%1 with delayexpr %2")
+                                          .arg(instructionLocation(), eventexpr);
+                                      });
+    }
+
+    QTimer *t = new QTimer(table());
+    auto doIt = [this,t](){
+        if (!table()->isRunning())
+            return;
+
+        QByteArray e = event;
+        if (!eventexpr.isEmpty())
+            e = table()->evalValueStr(eventexpr,
+                                      [this]() -> QString {
+                                          return QStringLiteral("%1 with eventexpr %2")
+                                          .arg(instructionLocation(), eventexpr);
+                                      }).toUtf8();
+        QVariantList datas;
+        QStringList dataNames;
+        if (!e.isEmpty() && Param::evaluate(params, table(), datas, dataNames))
+            table()->submitEvent(e, datas, dataNames);
+
+        t->deleteLater();
+    };
+
+    if (delay.isEmpty()) {
+        doIt();
+        return;
+    } else {
+        int msecs = parseTime(delay);
+        Q_ASSERT(msecs >= 0);
+        t->setSingleShot(true);
+        t->setInterval(msecs);
+        QObject::connect(t, &QTimer::timeout, doIt);
+        t->start();
+    }
 }
 
 } // namespace ExecutableContent

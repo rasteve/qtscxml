@@ -23,7 +23,7 @@
 
 #include "../3rdparty/scion.h"
 
-enum { SpyWaitTime = 500 };
+enum { SpyWaitTime = 5000 };
 
 static QSet<QString> weFailOnThese = QSet<QString>()
         ;
@@ -349,6 +349,7 @@ static bool playEvents(StateTable *stateMachine, const QJsonObject &testDescript
 bool TestScion::runTest(StateTable *stateMachine, const QJsonObject &testDescription)
 {
     QSignalSpy stableStateSpy(stateMachine, SIGNAL(reachedStableState(bool)));
+    QSignalSpy finishedSpy(stateMachine, SIGNAL(finished()));
 
     QJSEngine *jsEngine = new QJSEngine(stateMachine);
     stateMachine->setEngine(jsEngine);
@@ -357,15 +358,25 @@ bool TestScion::runTest(StateTable *stateMachine, const QJsonObject &testDescrip
         return false;
     }
     stateMachine->start();
-    if (!stableStateSpy.wait(SpyWaitTime)) {
-        qWarning() << "Failed to reach stable initial state!";
-        return false;
+
+    if (testDescription.contains(QLatin1String("events"))
+            && !testDescription.value(QLatin1String("events")).toArray().isEmpty()) {
+        if (!stableStateSpy.wait(SpyWaitTime)) {
+            qWarning() << "Failed to reach stable initial state!";
+            return false;
+        }
+
+        if (!verifyStates(stateMachine, testDescription, QLatin1String("initialConfiguration")))
+            return false;
+
+        return playEvents(stateMachine, testDescription);
+    } else {
+        if (!finishedSpy.wait(SpyWaitTime)) {
+            qWarning() << "Failed to reach final state!";
+            return false;
+        }
+        return verifyStates(stateMachine, testDescription, QLatin1String("initialConfiguration"));
     }
-
-    if (!verifyStates(stateMachine, testDescription, QLatin1String("initialConfiguration")))
-        return false;
-
-    return playEvents(stateMachine, testDescription);
 }
 
 QTEST_MAIN(TestScion)

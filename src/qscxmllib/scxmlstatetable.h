@@ -369,17 +369,7 @@ struct SCXML_EXPORT Send : public Instruction {
     QVector<Param> params;
     XmlNode *content;
     ~Send();
-    void execute() Q_DECL_OVERRIDE {
-        Q_ASSERT(table() && table()->engine());
-        QByteArray e = event;
-        if (e.isEmpty())
-            e = table()->evalJSValue(eventexpr,
-                                     [this]() -> QString {
-                                         return QStringLiteral("%1 with expression %2")
-                                         .arg(instructionLocation(), eventexpr);
-                                     }).toString().toUtf8();
-        table()->submitEvent(e);
-    }
+    void execute() Q_DECL_OVERRIDE;
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::Send; }
 };
 
