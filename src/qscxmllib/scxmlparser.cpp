@@ -345,6 +345,9 @@ void ScxmlParser::parse()
                 data.id = attributes.value(QLatin1String("id")).toString();
                 data.src = attributes.value(QLatin1String("src")).toString();
                 data.expr = attributes.value(QLatin1String("expr")).toString();
+                if (!data.src.isEmpty()) {
+                    addError("the source attribute in a data tag is unsupported"); // FIXME: use a loader like in <script>
+                }
                 data.context = currentParent();
                 table()->m_data.append(data);
                 m_stack.append(ParserState(ParserState::Data));
@@ -563,7 +566,7 @@ void ScxmlParser::parse()
             case ParserState::Invoke: {
                 ExecutableContent::InstructionSequence *instructions = m_stack.last().instructionContainer;
                 if (!instructions) {
-                    addError("got executable content within an element that did not set insttuctionContainer");
+                    addError("got executable content within an element that did not set instructionContainer");
                     m_state = ParsingError;
                     return;
                 }
@@ -573,15 +576,35 @@ void ScxmlParser::parse()
             }
             case ParserState::Finalize:
             case ParserState::DataModel:
-            case ParserState::Data:
             case ParserState::DataElement:
             case ParserState::DoneData:
             case ParserState::Content:
             case ParserState::Param:
             case ParserState::None:
                 break;
-            }
-        }
+            case ParserState::Data: {
+                ScxmlData &data = table()->m_data.last();
+                if (!data.src.isEmpty() && !data.expr.isEmpty()) {
+                    addError("data element with both 'src' and 'expr' attributes");
+                    m_state = ParsingError;
+                    return;
+                }
+                if (!p.chars.trimmed().isEmpty()) {
+                    if (!data.src.isEmpty()) {
+                        addError("data element with both 'src' attribute and CDATA");
+                        m_state = ParsingError;
+                        return;
+                    } else if (!data.expr.isEmpty()) {
+                        addError("data element with both 'expr' attribute and CDATA");
+                        m_state = ParsingError;
+                        return;
+                    } else {
+                        data.expr = p.chars;
+                    }
+                }
+            } break;
+            } // parser state
+        } // QXmlStreamReader::EndElement
         case QXmlStreamReader::Characters:
             // The reader reports characters in text(). If the characters are all white-space,
             // isWhitespace() returns true. If the characters stem from a CDATA section,
@@ -733,6 +756,7 @@ ScxmlParser::LoaderFunction ScxmlParser::loaderForDir(const QString &basedir)
 
 bool Scxml::ParserState::collectChars() {
     switch (kind) {
+    case Data:
     case Script:
         return true;
     default:

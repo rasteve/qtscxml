@@ -26,7 +26,14 @@
 enum { SpyWaitTime = 5000 };
 
 static QSet<QString> weFailOnThese = QSet<QString>()
-        ;
+        // The following test needs manual inspection of the result. However, note that we do not support multiple identical keys for event data.
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test178.txml")
+        // Currently we do not support loading data as XML content inside the <data> tag.
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test557.txml")
+        // FIXME: Currently we do not support loading data from a src.
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test552.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test558.txml")
+           ;
 
 static QSet<QString> weDieOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send1")
@@ -259,12 +266,14 @@ void TestScion::scion()
     QXmlStreamReader xmlReader(&scxmlFile);
     ScxmlParser parser(&xmlReader);
     parser.parse();
+    if (weFailOnThis && parser.state() != ScxmlParser::FinishedParsing)
+        QEXPECT_FAIL("", "We are expected to fail", Abort);
     QCOMPARE(parser.state(), ScxmlParser::FinishedParsing);
     QVERIFY(parser.errors().isEmpty());
     scxmlFile.close();
 
     if (weFailOnThis)
-        QEXPECT_FAIL("", "We are expected to fail", Continue);
+        QEXPECT_FAIL("", "We are expected to fail", Abort);
     QVERIFY(runTest(parser.table(), testDescription.object()));
 }
 

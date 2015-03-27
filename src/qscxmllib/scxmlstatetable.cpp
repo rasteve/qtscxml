@@ -26,6 +26,7 @@
 #include <QTimer>
 #include <QLoggingCategory>
 #include <QJSEngine>
+#include <QJsonDocument>
 #include <QtCore/private/qstatemachine_p.h>
 
 namespace Scxml {
@@ -795,13 +796,23 @@ QString ScxmlEvent::scxmlType() const {
 }
 
 QJSValue ScxmlEvent::data(QJSEngine *engine) const {
-    auto data = engine->newObject();
+    if (dataNames().isEmpty() && datas().size() == 1) {
+        QString data = datas().first().toString();
+        QJsonParseError err;
+        QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8(), &err);
+        if (err.error == QJsonParseError::NoError)
+            return engine->toScriptValue(doc.toVariant());
+        else
+            return engine->toScriptValue(data);
+    } else {
+        auto data = engine->newObject();
 
-    for (int i = 0, ei = std::min(dataNames().size(), datas().size()); i != ei; ++i) {
-        data.setProperty(dataNames().at(i), engine->toScriptValue(datas().at(i)));
+        for (int i = 0, ei = std::min(dataNames().size(), datas().size()); i != ei; ++i) {
+            data.setProperty(dataNames().at(i), engine->toScriptValue(datas().at(i)));
+        }
+
+        return data;
     }
-
-    return data;
 }
 
 void ScxmlEvent::reset(const QByteArray &name, ScxmlEvent::EventType eventType, QVariantList datas,
@@ -839,6 +850,8 @@ QJSValue ScxmlEvent::jsValue(QJSEngine *engine) const {
         res.setProperty(QStringLiteral("sendid"), engine->toScriptValue(sendid()) );
     res.setProperty(QStringLiteral("type"), engine->toScriptValue(scxmlType()) );
     res.setProperty(QStringLiteral("name"), engine->toScriptValue(name()) );
+    res.setProperty(QStringLiteral("raw"), QStringLiteral("unsupported")); // See test178
+                                                                           // TODO: document this
     return res;
 }
 
