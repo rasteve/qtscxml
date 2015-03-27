@@ -176,11 +176,15 @@ static QSet<QString> weDieOnThese = QSet<QString>()
            ;
 
 static QSet<QString> differentSemantics = QSet<QString>()
+        // Qt does not support initial transitions in a history state:
         << QLatin1String("scion-tests/scxml-test-framework/test/history/history0")
         << QLatin1String("scion-tests/scxml-test-framework/test/history/history1")
         << QLatin1String("scion-tests/scxml-test-framework/test/history/history2")
         << QLatin1String("scion-tests/scxml-test-framework/test/history/history4")
         << QLatin1String("scion-tests/scxml-test-framework/test/history/history6")
+        // The data model does not mark the system variables as read-only:
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test326.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test346.txml")
         ;
 
 class MySignalSpy: public QSignalSpy

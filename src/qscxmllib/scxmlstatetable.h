@@ -167,6 +167,9 @@ class SCXML_EXPORT StateTable: public QStateMachine
 {
     Q_OBJECT
     Q_ENUMS(DataModelType BindingMethod)
+
+    static QAtomicInt m_sessionIdCounter;
+
 public:
     enum DataModelType {
         Javascript,
@@ -317,6 +320,7 @@ protected:
     void endMicrostep(QEvent *event) Q_DECL_OVERRIDE;
     virtual void assignEvent();
     void setupDataModel();
+    void setupSystemVariables();
 
 public:
     // use q_property for these?
@@ -328,6 +332,7 @@ public:
     QList<QByteArray> currentStates(bool compress = true);
 private:
     Q_DECLARE_PRIVATE(StateTable)
+    const int m_sessionId;
     ExecutableContent::InstructionSequence m_initialSetup;
     QHash<QByteArray, QPointer<QObject> > m_idObjects;
     QHash<QObject *, QByteArray> m_objectIds;

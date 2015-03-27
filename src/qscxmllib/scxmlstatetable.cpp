@@ -309,15 +309,21 @@ bool Param::evaluate(const QVector<Param> &params, StateTable *table, QVariantLi
 
 } // namespace ExecutableContent
 
+QAtomicInt StateTable::m_sessionIdCounter = QAtomicInt(0);
+
 StateTable::StateTable(QObject *parent)
-    : QStateMachine(*new StateTablePrivate, parent), m_initialSetup(this), m_dataModel(None)
+    : QStateMachine(*new StateTablePrivate, parent)
+    , m_sessionId(m_sessionIdCounter++)
+    , m_initialSetup(this), m_dataModel(None)
     , m_engine(0), m_dataBinding(EarlyBinding), m_warnIndirectIdClashes(true)
 {
     connect(this, &QStateMachine::finished, this, &StateTable::onFinished);
 }
 
 StateTable::StateTable(StateTablePrivate &dd, QObject *parent)
-    : QStateMachine(dd, parent), m_initialSetup(this), m_dataModel(None), m_engine(0)
+    : QStateMachine(dd, parent)
+    , m_sessionId(m_sessionIdCounter++)
+    , m_initialSetup(this), m_dataModel(None), m_engine(0)
     , m_dataBinding(EarlyBinding), m_warnIndirectIdClashes(true)
 { }
 
@@ -642,6 +648,7 @@ void StateTable::setupDataModel()
 {
     if (!engine())
         return;
+    setupSystemVariables();
     foreach (const ScxmlData &data ,m_data) {
         QJSValue v;
         if ((dataBinding() == EarlyBinding || !data.context || data.context == this)
@@ -652,6 +659,24 @@ void StateTable::setupDataModel()
             });
         m_dataModelJSValues.setProperty(data.id, v);
     }
+}
+
+void StateTable::setupSystemVariables()
+{
+    m_dataModelJSValues.setProperty(QStringLiteral("_sesionid"),
+                                    QStringLiteral("session%1").arg(m_sessionId));
+
+    m_dataModelJSValues.setProperty(QStringLiteral("_name"), _name);
+
+    auto scxml = engine()->newObject();
+    scxml.setProperty(QStringLiteral("location"), QStringLiteral("TODO")); // TODO
+    auto ioProcs = engine()->newObject();
+    ioProcs.setProperty(QStringLiteral("scxml"), scxml);
+    m_dataModelJSValues.setProperty(QStringLiteral("_ioprocessors"), ioProcs);
+
+    auto platformVars = engine()->newObject();
+    platformVars.setProperty(QStringLiteral("marks"), QStringLiteral("the spot"));
+    m_dataModelJSValues.setProperty(QStringLiteral("_x"), platformVars);
 }
 
 bool loopOnSubStates(QState *startState,
