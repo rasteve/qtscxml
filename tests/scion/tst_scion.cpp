@@ -183,6 +183,24 @@ static QSet<QString> differentSemantics = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/history/history6")
         ;
 
+class MySignalSpy: public QSignalSpy
+{
+public:
+    explicit MySignalSpy(const QObject *obj, const char *aSignal)
+        : QSignalSpy(obj, aSignal)
+    {}
+
+    bool fastWait()
+    {
+        const int increment = SpyWaitTime / 20;
+        for (int total = 0; total < SpyWaitTime; total += increment) {
+            if (this->wait(increment))
+                return true;
+        }
+        return false;
+    }
+};
+
 using namespace Scxml;
 
 class TestScion: public QObject
@@ -325,7 +343,7 @@ static bool playEvent(StateTable *stateMachine, const QJsonObject &eventDescript
         invokeid = event.value(QLatin1String("invokeid")).toString().toUtf8();
     stateMachine->submitEvent(eventName, datas, dataNames, type, sendid, origin, origintype, invokeid);
 
-    if (!QSignalSpy(stateMachine, SIGNAL(reachedStableState(bool))).wait(SpyWaitTime)) {
+    if (!MySignalSpy(stateMachine, SIGNAL(reachedStableState(bool))).fastWait()) {
         qWarning() << "State machine did not reach a stable state!";
     } else if (verifyStates(stateMachine, eventDescription, QLatin1String("nextConfiguration")))
         return true;
@@ -348,8 +366,8 @@ static bool playEvents(StateTable *stateMachine, const QJsonObject &testDescript
 
 bool TestScion::runTest(StateTable *stateMachine, const QJsonObject &testDescription)
 {
-    QSignalSpy stableStateSpy(stateMachine, SIGNAL(reachedStableState(bool)));
-    QSignalSpy finishedSpy(stateMachine, SIGNAL(finished()));
+    MySignalSpy stableStateSpy(stateMachine, SIGNAL(reachedStableState(bool)));
+    MySignalSpy finishedSpy(stateMachine, SIGNAL(finished()));
 
     QJSEngine *jsEngine = new QJSEngine(stateMachine);
     stateMachine->setEngine(jsEngine);
@@ -361,7 +379,7 @@ bool TestScion::runTest(StateTable *stateMachine, const QJsonObject &testDescrip
 
     if (testDescription.contains(QLatin1String("events"))
             && !testDescription.value(QLatin1String("events")).toArray().isEmpty()) {
-        if (!stableStateSpy.wait(SpyWaitTime)) {
+        if (!stableStateSpy.fastWait()) {
             qWarning() << "Failed to reach stable initial state!";
             return false;
         }
@@ -371,7 +389,7 @@ bool TestScion::runTest(StateTable *stateMachine, const QJsonObject &testDescrip
 
         return playEvents(stateMachine, testDescription);
     } else {
-        if (!finishedSpy.wait(SpyWaitTime)) {
+        if (!finishedSpy.fastWait()) {
             qWarning() << "Failed to reach final state!";
             return false;
         }
