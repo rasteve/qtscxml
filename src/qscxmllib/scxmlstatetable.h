@@ -69,8 +69,9 @@ public:
     QString origin() const { return m_origin; }
     QString origintype() const { return m_origintype; }
     QByteArray invokeid() const { return m_invokeid; }
-    QVariant data() const;
+    QJSValue data(QJSEngine *engine) const;
     QVariantList datas() const { return m_datas; }
+    QStringList dataNames() const { return m_dataNames; }
     void reset(const QByteArray &name, EventType eventType = External,
                QVariantList datas = QVariantList(), const QByteArray &sendid = QByteArray(),
                const QString &origin = QString(), const QString &origintype = QString(),
@@ -345,6 +346,9 @@ struct SCXML_EXPORT Param {
     QString name;
     QString expr;
     QString location;
+
+    bool evaluate(StateTable *table, QVariantList &datas, QStringList &dataNames) const;
+    static bool evaluate(const QVector<Param> &params, StateTable *table, QVariantList &datas, QStringList &dataNames);
 };
 
 struct SCXML_EXPORT DoneData {

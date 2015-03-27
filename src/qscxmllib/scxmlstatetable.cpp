@@ -278,6 +278,35 @@ void Send::execute()
     }
 }
 
+bool Param::evaluate(StateTable *table, QVariantList &datas, QStringList &dataNames) const
+{
+    bool success = true;
+    if (!expr.isEmpty()) {
+        auto v = table->evalJSValue(expr, [this,&success]() -> QString {
+            success = false;
+            return QStringLiteral("param with expr %1").arg(expr);
+        }).toVariant();
+        datas.append(v);
+        dataNames.append(name);
+    } else if (!location.isEmpty()) {
+        datas.append(table->datamodelJSValues().property(location).toVariant());
+        dataNames.append(name);
+    } else {
+        success = false;
+    }
+    return success;
+}
+
+bool Param::evaluate(const QVector<Param> &params, StateTable *table, QVariantList &datas, QStringList &dataNames)
+{
+    for (const Param &p: params) {
+        if (!p.evaluate(table, datas, dataNames))
+            return false;
+    }
+
+    return true;
+}
+
 } // namespace ExecutableContent
 
 StateTable::StateTable(QObject *parent)
@@ -740,13 +769,14 @@ QString ScxmlEvent::scxmlType() const {
     return QLatin1String("external");
 }
 
-QVariant ScxmlEvent::data() const {
-    if (!m_datas.isEmpty()) {
-        if (m_datas.length() >= 1)
-            return m_datas.first();
-        return m_datas;
+QJSValue ScxmlEvent::data(QJSEngine *engine) const {
+    auto data = engine->newObject();
+
+    for (int i = 0, ei = std::min(dataNames().size(), datas().size()); i != ei; ++i) {
+        data.setProperty(dataNames().at(i), engine->toScriptValue(datas().at(i)));
     }
-    return QVariant();
+
+    return data;
 }
 
 void ScxmlEvent::reset(const QByteArray &name, ScxmlEvent::EventType eventType, QVariantList datas,
@@ -773,7 +803,7 @@ void ScxmlEvent::clear() {
 
 QJSValue ScxmlEvent::jsValue(QJSEngine *engine) const {
     QJSValue res = engine->newObject();
-    res.setProperty(QStringLiteral("data"), engine->toScriptValue(data()));
+    res.setProperty(QStringLiteral("data"), data(engine));
     if (!invokeid().isEmpty())
         res.setProperty(QStringLiteral("invokeid"), engine->toScriptValue(invokeid()) );
     if (!origintype().isEmpty())
