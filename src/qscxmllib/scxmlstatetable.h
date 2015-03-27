@@ -637,9 +637,7 @@ public:
 protected:
     void onEntry(QEvent * event) Q_DECL_OVERRIDE;
     void onExit(QEvent * event) Q_DECL_OVERRIDE;
-    QJSValue jsDoneData();
 private:
-    QJSValue m_jsDoneData;
     friend class ScxmlParser;
 };
 

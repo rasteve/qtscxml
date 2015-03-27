@@ -31,6 +31,8 @@ class StateTablePrivate: public QStateMachinePrivate {
     void processedPendingEvents(bool didChange) Q_DECL_OVERRIDE;
     void beginMacrostep() Q_DECL_OVERRIDE;
     void endMacrostep(bool didChange) Q_DECL_OVERRIDE;
+
+    void emitStateFinished(QState *forState, QFinalState *guiltyState) Q_DECL_OVERRIDE;
 #endif
 };
 

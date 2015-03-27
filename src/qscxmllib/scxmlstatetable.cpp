@@ -626,7 +626,20 @@ void StateTablePrivate::endMacrostep(bool didChange)
     qCDebug(scxmlLog) << q->_name << " endMacrostep " << didChange << " in state ("
                       << q->currentStates() << ")";
 }
-#endif
+
+void StateTablePrivate::emitStateFinished(QState *forState, QFinalState *guiltyState)
+{
+    Q_Q(StateTable);
+
+    // TODO: process <donedata>
+    Q_UNUSED(guiltyState);
+
+    QByteArray eventName("done.state.");
+    eventName += forState->objectName();
+    q->submitEvent(eventName);
+}
+
+#endif // QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
 
 QList<QByteArray> StateTable::currentStates(bool compress) {
     QSet<QAbstractState *> config = d_func()->configuration;
@@ -727,6 +740,9 @@ bool StateTable::init()
     bool res = true;
     loopOnSubStates(this, std::function<bool(QState *)>(), [&res](QState *state) {
         if (ScxmlState *s = qobject_cast<ScxmlState *>(state))
+            if (!s->init())
+                res = false;
+        if (ScxmlFinalState *s = qobject_cast<ScxmlFinalState *>(state))
             if (!s->init())
                 res = false;
         foreach (QAbstractTransition *t, state->transitions()) {

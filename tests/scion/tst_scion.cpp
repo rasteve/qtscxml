@@ -33,6 +33,8 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         // FIXME: Currently we do not support loading data from a src.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test552.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test558.txml")
+        // FIXME: we do not generate a done event for parallel states. See ScxmlFinalState::emitDoneEvent.
+//        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test529.txml")
            ;
 
 static QSet<QString> weDieOnThese = QSet<QString>()
@@ -192,6 +194,8 @@ static QSet<QString> differentSemantics = QSet<QString>()
         // The data model does not mark the system variables as read-only:
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test326.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test346.txml")
+        // Qt does not support internal transitions:
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test533.txml")
         ;
 
 class MySignalSpy: public QSignalSpy

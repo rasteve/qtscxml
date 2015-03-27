@@ -17,7 +17,6 @@
  ****************************************************************************/
 
 #include "scxmlparser.h"
-#include <QFinalState>
 #include <QXmlStreamReader>
 #include <QLoggingCategory>
 #include <QState>
