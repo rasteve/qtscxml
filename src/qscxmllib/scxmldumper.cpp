@@ -396,10 +396,20 @@ void ScxmlDumper::inAbstractState(QAbstractState *state)
             dumpInstruction(&finalState->onEntryInstruction);
             writeEndElement();
         }
-        if (finalState->doneData.content || !finalState->doneData.params.isEmpty()) {
+        if (!finalState->doneData.contents.isEmpty()
+                || !finalState->doneData.expr.isEmpty()
+                || !finalState->doneData.params.isEmpty()) {
             writeStartElement("donedata");
-            if (finalState->doneData.content)
-                finalState->doneData.content->dump(s);
+            if (!finalState->doneData.contents.isEmpty()
+                    || !finalState->doneData.expr.isEmpty()) {
+                writeStartElement("content");
+                if (!finalState->doneData.expr.isEmpty())
+                    writeAttribute("expr", finalState->doneData.expr);
+                if (!finalState->doneData.contents.isEmpty()) {
+                    s.writeCDATA(finalState->doneData.contents);
+                }
+                writeEndElement(); // content
+            }
             foreach (const ExecutableContent::Param &p, finalState->doneData.params) {
                 writeStartElement("param");
                 writeAttribute("name", p.name);

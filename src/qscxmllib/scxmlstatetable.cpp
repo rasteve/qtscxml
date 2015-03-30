@@ -632,11 +632,35 @@ void StateTablePrivate::emitStateFinished(QState *forState, QFinalState *guiltyS
     Q_Q(StateTable);
 
     // TODO: process <donedata>
-    Q_UNUSED(guiltyState);
+    if (ScxmlFinalState *finalState = qobject_cast<ScxmlFinalState *>(guiltyState)) {
+        if (!q->isRunning())
+            return;
+        const ExecutableContent::DoneData &doneData = finalState->doneData;
 
-    QByteArray eventName("done.state.");
-    eventName += forState->objectName();
-    q->submitEvent(eventName);
+        const auto eventName = QByteArray("done.state.") + forState->objectName().toUtf8();
+        QVariantList datas;
+        QStringList dataNames;
+
+        if (doneData.params.isEmpty()) {
+            QVariant data;
+            if (doneData.expr.isEmpty()) {
+                data = doneData.contents;
+            } else {
+                data = q->evalValueStr(doneData.expr,
+                                       [&doneData]() -> QString {
+                                           return QStringLiteral("donedata with expr %1")
+                                           .arg(doneData.expr);
+                                       });
+            }
+            datas.append(data);
+            q->submitEvent(eventName, datas, dataNames);
+        } else {
+            if (ExecutableContent::Param::evaluate(doneData.params, q, datas, dataNames))
+                q->submitEvent(eventName, datas, dataNames);
+        }
+    }
+
+    QStateMachinePrivate::emitStateFinished(forState, guiltyState);
 }
 
 #endif // QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)

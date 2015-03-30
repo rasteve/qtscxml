@@ -363,7 +363,14 @@ void ScxmlParser::parse()
                 ParserState pNew = ParserState(ParserState::DoneData);
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("content")) {
-                if (!checkAttributes(attributes, "")) return;
+                if (!checkAttributes(attributes, "|expr")) return;
+                if (m_stack.last().kind == ParserState::DoneData) {
+                    static_cast<ScxmlFinalState *>(m_currentState)->doneData.expr =
+                            attributes.value(QLatin1String("expr")).toString();
+                } else {
+                    addError(QStringLiteral("unexpected parent of content %1").arg(m_stack.last().kind));
+                    m_state = ParsingError;
+                }
                 ParserState pNew = ParserState(ParserState::Content);
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("param")) {
@@ -577,10 +584,17 @@ void ScxmlParser::parse()
             case ParserState::DataModel:
             case ParserState::DataElement:
             case ParserState::DoneData:
-            case ParserState::Content:
             case ParserState::Param:
             case ParserState::None:
                 break;
+            case ParserState::Content: {
+                Q_ASSERT(!m_stack.isEmpty());
+                if (m_stack.last().kind == ParserState::DoneData) { // see test529
+                    if (!p.chars.trimmed().isEmpty()) {
+                        static_cast<ScxmlFinalState *>(m_currentState)->doneData.contents = p.chars;
+                    }
+                }
+            } break;
             case ParserState::Data: {
                 ScxmlData &data = table()->m_data.last();
                 if (!data.src.isEmpty() && !data.expr.isEmpty()) {
@@ -755,6 +769,7 @@ ScxmlParser::LoaderFunction ScxmlParser::loaderForDir(const QString &basedir)
 
 bool Scxml::ParserState::collectChars() {
     switch (kind) {
+    case Content:
     case Data:
     case Script:
         return true;

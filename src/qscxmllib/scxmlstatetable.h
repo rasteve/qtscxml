@@ -357,7 +357,8 @@ struct SCXML_EXPORT Param {
 };
 
 struct SCXML_EXPORT DoneData {
-    XmlNode *content;
+    QString contents;
+    QString expr;
     QVector<Param> params;
 };
 
