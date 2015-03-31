@@ -733,9 +733,11 @@ void StateTable::setupSystemVariables()
     ioProcs.setProperty(QStringLiteral("scxml"), scxml);
     m_dataModelJSValues.setProperty(QStringLiteral("_ioprocessors"), ioProcs);
 
-    auto platformVars = engine()->newObject();
-    platformVars.setProperty(QStringLiteral("marks"), QStringLiteral("the spot"));
-    m_dataModelJSValues.setProperty(QStringLiteral("_x"), platformVars);
+    auto platformVars = PlatformProperties::create(engine(), this);
+    m_dataModelJSValues.setProperty(QStringLiteral("_x"), platformVars->jsValue());
+
+    m_dataModelJSValues.setProperty(QStringLiteral("In"),
+                                    engine()->evaluate(QStringLiteral("function(id){return _x.In(id);}")));
 }
 
 bool loopOnSubStates(QState *startState,
@@ -1344,6 +1346,29 @@ bool ScxmlInitialState::init()
         }
     }
     return res;
+}
+
+PlatformProperties *PlatformProperties::create(QJSEngine *engine, StateTable *table)
+{
+    PlatformProperties *pp = new PlatformProperties(engine);
+    pp->m_table = table;
+    pp->m_jsValue = engine->newQObject(pp);
+    return pp;
+}
+
+QString PlatformProperties::marks() const
+{
+    return QStringLiteral("the spot");
+}
+
+bool PlatformProperties::In(const QString &stateName)
+{
+    foreach (QAbstractState *s, table()->configuration()) {
+        if (s->objectName() == stateName)
+            return true;
+    }
+
+    return false;
 }
 
 } // namespace Scxml

@@ -676,5 +676,32 @@ protected:
     QVector<XmlNode> m_childs;
 };
 
+class PlatformProperties: public QObject
+{
+    Q_OBJECT
+
+    PlatformProperties &operator=(const PlatformProperties &) = delete;
+
+    PlatformProperties(QObject *parent)
+        : QObject(parent)
+        , m_table(0)
+    {}
+
+    Q_PROPERTY(QString marks READ marks CONSTANT)
+
+public:
+    static PlatformProperties *create(QJSEngine *engine, StateTable *table);
+
+    QJSEngine *engine() const { return qobject_cast<QJSEngine *>(parent()); }
+    StateTable *table() const { return m_table; }
+    QJSValue jsValue() const { return m_jsValue; }
+
+    QString marks() const;
+    Q_INVOKABLE bool In(const QString &stateName);
+
+private:
+    StateTable *m_table;
+    QJSValue m_jsValue;
+};
 } // namespace Scxml
 #endif // SCXMLSTATETABLE_H
