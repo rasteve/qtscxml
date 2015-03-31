@@ -196,6 +196,8 @@ static QSet<QString> differentSemantics = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test346.txml")
         // Qt does not support internal transitions:
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test533.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test506.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test505.txml")
         ;
 
 class MySignalSpy: public QSignalSpy
