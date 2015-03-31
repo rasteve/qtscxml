@@ -656,8 +656,13 @@ void StateTablePrivate::emitStateFinished(QState *forState, QFinalState *guiltyS
                 datas.append(data);
             q->submitEvent(eventName, datas, dataNames);
         } else {
-            if (ExecutableContent::Param::evaluate(doneData.params, q, datas, dataNames))
+            if (ExecutableContent::Param::evaluate(doneData.params, q, datas, dataNames)) {
                 q->submitEvent(eventName, datas, dataNames);
+            } else {
+                // If the evaluation of the <param> tags fails, set _event.data to an empty string.
+                // See test488.
+                q->submitEvent(eventName, QVariantList() << QLatin1String(""));
+            }
         }
     }
 
