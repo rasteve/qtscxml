@@ -110,6 +110,7 @@ const char *testBases[] = {
     "scion-tests/scxml-test-framework/test/targetless-transition/test1",
     "scion-tests/scxml-test-framework/test/targetless-transition/test2",
     "scion-tests/scxml-test-framework/test/targetless-transition/test3",
+    "scion-tests/scxml-test-framework/test/w3c-ecma/modified_test456.txml",
     "scion-tests/scxml-test-framework/test/w3c-ecma/test144.txml",
     "scion-tests/scxml-test-framework/test/w3c-ecma/test147.txml",
     "scion-tests/scxml-test-framework/test/w3c-ecma/test148.txml",

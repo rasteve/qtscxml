@@ -133,10 +133,12 @@ void JavaScript::execute()
             return;
         }
     }
-    qCDebug(scxmlLog) << "executing " << source;
+    qCDebug(scxmlLog) << "executing:" << source;
     QJSValue res = compiledFunction.callWithInstance(t->datamodelJSValues());
     if (res.isError()) {
         t->submitError(QByteArray("error.execution"), QStringLiteral("%1 in %2").arg(res.toString(), instructionLocation()));
+    } else {
+        qCDebug(scxmlLog) << "result:" << res.toVariant();
     }
 }
 
@@ -703,15 +705,17 @@ void StateTable::setupDataModel()
 {
     if (!engine())
         return;
+    qCDebug(scxmlLog) << "initializing the datamodel";
     setupSystemVariables();
     foreach (const ScxmlData &data ,m_data) {
-        QJSValue v;
+        QJSValue v(QJSValue::UndefinedValue); // See B.2.1, and test456.
         if ((dataBinding() == EarlyBinding || !data.context || data.context == this)
                 && !data.expr.isEmpty())
             v = evalJSValue(data.expr, [this, &data]() -> QString {
                 return QStringLiteral("setupDataModel with data for %1 defined in state '%2'")
                         .arg(data.id, QString::fromUtf8(objectId(data.context)));
             });
+        qCDebug(scxmlLog) << "setting datamodel property" << data.id << "to" << v.toVariant();
         m_dataModelJSValues.setProperty(data.id, v);
     }
 }
