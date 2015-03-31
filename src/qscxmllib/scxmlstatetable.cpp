@@ -317,7 +317,9 @@ StateTable::StateTable(QObject *parent)
     , m_sessionId(m_sessionIdCounter++)
     , m_initialSetup(this), m_dataModel(None)
     , m_engine(0), m_dataBinding(EarlyBinding), m_warnIndirectIdClashes(true)
+    , m_queuedEvents(0)
 {
+    connect(this, &QStateMachine::started, this, &StateTable::onStarted);
     connect(this, &QStateMachine::finished, this, &StateTable::onFinished);
 }
 
@@ -326,7 +328,16 @@ StateTable::StateTable(StateTablePrivate &dd, QObject *parent)
     , m_sessionId(m_sessionIdCounter++)
     , m_initialSetup(this), m_dataModel(None), m_engine(0)
     , m_dataBinding(EarlyBinding), m_warnIndirectIdClashes(true)
-{ }
+    , m_queuedEvents(0)
+{
+    connect(this, &QStateMachine::started, this, &StateTable::onStarted);
+    connect(this, &QStateMachine::finished, this, &StateTable::onFinished);
+}
+
+StateTable::~StateTable()
+{
+    delete m_queuedEvents;
+}
 
 
 bool StateTable::addId(const QByteArray &idStr, QObject *value, std::function<bool (const QString &)> errorDumper, bool overwrite)
@@ -808,17 +819,32 @@ void StateTable::submitEvent(const QByteArray &event, const QVariantList &datas,
                              const QString &origintype, const QByteArray &invokeid)
 {
     ScxmlEvent *e = new ScxmlEvent(event, type, datas, dataNames, sendid, origin, origintype, invokeid);
-    postEvent(e);
+    if (isRunning())
+        postEvent(e);
+    else
+        queueEvent(e);
 }
 
-void StateTable::submitDelayedEvent(int delay, const QByteArray &event, const QVariantList &datas,
-                                    const QStringList &dataNames, ScxmlEvent::EventType type,
-                                    const QByteArray &sendid,
-                                    const QString &origin, const QString &origintype,
-                                    const QByteArray &invokeid)
+void StateTable::queueEvent(QEvent *event)
 {
-    ScxmlEvent *e = new ScxmlEvent(event, type, datas, dataNames, sendid, origin, origintype, invokeid);
-    postDelayedEvent(e, delay);
+    if (!m_queuedEvents)
+        m_queuedEvents = new QVector<QEvent *>();
+    m_queuedEvents->append(event);
+}
+
+void StateTable::submitQueuedEvents()
+{
+    if (m_queuedEvents) {
+        foreach (QEvent *e, *m_queuedEvents)
+            postEvent(e);
+        delete m_queuedEvents;
+        m_queuedEvents = 0;
+    }
+}
+
+void StateTable::onStarted()
+{
+    submitQueuedEvents();
 }
 
 ScxmlEvent::ScxmlEvent(const QByteArray &name, ScxmlEvent::EventType eventType,

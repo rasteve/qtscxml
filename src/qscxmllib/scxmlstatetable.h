@@ -184,6 +184,7 @@ public:
 
     StateTable(QObject *parent = 0);
     StateTable(StateTablePrivate &dd, QObject *parent);
+    ~StateTable();
 
     StateTable *table() {
         return this;
@@ -300,11 +301,8 @@ public:
                      ScxmlEvent::EventType type = ScxmlEvent::External,
                      const QByteArray &sendid = QByteArray(), const QString &origin = QString(),
                      const QString &origintype = QString(), const QByteArray &invokeid = QByteArray());
-    void submitDelayedEvent(int delay, const QByteArray &event, const QVariantList &datas = QVariantList(),
-                            const QStringList &dataNames = QStringList(),
-                            ScxmlEvent::EventType type = ScxmlEvent::External,
-                            const QByteArray &sendid = QByteArray(), const QString &origin = QString(),
-                            const QString &origintype = QString(), const QByteArray &invokeid = QByteArray());
+    void queueEvent(QEvent *event);
+    void submitQueuedEvents();
 
 signals:
     void log(const QString &label, const QString &msg);
@@ -315,6 +313,8 @@ private slots:
         // The final state is also a stable state.
         emit reachedStableState(true);
     }
+
+    void onStarted();
 
 protected:
     void beginSelectTransitions(QEvent *event) Q_DECL_OVERRIDE;
@@ -345,6 +345,8 @@ private:
     BindingMethod m_dataBinding;
     bool m_warnIndirectIdClashes;
     friend class ScxmlParser;
+
+    QVector<QEvent *> *m_queuedEvents;
 };
 
 namespace ExecutableContent {
