@@ -648,11 +648,12 @@ void StateTablePrivate::emitStateFinished(QState *forState, QFinalState *guiltyS
             } else {
                 data = q->evalValueStr(doneData.expr,
                                        [&doneData]() -> QString {
-                                           return QStringLiteral("donedata with expr %1")
+                                           return QStringLiteral("donedata with expr '%1'")
                                            .arg(doneData.expr);
-                                       });
+                                       }, QString::null);
             }
-            datas.append(data);
+            if (!data.isNull()) // if evaluation of expr failed, this will be a null value, which in turn means no data property is set on the event. See e.g. test528.
+                datas.append(data);
             q->submitEvent(eventName, datas, dataNames);
         } else {
             if (ExecutableContent::Param::evaluate(doneData.params, q, datas, dataNames))
@@ -836,14 +837,21 @@ QString ScxmlEvent::scxmlType() const {
 }
 
 QJSValue ScxmlEvent::data(QJSEngine *engine) const {
-    if (dataNames().isEmpty() && datas().size() == 1) {
-        QString data = datas().first().toString();
-        QJsonParseError err;
-        QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8(), &err);
-        if (err.error == QJsonParseError::NoError)
-            return engine->toScriptValue(doc.toVariant());
-        else
-            return engine->toScriptValue(data);
+    if (dataNames().isEmpty()) {
+        if (datas().size() == 0) {
+            return QJSValue(QJSValue::NullValue);
+        } else if (datas().size() == 1) {
+            QString data = datas().first().toString();
+            QJsonParseError err;
+            QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8(), &err);
+            if (err.error == QJsonParseError::NoError)
+                return engine->toScriptValue(doc.toVariant());
+            else
+                return engine->toScriptValue(data);
+        } else {
+            Q_UNREACHABLE();
+            return QJSValue(QJSValue::UndefinedValue);
+        }
     } else {
         auto data = engine->newObject();
 
@@ -879,7 +887,9 @@ void ScxmlEvent::clear() {
 
 QJSValue ScxmlEvent::jsValue(QJSEngine *engine) const {
     QJSValue res = engine->newObject();
-    res.setProperty(QStringLiteral("data"), data(engine));
+    QJSValue dataValue = data(engine);
+    if (!dataValue.isNull())
+        res.setProperty(QStringLiteral("data"), dataValue);
     if (!invokeid().isEmpty())
         res.setProperty(QStringLiteral("invokeid"), engine->toScriptValue(invokeid()) );
     if (!origintype().isEmpty())
@@ -1082,13 +1092,19 @@ ScxmlTransition::ScxmlTransition(QState *sourceState, const QList<QByteArray> &e
     conditionalExp(conditionalExp), instructionsOnTransition(sourceState, this),
     m_targetIds(filterEmpty(targetIds)) { }
 
-bool ScxmlTransition::eventTest(QEvent *event) {
-    if (ScxmlBaseTransition::eventTest(event)
-            && (conditionalExp.isEmpty()
-                || table()->evalValueBool(conditionalExp, [this]() -> QString {
-                                          return transitionLocation();
-                                          })))
-        return true;
+bool ScxmlTransition::eventTest(QEvent *event)
+{
+    if (ScxmlBaseTransition::eventTest(event)) {
+        if (conditionalExp.isEmpty())
+            return true;
+
+        qCDebug(scxmlLog) << table()->engine()->evaluate(QLatin1String("JSON.stringify(_event)")).toString();
+        bool result = table()->evalValueBool(conditionalExp, [this]() -> QString {
+                                                 return transitionLocation();
+                                             });
+        qCDebug(scxmlLog) << Q_FUNC_INFO << ":" << conditionalExp << "evaluated to" << result;
+        return result;
+    }
     return false;
 }
 

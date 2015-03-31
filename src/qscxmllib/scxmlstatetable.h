@@ -278,9 +278,11 @@ public:
     virtual bool init();
     QJSEngine *engine() const;
     void setEngine(QJSEngine *engine);
-    Q_INVOKABLE void submitError(const QByteArray &type, const QString &msg) {
+
+    Q_INVOKABLE void submitError(const QByteArray &type, const QString &msg)
+    {
         qCDebug(scxmlLog) << "machine " << _name << " had error " << type << ":" << msg;
-        submitEvent(type, QVariantList() << QVariant(msg));
+        submitEvent(type); // _event.data == null, see test528
     }
 
     Q_INVOKABLE void submitEvent1(const QString &event) {
