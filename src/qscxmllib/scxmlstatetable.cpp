@@ -469,8 +469,8 @@ QString StateTable::evalValueStr(const QString &expr, std::function<QString()> c
 {
     QJSEngine *e = engine();
     if (e) {
-        QJSValue v = e->evaluate(QStringLiteral("(function(){ return (\n%1\n).toString(); })()").arg(expr),
-                                 QStringLiteral("<expr>"), 0);
+        QJSValue v = e->evaluate(QStringLiteral("(function(){ return (%1).toString(); })()").arg(expr),
+                                 QStringLiteral("<expr>"), 1);
         if (v.isError()) {
             submitError(QByteArray("error.execution"),
                         QStringLiteral("%1 in %2").arg(v.toString(), context()));
@@ -485,8 +485,8 @@ int StateTable::evalValueInt(const QString &expr, std::function<QString()> conte
 {
     QJSEngine *e = engine();
     if (e) {
-        QJSValue v = e->evaluate(QStringLiteral("(function(){ return (\n%1\n)|0; })()").arg(expr),
-                                 QStringLiteral("<expr>"), 0);
+        QJSValue v = e->evaluate(QStringLiteral("(function(){ return (%1)|0; })()").arg(expr),
+                                 QStringLiteral("<expr>"), 1);
         if (v.isError()) {
             submitError(QByteArray("error.execution"),
                         QStringLiteral("%1 in %2").arg(v.toString(), context()));
@@ -501,8 +501,8 @@ bool StateTable::evalValueBool(const QString &expr, std::function<QString()> con
 {
     QJSEngine *e = engine();
     if (e) {
-        QJSValue v = e->evaluate(QStringLiteral("(function(){ return !!(\n%1\n); })()").arg(expr),
-                                 QStringLiteral("<expr>"), 0);
+        QJSValue v = e->evaluate(QStringLiteral("(function(){ return !!(%1); })()").arg(expr),
+                                 QStringLiteral("<expr>"), 1);
         if (v.isError()) {
             submitError(QByteArray("error.execution"),
                         QStringLiteral("%1 in %2").arg(v.toString(), context()));
