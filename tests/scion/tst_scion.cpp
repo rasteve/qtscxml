@@ -33,8 +33,15 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         // FIXME: Currently we do not support loading data from a src.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test552.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test558.txml")
-        // FIXME: we do not generate a done event for parallel states. See ScxmlFinalState::emitDoneEvent.
-//        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test529.txml")
+        // A nested state machine is used, which we do not support.
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test187.txml")
+        // We do not support the optional basic http event i/o processor.
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test201.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test207.txml")
+        // The following test uses the undocumented "exmode" attribute.
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test441a.txml")
+        // The following test needs manual inspection of the result. However, note that we do not support the undocumented "exmode" attribute.
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test441b.txml")
            ;
 
 static QSet<QString> weDieOnThese = QSet<QString>()
@@ -55,19 +62,7 @@ static QSet<QString> weDieOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test155.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test156.txml")
            // the ones below here require <send> to work
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test187.txml") // sub state machine?
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test201.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test205.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test205.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test207.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test207.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test207.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test207.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test207.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test207.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test208.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test208.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test210.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test210.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test215.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test216.txml")
@@ -78,63 +73,23 @@ static QSet<QString> weDieOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test226.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test228.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test229.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test229.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test229.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test229.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test230.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test230.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test230.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test232.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test232.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test232.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test233.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test233.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test234.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test234.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test234.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test235.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test236.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test236.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test237.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test237.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test237.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test239.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test240.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test240.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test240.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test240.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test240.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test241.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test241.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test241.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test241.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test241.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test241.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test241.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test242.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test242.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test242.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test243.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test243.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test243.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test244.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test244.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test244.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test245.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test245.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test245.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test247.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test250.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test250.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test252.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test252.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test252.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test252.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test253.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test253.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test253.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test253.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test253.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test253.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test253.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test330.txml")
@@ -142,9 +97,6 @@ static QSet<QString> weDieOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test332.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test333.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test336.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test336.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test336.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test338.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test338.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test342.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test364.txml")
@@ -168,10 +120,6 @@ static QSet<QString> weDieOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test419.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test421.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test422.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test422.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test422.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test422.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test423.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test423.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test521.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test530.txml")
@@ -239,20 +187,35 @@ void TestScion::initTestCase()
 {
 }
 
+enum TestStatus {
+    TestIsOk,
+    TestFails,
+    TestCrashes,
+    TestUsesDifferentSemantics
+};
+Q_DECLARE_METATYPE(TestStatus)
+
 void TestScion::scion_data()
 {
     QTest::addColumn<QString>("scxml");
     QTest::addColumn<QString>("json");
-    QTest::addColumn<bool>("weFailOnThis");
+    QTest::addColumn<TestStatus>("testStatus");
 
-    const int nrOfTests = sizeof(testBases)/sizeof(const char *);
+    const int nrOfTests = sizeof(testBases) / sizeof(const char *);
     for (int i = 0; i < nrOfTests; ++i) {
+        TestStatus testStatus;
         QString base = QString::fromUtf8(testBases[i]);
-        if (weDieOnThese.contains(base) || differentSemantics.contains(base))
-            continue;
+        if (weDieOnThese.contains(base))
+            testStatus = TestCrashes;
+        else if (differentSemantics.contains(base))
+            testStatus = TestUsesDifferentSemantics;
+        else if (weFailOnThese.contains(base))
+            testStatus = TestFails;
+        else
+            testStatus = TestIsOk;
         QTest::newRow(testBases[i]) << base + QLatin1String(".scxml")
                                     << base + QLatin1String(".json")
-                                    << weFailOnThese.contains(base);
+                                    << testStatus;
     }
 }
 
@@ -260,9 +223,14 @@ void TestScion::scion()
 {
     QFETCH(QString, scxml);
     QFETCH(QString, json);
-    QFETCH(bool, weFailOnThis);
+    QFETCH(TestStatus, testStatus);
 
     fprintf(stderr, "\n\n%s\n\n", qPrintable(json));
+
+    if (testStatus == TestCrashes)
+        QSKIP("Test is marked as a crasher");
+    if (testStatus == TestUsesDifferentSemantics)
+        QSKIP("Test uses different semantics");
 
     QFile jsonFile(QLatin1String(":/") + json);
     QVERIFY(jsonFile.open(QIODevice::ReadOnly));
@@ -274,13 +242,13 @@ void TestScion::scion()
     QXmlStreamReader xmlReader(&scxmlFile);
     ScxmlParser parser(&xmlReader);
     parser.parse();
-    if (weFailOnThis && parser.state() != ScxmlParser::FinishedParsing)
+    if (testStatus == TestFails && parser.state() != ScxmlParser::FinishedParsing)
         QEXPECT_FAIL("", "We are expected to fail", Abort);
     QCOMPARE(parser.state(), ScxmlParser::FinishedParsing);
     QVERIFY(parser.errors().isEmpty());
     scxmlFile.close();
 
-    if (weFailOnThis)
+    if (testStatus == TestFails)
         QEXPECT_FAIL("", "We are expected to fail", Abort);
     QVERIFY(runTest(parser.table(), testDescription.object()));
 }
