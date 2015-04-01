@@ -62,7 +62,6 @@ static QSet<QString> weDieOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test155.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test156.txml")
            // the ones below here require <send> to work
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test208.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test210.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test215.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test216.txml")

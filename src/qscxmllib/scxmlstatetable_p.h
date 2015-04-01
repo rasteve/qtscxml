@@ -34,6 +34,8 @@ class StateTablePrivate: public QStateMachinePrivate {
 
     void emitStateFinished(QState *forState, QFinalState *guiltyState) Q_DECL_OVERRIDE;
 #endif
+
+    int eventIdForDelayedEvent(const QByteArray &scxmlEventId);
 };
 
 }

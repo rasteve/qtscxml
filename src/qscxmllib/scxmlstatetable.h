@@ -301,6 +301,16 @@ public:
                      ScxmlEvent::EventType type = ScxmlEvent::External,
                      const QByteArray &sendid = QByteArray(), const QString &origin = QString(),
                      const QString &origintype = QString(), const QByteArray &invokeid = QByteArray());
+    void submitDelayedEvent(int delayInMiliSecs,
+                            const QByteArray &event,
+                            const QVariantList &datas = QVariantList(),
+                            const QStringList &dataNames = QStringList(),
+                            ScxmlEvent::EventType type = ScxmlEvent::External,
+                            const QByteArray &sendid = QByteArray(),
+                            const QString &origin = QString(),
+                            const QString &origintype = QString(),
+                            const QByteArray &invokeid = QByteArray());
+    void cancelDelayedEvent(const QByteArray &event);
     void queueEvent(QEvent *event);
     void submitQueuedEvents();
 
@@ -475,7 +485,7 @@ struct SCXML_EXPORT Cancel : public Instruction {
         : Instruction(parentState, transition) { }
     QString sendid;
     QString sendidexpr;
-    void execute() Q_DECL_OVERRIDE { Q_ASSERT(false); }
+    void execute() Q_DECL_OVERRIDE;
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::Cancel; }
 };
 

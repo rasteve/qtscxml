@@ -248,36 +248,29 @@ void Send::execute()
                                       });
     }
 
-    QTimer *t = new QTimer(table());
-    auto doIt = [this,t](){
-        if (!table()->isRunning())
-            return;
+    QByteArray e = event;
+    if (!eventexpr.isEmpty())
+        e = table()->evalValueStr(eventexpr,
+                                  [this]() -> QString {
+                                      return QStringLiteral("%1 with eventexpr %2")
+                                      .arg(instructionLocation(), eventexpr);
+                                  }).toUtf8();
+    QVariantList datas;
+    QStringList dataNames;
+    if (e.isEmpty() || !Param::evaluate(params, table(), datas, dataNames))
+        return; // failure
 
-        QByteArray e = event;
-        if (!eventexpr.isEmpty())
-            e = table()->evalValueStr(eventexpr,
-                                      [this]() -> QString {
-                                          return QStringLiteral("%1 with eventexpr %2")
-                                          .arg(instructionLocation(), eventexpr);
-                                      }).toUtf8();
-        QVariantList datas;
-        QStringList dataNames;
-        if (!e.isEmpty() && Param::evaluate(params, table(), datas, dataNames))
-            table()->submitEvent(e, datas, dataNames);
-
-        t->deleteLater();
-    };
+    ScxmlEvent::EventType type = ScxmlEvent::External;
+    QByteArray sendid = id.toUtf8();
 
     if (delay.isEmpty()) {
-        doIt();
-        return;
+        table()->submitEvent(e, datas, dataNames, type, sendid);
     } else {
         int msecs = parseTime(delay);
-        Q_ASSERT(msecs >= 0);
-        t->setSingleShot(true);
-        t->setInterval(msecs);
-        QObject::connect(t, &QTimer::timeout, doIt);
-        t->start();
+        if (msecs >= 0)
+            table()->submitDelayedEvent(msecs, e, datas, dataNames, type, sendid);
+        else
+            qCDebug(scxmlLog) << "failed to parse delay time" << delay;
     }
 }
 
@@ -308,6 +301,19 @@ bool Param::evaluate(const QVector<Param> &params, StateTable *table, QVariantLi
     }
 
     return true;
+}
+
+void Cancel::execute()
+{
+    QByteArray e = sendid.toUtf8();
+    if (!sendidexpr.isEmpty())
+        e = table()->evalValueStr(sendidexpr,
+                                  [this]() -> QString {
+                                      return QStringLiteral("%1 with sendidexpr %2")
+                                      .arg(instructionLocation(), sendidexpr);
+                                  }).toUtf8();
+    if (!e.isEmpty())
+        table()->cancelDelayedEvent(e);
 }
 
 } // namespace ExecutableContent
@@ -684,6 +690,22 @@ void StateTablePrivate::emitStateFinished(QState *forState, QFinalState *guiltyS
 
 #endif // QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
 
+int StateTablePrivate::eventIdForDelayedEvent(const QByteArray &scxmlEventId)
+{
+    QMutexLocker locker(&delayedEventsMutex);
+
+    QHash<int, DelayedEvent>::const_iterator it;
+    for (it = delayedEvents.constBegin(); it != delayedEvents.constEnd(); ++it) {
+        if (ScxmlEvent *e = dynamic_cast<ScxmlEvent *>(it->event)) {
+            if (e->sendid() == scxmlEventId) {
+                return it.key();
+            }
+        }
+    }
+
+    return -1;
+}
+
 QList<QByteArray> StateTable::currentStates(bool compress) {
     QSet<QAbstractState *> config = d_func()->configuration;
     if (compress)
@@ -824,11 +846,45 @@ void StateTable::submitEvent(const QByteArray &event, const QVariantList &datas,
                              const QByteArray &sendid, const QString &origin,
                              const QString &origintype, const QByteArray &invokeid)
 {
+    qCDebug(scxmlLog) << _name << ": submitting event" << event;
+
     ScxmlEvent *e = new ScxmlEvent(event, type, datas, dataNames, sendid, origin, origintype, invokeid);
     if (isRunning())
         postEvent(e);
     else
         queueEvent(e);
+}
+
+void StateTable::submitDelayedEvent(int delayInMiliSecs,
+                                    const QByteArray &event,
+                                    const QVariantList &datas,
+                                    const QStringList &dataNames,
+                                    ScxmlEvent::EventType type,
+                                    const QByteArray &sendid,
+                                    const QString &origin,
+                                    const QString &origintype,
+                                    const QByteArray &invokeid)
+{
+    Q_ASSERT(delayInMiliSecs > 0);
+
+    qCDebug(scxmlLog) << _name << ": submitting event" << event << "with delay" << delayInMiliSecs << "ms" << "and sendid" << sendid;
+
+    ScxmlEvent *e = new ScxmlEvent(event, type, datas, dataNames, sendid, origin, origintype, invokeid);
+    int id = postDelayedEvent(e, delayInMiliSecs);
+
+    qCDebug(scxmlLog) << _name << ": delayed event id:" << id;
+}
+
+void StateTable::cancelDelayedEvent(const QByteArray &sendid)
+{
+    Q_D(StateTable);
+
+    int id = d->eventIdForDelayedEvent(sendid);
+
+    qCDebug(scxmlLog) << _name << ": canceling event" << sendid << "with id" << id;
+
+    if (id != -1)
+        QStateMachine::cancelDelayedEvent(id);
 }
 
 void StateTable::queueEvent(QEvent *event)
