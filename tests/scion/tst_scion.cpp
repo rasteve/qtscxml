@@ -139,7 +139,10 @@ static QSet<QString> differentSemantics = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/history/history4")
         << QLatin1String("scion-tests/scxml-test-framework/test/history/history6")
         // The data model does not mark the system variables as read-only:
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test322.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test324.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test326.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test329.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test346.txml")
         // Qt does not support internal transitions:
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test533.txml")
@@ -379,10 +382,8 @@ bool TestScion::runTest(StateTable *stateMachine, const QJsonObject &testDescrip
 
         return playEvents(stateMachine, testDescription);
     } else {
-        if (!finishedSpy.fastWait()) {
-            qWarning() << "Failed to reach final state!";
-            return false;
-        }
+        // Wait for all events (delayed or otherwise) to propagate.
+        finishedSpy.fastWait(); // Some tests don't have a final state, so don't check for the result.
         return verifyStates(stateMachine, testDescription, QLatin1String("initialConfiguration"));
     }
 }
