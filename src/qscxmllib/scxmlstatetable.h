@@ -308,6 +308,8 @@ public:
     void queueEvent(QEvent *event);
     void submitQueuedEvents();
 
+    bool isSupportedTarget(const QString &target) const;
+
 signals:
     void log(const QString &label, const QString &msg);
     void reachedStableState(bool didChange);

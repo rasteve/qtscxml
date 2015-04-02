@@ -173,14 +173,32 @@ public:
                                              .arg(instructionLocation, targetexpr);
                                          });
         }
+        if (!origin.isEmpty() && !table->isSupportedTarget(origin)) {
+            // [6.2.4] and test194
+            table->submitError(QByteArray("error.execution"),
+                               QStringLiteral("Error in %1: %2 is not a supported target")
+                               .arg(instructionLocation, origin));
+            return nullptr;
+        }
 
         QString origintype = type;
+        if (origintype.isEmpty()) {
+            // [6.2.5] and test198
+            origintype = QStringLiteral("http://www.w3.org/TR/scxml/#SCXMLEventProcessor");
+        }
         if (!typeexpr.isEmpty()) {
             origintype = table->evalValueStr(typeexpr,
                                              [&]() -> QString {
                                                  return QStringLiteral("%1 with typeexpr %2")
                                                  .arg(instructionLocation, typeexpr);
                                              });
+        }
+        if (!origintype.isEmpty() && origintype != QStringLiteral("http://www.w3.org/TR/scxml/#SCXMLEventProcessor")) {
+            // [6.2.5] and test199
+            table->submitError(QByteArray("error.execution"),
+                               QStringLiteral("Error in %1: %2 is not a valid type")
+                               .arg(instructionLocation, origintype));
+            return nullptr;
         }
 
         return new ScxmlEvent(eventName, eventType, dataValues, dataNames, sendid, origin, origintype);
@@ -957,6 +975,9 @@ void StateTable::setEngine(QJSEngine *engine)
 
 void StateTable::submitEvent(ScxmlEvent *e)
 {
+    if (!e)
+        return;
+
     if (isRunning())
         postEvent(e);
     else
@@ -977,6 +998,9 @@ void StateTable::submitEvent(const QByteArray &event, const QVariantList &dataVa
 void StateTable::submitDelayedEvent(int delayInMiliSecs, ScxmlEvent *e)
 {
     Q_ASSERT(delayInMiliSecs > 0);
+
+    if (!e)
+        return;
 
     qCDebug(scxmlLog) << _name << ": submitting event" << e->name() << "with delay" << delayInMiliSecs << "ms" << "and sendid" << e->sendid();
 
@@ -1012,6 +1036,11 @@ void StateTable::submitQueuedEvents()
         delete m_queuedEvents;
         m_queuedEvents = 0;
     }
+}
+
+bool StateTable::isSupportedTarget(const QString &target) const
+{
+    return target == QStringLiteral("#_internal");
 }
 
 void StateTable::onStarted()
