@@ -828,7 +828,7 @@ void StateTable::setupDataModel()
 
 void StateTable::setupSystemVariables()
 {
-    m_dataModelJSValues.setProperty(QStringLiteral("_sesionid"),
+    m_dataModelJSValues.setProperty(QStringLiteral("_sessionid"),
                                     QStringLiteral("session%1").arg(m_sessionId));
 
     m_dataModelJSValues.setProperty(QStringLiteral("_name"), _name);
