@@ -43,6 +43,16 @@ ScxmlParser::ScxmlParser(QXmlStreamReader *reader, LoaderFunction loader)
     , m_state(StartingParsing)
 { }
 
+void ScxmlParser::ensureInitialStates(const QByteArray &initialIds)
+{
+    foreach (const QByteArray &initialId, initialIds.split(' ')) {
+        if (!initialId.isEmpty())
+            ensureInitialState(initialId);
+    }
+
+    ensureInitialState(QByteArray());
+}
+
 void ScxmlParser::ensureInitialState(const QByteArray &initialId)
 {
     if (!initialId.isEmpty()) {
@@ -472,7 +482,7 @@ void ScxmlParser::parse()
             m_stack.removeLast();
             switch (p.kind) {
             case ParserState::Scxml:
-                ensureInitialState(p.initialId);
+                ensureInitialStates(p.initialId);
                 if (m_state == ParsingScxml)
                     m_state = FinishedParsing;
                 else

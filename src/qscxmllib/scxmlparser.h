@@ -147,6 +147,7 @@ private:
     bool checkAttributes(const QXmlStreamAttributes &attributes, const char *attribStr);
     bool checkAttributes(const QXmlStreamAttributes &attributes, QStringList requiredNames,
                          QStringList optionalNames);
+    void ensureInitialStates(const QByteArray &initialIds);
     void ensureInitialState(const QByteArray &initialId);
 
     QState *currentParent() const;
