@@ -364,10 +364,16 @@ void ScxmlParser::parse()
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("content")) {
                 if (!checkAttributes(attributes, "|expr")) return;
-                if (m_stack.last().kind == ParserState::DoneData) {
+                switch (m_stack.last().kind) {
+                case ParserState::DoneData:
                     static_cast<ScxmlFinalState *>(m_currentState)->doneData.expr =
                             attributes.value(QLatin1String("expr")).toString();
-                } else {
+                    break;
+                case ParserState::Send:
+                    static_cast<ExecutableContent::Send *>(m_stack.last().instruction)->content =
+                            attributes.value(QLatin1String("expr")).toString();
+                    break;
+                default:
                     addError(QStringLiteral("unexpected parent of content %1").arg(m_stack.last().kind));
                     m_state = ParsingError;
                 }
@@ -413,7 +419,6 @@ void ScxmlParser::parse()
                 send->target = attributes.value(QLatin1String("target")).toString();
                 send->targetexpr = attributes.value(QLatin1String("targetexpr")).toString();
                 send->namelist = attributes.value(QLatin1String("namelist")).toString().split(QLatin1Char(' '));
-                send->content = 0;
                 pNew.instruction = send;
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("cancel")) {
@@ -587,14 +592,21 @@ void ScxmlParser::parse()
             case ParserState::Param:
             case ParserState::None:
                 break;
-            case ParserState::Content: {
-                Q_ASSERT(!m_stack.isEmpty());
-                if (m_stack.last().kind == ParserState::DoneData) { // see test529
-                    if (!p.chars.trimmed().isEmpty()) {
+            case ParserState::Content:
+                if (!p.chars.trimmed().isEmpty()) {
+                    Q_ASSERT(!m_stack.isEmpty());
+                    switch (m_stack.last().kind) {
+                    case ParserState::DoneData: // see test529
                         static_cast<ScxmlFinalState *>(m_currentState)->doneData.contents = p.chars;
+                        break;
+                    case ParserState::Send: // see test179
+                        static_cast<ExecutableContent::Send *>(m_stack.last().instruction)->content = p.chars;
+                        break;
+                    default:
+                        break;
                     }
                 }
-            } break;
+                break;
             case ParserState::Data: {
                 ScxmlData &data = table()->m_data.last();
                 if (!data.src.isEmpty() && !data.expr.isEmpty()) {

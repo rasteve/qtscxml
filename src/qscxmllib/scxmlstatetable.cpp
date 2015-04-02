@@ -70,6 +70,125 @@ int parseTime(const QString &t, bool *ok = 0)
     }
     return negative ? -value : value;
 }
+
+class EventBuilder
+{
+    StateTable* table = 0;
+    QString instructionLocation;
+    QByteArray event;
+    QString eventexpr;
+    QString contents;
+    QString contentExpr;
+    QVector<ExecutableContent::Param> params;
+    ScxmlEvent::EventType eventType = ScxmlEvent::External;
+    QString id;
+    QString idLocation;
+    QString target;
+    QString targetexpr;
+    QString type;
+    QString typeexpr;
+
+    static QAtomicInt idCounter;
+    QByteArray generateId() const
+    {
+        QByteArray id = QByteArray::number(++idCounter);
+        id.prepend("id-");
+        return id;
+    }
+
+public:
+    EventBuilder(StateTable *table, const QString &instructionLocation, const QByteArray &event,
+                 const ExecutableContent::DoneData &doneData)
+        : table(table)
+        , instructionLocation(instructionLocation)
+        , event(event)
+        , contents(doneData.contents)
+        , contentExpr(doneData.expr)
+        , params(doneData.params)
+    {}
+
+    EventBuilder(StateTable *table, const ExecutableContent::Send &send)
+        : table(table)
+        , instructionLocation(send.instructionLocation())
+        , event(send.event)
+        , eventexpr(send.eventexpr)
+        , contents(send.content)
+        , params(send.params)
+        , id(send.id)
+        , idLocation(send.idLocation)
+        , target(send.target)
+        , targetexpr(send.targetexpr)
+        , type(send.type)
+        , typeexpr(send.typeexpr)
+    {}
+
+    ScxmlEvent *operator()() { return buildEvent(); }
+
+    ScxmlEvent *buildEvent()
+    {
+        QByteArray eventName = event;
+        if (!eventexpr.isEmpty()) {
+            eventName = table->evalValueStr(eventexpr,
+                                            [&]() -> QString {
+                                                return QStringLiteral("%1 with eventexpr %2")
+                                                .arg(instructionLocation, eventexpr);
+                                            }).toUtf8();
+        }
+
+        QVariantList datas;
+        QStringList dataNames;
+        if (params.isEmpty()) {
+            QVariant data;
+            if (contentExpr.isEmpty()) {
+                data = contents;
+            } else {
+                data = table->evalValueStr(contentExpr,
+                                           [&]() -> QString {
+                                               return QStringLiteral("donedata with expr '%1'")
+                                               .arg(contentExpr);
+                                           }, QString::null);
+            }
+            if (!data.isNull()) // if evaluation of expr failed, this will be a null value, which in turn means no data property is set on the event. See e.g. test528.
+                datas.append(data);
+        } else {
+            if (!ExecutableContent::Param::evaluate(params, table, datas, dataNames)) {
+                // If the evaluation of the <param> tags fails, set _event.data to an empty string.
+                // See test488.
+                datas = QVariantList() << QLatin1String("");
+                dataNames.clear();
+            }
+        }
+
+        QByteArray sendid = id.toUtf8();
+        if (!idLocation.isEmpty()) {
+            sendid = generateId();
+            table->datamodelJSValues().setProperty(idLocation, QString::fromUtf8(sendid));
+        }
+
+        QString origin = target;
+        if (!targetexpr.isEmpty()) {
+            origin = table->evalValueStr(targetexpr,
+                                         [&]() -> QString {
+                                             return QStringLiteral("%1 with targetexpr %2")
+                                             .arg(instructionLocation, targetexpr);
+                                         });
+        }
+
+        QString origintype = type;
+        if (!typeexpr.isEmpty()) {
+            origintype = table->evalValueStr(typeexpr,
+                                             [&]() -> QString {
+                                                 return QStringLiteral("%1 with typeexpr %2")
+                                                 .arg(instructionLocation, typeexpr);
+                                             });
+        }
+
+        return new ScxmlEvent(eventName, eventType, datas, dataNames, sendid, origin, origintype);
+    }
+};
+
+QAtomicInt EventBuilder::idCounter = QAtomicInt(0);
+
 } // anonymous namespace
 
 namespace ExecutableContent {
@@ -98,7 +217,7 @@ StateTable *Instruction::table() const {
     return 0;
 }
 
-QString Instruction::instructionLocation() {
+QString Instruction::instructionLocation() const {
     if (transition)
         return QStringLiteral("instruction in transition %1 of state %2")
                 .arg(transition->objectName(),
@@ -232,11 +351,6 @@ void If::execute()
         blocks[conditions.size()].execute();
 }
 
-Send::~Send()
-{
-    delete content; content = 0;
-}
-
 void Send::execute()
 {
     Q_ASSERT(table() && table()->engine());
@@ -248,27 +362,14 @@ void Send::execute()
                                       });
     }
 
-    QByteArray e = event;
-    if (!eventexpr.isEmpty())
-        e = table()->evalValueStr(eventexpr,
-                                  [this]() -> QString {
-                                      return QStringLiteral("%1 with eventexpr %2")
-                                      .arg(instructionLocation(), eventexpr);
-                                  }).toUtf8();
-    QVariantList datas;
-    QStringList dataNames;
-    if (e.isEmpty() || !Param::evaluate(params, table(), datas, dataNames))
-        return; // failure
-
-    ScxmlEvent::EventType type = ScxmlEvent::External;
-    QByteArray sendid = id.toUtf8();
+    EventBuilder event(table(), *this);
 
     if (delay.isEmpty()) {
-        table()->submitEvent(e, datas, dataNames, type, sendid);
+        table()->submitEvent(event());
     } else {
         int msecs = parseTime(delay);
         if (msecs >= 0)
-            table()->submitDelayedEvent(msecs, e, datas, dataNames, type, sendid);
+            table()->submitDelayedEvent(msecs, event());
         else
             qCDebug(scxmlLog) << "failed to parse delay time" << delay;
     }
@@ -650,39 +751,14 @@ void StateTablePrivate::emitStateFinished(QState *forState, QFinalState *guiltyS
 {
     Q_Q(StateTable);
 
-    // TODO: process <donedata>
     if (ScxmlFinalState *finalState = qobject_cast<ScxmlFinalState *>(guiltyState)) {
         if (!q->isRunning())
             return;
         const ExecutableContent::DoneData &doneData = finalState->doneData;
 
         const auto eventName = QByteArray("done.state.") + forState->objectName().toUtf8();
-        QVariantList datas;
-        QStringList dataNames;
-
-        if (doneData.params.isEmpty()) {
-            QVariant data;
-            if (doneData.expr.isEmpty()) {
-                data = doneData.contents;
-            } else {
-                data = q->evalValueStr(doneData.expr,
-                                       [&doneData]() -> QString {
-                                           return QStringLiteral("donedata with expr '%1'")
-                                           .arg(doneData.expr);
-                                       }, QString::null);
-            }
-            if (!data.isNull()) // if evaluation of expr failed, this will be a null value, which in turn means no data property is set on the event. See e.g. test528.
-                datas.append(data);
-            q->submitEvent(eventName, datas, dataNames);
-        } else {
-            if (ExecutableContent::Param::evaluate(doneData.params, q, datas, dataNames)) {
-                q->submitEvent(eventName, datas, dataNames);
-            } else {
-                // If the evaluation of the <param> tags fails, set _event.data to an empty string.
-                // See test488.
-                q->submitEvent(eventName, QVariantList() << QLatin1String(""));
-            }
-        }
+        EventBuilder event(q, QStringLiteral("<final>"), eventName, doneData);
+        q->submitEvent(event());
     }
 
     QStateMachinePrivate::emitStateFinished(forState, guiltyState);
@@ -739,6 +815,7 @@ void StateTable::setupDataModel()
             });
         qCDebug(scxmlLog) << "setting datamodel property" << data.id << "to" << v.toVariant();
         m_dataModelJSValues.setProperty(data.id, v);
+        Q_ASSERT(m_dataModelJSValues.hasProperty(data.id));
     }
 }
 
@@ -841,6 +918,14 @@ void StateTable::setEngine(QJSEngine *engine)
         m_dataModelJSValues = engine->globalObject();
 }
 
+void StateTable::submitEvent(ScxmlEvent *e)
+{
+    if (isRunning())
+        postEvent(e);
+    else
+        queueEvent(e);
+}
+
 void StateTable::submitEvent(const QByteArray &event, const QVariantList &datas,
                              const QStringList &dataNames, ScxmlEvent::EventType type,
                              const QByteArray &sendid, const QString &origin,
@@ -849,27 +934,15 @@ void StateTable::submitEvent(const QByteArray &event, const QVariantList &datas,
     qCDebug(scxmlLog) << _name << ": submitting event" << event;
 
     ScxmlEvent *e = new ScxmlEvent(event, type, datas, dataNames, sendid, origin, origintype, invokeid);
-    if (isRunning())
-        postEvent(e);
-    else
-        queueEvent(e);
+    submitEvent(e);
 }
 
-void StateTable::submitDelayedEvent(int delayInMiliSecs,
-                                    const QByteArray &event,
-                                    const QVariantList &datas,
-                                    const QStringList &dataNames,
-                                    ScxmlEvent::EventType type,
-                                    const QByteArray &sendid,
-                                    const QString &origin,
-                                    const QString &origintype,
-                                    const QByteArray &invokeid)
+void StateTable::submitDelayedEvent(int delayInMiliSecs, ScxmlEvent *e)
 {
     Q_ASSERT(delayInMiliSecs > 0);
 
-    qCDebug(scxmlLog) << _name << ": submitting event" << event << "with delay" << delayInMiliSecs << "ms" << "and sendid" << sendid;
+    qCDebug(scxmlLog) << _name << ": submitting event" << e->name() << "with delay" << delayInMiliSecs << "ms" << "and sendid" << e->sendid();
 
-    ScxmlEvent *e = new ScxmlEvent(event, type, datas, dataNames, sendid, origin, origintype, invokeid);
     int id = postDelayedEvent(e, delayInMiliSecs);
 
     qCDebug(scxmlLog) << _name << ": delayed event id:" << id;

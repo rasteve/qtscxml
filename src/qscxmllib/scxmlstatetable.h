@@ -135,7 +135,7 @@ public:
     virtual ~Instruction() { }
 
     StateTable *table() const;
-    QString instructionLocation();
+    QString instructionLocation() const;
 
     virtual void execute() = 0;
     virtual Kind instructionKind() const = 0;
@@ -296,20 +296,14 @@ public:
             datas << data;
         submitEvent(event.toUtf8(), datas);
     }
+    void submitEvent(ScxmlEvent *e);
     void submitEvent(const QByteArray &event, const QVariantList &datas = QVariantList(),
                      const QStringList &dataNames = QStringList(),
                      ScxmlEvent::EventType type = ScxmlEvent::External,
                      const QByteArray &sendid = QByteArray(), const QString &origin = QString(),
                      const QString &origintype = QString(), const QByteArray &invokeid = QByteArray());
     void submitDelayedEvent(int delayInMiliSecs,
-                            const QByteArray &event,
-                            const QVariantList &datas = QVariantList(),
-                            const QStringList &dataNames = QStringList(),
-                            ScxmlEvent::EventType type = ScxmlEvent::External,
-                            const QByteArray &sendid = QByteArray(),
-                            const QString &origin = QString(),
-                            const QString &origintype = QString(),
-                            const QByteArray &invokeid = QByteArray());
+                            ScxmlEvent *e);
     void cancelDelayedEvent(const QByteArray &event);
     void queueEvent(QEvent *event);
     void submitQueuedEvents();
@@ -391,8 +385,7 @@ struct SCXML_EXPORT Send : public Instruction {
     QString delayexpr;
     QStringList namelist;
     QVector<Param> params;
-    XmlNode *content;
-    ~Send();
+    QString content;
     void execute() Q_DECL_OVERRIDE;
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::Send; }
 };

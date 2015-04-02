@@ -69,9 +69,9 @@ protected:
                 s.writeAttribute("expr", p.expr);
             s.writeEndElement();
         }
-        if (send->content) {
+        if (!send->content.isEmpty()) {
             s.writeStartElement("content");
-            send->content->dump(s.s);
+            s.s.writeCDATA(send->content);
             s.writeEndElement();
         }
         s.writeEndElement();
