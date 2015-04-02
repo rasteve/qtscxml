@@ -209,8 +209,12 @@ bool InstructionSequence::bind()
 }
 
 StateTable *Instruction::table() const {
-    if (parentState)
-        return qobject_cast<StateTable *>(parentState->machine());
+    if (parentState) {
+        if (StateTable *table = qobject_cast<StateTable *>(parentState))
+            return table;
+        else
+            return qobject_cast<StateTable *>(parentState->machine());
+    }
     if (transition)
         return qobject_cast<StateTable *>(transition->machine());
     qCWarning(scxmlLog) << "Cannot find StateTable of free standing Instruction";
@@ -865,6 +869,11 @@ void StateTable::setupSystemVariables()
                                     engine()->evaluate(QStringLiteral("function(id){return _x.In(id);}")));
 }
 
+void StateTable::executeInitialSetup()
+{
+    m_initialSetup.execute();
+}
+
 bool loopOnSubStates(QState *startState,
                      std::function<bool(QState *)> enteringState,
                      std::function<void(QState *)> exitingState,
@@ -909,6 +918,9 @@ bool loopOnSubStates(QState *startState,
 
 bool StateTable::init()
 {
+    setupDataModel();
+    executeInitialSetup();
+
     bool res = true;
     loopOnSubStates(this, std::function<bool(QState *)>(), [&res](QState *state) {
         if (ScxmlState *s = qobject_cast<ScxmlState *>(state))
@@ -923,7 +935,6 @@ bool StateTable::init()
                     res = false;
         }
     });
-    setupDataModel();
     foreach (QAbstractTransition *t, transitions()) {
         if (ScxmlTransition *scTransition = qobject_cast<ScxmlTransition *>(t))
             if (!scTransition->init())

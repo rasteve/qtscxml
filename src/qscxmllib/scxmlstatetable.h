@@ -327,6 +327,7 @@ protected:
     virtual void assignEvent();
     void setupDataModel();
     void setupSystemVariables();
+    void executeInitialSetup();
 
 public:
     // use q_property for these?

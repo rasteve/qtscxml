@@ -42,6 +42,10 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test441a.txml")
         // The following test needs manual inspection of the result. However, note that we do not support the undocumented "exmode" attribute.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test441b.txml")
+        // The following test needs manual inspection of the result.
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test307.txml")
+        // We do not yet support declaring variables in a <script> on <scxml> level.
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test304.txml")
            ;
 
 static QSet<QString> weDieOnThese = QSet<QString>()

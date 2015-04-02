@@ -575,8 +575,7 @@ void ScxmlParser::parse()
                         }
                     }
                 }
-            }
-                // fallthrough
+            } // fallthrough!
             case ParserState::Raise:
             case ParserState::If:
             case ParserState::Foreach:
@@ -900,12 +899,12 @@ bool ParserState::validChild(ParserState::Kind parent, ParserState::Kind child)
                 || isExecutableContent(child));
     case ParserState::Content:
     case ParserState::Param:
-    case ParserState::Script:
     case ParserState::Cancel:
     case ParserState::Invoke:
     case ParserState::Finalize:
         return isExecutableContent(child);
         break;
+    case ParserState::Script:
     case ParserState::None:
         break;
     }
