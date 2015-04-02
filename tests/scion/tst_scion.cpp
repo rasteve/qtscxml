@@ -33,6 +33,8 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         // FIXME: Currently we do not support loading data from a src.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test552.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test558.txml")
+        // FIXME: Currently we do not support loading scripts from a src.
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test301.txml")
         // A nested state machine is used, which we do not support.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test187.txml")
         // We do not support the optional basic http event i/o processor.
@@ -44,8 +46,10 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test441b.txml")
         // The following test needs manual inspection of the result.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test307.txml")
-        // We do not yet support declaring variables in a <script> on <scxml> level.
+        // FIXME: We do not yet support declaring variables in a <script> on any level.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test304.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test303.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test302.txml")
            ;
 
 static QSet<QString> weDieOnThese = QSet<QString>()
