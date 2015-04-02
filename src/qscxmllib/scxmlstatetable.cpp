@@ -386,8 +386,15 @@ bool Param::evaluate(StateTable *table, QVariantList &dataValues, QStringList &d
         dataValues.append(v);
         dataNames.append(name);
     } else if (!location.isEmpty()) {
-        dataValues.append(table->datamodelJSValues().property(location).toVariant());
-        dataNames.append(name);
+        auto dataModel = table->datamodelJSValues();
+        if (dataModel.hasProperty(location)) {
+            dataValues.append(dataModel.property(location).toVariant());
+            dataNames.append(name);
+        } else {
+            table->submitError(QByteArray("error.execution"),
+                               QStringLiteral("Error in <param>: %1 is not a valid location")
+                               .arg(location));
+        }
     } else {
         success = false;
     }
