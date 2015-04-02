@@ -261,6 +261,25 @@ void JavaScript::execute()
     }
 }
 
+void AssignExpression::execute()
+{
+    if (!table() || !table()->engine())
+        return;
+
+    auto dataModel = table()->datamodelJSValues();
+    if (dataModel.hasProperty(location)) {
+        auto value = table()->evalJSValue(expression, [this]() -> QString {
+                                              return QStringLiteral("%1 with expression %2")
+                                              .arg(instructionLocation(), expression);
+                                          });
+        dataModel.setProperty(location, value);
+    } else {
+        table()->submitError(QByteArray("error.execution"),
+                             QStringLiteral("Error in %1: location '%2' does not exist.")
+                             .arg(instructionLocation(), location));
+    }
+}
+
 void InstructionVisitor::accept(Instruction *instruction) {
     switch (instruction->instructionKind()) {
     case Instruction::Raise:

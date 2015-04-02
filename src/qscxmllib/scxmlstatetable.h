@@ -434,15 +434,7 @@ struct SCXML_EXPORT AssignExpression : public Instruction {
     QString expression;
     XmlNode *content;
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::AssignExpression; }
-    void execute() Q_DECL_OVERRIDE {
-        if (table() && table()->engine())
-            table()->datamodelJSValues().setProperty(
-                        location, table()->evalJSValue(expression,
-                                                       [this]() -> QString {
-                                                           return QStringLiteral("%1 with expression %2")
-                                                           .arg(instructionLocation(), expression);
-                                                       }));
-    }
+    void execute() Q_DECL_OVERRIDE;
 };
 
 struct SCXML_EXPORT AssignJson : public Instruction {
