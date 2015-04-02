@@ -440,27 +440,32 @@ void ScxmlParser::parse()
                 pNew.instruction = cancel;
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("invoke")) {
-                if (!checkAttributes(attributes, "|event,eventexpr,id,idlocation,type,typeexpr,namelist,delay,delayexpr")) return;
-                ParserState pNew = ParserState(ParserState::Invoke);
-                ExecutableContent::Invoke *invoke = new ExecutableContent::Invoke(m_currentParent, m_currentTransition);
-                invoke->src = attributes.value(QLatin1String("src")).toString();
-                invoke->srcexpr = attributes.value(QLatin1String("srcexpr")).toString();
-                invoke->id = attributes.value(QLatin1String("id")).toString();
-                invoke->idLocation = attributes.value(QLatin1String("idlocation")).toString();
-                invoke->type = attributes.value(QLatin1String("type")).toString();
-                invoke->typeexpr = attributes.value(QLatin1String("typeexpr")).toString();
-                QStringRef autoforwardS = attributes.value(QLatin1String("autoforward"));
-                if (QStringRef::compare(autoforwardS, QLatin1String("true"), Qt::CaseInsensitive) == 0
-                        || QStringRef::compare(autoforwardS, QLatin1String("yes"), Qt::CaseInsensitive) == 0
-                        || QStringRef::compare(autoforwardS, QLatin1String("t"), Qt::CaseInsensitive) == 0
-                        || QStringRef::compare(autoforwardS, QLatin1String("y"), Qt::CaseInsensitive) == 0
-                        || autoforwardS == QLatin1String("1"))
-                    invoke->autoforward = true;
-                else
-                    invoke->autoforward = false;
-                invoke->namelist = attributes.value(QLatin1String("namelist")).toString().split(QLatin1Char(' '));
-                pNew.instruction = invoke;
-                m_stack.append(pNew);
+                if (true) {
+                    addError(QStringLiteral("<invoke> is not supported"));
+                    m_state = ParsingError;
+                } else {
+                    if (!checkAttributes(attributes, "|event,eventexpr,id,idlocation,type,typeexpr,namelist,delay,delayexpr")) return;
+                    ParserState pNew = ParserState(ParserState::Invoke);
+                    ExecutableContent::Invoke *invoke = new ExecutableContent::Invoke(m_currentParent, m_currentTransition);
+                    invoke->src = attributes.value(QLatin1String("src")).toString();
+                    invoke->srcexpr = attributes.value(QLatin1String("srcexpr")).toString();
+                    invoke->id = attributes.value(QLatin1String("id")).toString();
+                    invoke->idLocation = attributes.value(QLatin1String("idlocation")).toString();
+                    invoke->type = attributes.value(QLatin1String("type")).toString();
+                    invoke->typeexpr = attributes.value(QLatin1String("typeexpr")).toString();
+                    QStringRef autoforwardS = attributes.value(QLatin1String("autoforward"));
+                    if (QStringRef::compare(autoforwardS, QLatin1String("true"), Qt::CaseInsensitive) == 0
+                            || QStringRef::compare(autoforwardS, QLatin1String("yes"), Qt::CaseInsensitive) == 0
+                            || QStringRef::compare(autoforwardS, QLatin1String("t"), Qt::CaseInsensitive) == 0
+                            || QStringRef::compare(autoforwardS, QLatin1String("y"), Qt::CaseInsensitive) == 0
+                            || autoforwardS == QLatin1String("1"))
+                        invoke->autoforward = true;
+                    else
+                        invoke->autoforward = false;
+                    invoke->namelist = attributes.value(QLatin1String("namelist")).toString().split(QLatin1Char(' '));
+                    pNew.instruction = invoke;
+                    m_stack.append(pNew);
+                }
             } else if (elName == QLatin1String("finalize")) {
                 ParserState pNew(ParserState::Finalize);
                 Q_ASSERT(m_stack.last().instruction->instructionKind() == ExecutableContent::Instruction::Invoke);

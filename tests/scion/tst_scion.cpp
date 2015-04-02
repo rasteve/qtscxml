@@ -50,6 +50,11 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test304.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test303.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test302.txml")
+        // We do not (yet?) support invoke.
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test276.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test253.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test252.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test250.txml")
            ;
 
 static QSet<QString> weDieOnThese = QSet<QString>()
@@ -95,10 +100,6 @@ static QSet<QString> weDieOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test244.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test245.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test247.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test250.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test252.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test253.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test253.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test330.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test331.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test332.txml")
@@ -255,13 +256,13 @@ void TestScion::scion()
     ScxmlParser parser(&xmlReader);
     parser.parse();
     if (testStatus == TestFails && parser.state() != ScxmlParser::FinishedParsing)
-        QEXPECT_FAIL("", "We are expected to fail", Abort);
+        QEXPECT_FAIL("", "This is expected to fail", Abort);
     QCOMPARE(parser.state(), ScxmlParser::FinishedParsing);
     QVERIFY(parser.errors().isEmpty());
     scxmlFile.close();
 
     if (testStatus == TestFails)
-        QEXPECT_FAIL("", "We are expected to fail", Abort);
+        QEXPECT_FAIL("", "This is expected to fail", Abort);
     QVERIFY(runTest(parser.table(), testDescription.object()));
 }
 
