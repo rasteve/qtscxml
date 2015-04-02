@@ -58,7 +58,7 @@ public:
     enum EventType { Platform, Internal, External };
 
     ScxmlEvent(const QByteArray &name = QByteArray(), EventType eventType = External,
-               const QVariantList &datas = QVariantList(), const QStringList &dataNames = QStringList(),
+               const QVariantList &dataValues = QVariantList(), const QStringList &dataNames = QStringList(),
                const QByteArray &sendid = QByteArray (),
                const QString &origin = QString (), const QString &origintype = QString (),
                const QByteArray &invokeid = QByteArray());
@@ -70,10 +70,10 @@ public:
     QString origintype() const { return m_origintype; }
     QByteArray invokeid() const { return m_invokeid; }
     QJSValue data(QJSEngine *engine) const;
-    QVariantList datas() const { return m_datas; }
+    QVariantList dataValues() const { return m_dataValues; }
     QStringList dataNames() const { return m_dataNames; }
     void reset(const QByteArray &name, EventType eventType = External,
-               QVariantList datas = QVariantList(), const QByteArray &sendid = QByteArray(),
+               QVariantList dataValues = QVariantList(), const QByteArray &sendid = QByteArray(),
                const QString &origin = QString(), const QString &origintype = QString(),
                const QByteArray &invokeid = QByteArray());
     void clear();
@@ -82,7 +82,7 @@ public:
 private:
     QByteArray m_name;
     EventType m_type;
-    QVariantList m_datas; // extra data
+    QVariantList m_dataValues; // extra data
     QStringList m_dataNames; // extra data
     QByteArray m_sendid; // if set, or id of <send> if failure
     QString m_origin; // uri to answer by setting the target of send, empty for internal and platform events
@@ -291,13 +291,13 @@ public:
     }
 
     Q_INVOKABLE void submitEvent2(const QString &event,  QVariant data) {
-        QVariantList datas;
+        QVariantList dataValues;
         if (data.isValid())
-            datas << data;
-        submitEvent(event.toUtf8(), datas);
+            dataValues << data;
+        submitEvent(event.toUtf8(), dataValues);
     }
     void submitEvent(ScxmlEvent *e);
-    void submitEvent(const QByteArray &event, const QVariantList &datas = QVariantList(),
+    void submitEvent(const QByteArray &event, const QVariantList &dataValues = QVariantList(),
                      const QStringList &dataNames = QStringList(),
                      ScxmlEvent::EventType type = ScxmlEvent::External,
                      const QByteArray &sendid = QByteArray(), const QString &origin = QString(),
@@ -360,8 +360,8 @@ struct SCXML_EXPORT Param {
     QString expr;
     QString location;
 
-    bool evaluate(StateTable *table, QVariantList &datas, QStringList &dataNames) const;
-    static bool evaluate(const QVector<Param> &params, StateTable *table, QVariantList &datas, QStringList &dataNames);
+    bool evaluate(StateTable *table, QVariantList &dataValues, QStringList &dataNames) const;
+    static bool evaluate(const QVector<Param> &params, StateTable *table, QVariantList &dataValues, QStringList &dataNames);
 };
 
 struct SCXML_EXPORT DoneData {

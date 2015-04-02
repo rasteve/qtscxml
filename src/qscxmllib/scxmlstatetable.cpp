@@ -135,7 +135,7 @@ public:
                                             }).toUtf8();
         }
 
-        QVariantList datas;
+        QVariantList dataValues;
         QStringList dataNames;
         if (params.isEmpty()) {
             QVariant data;
@@ -149,12 +149,12 @@ public:
                                            }, QString::null);
             }
             if (!data.isNull()) // if evaluation of expr failed, this will be a null value, which in turn means no data property is set on the event. See e.g. test528.
-                datas.append(data);
+                dataValues.append(data);
         } else {
-            if (!ExecutableContent::Param::evaluate(params, table, datas, dataNames)) {
+            if (!ExecutableContent::Param::evaluate(params, table, dataValues, dataNames)) {
                 // If the evaluation of the <param> tags fails, set _event.data to an empty string.
                 // See test488.
-                datas = QVariantList() << QLatin1String("");
+                dataValues = QVariantList() << QLatin1String("");
                 dataNames.clear();
             }
         }
@@ -183,7 +183,7 @@ public:
                                              });
         }
 
-        return new ScxmlEvent(eventName, eventType, datas, dataNames, sendid, origin, origintype);
+        return new ScxmlEvent(eventName, eventType, dataValues, dataNames, sendid, origin, origintype);
     }
 };
 
@@ -375,7 +375,7 @@ void Send::execute()
     }
 }
 
-bool Param::evaluate(StateTable *table, QVariantList &datas, QStringList &dataNames) const
+bool Param::evaluate(StateTable *table, QVariantList &dataValues, QStringList &dataNames) const
 {
     bool success = true;
     if (!expr.isEmpty()) {
@@ -383,10 +383,10 @@ bool Param::evaluate(StateTable *table, QVariantList &datas, QStringList &dataNa
             success = false;
             return QStringLiteral("param with expr %1").arg(expr);
         }).toVariant();
-        datas.append(v);
+        dataValues.append(v);
         dataNames.append(name);
     } else if (!location.isEmpty()) {
-        datas.append(table->datamodelJSValues().property(location).toVariant());
+        dataValues.append(table->datamodelJSValues().property(location).toVariant());
         dataNames.append(name);
     } else {
         success = false;
@@ -394,10 +394,10 @@ bool Param::evaluate(StateTable *table, QVariantList &datas, QStringList &dataNa
     return success;
 }
 
-bool Param::evaluate(const QVector<Param> &params, StateTable *table, QVariantList &datas, QStringList &dataNames)
+bool Param::evaluate(const QVector<Param> &params, StateTable *table, QVariantList &dataValues, QStringList &dataNames)
 {
     for (const Param &p: params) {
-        if (!p.evaluate(table, datas, dataNames))
+        if (!p.evaluate(table, dataValues, dataNames))
             return false;
     }
 
@@ -926,14 +926,14 @@ void StateTable::submitEvent(ScxmlEvent *e)
         queueEvent(e);
 }
 
-void StateTable::submitEvent(const QByteArray &event, const QVariantList &datas,
+void StateTable::submitEvent(const QByteArray &event, const QVariantList &dataValues,
                              const QStringList &dataNames, ScxmlEvent::EventType type,
                              const QByteArray &sendid, const QString &origin,
                              const QString &origintype, const QByteArray &invokeid)
 {
     qCDebug(scxmlLog) << _name << ": submitting event" << event;
 
-    ScxmlEvent *e = new ScxmlEvent(event, type, datas, dataNames, sendid, origin, origintype, invokeid);
+    ScxmlEvent *e = new ScxmlEvent(event, type, dataValues, dataNames, sendid, origin, origintype, invokeid);
     submitEvent(e);
 }
 
@@ -983,10 +983,10 @@ void StateTable::onStarted()
 }
 
 ScxmlEvent::ScxmlEvent(const QByteArray &name, ScxmlEvent::EventType eventType,
-                       const QVariantList &datas, const QStringList &dataNames,
+                       const QVariantList &dataValues, const QStringList &dataNames,
                        const QByteArray &sendid, const QString &origin,
                        const QString &origintype, const QByteArray &invokeid)
-    : QEvent(scxmlEventType), m_name(name), m_type(eventType), m_datas(datas), m_dataNames(dataNames)
+    : QEvent(scxmlEventType), m_name(name), m_type(eventType), m_dataValues(dataValues), m_dataNames(dataNames)
     , m_sendid(sendid), m_origin(origin), m_origintype(origintype), m_invokeid(invokeid)
 { }
 
@@ -1004,10 +1004,10 @@ QString ScxmlEvent::scxmlType() const {
 
 QJSValue ScxmlEvent::data(QJSEngine *engine) const {
     if (dataNames().isEmpty()) {
-        if (datas().size() == 0) {
+        if (dataValues().size() == 0) {
             return QJSValue(QJSValue::NullValue);
-        } else if (datas().size() == 1) {
-            QString data = datas().first().toString();
+        } else if (dataValues().size() == 1) {
+            QString data = dataValues().first().toString();
             QJsonParseError err;
             QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8(), &err);
             if (err.error == QJsonParseError::NoError)
@@ -1021,15 +1021,15 @@ QJSValue ScxmlEvent::data(QJSEngine *engine) const {
     } else {
         auto data = engine->newObject();
 
-        for (int i = 0, ei = std::min(dataNames().size(), datas().size()); i != ei; ++i) {
-            data.setProperty(dataNames().at(i), engine->toScriptValue(datas().at(i)));
+        for (int i = 0, ei = std::min(dataNames().size(), dataValues().size()); i != ei; ++i) {
+            data.setProperty(dataNames().at(i), engine->toScriptValue(dataValues().at(i)));
         }
 
         return data;
     }
 }
 
-void ScxmlEvent::reset(const QByteArray &name, ScxmlEvent::EventType eventType, QVariantList datas,
+void ScxmlEvent::reset(const QByteArray &name, ScxmlEvent::EventType eventType, QVariantList dataValues,
                        const QByteArray &sendid, const QString &origin,
                        const QString &origintype, const QByteArray &invokeid) {
     m_name = name;
@@ -1038,7 +1038,7 @@ void ScxmlEvent::reset(const QByteArray &name, ScxmlEvent::EventType eventType, 
     m_origin = origin;
     m_origintype = origintype;
     m_invokeid = invokeid;
-    m_datas = datas;
+    m_dataValues = dataValues;
 }
 
 void ScxmlEvent::clear() {
@@ -1048,7 +1048,7 @@ void ScxmlEvent::clear() {
     m_origin = QString();
     m_origintype = QString();
     m_invokeid = QByteArray();
-    m_datas = QVariantList();
+    m_dataValues = QVariantList();
 }
 
 QJSValue ScxmlEvent::jsValue(QJSEngine *engine) const {

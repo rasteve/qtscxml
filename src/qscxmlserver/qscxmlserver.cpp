@@ -216,7 +216,7 @@ bool Session::handleRequest(QTcpSocket *socket, const QJsonDocument &request) {
             else if (typeStr.compare(QLatin1String("external"), Qt::CaseInsensitive) != 0)
                 qCWarning(scxmlServerLog) << "unexpected event type in " << request.toJson();
         }
-        QVariantList datas;
+        QVariantList dataValues;
         QStringList dataNames;
         // remove ifs and rely on defaults?
         if (event.contains(QLatin1String("data"))) {
@@ -225,10 +225,10 @@ bool Session::handleRequest(QTcpSocket *socket, const QJsonDocument &request) {
                 QJsonObject dataObj = dataVal.toObject();
                 for (QJsonObject::const_iterator i = dataObj.constBegin(); i != dataObj.constEnd(); ++i) {
                     dataNames.append(i.key());
-                    datas.append(i.value().toVariant());
+                    dataValues.append(i.value().toVariant());
                 }
             } else {
-                datas.append(dataVal.toVariant());
+                dataValues.append(dataVal.toVariant());
             }
         }
         QByteArray sendid;
@@ -244,7 +244,7 @@ bool Session::handleRequest(QTcpSocket *socket, const QJsonDocument &request) {
         if (event.contains(QLatin1String("invokeid")))
             invokeid = event.value(QLatin1String("invokeid")).toString().toUtf8();
         qCDebug(scxmlServerLog) << "submitting event" << eventName;
-        stateMachine->submitEvent(eventName, datas, dataNames, type, sendid, origin, origintype, invokeid);
+        stateMachine->submitEvent(eventName, dataValues, dataNames, type, sendid, origin, origintype, invokeid);
         return true;
     } else {
         Server::writeHead(socket, 500, "Content-Type", "text/plain");

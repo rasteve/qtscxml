@@ -302,7 +302,7 @@ static bool playEvent(StateTable *stateMachine, const QJsonObject &eventDescript
             return false;
         }
     }
-    QVariantList datas;
+    QVariantList dataValues;
     QStringList dataNames;
     // remove ifs and rely on defaults?
     if (event.contains(QLatin1String("data"))) {
@@ -311,10 +311,10 @@ static bool playEvent(StateTable *stateMachine, const QJsonObject &eventDescript
             QJsonObject dataObj = dataVal.toObject();
             for (QJsonObject::const_iterator i = dataObj.constBegin(); i != dataObj.constEnd(); ++i) {
                 dataNames.append(i.key());
-                datas.append(i.value().toVariant());
+                dataValues.append(i.value().toVariant());
             }
         } else {
-            datas.append(dataVal.toVariant());
+            dataValues.append(dataVal.toVariant());
         }
     }
     QByteArray sendid;
@@ -329,7 +329,7 @@ static bool playEvent(StateTable *stateMachine, const QJsonObject &eventDescript
     QByteArray invokeid;
     if (event.contains(QLatin1String("invokeid")))
         invokeid = event.value(QLatin1String("invokeid")).toString().toUtf8();
-    stateMachine->submitEvent(eventName, datas, dataNames, type, sendid, origin, origintype, invokeid);
+    stateMachine->submitEvent(eventName, dataValues, dataNames, type, sendid, origin, origintype, invokeid);
 
     if (!MySignalSpy(stateMachine, SIGNAL(reachedStableState(bool))).fastWait()) {
         qWarning() << "State machine did not reach a stable state!";
