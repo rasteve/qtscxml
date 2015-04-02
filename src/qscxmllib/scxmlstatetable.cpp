@@ -1145,7 +1145,13 @@ bool ScxmlBaseTransition::eventTest(QEvent *event) {
     StateTable *stateTable = table();
     QByteArray eventName = stateTable->_event.name();
     bool selected = false;
-    foreach (const QByteArray &eventStr, eventSelector) {
+    foreach (QByteArray eventStr, eventSelector) {
+        if (eventStr == "*") {
+            selected = true;
+            break;
+        }
+        if (eventStr.endsWith(".*"))
+            eventStr.chop(2);
         if (eventName.startsWith(eventStr)) {
             char nextC = '.';
             if (eventName.size() > eventStr.size())

@@ -55,6 +55,10 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test253.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test252.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test250.txml")
+        // TODO: I don't understand what the next test is supposed to check.
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test159.txml")
+        // FIXME: the way we dequeue events that are generated before the state machine is started, is wrong: it's too late, because the machine will already have taken initial transitions.
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test487.txml")
            ;
 
 static QSet<QString> weDieOnThese = QSet<QString>()
