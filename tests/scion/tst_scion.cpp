@@ -109,7 +109,6 @@ static QSet<QString> weDieOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/history/history5") // infinite loop?
         << QLatin1String("scion-tests/scxml-test-framework/test/send-internal/test0") // namelist attr in <send> is ignored?
         << QLatin1String("scion-tests/scxml-test-framework/test/send-data/send1") // namelist again
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test330.txml") // bug in parser for required version?
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test331.txml") // bug: _event.type set incorrectly?
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test332.txml") // bug: sendid in error events
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test336.txml") // bug: JS error in targetexpr
@@ -154,6 +153,7 @@ static QSet<QString> differentSemantics = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test506.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test505.txml")
         // internal event by <raise>
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test330.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test421.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test423.txml")
         // internal event by raising an error
