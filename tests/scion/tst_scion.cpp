@@ -23,7 +23,7 @@
 
 #include "../3rdparty/scion.h"
 
-enum { SpyWaitTime = 5000 };
+enum { SpyWaitTime = 8000 };
 
 static QSet<QString> weFailOnThese = QSet<QString>()
         // The following test needs manual inspection of the result. However, note that we do not support multiple identical keys for event data.
@@ -108,12 +108,9 @@ static QSet<QString> weDieOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/history/history3") // infinite loop?
         << QLatin1String("scion-tests/scxml-test-framework/test/history/history5") // infinite loop?
         << QLatin1String("scion-tests/scxml-test-framework/test/send-data/send1") // test suite problem: we expect every stable configuration to be listed.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test342.txml") // bug in eventexpr?
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test364.txml") // initial attribute on <state>
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test387.txml") // crash due to assert in the parser
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test388.txml") // same as 387
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test208.txml") // <cancel> seems to have a problem
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test210.txml") // sendidexpr attribute in <cancel>
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test403a.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test403c.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test521.txml") // undispatchable event
@@ -350,7 +347,7 @@ static bool playEvent(StateTable *stateMachine, const QJsonObject &eventDescript
         stateMachine->submitEvent(e);
     }
 
-    if (!MySignalSpy(stateMachine, SIGNAL(reachedStableState(bool))).wait()) {
+    if (!MySignalSpy(stateMachine, SIGNAL(reachedStableState(bool))).fastWait()) {
         qWarning() << "State machine did not reach a stable state!";
     } else if (verifyStates(stateMachine, eventDescription, QLatin1String("nextConfiguration"), counter)) {
         return true;
