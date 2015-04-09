@@ -107,7 +107,7 @@ static QSet<QString> weDieOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send3")
         << QLatin1String("scion-tests/scxml-test-framework/test/history/history3") // infinite loop?
         << QLatin1String("scion-tests/scxml-test-framework/test/history/history5") // infinite loop?
-        << QLatin1String("scion-tests/scxml-test-framework/test/send-data/send1") // namelist again
+        << QLatin1String("scion-tests/scxml-test-framework/test/send-data/send1") // test suite problem: we expect every stable configuration to be listed.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test342.txml") // bug in eventexpr?
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test364.txml") // initial attribute on <state>
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test387.txml") // crash due to assert in the parser
@@ -277,7 +277,7 @@ static QList<QByteArray> getStates(const QJsonObject &obj, const QString &key)
     return states;
 }
 
-static bool verifyStates(StateTable *stateMachine, const QJsonObject &stateDescription, const QString &key)
+static bool verifyStates(StateTable *stateMachine, const QJsonObject &stateDescription, const QString &key, int counter)
 {
     auto current = stateMachine->currentStates();
     std::sort(current.begin(), current.end());
@@ -285,13 +285,13 @@ static bool verifyStates(StateTable *stateMachine, const QJsonObject &stateDescr
     if (current == expected)
         return true;
 
-    qWarning() << "Incorrect" << key << "!";
+    qWarning("Incorrect %s (%d)!", qPrintable(key), counter);
     qWarning() << "Current configuration:" << current;
     qWarning() << "Expected configuration:" << expected;
     return false;
 }
 
-static bool playEvent(StateTable *stateMachine, const QJsonObject &eventDescription)
+static bool playEvent(StateTable *stateMachine, const QJsonObject &eventDescription, int counter)
 {
     if (!stateMachine->isRunning()) {
         qWarning() << "State machine stopped running!";
@@ -341,12 +341,20 @@ static bool playEvent(StateTable *stateMachine, const QJsonObject &eventDescript
     QByteArray invokeid;
     if (event.contains(QLatin1String("invokeid")))
         invokeid = event.value(QLatin1String("invokeid")).toString().toUtf8();
-    stateMachine->submitEvent(eventName, dataValues, dataNames, type, sendid, origin, origintype, invokeid);
+    ScxmlEvent *e = new ScxmlEvent(eventName, type, dataValues, dataNames, sendid, origin, origintype, invokeid);
+    if (eventDescription.contains(QLatin1String("after"))) {
+        int delay = eventDescription.value(QLatin1String("after")).toInt();
+        Q_ASSERT(delay > 0);
+        stateMachine->submitDelayedEvent(delay, e);
+    } else {
+        stateMachine->submitEvent(e);
+    }
 
-    if (!MySignalSpy(stateMachine, SIGNAL(reachedStableState(bool))).fastWait()) {
+    if (!MySignalSpy(stateMachine, SIGNAL(reachedStableState(bool))).wait()) {
         qWarning() << "State machine did not reach a stable state!";
-    } else if (verifyStates(stateMachine, eventDescription, QLatin1String("nextConfiguration")))
+    } else if (verifyStates(stateMachine, eventDescription, QLatin1String("nextConfiguration"), counter)) {
         return true;
+    }
 
     qWarning() << "... after sending event" << event;
     return false;
@@ -358,7 +366,7 @@ static bool playEvents(StateTable *stateMachine, const QJsonObject &testDescript
     Q_ASSERT(!jsonEvents.isNull());
     auto eventsArray = jsonEvents.toArray();
     for (int i = 0, ei = eventsArray.size(); i != ei; ++i) {
-        if (!playEvent(stateMachine, eventsArray.at(i).toObject()))
+        if (!playEvent(stateMachine, eventsArray.at(i).toObject(), i + 1))
             return false;
     }
     return true;
@@ -384,14 +392,14 @@ bool TestScion::runTest(StateTable *stateMachine, const QJsonObject &testDescrip
             return false;
         }
 
-        if (!verifyStates(stateMachine, testDescription, QLatin1String("initialConfiguration")))
+        if (!verifyStates(stateMachine, testDescription, QLatin1String("initialConfiguration"), 0))
             return false;
 
         return playEvents(stateMachine, testDescription);
     } else {
         // Wait for all events (delayed or otherwise) to propagate.
         finishedSpy.fastWait(); // Some tests don't have a final state, so don't check for the result.
-        return verifyStates(stateMachine, testDescription, QLatin1String("initialConfiguration"));
+        return verifyStates(stateMachine, testDescription, QLatin1String("initialConfiguration"), 0);
     }
 }
 
