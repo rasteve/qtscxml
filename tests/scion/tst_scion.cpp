@@ -35,6 +35,10 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test558.txml")
         // FIXME: Currently we do not support loading scripts from a src.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test301.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/script-src/test0")
+        << QLatin1String("scion-tests/scxml-test-framework/test/script-src/test1")
+        << QLatin1String("scion-tests/scxml-test-framework/test/script-src/test2")
+        << QLatin1String("scion-tests/scxml-test-framework/test/script-src/test3")
         // A nested state machine is used, which we do not support.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test187.txml")
         // We do not support the optional basic http event i/o processor.
@@ -51,35 +55,6 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test303.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test302.txml")
         // We do not (yet?) support invoke.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test276.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test253.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test252.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test250.txml")
-        // TODO: I don't understand what the next test is supposed to check.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test159.txml")
-        // FIXME: the way we dequeue events that are generated before the state machine is started, is wrong: it's too late, because the machine will already have taken initial transitions.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test487.txml")
-           ;
-
-static QSet<QString> weDieOnThese = QSet<QString>()
-        << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send1")
-        << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send2")
-        << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send3")
-        << QLatin1String("scion-tests/scxml-test-framework/test/foreach/test1")
-        << QLatin1String("scion-tests/scxml-test-framework/test/history/history3") // infinite loop?
-        << QLatin1String("scion-tests/scxml-test-framework/test/history/history5") // infinite loop?
-        << QLatin1String("scion-tests/scxml-test-framework/test/send-data/send1")
-        << QLatin1String("scion-tests/scxml-test-framework/test/send-internal/test0")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test144.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test147.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test150.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test151.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test152.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test153.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test155.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test156.txml")
-           // the ones below here require <send> to work
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test210.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test215.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test216.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test220.txml")
@@ -96,52 +71,67 @@ static QSet<QString> weDieOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test235.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test236.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test237.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test238.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test239.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test240.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test241.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test242.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test243.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test244.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test245.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test247.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test330.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test331.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test332.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test333.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test336.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test242.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test276.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test253.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test252.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test250.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test338.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test342.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test364.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test372.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test376.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test378.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test387.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test388.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test399.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test401.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test402.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test403a.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test403c.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test405.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test406.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test409.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test411.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test412.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test416.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test417.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test419.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test421.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test422.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test423.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test521.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test530.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test554.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test560.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test562.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test570.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test576.txml")
-           // <foreach>
+        // TODO: I don't understand what the next test is supposed to check.
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test159.txml")
+        // FIXME: the way we dequeue events that are generated before the state machine is started, is wrong: it's too late, because the machine will already have taken initial transitions.
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test487.txml")
+        // FIXME: UNKNOWN PROBLEM
+        << QLatin1String("scion-tests/scxml-test-framework/test/parallel+interrupt/test7")
+        << QLatin1String("scion-tests/scxml-test-framework/test/parallel+interrupt/test21")
+        << QLatin1String("scion-tests/scxml-test-framework/test/parallel+interrupt/test26")
+        << QLatin1String("scion-tests/scxml-test-framework/test/more-parallel/test2")
+        << QLatin1String("scion-tests/scxml-test-framework/test/more-parallel/test3")
+        << QLatin1String("scion-tests/scxml-test-framework/test/more-parallel/test6")
+           ;
+
+static QSet<QString> weDieOnThese = QSet<QString>()
+        << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send1")
+        << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send2")
+        << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send3")
+        << QLatin1String("scion-tests/scxml-test-framework/test/history/history3") // infinite loop?
+        << QLatin1String("scion-tests/scxml-test-framework/test/history/history5") // infinite loop?
+        << QLatin1String("scion-tests/scxml-test-framework/test/send-internal/test0") // namelist attr in <send> is ignored?
+        << QLatin1String("scion-tests/scxml-test-framework/test/send-data/send1") // namelist again
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test330.txml") // bug in parser for required version?
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test331.txml") // bug: _event.type set incorrectly?
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test332.txml") // bug: sendid in error events
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test336.txml") // bug: JS error in targetexpr
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test342.txml") // bug in eventexpr?
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test364.txml") // initial attribute on <state>
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test387.txml") // crash due to assert in the parser
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test388.txml") // same as 387
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test208.txml") // <cancel> seems to have a problem
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test210.txml") // sendidexpr attribute in <cancel>
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test403a.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test403c.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test521.txml") // undispatchable event
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test562.txml") // space normalization
+        // TODO: we don't implement <foreach> yet.
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test150.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test151.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test152.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test153.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test155.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test156.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test525.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/foreach/test1")
            ;
 
 static QSet<QString> differentSemantics = QSet<QString>()
@@ -158,13 +148,21 @@ static QSet<QString> differentSemantics = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test329.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test346.txml")
         // Qt does not support internal transitions:
+        << QLatin1String("scion-tests/scxml-test-framework/test/internal-transitions/test0")
+        << QLatin1String("scion-tests/scxml-test-framework/test/internal-transitions/test1")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test533.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test506.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test505.txml")
+        // internal event by <raise>
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test421.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test423.txml")
+        // internal event by raising an error
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test401.txml")
         // Scion apparently sets <data> values without a src/expr attribute to 0. We set it to undefined, as specified in B.2.1.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test456.txml") // replaced by modified_test456
         // Qt does not support forcing initial states that are not marked as such.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test413.txml") // FIXME: verify initial state setting...
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test576.txml")
         ;
 
 class MySignalSpy: public QSignalSpy

@@ -804,7 +804,8 @@ void StateTablePrivate::emitStateFinished(QState *forState, QFinalState *guiltyS
             return;
         const ExecutableContent::DoneData &doneData = finalState->doneData;
 
-        const auto eventName = QByteArray("done.state.") + forState->objectName().toUtf8();
+        QByteArray eventName = forState->objectName().toUtf8();
+        eventName.prepend("done.state.");
         EventBuilder event(q, QStringLiteral("<final>"), eventName, doneData);
         q->submitEvent(event());
     }
