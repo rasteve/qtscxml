@@ -81,7 +81,7 @@ class EventBuilder
     QString contentExpr;
     QVector<ExecutableContent::Param> params;
     ScxmlEvent::EventType eventType = ScxmlEvent::External;
-    QString id;
+    QByteArray id;
     QString idLocation;
     QString target;
     QString targetexpr;
@@ -95,6 +95,9 @@ class EventBuilder
         id.prepend("id-");
         return id;
     }
+
+    EventBuilder()
+    {}
 
 public:
     EventBuilder(StateTable *table, const QString &instructionLocation, const QByteArray &event,
@@ -114,7 +117,7 @@ public:
         , eventexpr(send.eventexpr)
         , contents(send.content)
         , params(send.params)
-        , id(send.id)
+        , id(send.id.toUtf8())
         , idLocation(send.idLocation)
         , target(send.target)
         , targetexpr(send.targetexpr)
@@ -159,7 +162,7 @@ public:
             }
         }
 
-        QByteArray sendid = id.toUtf8();
+        QByteArray sendid = id;
         if (!idLocation.isEmpty()) {
             sendid = generateId();
             table->datamodelJSValues().setProperty(idLocation, QString::fromUtf8(sendid));
@@ -177,7 +180,8 @@ public:
             // [6.2.4] and test194
             table->submitError(QByteArray("error.execution"),
                                QStringLiteral("Error in %1: %2 is not a supported target")
-                               .arg(instructionLocation, origin));
+                               .arg(instructionLocation, origin),
+                               sendid);
             return nullptr;
         }
 
@@ -197,11 +201,22 @@ public:
             // [6.2.5] and test199
             table->submitError(QByteArray("error.execution"),
                                QStringLiteral("Error in %1: %2 is not a valid type")
-                               .arg(instructionLocation, origintype));
+                               .arg(instructionLocation, origintype),
+                               sendid);
             return nullptr;
         }
 
         return new ScxmlEvent(eventName, eventType, dataValues, dataNames, sendid, origin, origintype);
+    }
+
+    static ScxmlEvent *errorEvent(const QByteArray &name, const QByteArray &sendid)
+    {
+        EventBuilder event;
+        event.event = name;
+        event.eventType = ScxmlEvent::Platform; // Errors are platform events. See e.g. test331.
+        // _event.data == null, see test528
+        event.id = sendid;
+        return event();
     }
 };
 
@@ -277,7 +292,8 @@ void JavaScript::execute()
     qCDebug(scxmlLog) << "executing:" << source;
     QJSValue res = compiledFunction.callWithInstance(t->datamodelJSValues());
     if (res.isError()) {
-        t->submitError(QByteArray("error.execution"), QStringLiteral("%1 in %2").arg(res.toString(), instructionLocation()));
+        t->submitError(QByteArray("error.execution"), QStringLiteral("%1 in %2").arg(res.toString(), instructionLocation()),
+                       /*sendid =*/ QByteArray());
     } else {
         qCDebug(scxmlLog) << "result:" << res.toVariant();
     }
@@ -298,7 +314,8 @@ void AssignExpression::execute()
     } else {
         table()->submitError(QByteArray("error.execution"),
                              QStringLiteral("Error in %1: location '%2' does not exist.")
-                             .arg(instructionLocation(), location));
+                             .arg(instructionLocation(), location),
+                             /*sendid =*/ QByteArray());
     }
 }
 
@@ -434,7 +451,8 @@ bool Param::evaluate(StateTable *table, QVariantList &dataValues, QStringList &d
         } else {
             table->submitError(QByteArray("error.execution"),
                                QStringLiteral("Error in <param>: %1 is not a valid location")
-                               .arg(location));
+                               .arg(location),
+                               /*sendid =*/ QByteArray());
         }
     } else {
         success = false;
@@ -622,7 +640,8 @@ QString StateTable::evalValueStr(const QString &expr, std::function<QString()> c
                                  QStringLiteral("<expr>"), 1);
         if (v.isError()) {
             submitError(QByteArray("error.execution"),
-                        QStringLiteral("%1 in %2").arg(v.toString(), context()));
+                        QStringLiteral("%1 in %2").arg(v.toString(), context()),
+                        /*sendid =*/ QByteArray());
         } else {
             return v.toString();
         }
@@ -638,7 +657,8 @@ int StateTable::evalValueInt(const QString &expr, std::function<QString()> conte
                                  QStringLiteral("<expr>"), 1);
         if (v.isError()) {
             submitError(QByteArray("error.execution"),
-                        QStringLiteral("%1 in %2").arg(v.toString(), context()));
+                        QStringLiteral("%1 in %2").arg(v.toString(), context()),
+                        /*sendid =*/ QByteArray());
         } else {
             return v.toInt();
         }
@@ -654,7 +674,8 @@ bool StateTable::evalValueBool(const QString &expr, std::function<QString()> con
                                  QStringLiteral("<expr>"), 1);
         if (v.isError()) {
             submitError(QByteArray("error.execution"),
-                        QStringLiteral("%1 in %2").arg(v.toString(), context()));
+                        QStringLiteral("%1 in %2").arg(v.toString(), context()),
+                        /*sendid =*/ QByteArray());
         } else {
             return v.toBool();
         }
@@ -670,7 +691,8 @@ QJSValue StateTable::evalJSValue(const QString &expr, std::function<QString()> c
     if (v.isError() && !noRaise) {
         submitError(QByteArray("error.execution"),
                     QStringLiteral("Error in %1: %2\n<expr>:'%3'")
-                    .arg(context(), v.toString(), getData));
+                    .arg(context(), v.toString(), getData),
+                    /*sendid =*/ QByteArray());
         v = defaultValue;
     }
     return v;
@@ -974,11 +996,10 @@ void StateTable::setEngine(QJSEngine *engine)
         m_dataModelJSValues = engine->globalObject();
 }
 
-void StateTable::submitError(const QByteArray &type, const QString &msg)
+void StateTable::submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid)
 {
     qCDebug(scxmlLog) << "machine " << _name << " had error " << type << ":" << msg;
-    auto e = new ScxmlEvent(type, ScxmlEvent::Platform); // Errors are platform events. See e.g. test331.
-    submitEvent(e); // _event.data == null, see test528
+    submitEvent(EventBuilder::errorEvent(type, sendid));
 }
 
 void StateTable::submitEvent(ScxmlEvent *e)
@@ -1131,15 +1152,15 @@ QJSValue ScxmlEvent::jsValue(QJSEngine *engine) const {
     if (!dataValue.isNull())
         res.setProperty(QStringLiteral("data"), dataValue);
     if (!invokeid().isEmpty())
-        res.setProperty(QStringLiteral("invokeid"), engine->toScriptValue(invokeid()) );
+        res.setProperty(QStringLiteral("invokeid"), engine->toScriptValue(QString::fromUtf8(invokeid())));
     if (!origintype().isEmpty())
-        res.setProperty(QStringLiteral("origintype"), engine->toScriptValue(origintype()) );
+        res.setProperty(QStringLiteral("origintype"), engine->toScriptValue(origintype()));
     if (!origin().isEmpty())
         res.setProperty(QStringLiteral("origin"), engine->toScriptValue(origin()) );
     if (!sendid().isEmpty())
-        res.setProperty(QStringLiteral("sendid"), engine->toScriptValue(sendid()) );
-    res.setProperty(QStringLiteral("type"), engine->toScriptValue(scxmlType()) );
-    res.setProperty(QStringLiteral("name"), engine->toScriptValue(name()) );
+        res.setProperty(QStringLiteral("sendid"), engine->toScriptValue(QString::fromUtf8(sendid())));
+    res.setProperty(QStringLiteral("type"), engine->toScriptValue(scxmlType()));
+    res.setProperty(QStringLiteral("name"), engine->toScriptValue(QString::fromUtf8(name())));
     res.setProperty(QStringLiteral("raw"), QStringLiteral("unsupported")); // See test178
                                                                            // TODO: document this
     return res;

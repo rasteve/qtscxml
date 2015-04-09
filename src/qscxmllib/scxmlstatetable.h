@@ -280,7 +280,7 @@ public:
     QJSEngine *engine() const;
     void setEngine(QJSEngine *engine);
 
-    Q_INVOKABLE void submitError(const QByteArray &type, const QString &msg);
+    Q_INVOKABLE void submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid);
 
     Q_INVOKABLE void submitEvent1(const QString &event) {
         submitEvent(event.toUtf8(), QVariantList());
