@@ -107,7 +107,6 @@ static QSet<QString> weDieOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send3")
         << QLatin1String("scion-tests/scxml-test-framework/test/history/history3") // infinite loop?
         << QLatin1String("scion-tests/scxml-test-framework/test/history/history5") // infinite loop?
-        << QLatin1String("scion-tests/scxml-test-framework/test/send-internal/test0") // namelist attr in <send> is ignored?
         << QLatin1String("scion-tests/scxml-test-framework/test/send-data/send1") // namelist again
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test342.txml") // bug in eventexpr?
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test364.txml") // initial attribute on <state>

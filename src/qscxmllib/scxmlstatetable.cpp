@@ -87,6 +87,7 @@ class EventBuilder
     QString targetexpr;
     QString type;
     QString typeexpr;
+    QStringList namelist;
 
     static QAtomicInt idCounter;
     QByteArray generateId() const
@@ -123,6 +124,7 @@ public:
         , targetexpr(send.targetexpr)
         , type(send.type)
         , typeexpr(send.typeexpr)
+        , namelist(send.namelist)
     {}
 
     ScxmlEvent *operator()() { return buildEvent(); }
@@ -140,7 +142,7 @@ public:
 
         QVariantList dataValues;
         QStringList dataNames;
-        if (params.isEmpty()) {
+        if (params.isEmpty() && namelist.isEmpty()) {
             QVariant data;
             if (contentExpr.isEmpty()) {
                 data = contents;
@@ -154,7 +156,12 @@ public:
             if (!data.isNull()) // if evaluation of expr failed, this will be a null value, which in turn means no data property is set on the event. See e.g. test528.
                 dataValues.append(data);
         } else {
-            if (!ExecutableContent::Param::evaluate(params, table, dataValues, dataNames)) {
+            if (ExecutableContent::Param::evaluate(params, table, dataValues, dataNames)) {
+                foreach (const QString &name, namelist) {
+                    dataNames << name;
+                    dataValues << table->datamodelJSValues().property(name).toVariant();
+                }
+            } else {
                 // If the evaluation of the <param> tags fails, set _event.data to an empty string.
                 // See test488.
                 dataValues = QVariantList() << QLatin1String("");

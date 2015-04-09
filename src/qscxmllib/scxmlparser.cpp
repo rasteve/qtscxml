@@ -428,7 +428,8 @@ void ScxmlParser::parse()
                 send->typeexpr = attributes.value(QLatin1String("typeexpr")).toString();
                 send->target = attributes.value(QLatin1String("target")).toString();
                 send->targetexpr = attributes.value(QLatin1String("targetexpr")).toString();
-                send->namelist = attributes.value(QLatin1String("namelist")).toString().split(QLatin1Char(' '));
+                if (attributes.hasAttribute(QLatin1String("namelist")))
+                    send->namelist = attributes.value(QLatin1String("namelist")).toString().split(QLatin1Char(' '));
                 pNew.instruction = send;
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("cancel")) {
