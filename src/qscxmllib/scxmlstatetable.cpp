@@ -974,6 +974,13 @@ void StateTable::setEngine(QJSEngine *engine)
         m_dataModelJSValues = engine->globalObject();
 }
 
+void StateTable::submitError(const QByteArray &type, const QString &msg)
+{
+    qCDebug(scxmlLog) << "machine " << _name << " had error " << type << ":" << msg;
+    auto e = new ScxmlEvent(type, ScxmlEvent::Platform); // Errors are platform events. See e.g. test331.
+    submitEvent(e); // _event.data == null, see test528
+}
+
 void StateTable::submitEvent(ScxmlEvent *e)
 {
     if (!e)

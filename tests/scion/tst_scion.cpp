@@ -109,7 +109,6 @@ static QSet<QString> weDieOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/history/history5") // infinite loop?
         << QLatin1String("scion-tests/scxml-test-framework/test/send-internal/test0") // namelist attr in <send> is ignored?
         << QLatin1String("scion-tests/scxml-test-framework/test/send-data/send1") // namelist again
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test331.txml") // bug: _event.type set incorrectly?
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test332.txml") // bug: sendid in error events
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test336.txml") // bug: JS error in targetexpr
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test342.txml") // bug in eventexpr?
