@@ -176,7 +176,11 @@ public:
                                              .arg(instructionLocation, targetexpr);
                                          });
         }
-        if (!origin.isEmpty() && !table->isSupportedTarget(origin)) {
+        if (origin.isEmpty()) {
+            if (eventType == ScxmlEvent::External) {
+                origin = QStringLiteral("#_internal");
+            }
+        } else if (!table->isSupportedTarget(origin)) {
             // [6.2.4] and test194
             table->submitError(QByteArray("error.execution"),
                                QStringLiteral("Error in %1: %2 is not a supported target")
