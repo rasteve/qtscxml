@@ -15,3 +15,5 @@ moc_*.cpp
 tst_cppgen
 qrc_*.cpp
 tst_scion
+.qmake.cache
+*.pch
