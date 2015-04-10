@@ -109,8 +109,8 @@ static QSet<QString> weDieOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/history/history5") // infinite loop?
         << QLatin1String("scion-tests/scxml-test-framework/test/send-data/send1") // test suite problem: we expect every stable configuration to be listed.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test364.txml") // initial attribute on <state>
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test387.txml") // crash due to assert in the parser
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test388.txml") // same as 387
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test388.txml") // Qt refuses to set an initial state to a "deep" state
+        << QLatin1String("scion-tests/scxml-test-framework/test/history/history4") // infinite loop with history state?
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test403a.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test403c.txml")
         // TODO: we don't implement <foreach> yet.
@@ -125,12 +125,6 @@ static QSet<QString> weDieOnThese = QSet<QString>()
            ;
 
 static QSet<QString> differentSemantics = QSet<QString>()
-        // Qt does not support initial transitions in a history state:
-        << QLatin1String("scion-tests/scxml-test-framework/test/history/history0")
-        << QLatin1String("scion-tests/scxml-test-framework/test/history/history1")
-        << QLatin1String("scion-tests/scxml-test-framework/test/history/history2")
-        << QLatin1String("scion-tests/scxml-test-framework/test/history/history4")
-        << QLatin1String("scion-tests/scxml-test-framework/test/history/history6")
         // The data model does not mark the system variables as read-only:
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test322.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test324.txml")

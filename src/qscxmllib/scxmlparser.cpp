@@ -224,7 +224,16 @@ void ScxmlParser::parse()
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("transition")) {
                 if (!checkAttributes(attributes, "|event,cond,target,type")) return;
-                m_currentTransition = new ScxmlTransition(currentParent(),
+                QState *parentState = 0;
+                if (QHistoryState *parent = qobject_cast<QHistoryState*>(m_currentParent)) {
+                    // QHistoryState cannot have an initial transition, only an initial state.
+                    // So, work around that by creating an initial state, and add the transition to that.
+                    parentState = new ScxmlState(parent->parentState());
+                    parent->setDefaultState(parentState);
+                } else {
+                    parentState = currentParent();
+                }
+                m_currentTransition = new ScxmlTransition(parentState,
                                 attributes.value(QLatin1String("event")).toUtf8().split(' '),
                                 attributes.value(QLatin1String("target")).toUtf8().split(' '),
                                 attributes.value(QLatin1String("cond")).toString());
@@ -548,10 +557,17 @@ void ScxmlParser::parse()
             case ParserState::History:
                 m_currentState = m_currentParent = m_currentParent->parentState();
                 break;
-            case ParserState::Transition:
+            case ParserState::Transition: {
                 Q_ASSERT(m_currentTransition);
-                currentParent()->addTransition(m_currentTransition);
+                QState *fromState = 0;
+                if (QHistoryState *parent = qobject_cast<QHistoryState*>(m_currentParent)) {
+                    fromState = qobject_cast<ScxmlState *>(parent->defaultState());
+                } else {
+                    fromState = currentParent();
+                }
+                fromState->addTransition(m_currentTransition);
                 m_currentTransition = 0;
+            } break;
             case ParserState::OnEntry:
                 break;
             case ParserState::OnExit:
@@ -877,7 +893,6 @@ bool ParserState::validChild(ParserState::Kind parent, ParserState::Kind child)
         return false;
     case ParserState::History:
         return (child == ParserState::Transition);
-        return false;
     case ParserState::Raise:
         return false;
     case ParserState::If:

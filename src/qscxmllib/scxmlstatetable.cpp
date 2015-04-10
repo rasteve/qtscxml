@@ -1388,7 +1388,7 @@ bool ScxmlTransition::eventTest(QEvent *event)
         if (conditionalExp.isEmpty())
             return true;
 
-        qCDebug(scxmlLog) << table()->engine()->evaluate(QLatin1String("JSON.stringify(_event)")).toString();
+        qCDebug(scxmlLog) << qPrintable(table()->engine()->evaluate(QLatin1String("JSON.stringify(_event)")).toString());
         bool result = table()->evalValueBool(conditionalExp, [this]() -> QString {
                                                  return transitionLocation();
                                              });
