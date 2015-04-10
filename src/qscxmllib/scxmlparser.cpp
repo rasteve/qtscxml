@@ -612,10 +612,10 @@ void ScxmlParser::parse()
                     Q_ASSERT(!m_stack.isEmpty());
                     switch (m_stack.last().kind) {
                     case ParserState::DoneData: // see test529
-                        static_cast<ScxmlFinalState *>(m_currentState)->doneData.contents = p.chars;
+                        static_cast<ScxmlFinalState *>(m_currentState)->doneData.contents = p.chars.simplified();
                         break;
                     case ParserState::Send: // see test179
-                        static_cast<ExecutableContent::Send *>(m_stack.last().instruction)->content = p.chars;
+                        static_cast<ExecutableContent::Send *>(m_stack.last().instruction)->content = p.chars.simplified();
                         break;
                     default:
                         break;
@@ -639,7 +639,7 @@ void ScxmlParser::parse()
                         m_state = ParsingError;
                         return;
                     } else {
-                        data.expr = p.chars;
+                        data.expr = p.chars.simplified();
                     }
                 }
             } break;

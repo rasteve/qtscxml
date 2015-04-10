@@ -114,7 +114,6 @@ static QSet<QString> weDieOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test403a.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test403c.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test521.txml") // undispatchable event
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test562.txml") // space normalization
         // TODO: we don't implement <foreach> yet.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test150.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test151.txml")
