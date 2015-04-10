@@ -187,10 +187,17 @@ public:
             if (eventType == ScxmlEvent::External) {
                 origin = QStringLiteral("#_internal");
             }
-        } else if (!table->isSupportedTarget(origin)) {
-            // [6.2.4] and test194
+        } else if (!table->isLegalTarget(origin)) {
+            // [6.2.4] and test194.
             table->submitError(QByteArray("error.execution"),
-                               QStringLiteral("Error in %1: %2 is not a supported target")
+                               QStringLiteral("Error in %1: %2 is not a legal target")
+                               .arg(instructionLocation, origin),
+                               sendid);
+            return nullptr;
+        } else if (!table->isDispatchableTarget(origin)) {
+            // [6.2.4] and test521.
+            table->submitError(QByteArray("error.communication"),
+                               QStringLiteral("Error in %1: cannot dispatch to target '%2'")
                                .arg(instructionLocation, origin),
                                sendid);
             return nullptr;
@@ -1078,7 +1085,12 @@ void StateTable::submitQueuedEvents()
     }
 }
 
-bool StateTable::isSupportedTarget(const QString &target) const
+bool StateTable::isLegalTarget(const QString &target) const
+{
+    return target.startsWith(QLatin1Char('#'));
+}
+
+bool StateTable::isDispatchableTarget(const QString &target) const
 {
     return target == QStringLiteral("#_internal");
 }
