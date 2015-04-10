@@ -29,10 +29,10 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
     QStringList args = a.arguments();
-    QString usage = QStringLiteral("\nusage: %1 [-namespace <namespace>] [-o <base/out/name>] [-oh <header/out>] [-ocpp <cpp/out>] [-use-private-api]\n"
-                                   "      [-basename <stateMachineClassName>] [-name-qobjects] <input.scxml>\n\n"
-                                   "compiles the given input.scxml file to a header and cpp file\n")
-            .arg(QFileInfo(args.value(0)).baseName());
+    QString usage = QStringLiteral("\nusage: %1 [-namespace <namespace>] [-o <base/out/name>] [-oh <header/out>] [-ocpp <cpp/out>] [-use-private-api]\n").arg(QFileInfo(args.value(0)).baseName());
+           usage += QStringLiteral("      [-basename <stateMachineClassName>] [-name-qobjects] <input.scxml>\n\n");
+           usage += QStringLiteral("compiles the given input.scxml file to a header and cpp file\n");
+
     Scxml::CppDumpOptions options;
     QString scxmlFileName;
     QString outFileName;
