@@ -18,11 +18,19 @@
 #ifndef SCXMLGLOBALS_H
 #define SCXMLGLOBALS_H
 #include <qglobal.h>
-#ifdef SCXML_LIBRARY
-#define SCXML_EXPORT Q_DECL_EXPORT
-#else
-#define SCXML_EXPORT
+
+#ifndef SCXML_EXPORT
+#   ifndef QT_STATIC
+#       ifdef SCXML_LIBRARY
+#           define SCXML_EXPORT Q_DECL_EXPORT
+#       else
+#           define SCXML_EXPORT Q_DECL_IMPORT
+#       endif
+#   else
+#       define SCXML_EXPORT
+#   endif
 #endif
+
 #ifdef QT_DEBUG
 #define SCXML_DEBUG
 #endif
