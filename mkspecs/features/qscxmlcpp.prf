@@ -2,33 +2,48 @@ qtPrepareTool(QMAKE_QSCXMLCPP, qscxmlcpp)
 
 isEmpty(QSCXMLCPP_DIR):QSCXMLCPP_DIR = .
 
-qscxmlcpp.commands = $$QMAKE_QSCXMLCPP -name-qobjects ${QMAKE_FILE_IN}
-qscxmlcpp.depends = ${QMAKE_FILE_IN}
-qscxmlcpp.output = $$QSCXMLCPP_DIR/${QMAKE_FILE_BASE}$${first(QMAKE_EXT_H)}
+debug_and_release {
+    CONFIG(debug, debug|release):SUFFIX = /debug
+    CONFIG(release, debug|release):SUFFIX = /release
+}
+
+QSCXMLCPP_DIR = $$QSCXMLCPP_DIR$$SUFFIX
+
+{
+qscxmlcpp.name = QSCXMLCPP ${QMAKE_FILE_IN}.h
 qscxmlcpp.input = STATECHARTS
 qscxmlcpp.variable_out = QSCXMLCPP_HEADERS
-qscxmlcpp.CONFIG += no_link target_predeps
-qscxmlcpp.name = QSCXMLCPP ${QMAKE_FILE_IN}
+qscxmlcpp.commands = $$QMAKE_QSCXMLCPP -name-qobjects ${QMAKE_FILE_IN} -oh ${QMAKE_FILE_OUT} -ocpp $$QSCXMLCPP_DIR/${QMAKE_FILE_BASE}$${first(QMAKE_EXT_CPP)}
+qscxmlcpp.output = $$QSCXMLCPP_DIR/${QMAKE_FILE_BASE}$${first(QMAKE_EXT_H)}
+qscxmlcpp.CONFIG += target_predeps
+
 QMAKE_EXTRA_COMPILERS += qscxmlcpp
 
-load(moc)
-qscxmlcpp_moc.input = QSCXMLCPP_HEADERS
-qscxmlcpp_moc.commands = $$moc_header.commands
-qscxmlcpp_moc.output = $$moc_header.output
-qscxmlcpp_moc.variable_out = $$moc_header.variable_out
-qscxmlcpp_moc.dependency_type = $$moc_header.dependency_type
-qscxmlcpp_moc.name = sc_$$moc_header.name
-QMAKE_EXTRA_COMPILERS += qscxmlcpp_moc
-
-qscxmlcpp_sm.name = QScxmlCpp Cpp
-qscxmlcpp_sm.input = STATECHARTS
+qscxmlcpp_sm.name = QSCXMLCPP ${QMAKE_FILE_IN}.cpp
+qscxmlcpp_sm.input = QSCXMLCPP_HEADERS
 qscxmlcpp_sm.variable_out = GENERATED_SOURCES
 qscxmlcpp_sm.commands = $$escape_expand(\\n) # force creation of rule
 qscxmlcpp_sm.output = $$QSCXMLCPP_DIR/${QMAKE_FILE_BASE}$${first(QMAKE_EXT_CPP)}
+qscxmlcpp_sm.CONFIG += target_predeps
+
 QMAKE_EXTRA_COMPILERS += qscxmlcpp_sm
+}
+
+{
+load(moc)
+qscxmlcpp_moc.name = sc_$$moc_header.name
+qscxmlcpp_moc.input = QSCXMLCPP_HEADERS
+qscxmlcpp_moc.variable_out = $$moc_header.variable_out
+qscxmlcpp_moc.commands = $$moc_header.commands
+qscxmlcpp_moc.output = $$moc_header.output
+qscxmlcpp_moc.dependency_type = $$moc_header.dependency_type
+
+QMAKE_EXTRA_COMPILERS += qscxmlcpp_moc
+}
 
 !isEmpty(STATECHARTS) {
     INCLUDEPATH += $$absolute_path($$QSCXMLCPP_DIR, $$OUT_PWD)
-    INCLUDEPATH += $$shadowed($$_PRO_FILE_PWD_)
-    INCLUDEPATH += $$_PRO_FILE_PWD_
 }
+
+QMAKE_DIR_REPLACE += QSCXMLCPP_DIR
+QMAKE_DIR_REPLACE_SANE += QSCXMLCPP_DIR
