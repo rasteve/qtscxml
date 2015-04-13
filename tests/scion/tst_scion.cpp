@@ -131,12 +131,6 @@ static QSet<QString> differentSemantics = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test326.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test329.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test346.txml")
-        // Qt does not support internal transitions:
-        << QLatin1String("scion-tests/scxml-test-framework/test/internal-transitions/test0")
-        << QLatin1String("scion-tests/scxml-test-framework/test/internal-transitions/test1")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test533.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test506.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test505.txml")
         // internal event by <raise>
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test330.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test421.txml")

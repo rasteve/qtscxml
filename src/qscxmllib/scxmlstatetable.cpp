@@ -1208,6 +1208,8 @@ ScxmlBaseTransition::ScxmlBaseTransition(QAbstractTransitionPrivate &dd, QState 
 { }
 
 StateTable *ScxmlBaseTransition::table() const {
+    if (StateTable *t = qobject_cast<StateTable *>(parent()))
+        return t;
     if (sourceState())
         return qobject_cast<StateTable *>(sourceState()->machine());
     qCWarning(scxmlLog) << "could not resolve StateTable in " << transitionLocation();
@@ -1233,6 +1235,7 @@ bool ScxmlBaseTransition::eventTest(QEvent *event) {
     if (event->type() == QEvent::None)
         return false;
     StateTable *stateTable = table();
+    Q_ASSERT(stateTable);
     QByteArray eventName = stateTable->_event.name();
     bool selected = false;
     foreach (QByteArray eventStr, eventSelector) {
@@ -1386,10 +1389,13 @@ static QList<QByteArray> filterEmpty(const QList<QByteArray> &events) {
 }
 
 ScxmlTransition::ScxmlTransition(QState *sourceState, const QList<QByteArray> &eventSelector,
-                                 const QList<QByteArray> &targetIds, const QString &conditionalExp) :
-    ScxmlBaseTransition(sourceState, filterEmpty(eventSelector)),
-    conditionalExp(conditionalExp), instructionsOnTransition(sourceState, this),
-    m_targetIds(filterEmpty(targetIds)) { }
+                                 const QList<QByteArray> &targetIds, const QString &conditionalExp)
+    : ScxmlBaseTransition(sourceState, filterEmpty(eventSelector))
+    , conditionalExp(conditionalExp)
+    , type(ScxmlEvent::External)
+    , instructionsOnTransition(sourceState, this)
+    , m_targetIds(filterEmpty(targetIds))
+{}
 
 bool ScxmlTransition::eventTest(QEvent *event)
 {

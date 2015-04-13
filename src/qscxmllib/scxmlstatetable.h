@@ -582,6 +582,7 @@ public:
     QList<QByteArray> targetIds() const  Q_DECL_OVERRIDE { return m_targetIds; }
 
     QString conditionalExp;
+    ScxmlEvent::EventType type;
     ExecutableContent::InstructionSequence instructionsOnTransition;
 protected:
     void onTransition(QEvent *event) Q_DECL_OVERRIDE;

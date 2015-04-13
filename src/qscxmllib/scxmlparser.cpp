@@ -28,6 +28,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QDir>
+#include <private/qabstracttransition_p.h>
 
 static Q_LOGGING_CATEGORY(scxmlParserLog, "scxml.parser")
 
@@ -237,13 +238,21 @@ void ScxmlParser::parse()
                                 attributes.value(QLatin1String("event")).toUtf8().split(' '),
                                 attributes.value(QLatin1String("target")).toUtf8().split(' '),
                                 attributes.value(QLatin1String("cond")).toString());
+                QStringRef type = attributes.value(QLatin1String("type"));
+                if (type.isEmpty() || type == QLatin1String("external")) {
+                    m_currentTransition->type = ScxmlEvent::External;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
+                } else if (type == QLatin1String("internal")) {
+                    m_currentTransition->type = ScxmlEvent::Internal;
+                    QAbstractTransitionPrivate::markInternal(m_currentTransition);
+#endif
+                } else {
+                    addError(QStringLiteral("invalid transition type '%1', valid values are 'external' and 'internal'").arg(type.toString()));
+                    m_state = ParsingError;
+                    break;
+                }
                 ParserState pNew = ParserState(ParserState::Transition);
                 pNew.instructionContainer = &m_currentTransition->instructionsOnTransition;
-                QStringRef type = attributes.value(QLatin1String("type"));
-                if (!type.isEmpty() && type != QLatin1String("external")) {
-                    addError(QStringLiteral("only external transitions are supported"));
-                    m_state = ParsingError;
-                }
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("final")) {
                 if (!checkAttributes(attributes, "|id")) return;
@@ -485,7 +494,7 @@ void ScxmlParser::parse()
                 qCWarning(scxmlParserLog) << "unexpected element " << elName;
             }
             if (m_stack.size()>1 && !m_stack.at(m_stack.size()-2).validChild(m_stack.last().kind)) {
-                addError("invalid child ");
+                addError("invalid child");
                 m_state = ParsingError;
             }
             break;
@@ -836,6 +845,7 @@ bool ParserState::validChild(ParserState::Kind parent, ParserState::Kind child)
         case ParserState::Final:
         case ParserState::DataModel:
         case ParserState::Script:
+        case ParserState::Transition:
             return true;
         default:
             break;
