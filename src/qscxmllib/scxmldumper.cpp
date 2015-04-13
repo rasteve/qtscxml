@@ -30,13 +30,13 @@ class DumpInstructionVisitor : public InstructionVisitor {
 public:
     DumpInstructionVisitor(ScxmlDumper &dumper) : s(dumper) { }
 protected:
-    void visitRaise(Raise *r) Q_DECL_OVERRIDE {
+    void visitRaise(const Raise *r) Q_DECL_OVERRIDE {
         s.writeStartElement("raise");
         s.writeAttribute("event", r->event);
         s.writeEndElement();
     }
 
-    void visitSend(Send *send) Q_DECL_OVERRIDE {
+    void visitSend(const Send *send) Q_DECL_OVERRIDE {
         s.writeStartElement("send");
         if (!send->eventexpr.isEmpty())
             s.writeAttribute("eventexpr", send->eventexpr);
@@ -77,7 +77,7 @@ protected:
         s.writeEndElement();
     }
 
-    void visitLog(Log *log) Q_DECL_OVERRIDE {
+    void visitLog(const Log *log) Q_DECL_OVERRIDE {
         s.writeStartElement("log");
         if (!log->label.isEmpty())
             s.writeAttribute("label", log->label);
@@ -86,7 +86,7 @@ protected:
         s.writeEndElement();
     }
 
-    void visitJavaScript(JavaScript *script) Q_DECL_OVERRIDE {
+    void visitJavaScript(const JavaScript *script) Q_DECL_OVERRIDE {
         s.writeStartElement("script");
         if (!script->src.isEmpty())
             s.writeAttribute("src", script->src);
@@ -95,10 +95,10 @@ protected:
         s.writeEndElement();
     }
 
-    void visitAssignJson(AssignJson *assign) Q_DECL_OVERRIDE {
+    void visitAssignJson(const AssignJson *assign) Q_DECL_OVERRIDE {
         s.writeStartElement("assign");
         s.writeAttribute("location", assign->location);
-        QJsonValue &v = assign->value;
+        const QJsonValue &v = assign->value;
         switch (v.type()) {
         case QJsonValue::Null:
             s.s.writeCharacters(QLatin1String("null"));
@@ -138,7 +138,7 @@ protected:
         s.writeEndElement();
     }
 
-    void visitAssignExpression(AssignExpression *assign) Q_DECL_OVERRIDE {
+    void visitAssignExpression(const AssignExpression *assign) Q_DECL_OVERRIDE {
         s.writeStartElement("assign");
         s.writeAttribute("location", assign->location);
         if (assign->content)
@@ -148,7 +148,7 @@ protected:
         s.writeEndElement();
     }
 
-    void visitCancel(Cancel *c) Q_DECL_OVERRIDE {
+    void visitCancel(const Cancel *c) Q_DECL_OVERRIDE {
         s.writeStartElement("cancel");
         if (!c->sendidexpr.isEmpty())
             s.writeAttribute("sendidexpr", c->sendidexpr);
@@ -156,7 +156,7 @@ protected:
             s.writeAttribute("sendid", c->sendid);
     }
 
-    bool visitInvoke(Invoke *invoke) Q_DECL_OVERRIDE {
+    bool visitInvoke(const Invoke *invoke) Q_DECL_OVERRIDE {
         s.writeStartElement("invoke");
         if (!invoke->typeexpr.isEmpty())
             s.writeAttribute("typeexpr", invoke->typeexpr);
@@ -197,9 +197,9 @@ protected:
         return false;
     }
 
-    void endVisitInvoke(Invoke *) Q_DECL_OVERRIDE { }
+    void endVisitInvoke(const Invoke *) Q_DECL_OVERRIDE { }
 
-    bool visitIf(If *ifI) Q_DECL_OVERRIDE {
+    bool visitIf(const If *ifI) Q_DECL_OVERRIDE {
         s.writeStartElement("if");
         int maxI = ifI->conditions.size();
         if (ifI->blocks.size() < maxI) {
@@ -210,17 +210,17 @@ protected:
         }
         s.writeAttribute("cond", ifI->conditions.value(0));
         if (!ifI->blocks.isEmpty())
-            accept(&ifI->blocks[0]);
+            accept(ifI->blocks.at(0));
         for (int i = 1; i < maxI; ++i) {
             s.writeStartElement("elseif");
             s.writeAttribute("cond", ifI->conditions.at(i));
             s.writeEndElement();
-            accept(&ifI->blocks[i]);
+            accept(ifI->blocks.at(i));
         }
         if (ifI->blocks.size() > maxI) {
             s.writeStartElement("else");
             s.writeEndElement();
-            accept(&ifI->blocks[maxI]);
+            accept(ifI->blocks.at(maxI));
             if (ifI->blocks.size() > maxI + 1) {
                 qCWarning(scxmlLog) << "if instruction with too many blocks " << ifI->blocks.size()
                                     << " for " << ifI->conditions.size() << " conditions "
@@ -231,8 +231,8 @@ protected:
         return false;
     }
 
-    void endVisitIf(If *) Q_DECL_OVERRIDE { }
-    bool visitForeach(Foreach *foreachI) {
+    void endVisitIf(const If *) Q_DECL_OVERRIDE { }
+    bool visitForeach(const Foreach *foreachI) Q_DECL_OVERRIDE {
         s.writeStartElement("foreach");
         s.writeAttribute("array", foreachI->array);
         s.writeAttribute("item", foreachI->item);
@@ -241,11 +241,11 @@ protected:
         return true;
     }
 
-    void endVisitForeach(Foreach *) Q_DECL_OVERRIDE {
+    void endVisitForeach(const Foreach *) Q_DECL_OVERRIDE {
         s.writeEndElement();
     }
-    bool visitSequence(InstructionSequence *) Q_DECL_OVERRIDE { return true; }
-    void endVisitSequence(InstructionSequence *) Q_DECL_OVERRIDE { }
+    bool visitSequence(const InstructionSequence *) Q_DECL_OVERRIDE { return true; }
+    void endVisitSequence(const InstructionSequence *) Q_DECL_OVERRIDE { }
 
     ScxmlDumper &s;
 };
@@ -326,7 +326,7 @@ void ScxmlDumper::dumpTransition(QAbstractTransition *transition)
     writeAttribute("type", "internal");
 }
 
-void ScxmlDumper::dumpInstruction(Instruction *instruction)
+void ScxmlDumper::dumpInstruction(const Instruction *instruction)
 {
     if (!instruction)
         return;
@@ -360,15 +360,19 @@ bool ScxmlDumper::enterState(QState *state)
     if (state->initialState())
         writeAttribute("initial", table->objectId(state->initialState()));
     if (ScxmlState *ss = qobject_cast<ScxmlState *>(state)) {
-        if (!ss->onEntryInstruction.statements.isEmpty()) {
-            writeStartElement("onentry");
-            dumpInstruction(&ss->onEntryInstruction);
-            writeEndElement();
+        foreach (const InstructionSequence *onEntryInstruction, ss->onEntryInstructions) {
+            if (!onEntryInstruction->statements.isEmpty()) {
+                writeStartElement("onentry");
+                dumpInstruction(onEntryInstruction);
+                writeEndElement();
+            }
         }
-        if (!ss->onExitInstruction.statements.isEmpty()) {
-            writeStartElement("onexit");
-            dumpInstruction(&ss->onEntryInstruction);
-            writeEndElement();
+        foreach (const InstructionSequence *onExitInstruction, ss->onExitInstructions) {
+            if (!onExitInstruction->statements.isEmpty()) {
+                writeStartElement("onexit");
+                dumpInstruction(onExitInstruction);
+                writeEndElement();
+            }
         }
     }
     return true;
@@ -386,15 +390,19 @@ void ScxmlDumper::inAbstractState(QAbstractState *state)
     if (ScxmlFinalState *finalState = qobject_cast<ScxmlFinalState *>(state)) {
         writeStartElement("final");
         writeAttribute("id", table->objectId(state));
-        if (!finalState->onEntryInstruction.statements.isEmpty()) {
-            writeStartElement("onentry");
-            dumpInstruction(&finalState->onEntryInstruction);
-            writeEndElement();
+        foreach (const InstructionSequence *onEntryInstruction, finalState->onEntryInstructions) {
+            if (!onEntryInstruction->statements.isEmpty()) {
+                writeStartElement("onentry");
+                dumpInstruction(onEntryInstruction);
+                writeEndElement();
+            }
         }
-        if (!finalState->onExitInstruction.statements.isEmpty()) {
-            writeStartElement("onexit");
-            dumpInstruction(&finalState->onEntryInstruction);
-            writeEndElement();
+        foreach (const InstructionSequence *onExitInstruction, finalState->onExitInstructions) {
+            if (!onExitInstruction->statements.isEmpty()) {
+                writeStartElement("onexit");
+                dumpInstruction(onExitInstruction);
+                writeEndElement();
+            }
         }
         if (!finalState->doneData.contents.isEmpty()
                 || !finalState->doneData.expr.isEmpty()

@@ -88,8 +88,6 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test422.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test530.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test554.txml")
-        // TODO: I don't understand what the next test is supposed to check.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test159.txml")
         // FIXME: the way we dequeue events that are generated before the state machine is started, is wrong: it's too late, because the machine will already have taken initial transitions.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test487.txml")
         // FIXME: UNKNOWN PROBLEM
@@ -113,15 +111,6 @@ static QSet<QString> weDieOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/history/history4") // infinite loop with history state?
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test403a.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test403c.txml")
-        // TODO: we don't implement <foreach> yet.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test150.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test151.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test152.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test153.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test155.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test156.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test525.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/foreach/test1")
            ;
 
 static QSet<QString> differentSemantics = QSet<QString>()

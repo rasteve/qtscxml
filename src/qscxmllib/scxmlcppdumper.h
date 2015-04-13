@@ -58,7 +58,7 @@ private:
     void dumpDeclareTranstions();
     void dumpSlotsForEvents(MainClass &clazz);
     void dumpExecutableContent();
-    void dumpInstructions(ExecutableContent::Instruction &i);
+    void dumpInstructions(const ExecutableContent::Instruction *i);
     void dumpInit();
 
     static QByteArray b(const char *str) { return QByteArray(str); }

@@ -191,12 +191,12 @@ protected:
         indented() << "StateTable *sTable = table();\n";
     }
 
-    void visitRaise(Raise *r) Q_DECL_OVERRIDE {
+    void visitRaise(const Raise *r) Q_DECL_OVERRIDE {
         maybeTable();
         indented() << l("sTable->submitEvent(") << qba(r->event) << l(");\n");
     }
 
-    void visitSend(Send *send) Q_DECL_OVERRIDE {
+    void visitSend(const Send *send) Q_DECL_OVERRIDE {
         maybeTable();
         if (!send->delayexpr.isEmpty() || !send->delay.isEmpty()) {
             if (!send->delayexpr.isEmpty()) {
@@ -261,13 +261,13 @@ protected:
         indented() << l("    QVariant());\n");
     }
 
-    void visitLog(Log *log) Q_DECL_OVERRIDE {
+    void visitLog(const Log *log) Q_DECL_OVERRIDE {
         maybeTable();
         indented() << l("sTable->doLog(QStringLiteral(\"") << cEscape(log->label) << l("\",\n");
         indented() << l("    sTable->evalValueStr( QStringLiteral(\"") << cEscape(log->expr) << l("\")));\n");
     }
 
-    void visitJavaScript(JavaScript *script) Q_DECL_OVERRIDE {
+    void visitJavaScript(const JavaScript *script) Q_DECL_OVERRIDE {
         Q_UNUSED(script)
 
         /*s.writeStartElement("script");
@@ -278,7 +278,7 @@ protected:
         s.writeEndElement();*/
     }
 
-    void visitAssignJson(AssignJson *assign) Q_DECL_OVERRIDE {
+    void visitAssignJson(const AssignJson *assign) Q_DECL_OVERRIDE {
         Q_UNUSED(assign)
 
         /*s.writeStartElement("assign");
@@ -323,7 +323,7 @@ protected:
         s.writeEndElement();*/
     }
 
-    void visitAssignExpression(AssignExpression *assign) Q_DECL_OVERRIDE {
+    void visitAssignExpression(const AssignExpression *assign) Q_DECL_OVERRIDE {
         Q_UNUSED(assign)
 
         /*
@@ -336,7 +336,7 @@ protected:
         s.writeEndElement();*/
     }
 
-    void visitCancel(Cancel *c) Q_DECL_OVERRIDE {
+    void visitCancel(const Cancel *c) Q_DECL_OVERRIDE {
         Q_UNUSED(c)
 
         /*s.writeStartElement("cancel");
@@ -346,7 +346,7 @@ protected:
             s.writeAttribute("sendid", c->sendid);*/
     }
 
-    bool visitInvoke(Invoke *invoke) Q_DECL_OVERRIDE {
+    bool visitInvoke(const Invoke *invoke) Q_DECL_OVERRIDE {
         Q_UNUSED(invoke)
 
         /*s.writeStartElement("invoke");
@@ -389,9 +389,9 @@ protected:
         return false;
     }
 
-    void endVisitInvoke(Invoke *) Q_DECL_OVERRIDE { }
+    void endVisitInvoke(const Invoke *) Q_DECL_OVERRIDE { }
 
-    bool visitIf(If *ifI) Q_DECL_OVERRIDE {
+    bool visitIf(const If *ifI) Q_DECL_OVERRIDE {
         Q_UNUSED(ifI)
 
         /*s.writeStartElement("if");
@@ -425,8 +425,8 @@ protected:
         return false;
     }
 
-    void endVisitIf(If *) Q_DECL_OVERRIDE { }
-    bool visitForeach(Foreach *foreachI) {
+    void endVisitIf(const If *) Q_DECL_OVERRIDE { }
+    bool visitForeach(const Foreach *foreachI) Q_DECL_OVERRIDE {
         Q_UNUSED(foreachI)
 
         /*s.writeStartElement("foreach");
@@ -437,11 +437,11 @@ protected:
         return true;
     }
 
-    void endVisitForeach(Foreach *) Q_DECL_OVERRIDE {
+    void endVisitForeach(const Foreach *) Q_DECL_OVERRIDE {
         //s.writeEndElement();
     }
-    bool visitSequence(InstructionSequence *) Q_DECL_OVERRIDE { return true; }
-    void endVisitSequence(InstructionSequence *) Q_DECL_OVERRIDE { }
+    bool visitSequence(const InstructionSequence *) Q_DECL_OVERRIDE { return true; }
+    void endVisitSequence(const InstructionSequence *) Q_DECL_OVERRIDE { }
 
 };
 
@@ -646,25 +646,29 @@ void CppDumper::dumpExecutableContent()
     loopOnSubStates(table, [this, &inSlots](QState *state) -> bool {
         QString stateName = mangledName(state);
         if (ScxmlState *sState = qobject_cast<ScxmlState *>(state)) {
-            if (!sState->onEntryInstruction.statements.isEmpty()) {
-                if (!inSlots) {
-                    cpp << l("public slots:\n");
-                    inSlots = true;
+            foreach (const InstructionSequence *onEntryInstruction, sState->onEntryInstructions) {
+                if (!onEntryInstruction->statements.isEmpty()) {
+                    if (!inSlots) {
+                        cpp << l("public slots:\n");
+                        inSlots = true;
+                    }
+                    cpp << l("        void onEnter_") << stateName
+                        << l("() {\n");
+                    dumpInstructions(onEntryInstruction);
+                    cpp << l("        }\n");
                 }
-                cpp << l("        void onEnter_") << stateName
-                  << l("() {\n");
-                dumpInstructions(sState->onEntryInstruction);
-                cpp << l("        }\n");
             }
-            if (!sState->onExitInstruction.statements.isEmpty()) {
-                if (!inSlots) {
-                    cpp << l("public slots:\n");
-                    inSlots = true;
+            foreach (const InstructionSequence *onExitInstruction, sState->onExitInstructions) {
+                if (!onExitInstruction->statements.isEmpty()) {
+                    if (!inSlots) {
+                        cpp << l("public slots:\n");
+                        inSlots = true;
+                    }
+                    cpp << l("        void onExit_") << stateName
+                        << l("() {\n");
+                    dumpInstructions(onExitInstruction);
+                    cpp << l("        }\n\n");
                 }
-                cpp << l("        void onExit_") << stateName
-                  << l("() {\n");
-                dumpInstructions(sState->onEntryInstruction);
-                cpp << l("        }\n\n");
             }
         }
         for (int tIndex = 0; tIndex < state->transitions().size(); ++tIndex) {
@@ -679,7 +683,7 @@ void CppDumper::dumpExecutableContent()
                     }
                     cpp << l("        void on") << transitionName(scTransition, true, tIndex, stateName)
                         << l("() {\n");
-                    dumpInstructions(scTransition->instructionsOnTransition);
+                    dumpInstructions(&scTransition->instructionsOnTransition);
                     cpp << l("        }\n\n");
                 } else {
                     if (inSlots) { // avoid ?
@@ -699,7 +703,7 @@ void CppDumper::dumpExecutableContent()
                     if (!scTransition->instructionsOnTransition.statements.isEmpty()) {
                         cpp << l("    protected:\n");
                         cpp << l("        void onTransition(QEvent *event) Q_DECL_OVERRIDE {\n");
-                        dumpInstructions(scTransition->instructionsOnTransition);
+                        dumpInstructions(&scTransition->instructionsOnTransition);
                         cpp << l("        }\n");
                     }
                     cpp << l("    };\n\n");
@@ -713,10 +717,10 @@ void CppDumper::dumpExecutableContent()
     }
 }
 
-void CppDumper::dumpInstructions(ExecutableContent::Instruction &i)
+void CppDumper::dumpInstructions(const ExecutableContent::Instruction *i)
 {
     DumpCppInstructionVisitor visitor(cpp);
-    visitor.accept(&i);
+    visitor.accept(i);
 }
 
 void CppDumper::dumpInit()
@@ -735,15 +739,19 @@ void CppDumper::dumpInit()
         if (state->childMode() == QState::ParallelStates)
             sIni << l("        state_") << stateName << l(".setChildMode(QState::ParallelStates);\n");
         if (ScxmlState *sState = qobject_cast<ScxmlState *>(state)) {
-            if (!sState->onEntryInstruction.statements.isEmpty()) {
-                sIni << l("        QObject::connect(&state_") << stateName
-                     << l(", &QAbstractState::entered, table, &") << mainClassName << l("::onEnter_")
-                     << stateName << l(");\n");
+            foreach (const InstructionSequence *onEntryInstruction, sState->onEntryInstructions) {
+                if (!onEntryInstruction->statements.isEmpty()) {
+                    sIni << l("        QObject::connect(&state_") << stateName
+                         << l(", &QAbstractState::entered, table, &") << mainClassName << l("::onEnter_")
+                         << stateName << l(");\n");
+                }
             }
-            if (!sState->onExitInstruction.statements.isEmpty()) {
-                sIni << l("        QObject::connect(&state_") << stateName
-                     << l(", &QAbstractState::exited, table, &") << mainClassName << l("::onExit_")
-                     << stateName << l(");\n");
+            foreach (const InstructionSequence *onExitInstruction, sState->onExitInstructions) {
+                if (!onExitInstruction->statements.isEmpty()) {
+                    sIni << l("        QObject::connect(&state_") << stateName
+                         << l(", &QAbstractState::exited, table, &") << mainClassName << l("::onExit_")
+                         << stateName << l(");\n");
+                }
             }
         }
 
@@ -788,15 +796,19 @@ void CppDumper::dumpInit()
             sIni << l("        state_") << stateName
                  << l(".setObjectName(QStringLiteral(\"") << cEscape(rawStateName) << l("\"));\n");
         if (ScxmlFinalState *sState = qobject_cast<ScxmlFinalState *>(state)) {
-            if (!sState->onEntryInstruction.statements.isEmpty()) {
-                sIni << l("        QObject::connect(&state_") << stateName
-                     << l(", &QAbstractState::entered, table, &") << mainClassName << l("::onEnter_")
-                     << stateName << l(");\n");
+            foreach (const InstructionSequence *onEntryInstruction, sState->onEntryInstructions) {
+                if (!onEntryInstruction->statements.isEmpty()) {
+                    sIni << l("        QObject::connect(&state_") << stateName
+                         << l(", &QAbstractState::entered, table, &") << mainClassName << l("::onEnter_")
+                         << stateName << l(");\n");
+                }
             }
-            if (!sState->onExitInstruction.statements.isEmpty()) {
-                sIni << l("        QObject::connect(&state_") << stateName
-                     << l(", &QAbstractState::exited, table, &") << mainClassName << l("::onExit_")
-                     << stateName << l(");\n");
+            foreach (const InstructionSequence *onExitInstruction, sState->onExitInstructions) {
+                if (!onExitInstruction->statements.isEmpty()) {
+                    sIni << l("        QObject::connect(&state_") << stateName
+                         << l(", &QAbstractState::exited, table, &") << mainClassName << l("::onExit_")
+                         << stateName << l(");\n");
+                }
             }
         }
     });

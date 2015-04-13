@@ -53,7 +53,7 @@ private:
     void inAbstractState(QAbstractState *state);
 
     void dumpTransition(QAbstractTransition *transition);
-    void dumpInstruction(ExecutableContent::Instruction *instruction);
+    void dumpInstruction(const ExecutableContent::Instruction *instruction);
 
     StateTable *table;
 };

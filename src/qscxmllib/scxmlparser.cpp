@@ -266,11 +266,11 @@ void ScxmlParser::parse()
                 switch (m_stack.last().kind) {
                 case ParserState::Final:
                     Q_ASSERT(qobject_cast<ScxmlFinalState *>(m_currentState));
-                    pNew.instructionContainer = &qobject_cast<ScxmlFinalState *>(m_currentState)->onEntryInstruction;
+                    pNew.instructionContainer = qobject_cast<ScxmlFinalState *>(m_currentState)->onEntryInstructions.newInstructions();
                     break;
                 case ParserState::State:
                 case ParserState::Parallel:
-                    pNew.instructionContainer = &qobject_cast<ScxmlState *>(m_currentState)->onEntryInstruction;
+                    pNew.instructionContainer = qobject_cast<ScxmlState *>(m_currentState)->onEntryInstructions.newInstructions();
                     break;
                 default:
                     addError("unexpected container state for onentry");
@@ -283,11 +283,11 @@ void ScxmlParser::parse()
                 ParserState pNew(ParserState::OnExit);
                 switch (m_stack.last().kind) {
                 case ParserState::Final:
-                    pNew.instructionContainer = &qobject_cast<ScxmlFinalState *>(m_currentState)->onExitInstruction;
+                    pNew.instructionContainer = qobject_cast<ScxmlFinalState *>(m_currentState)->onExitInstructions.newInstructions();
                     break;
                 case ParserState::State:
                 case ParserState::Parallel:
-                    pNew.instructionContainer = &qobject_cast<ScxmlState *>(m_currentState)->onExitInstruction;
+                    pNew.instructionContainer = qobject_cast<ScxmlState *>(m_currentState)->onExitInstructions.newInstructions();
                     break;
                 default:
                     addError("unexpected container state for onexit");
@@ -326,24 +326,24 @@ void ScxmlParser::parse()
                 ParserState pNew = ParserState(ParserState::If);
                 ExecutableContent::If *ifI = new ExecutableContent::If(m_currentParent, m_currentTransition);
                 ifI->conditions.append(attributes.value(QLatin1String("cond")).toString());
-                ifI->blocks.append(ExecutableContent::InstructionSequence(m_currentParent, m_currentTransition));
+                ifI->blocks.append(new ExecutableContent::InstructionSequence(m_currentParent, m_currentTransition));
                 pNew.instruction = ifI;
-                pNew.instructionContainer = &ifI->blocks.last();
+                pNew.instructionContainer = ifI->blocks.last();
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("elseif")) {
                 if (!checkAttributes(attributes, "cond")) return;
                 Q_ASSERT(m_stack.last().instruction->instructionKind() == ExecutableContent::Instruction::If);
                 ExecutableContent::If *ifI = static_cast<ExecutableContent::If *>(m_stack.last().instruction);
                 ifI->conditions.append(attributes.value(QLatin1String("cond")).toString());
-                ifI->blocks.append(ExecutableContent::InstructionSequence(m_currentParent, m_currentTransition));
-                m_stack.last().instructionContainer = &ifI->blocks.last();
+                ifI->blocks.append(new ExecutableContent::InstructionSequence(m_currentParent, m_currentTransition));
+                m_stack.last().instructionContainer = ifI->blocks.last();
                 m_stack.append(ParserState(ParserState::ElseIf));
             } else if (elName == QLatin1String("else")) {
                 if (!checkAttributes(attributes, "")) return;
                 Q_ASSERT(m_stack.last().instruction->instructionKind() == ExecutableContent::Instruction::If);
                 ExecutableContent::If *ifI = static_cast<ExecutableContent::If *>(m_stack.last().instruction);
-                ifI->blocks.append(ExecutableContent::InstructionSequence(m_currentParent, m_currentTransition));
-                m_stack.last().instructionContainer = &ifI->blocks.last();
+                ifI->blocks.append(new ExecutableContent::InstructionSequence(m_currentParent, m_currentTransition));
+                m_stack.last().instructionContainer = ifI->blocks.last();
                 m_stack.append(ParserState(ParserState::Else));
             } else if (elName == QLatin1String("foreach")) {
                 if (!checkAttributes(attributes, "array,item|index")) return;
