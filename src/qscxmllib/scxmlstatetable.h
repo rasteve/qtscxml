@@ -64,6 +64,7 @@ public:
                const QByteArray &invokeid = QByteArray());
 
     QByteArray name() const { return m_name; }
+    EventType eventType() const { return m_type; }
     QString scxmlType() const;
     QByteArray sendid() const { return m_sendid; }
     QString origin() const { return m_origin; }
@@ -301,7 +302,7 @@ public:
     void submitDelayedEvent(int delayInMiliSecs,
                             ScxmlEvent *e);
     void cancelDelayedEvent(const QByteArray &event);
-    void queueEvent(QEvent *event);
+    void queueEvent(QEvent *event, EventPriority priority);
     void submitQueuedEvents();
 
     bool isLegalTarget(const QString &target) const;
@@ -350,7 +351,8 @@ private:
     bool m_warnIndirectIdClashes;
     friend class ScxmlParser;
 
-    QVector<QEvent *> *m_queuedEvents;
+    struct QueuedEvent { QEvent *event; EventPriority priority; };
+    QVector<QueuedEvent> *m_queuedEvents;
 };
 
 namespace ExecutableContent {
@@ -394,8 +396,7 @@ struct SCXML_EXPORT Raise : public Instruction {
     Raise(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
         : Instruction(parentState, transition) { }
     QByteArray event;
-    void execute() Q_DECL_OVERRIDE {
-        table()->submitEvent(event, QVariantList(), QStringList(), ScxmlEvent::Internal); }
+    void execute() Q_DECL_OVERRIDE;
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::Raise; }
 };
 

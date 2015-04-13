@@ -451,6 +451,11 @@ void Send::execute()
     }
 }
 
+void Raise::execute()
+{
+    table()->submitEvent(event, QVariantList(), QStringList(), ScxmlEvent::Internal);
+}
+
 bool Param::evaluate(StateTable *table, QVariantList &dataValues, QStringList &dataNames) const
 {
     bool success = true;
@@ -1016,7 +1021,7 @@ void StateTable::setEngine(QJSEngine *engine)
 
 void StateTable::submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid)
 {
-    qCDebug(scxmlLog) << "machine " << _name << " had error " << type << ":" << msg;
+    qCDebug(scxmlLog) << "machine" << _name << "had error" << type << ":" << msg;
     submitEvent(EventBuilder::errorEvent(type, sendid));
 }
 
@@ -1025,10 +1030,13 @@ void StateTable::submitEvent(ScxmlEvent *e)
     if (!e)
         return;
 
+    EventPriority priority = e->eventType() == ScxmlEvent::Internal ? QStateMachine::HighPriority
+                                                                    : QStateMachine::NormalPriority;
+
     if (isRunning())
-        postEvent(e);
+        postEvent(e, priority);
     else
-        queueEvent(e);
+        queueEvent(e, priority);
 }
 
 void StateTable::submitEvent(const QByteArray &event, const QVariantList &dataValues,
@@ -1051,6 +1059,7 @@ void StateTable::submitDelayedEvent(int delayInMiliSecs, ScxmlEvent *e)
 
     qCDebug(scxmlLog) << _name << ": submitting event" << e->name() << "with delay" << delayInMiliSecs << "ms" << "and sendid" << e->sendid();
 
+    Q_ASSERT(e->eventType() == ScxmlEvent::External);
     int id = postDelayedEvent(e, delayInMiliSecs);
 
     qCDebug(scxmlLog) << _name << ": delayed event id:" << id;
@@ -1068,18 +1077,18 @@ void StateTable::cancelDelayedEvent(const QByteArray &sendid)
         QStateMachine::cancelDelayedEvent(id);
 }
 
-void StateTable::queueEvent(QEvent *event)
+void StateTable::queueEvent(QEvent *event, EventPriority priority)
 {
     if (!m_queuedEvents)
-        m_queuedEvents = new QVector<QEvent *>();
-    m_queuedEvents->append(event);
+        m_queuedEvents = new QVector<QueuedEvent>();
+    m_queuedEvents->append({event, priority});
 }
 
 void StateTable::submitQueuedEvents()
 {
     if (m_queuedEvents) {
-        foreach (QEvent *e, *m_queuedEvents)
-            postEvent(e);
+        foreach (const QueuedEvent &e, *m_queuedEvents)
+            postEvent(e.event, e.priority);
         delete m_queuedEvents;
         m_queuedEvents = 0;
     }
