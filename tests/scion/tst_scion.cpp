@@ -121,7 +121,6 @@ static QSet<QString> differentSemantics = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test329.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test346.txml")
         // internal event by <raise>
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test330.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test421.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test423.txml")
         // internal event by raising an error

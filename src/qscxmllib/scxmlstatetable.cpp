@@ -1339,16 +1339,16 @@ void ScxmlEvent::clear() {
 QJSValue ScxmlEvent::jsValue(QJSEngine *engine) const {
     QJSValue res = engine->newObject();
     QJSValue dataValue = data(engine);
-    if (!dataValue.isNull())
-        res.setProperty(QStringLiteral("data"), dataValue);
-    if (!invokeid().isEmpty())
-        res.setProperty(QStringLiteral("invokeid"), engine->toScriptValue(QString::fromUtf8(invokeid())));
+    res.setProperty(QStringLiteral("data"), dataValue.isNull() ? QJSValue(QJSValue::UndefinedValue)
+                                                               : dataValue);
+    res.setProperty(QStringLiteral("invokeid"), invokeid().isEmpty() ? QJSValue(QJSValue::UndefinedValue)
+                                                                     : engine->toScriptValue(QString::fromUtf8(invokeid())));
     if (!origintype().isEmpty())
         res.setProperty(QStringLiteral("origintype"), engine->toScriptValue(origintype()));
-    if (!origin().isEmpty())
-        res.setProperty(QStringLiteral("origin"), engine->toScriptValue(origin()) );
-    if (!sendid().isEmpty())
-        res.setProperty(QStringLiteral("sendid"), engine->toScriptValue(QString::fromUtf8(sendid())));
+    res.setProperty(QStringLiteral("origin"), origin().isEmpty() ? QJSValue(QJSValue::UndefinedValue)
+                                                                 : engine->toScriptValue(origin()) );
+    res.setProperty(QStringLiteral("sendid"), sendid().isEmpty() ? QJSValue(QJSValue::UndefinedValue)
+                                                                 : engine->toScriptValue(QString::fromUtf8(sendid())));
     res.setProperty(QStringLiteral("type"), engine->toScriptValue(scxmlType()));
     res.setProperty(QStringLiteral("name"), engine->toScriptValue(QString::fromUtf8(name())));
     res.setProperty(QStringLiteral("raw"), QStringLiteral("unsupported")); // See test178
