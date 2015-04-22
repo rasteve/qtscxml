@@ -1034,14 +1034,19 @@ int StateTablePrivate::eventIdForDelayedEvent(const QByteArray &scxmlEventId)
     return -1;
 }
 
-QList<QByteArray> StateTable::currentStates(bool compress) {
+QList<QByteArray> StateTable::currentStates(bool compress)
+{
     QSet<QAbstractState *> config = d_func()->configuration;
     if (compress)
         foreach (const QAbstractState *s, d_func()->configuration)
             config.remove(s->parentState());
     QList<QByteArray> res;
-    foreach (const QAbstractState *s, config)
-        res.append(objectId(const_cast<QAbstractState *>(s)));
+    foreach (const QAbstractState *s, config) {
+        QByteArray id = objectId(const_cast<QAbstractState *>(s));
+        if (!id.isEmpty()) {
+            res.append(id);
+        }
+    }
     std::sort(res.begin(), res.end());
     return res;
 }

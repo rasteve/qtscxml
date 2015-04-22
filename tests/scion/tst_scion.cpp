@@ -90,25 +90,18 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test554.txml")
         // FIXME: the way we dequeue events that are generated before the state machine is started, is wrong: it's too late, because the machine will already have taken initial transitions.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test487.txml")
-        // FIXME: UNKNOWN PROBLEM
-        << QLatin1String("scion-tests/scxml-test-framework/test/parallel+interrupt/test7")
-        << QLatin1String("scion-tests/scxml-test-framework/test/parallel+interrupt/test21")
-        << QLatin1String("scion-tests/scxml-test-framework/test/parallel+interrupt/test26")
-        << QLatin1String("scion-tests/scxml-test-framework/test/more-parallel/test2")
-        << QLatin1String("scion-tests/scxml-test-framework/test/more-parallel/test3")
-        << QLatin1String("scion-tests/scxml-test-framework/test/more-parallel/test6")
            ;
 
 static QSet<QString> weDieOnThese = QSet<QString>()
-        << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send1")
-        << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send2")
-        << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send3")
-        << QLatin1String("scion-tests/scxml-test-framework/test/history/history3") // infinite loop?
-        << QLatin1String("scion-tests/scxml-test-framework/test/history/history5") // infinite loop?
         << QLatin1String("scion-tests/scxml-test-framework/test/send-data/send1") // test suite problem: we expect every stable configuration to be listed.
+        << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send1") // same as above
+        << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send2") // same as above
+        << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send3") // same as above
+        << QLatin1String("scion-tests/scxml-test-framework/test/history/history3") // problem with the initial transition of the history state
+        << QLatin1String("scion-tests/scxml-test-framework/test/history/history4") // same as above
+        << QLatin1String("scion-tests/scxml-test-framework/test/history/history5") // same as above
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test364.txml") // initial attribute on <state>
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test388.txml") // Qt refuses to set an initial state to a "deep" state
-        << QLatin1String("scion-tests/scxml-test-framework/test/history/history4") // infinite loop with history state?
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test403a.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test403c.txml")
            ;
@@ -123,8 +116,6 @@ static QSet<QString> differentSemantics = QSet<QString>()
         // internal event by <raise>
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test421.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test423.txml")
-        // internal event by raising an error
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test401.txml")
         // Scion apparently sets <data> values without a src/expr attribute to 0. We set it to undefined, as specified in B.2.1.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test456.txml") // replaced by modified_test456
         // Qt does not support forcing initial states that are not marked as such.
@@ -207,7 +198,7 @@ void TestScion::scion()
     QFETCH(QString, json);
     QFETCH(TestStatus, testStatus);
 
-    fprintf(stderr, "\n\n%s\n\n", qPrintable(json));
+    fprintf(stderr, "\n\n%s\n%s\n\n", qPrintable(scxml), qPrintable(json));
 
     if (testStatus == TestCrashes)
         QSKIP("Test is marked as a crasher");
@@ -313,6 +304,7 @@ static bool playEvent(StateTable *stateMachine, const QJsonObject &eventDescript
     if (event.contains(QLatin1String("invokeid")))
         invokeid = event.value(QLatin1String("invokeid")).toString().toUtf8();
     ScxmlEvent *e = new ScxmlEvent(eventName, type, dataValues, dataNames, sendid, origin, origintype, invokeid);
+//    qDebug() << "submitting event" << eventName << "....";
     if (eventDescription.contains(QLatin1String("after"))) {
         int delay = eventDescription.value(QLatin1String("after")).toInt();
         Q_ASSERT(delay > 0);
