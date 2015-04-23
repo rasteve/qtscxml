@@ -88,8 +88,6 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test422.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test530.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test554.txml")
-        // FIXME: the way we dequeue events that are generated before the state machine is started, is wrong: it's too late, because the machine will already have taken initial transitions.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test487.txml")
            ;
 
 static QSet<QString> weDieOnThese = QSet<QString>()

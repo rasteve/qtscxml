@@ -326,7 +326,7 @@ public:
     void submitDelayedEvent(int delayInMiliSecs,
                             ScxmlEvent *e);
     void cancelDelayedEvent(const QByteArray &event);
-    void queueEvent(QEvent *event, EventPriority priority);
+    void queueEvent(ScxmlEvent *event, EventPriority priority);
     void submitQueuedEvents();
 
     bool isLegalTarget(const QString &target) const;
@@ -341,8 +341,6 @@ private slots:
         // The final state is also a stable state.
         emit reachedStableState(true);
     }
-
-    void onStarted();
 
 protected:
     void beginSelectTransitions(QEvent *event) Q_DECL_OVERRIDE;

@@ -674,7 +674,6 @@ StateTable::StateTable(QObject *parent)
     , m_engine(nullptr), m_dataBinding(EarlyBinding), m_warnIndirectIdClashes(true)
     , m_queuedEvents(nullptr)
 {
-    connect(this, &QStateMachine::started, this, &StateTable::onStarted);
     connect(this, &QStateMachine::finished, this, &StateTable::onFinished);
 }
 
@@ -685,7 +684,6 @@ StateTable::StateTable(StateTablePrivate &dd, QObject *parent)
     , m_dataBinding(EarlyBinding), m_warnIndirectIdClashes(true)
     , m_queuedEvents(nullptr)
 {
-    connect(this, &QStateMachine::started, this, &StateTable::onStarted);
     connect(this, &QStateMachine::finished, this, &StateTable::onFinished);
 }
 
@@ -1016,6 +1014,13 @@ void StateTablePrivate::emitStateFinished(QState *forState, QFinalState *guiltyS
     QStateMachinePrivate::emitStateFinished(forState, guiltyState);
 }
 
+void StateTablePrivate::startupHook()
+{
+    Q_Q(StateTable);
+
+    q->submitQueuedEvents();
+}
+
 #endif // QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
 
 int StateTablePrivate::eventIdForDelayedEvent(const QByteArray &scxmlEventId)
@@ -1240,8 +1245,10 @@ void StateTable::cancelDelayedEvent(const QByteArray &sendid)
         QStateMachine::cancelDelayedEvent(id);
 }
 
-void StateTable::queueEvent(QEvent *event, EventPriority priority)
+void StateTable::queueEvent(ScxmlEvent *event, EventPriority priority)
 {
+    qCDebug(scxmlLog) << _name << ": queueing event" << event->name();
+
     if (!m_queuedEvents)
         m_queuedEvents = new QVector<QueuedEvent>();
     m_queuedEvents->append({event, priority});
@@ -1249,6 +1256,8 @@ void StateTable::queueEvent(QEvent *event, EventPriority priority)
 
 void StateTable::submitQueuedEvents()
 {
+    qCDebug(scxmlLog) << _name << ": submitting queued events";
+
     if (m_queuedEvents) {
         foreach (const QueuedEvent &e, *m_queuedEvents)
             postEvent(e.event, e.priority);
@@ -1265,11 +1274,6 @@ bool StateTable::isLegalTarget(const QString &target) const
 bool StateTable::isDispatchableTarget(const QString &target) const
 {
     return target == QStringLiteral("#_internal");
-}
-
-void StateTable::onStarted()
-{
-    submitQueuedEvents();
 }
 
 ScxmlEvent::ScxmlEvent(const QByteArray &name, ScxmlEvent::EventType eventType,

@@ -33,6 +33,7 @@ class StateTablePrivate: public QStateMachinePrivate {
     void endMacrostep(bool didChange) Q_DECL_OVERRIDE;
 
     void emitStateFinished(QState *forState, QFinalState *guiltyState) Q_DECL_OVERRIDE;
+    void startupHook() Q_DECL_OVERRIDE;
 #endif
 
     int eventIdForDelayedEvent(const QByteArray &scxmlEventId);
