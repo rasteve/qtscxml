@@ -35,6 +35,14 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.table")
 QEvent::Type ScxmlEvent::scxmlEventType = (QEvent::Type)QEvent::registerEventType();
 
 namespace {
+QByteArray objectId(QObject *obj, bool strict = false)
+{
+    Q_UNUSED(obj);
+    Q_UNUSED(strict);
+    Q_UNIMPLEMENTED();
+    return QByteArray();
+}
+
 int parseTime(const QString &t, bool *ok = 0)
 {
     if (t.isEmpty()) {
@@ -428,6 +436,9 @@ bool AssignExpression::execute() const
     }
 }
 
+InstructionVisitor::~InstructionVisitor()
+{}
+
 void InstructionVisitor::accept(const Instruction *instruction) {
     switch (instruction->instructionKind()) {
     case Instruction::Raise:
@@ -692,99 +703,15 @@ StateTable::~StateTable()
     delete m_queuedEvents;
 }
 
-
-bool StateTable::addId(const QByteArray &idStr, QObject *value, std::function<bool (const QString &)> errorDumper, bool overwrite)
+void StateTable::addId(const QByteArray &, QObject *)
 {
-    if (m_idObjects.contains(idStr)) {
-        QObject *oldVal = m_idObjects.value(idStr).data();
-        if (overwrite) {
-            if (oldVal == value)
-                return true;
-            m_idObjects.remove(idStr);
-            m_objectIds.remove(oldVal);
-        } else {
-            if (oldVal != value) {
-                if (errorDumper) errorDumper(QStringLiteral("duplicate id '%1'")
-                                             .arg(QString::fromUtf8(idStr)));
-                return true;
-            } else {
-                if (errorDumper) errorDumper(QStringLiteral("reinsert of id '%1'")
-                                             .arg(QString::fromUtf8(idStr)));
-                return false;
-            }
-        }
-    }
-    if (m_warnIndirectIdClashes) {
-        auto oldVal = idToValue<QObject>(idStr, true);
-        if (oldVal != 0 && oldVal != value)
-            if (errorDumper) errorDumper(QStringLiteral("id '%1' shadows indirectly accessible ")
-                                         .arg(QString::fromUtf8(idStr)));
-    }
-    m_idObjects.insert(idStr, value);
-    m_objectIds.insert(value, idStr);
-    return true;
+    // FIXME: remove this.
+    Q_UNIMPLEMENTED();
 }
 
 QJSValue StateTable::datamodelJSValues() const {
     return m_dataModelJSValues;
     // QQmlEngine::​setObjectOwnership
-}
-
-QByteArray StateTable::objectId(QObject *obj, bool strict) {
-    QByteArray res = m_objectIds.value(obj);
-    if (!strict || !res.isEmpty())
-        return res;
-    if (!obj)
-        return QByteArray();
-    QString nameAtt = obj->objectName();
-    if (!nameAtt.isEmpty()) { // try to use objectname if it does not clash with a subObject
-        QObject *subObj = findChild<QObject *>(nameAtt);
-        res = nameAtt.toUtf8();
-        if ((!subObj || subObj == obj) && m_idObjects.value(res).data() == 0) {
-            addId(res, obj, Q_NULLPTR, true);
-            return res;
-        }
-        QObject *objAtt = obj;
-        QObject *oldObj = obj;
-        QObject *parentAtt = objAtt->parent();
-        QStringList path;
-        path.prepend(nameAtt);
-        while (parentAtt) {
-            if (m_objectIds.contains(parentAtt)) {
-                QByteArray idStr = m_objectIds.value(parentAtt);
-                if (m_idObjects.value(idStr).data() != parentAtt) {
-                    m_objectIds.remove(parentAtt);
-                    path.clear();
-                } else {
-                    if (parentAtt->findChild<QObject *>(path.first()) == oldObj)
-                        path.prepend(QString::fromUtf8(idStr));
-                    else
-                        path.clear();
-                }
-                break;
-            } else if (parentAtt == this) {
-                if (findChild<QObject *>(path.first()) != oldObj)
-                    path.clear();
-                break;
-            }
-            nameAtt = parentAtt->objectName();
-            if (!nameAtt.isEmpty()) {
-                if (parentAtt->findChild<QObject *>(path.first()) != oldObj) {
-                    path.clear();
-                    break;
-                }
-                oldObj = parentAtt;
-                path.prepend(nameAtt);
-            }
-            objAtt = parentAtt;
-            parentAtt = objAtt->parent();
-        }
-        if (!path.isEmpty() && parentAtt)
-            return path.join(QLatin1Char('.')).toUtf8(); // add to cache?
-    }
-    QByteArray idStr = QStringLiteral("@%1").arg((size_t)(void *)obj).toUtf8();
-    addId(idStr, obj, Q_NULLPTR, true);
-    return idStr;
 }
 
 void StateTable::initializeDataFor(QState *s) {
@@ -958,8 +885,8 @@ void StateTable::beginSelectTransitions(QEvent *event)
 
 void StateTable::beginMicrostep(QEvent *event)
 {
-    qCDebug(scxmlLog) << _name << " started microstep from state (" << currentStates() << ")"
-                      << "with event " << _event.name() << " from event type " << event->type();
+    qCDebug(scxmlLog) << _name << " started microstep from state" << currentStates()
+                      << "with event" << _event.name() << "from event type" << event->type();
 }
 
 void StateTable::endMicrostep(QEvent *event)
@@ -1039,15 +966,15 @@ int StateTablePrivate::eventIdForDelayedEvent(const QByteArray &scxmlEventId)
     return -1;
 }
 
-QList<QByteArray> StateTable::currentStates(bool compress)
+QStringList StateTable::currentStates(bool compress)
 {
     QSet<QAbstractState *> config = d_func()->configuration;
     if (compress)
         foreach (const QAbstractState *s, d_func()->configuration)
             config.remove(s->parentState());
-    QList<QByteArray> res;
+    QStringList res;
     foreach (const QAbstractState *s, config) {
-        QByteArray id = objectId(const_cast<QAbstractState *>(s));
+        QString id = s->objectName();
         if (!id.isEmpty()) {
             res.append(id);
         }
@@ -1230,7 +1157,7 @@ void StateTable::submitDelayedEvent(int delayInMiliSecs, ScxmlEvent *e)
     Q_ASSERT(e->eventType() == ScxmlEvent::External);
     int id = postDelayedEvent(e, delayInMiliSecs);
 
-    qCDebug(scxmlLog) << _name << ": delayed event id:" << id;
+    qCDebug(scxmlLog) << _name << ": delayed event" << e->name() << "(" << e << ") got id:" << id;
 }
 
 void StateTable::cancelDelayedEvent(const QByteArray &sendid)
@@ -1274,6 +1201,12 @@ bool StateTable::isLegalTarget(const QString &target) const
 bool StateTable::isDispatchableTarget(const QString &target) const
 {
     return target == QStringLiteral("#_internal");
+}
+
+void StateTable::onFinished()
+{
+    // The final state is also a stable state.
+    emit reachedStableState(true);
 }
 
 ScxmlEvent::ScxmlEvent(const QByteArray &name, ScxmlEvent::EventType eventType,
@@ -1385,11 +1318,7 @@ StateTable *ScxmlBaseTransition::table() const {
 
 QString ScxmlBaseTransition::transitionLocation() const {
     if (QState *state = sourceState()) {
-        QString stateName;
-        if (StateTable *stateTable = table())
-            stateName = QString::fromUtf8(stateTable->objectId(state, true));
-        else
-            stateName = state->objectName();
+        QString stateName = state->objectName();
         int transitionIndex = state->transitions().indexOf(const_cast<ScxmlBaseTransition *>(this));
         return QStringLiteral("transition #%1 in state %2").arg(transitionIndex).arg(stateName);
     }
@@ -1459,19 +1388,24 @@ bool ScxmlBaseTransition::init() {
     Q_ASSERT(m_concreteTransitions.isEmpty());
     if (eventSelector.isEmpty())
         return true;
-    StateTable *stateTable = table();
     bool failure = false;
     foreach (const QByteArray &eventStr, eventSelector) {
         QList<QByteArray> selector = eventStr.split('.');
         if (selector.isEmpty())
             continue;
         else if (selector.first() == QByteArray("qsignal")) {
+            // FIXME: the sender cannot be found this way anymore. We need some tests before we enable/fix this code.
+            if (true) {
+                Q_UNIMPLEMENTED();
+            } else {
+            // FIXME starts here.
+//            StateTable *stateTable = table();
             if (selector.count() < 2) {
                 qCWarning(scxmlLog) << "qeventSelector requires a sender id in " << transitionLocation();
                 failure = true;
                 continue;
             }
-            QObject *sender = stateTable->idToValue<QObject>(selector.value(1));
+            QObject *sender = nullptr; // stateTable->idToValue<QObject>(selector.value(1));
             if (!sender) {
                 qCWarning(scxmlLog) << "could not find object with id " << selector.value(1)
                                     << " used in " << transitionLocation();
@@ -1513,6 +1447,7 @@ bool ScxmlBaseTransition::init() {
                                     << knownSignals.join(' ');
                 failure = true; // ignore instead??
             }
+            } // end of FIXME
         } else if (selector.first() == QByteArray("qevent")){
             qCWarning(scxmlLog) << "selector of qevent type to implement";
             failure = true;
@@ -1525,10 +1460,8 @@ bool ScxmlBaseTransition::init() {
 
 QList<QByteArray> ScxmlBaseTransition::targetIds() const {
     QList<QByteArray> res;
-    if (StateTable *t = table()) {
-        foreach (QAbstractState *s, targetStates())
-            res << t->objectId(s, true);
-    }
+    foreach (QAbstractState *s, targetStates())
+        res << s->objectName().toUtf8();
     return res;
 }
 
@@ -1583,26 +1516,6 @@ bool ScxmlTransition::eventTest(QEvent *event)
     return false;
 }
 
-bool ScxmlTransition::init() {
-    StateTable *stateTable = table();
-    if (!m_targetIds.isEmpty()) {
-        QList<QAbstractState *> targets;
-        foreach (const QByteArray &tId, m_targetIds) {
-            QAbstractState *target = stateTable->idToValue<QAbstractState>(tId);
-            if (!target) {
-                qCWarning(scxmlLog) << "ScxmlTransition could not resolve target state for id "
-                                    << tId << " for " << transitionLocation();
-                return false;
-            }
-            targets << target;
-        }
-        setTargetStates(targets);
-    } else if (!targetStates().isEmpty()) {
-        setTargetStates(QList<QAbstractState *>()); // avoid?
-    }
-    return ScxmlBaseTransition::init();
-}
-
 void ScxmlTransition::onTransition(QEvent *)
 {
     instructionsOnTransition.execute();
@@ -1624,10 +1537,7 @@ bool ScxmlState::init()
 
 QString ScxmlState::stateLocation() const
 {
-    StateTable *t = table();
-    QString id = (t ? QString::fromUtf8(t->objectId(const_cast<ScxmlState *>(this), true)) : QString());
-    QString name = objectName();
-    return QStringLiteral("State %1 (%2)").arg(id, name);
+    return QStringLiteral("State %1").arg(objectName());
 }
 
 void ScxmlState::onEntry(QEvent *event) {
@@ -1757,33 +1667,6 @@ void XmlNode::dump(QXmlStreamWriter &s) const
         loopOnChilds([this, &s](const XmlNode &node) { node.dump(s); return true; }); // avoid recursion?
         s.writeEndElement();
     }
-}
-
-bool ScxmlInitialState::init()
-{
-    bool res = true;
-    if (transitions().size() != 1) {
-        qCWarning(scxmlLog) << "An initial state (like " << stateLocation() << " in "
-                            << (parentState() ? parentState()->objectName() : QStringLiteral("*null*"))
-                            << "should have exactly one transition.";
-        res = false;
-    } else if (ScxmlTransition *t = qobject_cast<ScxmlTransition *>(transitions().first())){
-        if (!t->eventSelector.isEmpty() || !t->conditionalExp.isEmpty()) {
-            qCWarning(scxmlLog) << "A transition of an initial state (like " << stateLocation() << " in "
-                                << (parentState() ? parentState()->objectName() : QStringLiteral("*null*"))
-                                << ") should have no event or condition";
-        }
-    }
-    foreach (QObject *child, children()) {
-        if (qobject_cast<QState *>(child)) {
-            qCWarning(scxmlLog) << "An initial state (like " << stateLocation() << " in "
-                                << (parentState() ? parentState()->objectName() : QStringLiteral("*null*"))
-                                << "should have no substates.";
-            res = false;
-            break;
-        }
-    }
-    return res;
 }
 
 PlatformProperties *PlatformProperties::create(QJSEngine *engine, StateTable *table)

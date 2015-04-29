@@ -215,62 +215,9 @@ public:
         return this;
     }
 
-    // returns the value corresponding to the given scxml id
-    template <typename T>
-    T *idToValue(const QByteArray &idVal, bool strict = false) {
-        QObject *obj = 0;
-        if (m_idObjects.contains(idVal)) {
-            obj = m_idObjects.value(idVal).data();
-            if (!obj)
-                m_idObjects.remove(idVal); // expensive to remove the other side in m_objectIds without storing more
-        }
-        if (strict || obj)
-            return qobject_cast<T *>(obj); // if we match a key do not look further even if object is different
-        qCDebug(scxmlLog) << "non cached scxml id access attempt for value " << idVal;
-        if (idVal.contains('.')) {
-            QList<QByteArray> pieces = idVal.split('.');
-            QObject *newVal = idToValue<QObject>(pieces.at(0));
-            pieces.removeFirst();
-            while (newVal && !pieces.isEmpty()) {
-                if (StateTable *newSt = qobject_cast<StateTable *>(newVal)) {
-                    T *res = newSt->idToValue<T>(pieces.join('.'));
-                    if (res) {
-                        m_idObjects[idVal] = res; // do not cache?
-                        m_objectIds[res] = idVal;
-                    }
-                    return res;
-                } else if (newVal) {
-                    QByteArray pathPiece = pieces.first();
-                    pieces.removeFirst();
-                    if (pieces.isEmpty()) {
-                        T *res = newVal->findChild<T *>(QString::fromUtf8(pathPiece));
-                        if (res) {
-                            m_idObjects[idVal] = res; // do not cache?
-                            m_objectIds[res] = idVal;
-                        }
-                        return res;
-                    }
-                    newVal = newVal->findChild<QObject *>(QString::fromUtf8(pathPiece));
-                }
-            }
-            Q_ASSERT(!newVal);
-            return 0;
-        }
-        T *res = this->findChild<T *>(QString::fromUtf8(idVal));
-        if (res) {
-            m_idObjects[idVal] = res; // do not cache?
-            m_objectIds[res] = idVal;
-        }
-        return res;
-    }
-
-    bool addId(const QByteArray &idStr, QObject *value,
-               std::function<bool(const QString &)> errorDumper = Q_NULLPTR, bool overwrite = false);
+    void addId(const QByteArray&,QObject*);
 
     QJSValue datamodelJSValues() const;
-
-    // tries to build an scxml id for the given object
-    QByteArray objectId(QObject *obj, bool strict = false);
 
     void setDataModel(DataModelType dt) {
         m_dataModel = dt;
@@ -332,15 +279,12 @@ public:
     bool isLegalTarget(const QString &target) const;
     bool isDispatchableTarget(const QString &target) const;
 
-signals:
+Q_SIGNALS:
     void log(const QString &label, const QString &msg);
     void reachedStableState(bool didChange);
 
-private slots:
-    void onFinished() {
-        // The final state is also a stable state.
-        emit reachedStableState(true);
-    }
+private Q_SLOTS:
+    void onFinished();
 
 protected:
     void beginSelectTransitions(QEvent *event) Q_DECL_OVERRIDE;
@@ -358,20 +302,18 @@ public:
     QString _name;
     typedef QHash<QString, QString> Dict;
     QStringList _ioprocessors;
-    QList<QByteArray> currentStates(bool compress = true);
+    QStringList currentStates(bool compress = true);
 private:
     Q_DECLARE_PRIVATE(StateTable)
     const int m_sessionId;
     ExecutableContent::InstructionSequence m_initialSetup;
-    QHash<QByteArray, QPointer<QObject> > m_idObjects;
-    QHash<QObject *, QByteArray> m_objectIds;
     DataModelType m_dataModel;
     QVector<ScxmlData> m_data;
     QJSEngine *m_engine;
     QJSValue m_dataModelJSValues;
     BindingMethod m_dataBinding;
     bool m_warnIndirectIdClashes;
-    friend class ScxmlParser;
+    friend class StateTableBuilder;
 
     struct QueuedEvent { QEvent *event; EventPriority priority; };
     QVector<QueuedEvent> *m_queuedEvents;
@@ -535,6 +477,7 @@ protected:
     virtual bool visitSequence(const InstructionSequence *) = 0;
     virtual void endVisitSequence(const InstructionSequence *) = 0;
 public:
+    virtual ~InstructionVisitor();
     void accept(const Instruction *instruction);
 };
 
@@ -601,7 +544,6 @@ public:
                     const QString &conditionalExp = QString());
 
     bool eventTest(QEvent *event) Q_DECL_OVERRIDE;
-    bool init() Q_DECL_OVERRIDE;
     QList<QByteArray> targetIds() const  Q_DECL_OVERRIDE { return m_targetIds; }
 
     QString conditionalExp;
@@ -640,7 +582,6 @@ class SCXML_EXPORT ScxmlInitialState: public ScxmlState
     Q_OBJECT
 public:
     ScxmlInitialState(QState *parent): ScxmlState(parent) { }
-    virtual bool init() Q_DECL_OVERRIDE;
 };
 
 

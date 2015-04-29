@@ -224,14 +224,14 @@ void TestScion::scion()
     QVERIFY(runTest(parser.table(), testDescription.object()));
 }
 
-static QList<QByteArray> getStates(const QJsonObject &obj, const QString &key)
+static QStringList getStates(const QJsonObject &obj, const QString &key)
 {
-    QList<QByteArray> states;
+    QStringList states;
     auto jsonStates = obj.value(key).toArray();
     for (int i = 0, ei = jsonStates.size(); i != ei; ++i) {
         QString state = jsonStates.at(i).toString();
         Q_ASSERT(!state.isEmpty());
-        states.append(state.toUtf8());
+        states.append(state);
     }
     std::sort(states.begin(), states.end());
     return states;

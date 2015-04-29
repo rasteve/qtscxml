@@ -320,7 +320,7 @@ void ScxmlDumper::dumpTransition(QAbstractTransition *transition)
     QList<QAbstractState *> targets = transition->targetStates();
     QStringList targetNames;
     for (int i = 0; i < targets.size(); ++i)
-        targetNames[i] = QString::fromUtf8(table->objectId(targets.at(i)));
+        targetNames[i] = targets.at(i)->objectName();
     if (!targetNames.isEmpty())
         writeAttribute("target", targetNames.join(QLatin1Char(' ')));
     writeAttribute("type", "internal");
@@ -356,9 +356,9 @@ bool ScxmlDumper::enterState(QState *state)
         writeStartElement("parallel");
         break;
     }
-    writeAttribute("id", table->objectId(state));
+    writeAttribute("id", state->objectName());
     if (state->initialState())
-        writeAttribute("initial", table->objectId(state->initialState()));
+        writeAttribute("initial", state->initialState()->objectName());
     if (ScxmlState *ss = qobject_cast<ScxmlState *>(state)) {
         foreach (const InstructionSequence *onEntryInstruction, ss->onEntryInstructions) {
             if (!onEntryInstruction->statements.isEmpty()) {
@@ -389,7 +389,7 @@ void ScxmlDumper::inAbstractState(QAbstractState *state)
 {
     if (ScxmlFinalState *finalState = qobject_cast<ScxmlFinalState *>(state)) {
         writeStartElement("final");
-        writeAttribute("id", table->objectId(state));
+        writeAttribute("id", state->objectName());
         foreach (const InstructionSequence *onEntryInstruction, finalState->onEntryInstructions) {
             if (!onEntryInstruction->statements.isEmpty()) {
                 writeStartElement("onentry");
@@ -432,11 +432,11 @@ void ScxmlDumper::inAbstractState(QAbstractState *state)
         writeEndElement(); // final
     } else if (qobject_cast<QFinalState *>(state)) {
         writeStartElement("final");
-        writeAttribute("id", table->objectId(state));
+        writeAttribute("id", state->objectName());
         writeEndElement(); // final
     } else if (QHistoryState *historyState = qobject_cast<QHistoryState *>(state)) {
         writeStartElement("history");
-        writeAttribute("id", table->objectId(state));
+        writeAttribute("id", state->objectName());
         switch (historyState->historyType()) {
         case QHistoryState::ShallowHistory:
             writeAttribute("type", "shallow");
@@ -446,7 +446,7 @@ void ScxmlDumper::inAbstractState(QAbstractState *state)
             break;
         }
         writeStartElement("transition");
-        writeAttribute("target", table->objectId(historyState->defaultState())); // having multiple parallel states not supported by the framework
+        writeAttribute("target", historyState->defaultState()->objectName()); // having multiple parallel states not supported by the framework
         writeEndElement(); // transition
         writeEndElement(); // history
     } else {

@@ -729,7 +729,7 @@ void CppDumper::dumpInit()
     StringListDumper tIni; // transition initialization
 
     loopOnSubStates(table, [this,&sIni,&tIni](QState *state) -> bool {
-        QByteArray rawStateName = table->objectId(state, false);
+        QByteArray rawStateName = state->objectName().toUtf8();
         QString stateName = mangleId(rawStateName);
         sIni << l("        table->addId(") << qba(rawStateName) << l(", &state_") << stateName
              << l(");\n");
@@ -788,7 +788,7 @@ void CppDumper::dumpInit()
 
         return true;
     }, nullptr, [this,&sIni](QAbstractState *state) -> void {
-        QByteArray rawStateName = table->objectId(state, false);
+        QByteArray rawStateName = state->objectName().toUtf8();
         QString stateName = mangleId(rawStateName);
         sIni << l("        table->addId(") << qba(rawStateName) << l(", &state_") << stateName
              << l(");\n");
@@ -852,7 +852,7 @@ QString CppDumper::mangledName(QAbstractState *state)
     if (!mangledName.isEmpty())
         return mangledName;
 
-    mangledName = mangleId(table->objectId(state, false));
+    mangledName = mangleId(state->objectName());
     mangledStateNames.insert(state, mangledName);
     return mangledName;
 }
