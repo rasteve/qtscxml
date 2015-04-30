@@ -202,7 +202,8 @@ public:
 
     StateTable *table();
 
-    virtual EvaluatorString createEvaluator(const QString &expr, const QString &context) = 0;
+    virtual EvaluatorString createEvaluatorString(const QString &expr, const QString &context) = 0;
+    virtual EvaluatorBool createEvaluatorBool(const QString &expr, const QString &context) = 0;
 
 private:
     DataModelPrivate *d;
@@ -243,8 +244,6 @@ public:
     void initializeDataFor(QState *);
 
     void doLog(const QString &label, const QString &msg);
-    bool evalValueBool(const QString &expr, std::function<QString()> context,
-                       bool defaultValue = false);
     QJSValue evalJSValue(const QString &expr, std::function<QString()> context,
                          QJSValue defaultValue = QJSValue(), bool noRaise = false);
     ErrorDumper errorDumper();
@@ -411,7 +410,7 @@ struct SCXML_EXPORT If : public Instruction {
         : Instruction(parentState, transition)
         , blocks(parentState, transition)
     {}
-    QStringList conditions;
+    QVector<DataModel::EvaluatorBool> conditions;
     InstructionSequences blocks;
     bool execute() const Q_DECL_OVERRIDE;
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::If; }
@@ -541,12 +540,12 @@ public:
     typedef QSharedPointer<ConcreteSignalTransition> TransitionPtr;
     ScxmlTransition(QState * sourceState = 0, const QList<QByteArray> &eventSelector = QList<QByteArray>(),
                     const QList<QByteArray> &targetIds = QList<QByteArray>(),
-                    const QString &conditionalExp = QString());
+                    const DataModel::EvaluatorBool &conditionalExp = nullptr);
 
     bool eventTest(QEvent *event) Q_DECL_OVERRIDE;
     QList<QByteArray> targetIds() const  Q_DECL_OVERRIDE { return m_targetIds; }
 
-    QString conditionalExp;
+    DataModel::EvaluatorBool conditionalExp;
     ScxmlEvent::EventType type;
     ExecutableContent::InstructionSequence instructionsOnTransition;
 protected:

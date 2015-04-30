@@ -28,7 +28,8 @@ class NoDataModel: public DataModel
 public:
     NoDataModel(StateTable *table);
 
-    EvaluatorString createEvaluator(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
+    EvaluatorString createEvaluatorString(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
+    EvaluatorBool createEvaluatorBool(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
 };
 
 } // Scxml namespace

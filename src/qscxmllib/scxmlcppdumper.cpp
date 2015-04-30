@@ -608,9 +608,10 @@ void CppDumper::dumpDeclareTranstions()
             if (scTransition == nullptr)
                 continue;
 
-            if (scTransition->conditionalExp.isEmpty()) {
+            Q_UNIMPLEMENTED(); // FIXME:
+            /*if (scTransition->conditionalExp.isEmpty()) {
                 cpp << l("    Scxml::ScxmlBaseTransition");
-            } else {
+            } else*/ {
                 cpp << l("    ") << transitionName(scTransition, true, tIndex, stateName);
             }
 
@@ -681,7 +682,8 @@ void CppDumper::dumpExecutableContent()
         for (int tIndex = 0; tIndex < state->transitions().size(); ++tIndex) {
             QAbstractTransition *t = state->transitions().at(tIndex);
             if (Scxml::ScxmlTransition *scTransition = qobject_cast<Scxml::ScxmlTransition *>(t)) {
-                if (scTransition->conditionalExp.isEmpty()) {
+                Q_UNIMPLEMENTED(); // FIXME
+                /*if (scTransition->conditionalExp.isEmpty()) {
                     if (scTransition->instructionsOnTransition.statements.isEmpty())
                         continue;
                     if (!inSlots) {
@@ -692,21 +694,22 @@ void CppDumper::dumpExecutableContent()
                         << l("() {\n");
                     dumpInstructions(&scTransition->instructionsOnTransition);
                     cpp << l("        }\n\n");
-                } else {
+                } else*/ {
                     if (inSlots) { // avoid ?
                         cpp << l("public:\n");
                         inSlots = false;
                     }
                     cpp << l("    class ") << transitionName(scTransition, true, tIndex, stateName) << " : Scxml::ScxmlBaseTransition {\n";
-                    if (!scTransition->conditionalExp.isEmpty()) { // we could cache the function calculating the test
-                        cpp << l("        bool eventTest(QEvent *event) Q_DECL_OVERRIDE {\n");
-                        cpp << l("            if (ScxmlBaseTransition::testEvent(e)\n");
-                        cpp << l("                    && table()->evalBool(\"")
-                            << cEscape(scTransition->conditionalExp) << l("\")\n");
-                        cpp << l("                return true;\n");
-                        cpp << l("            return false;\n");
-                        cpp << l("        }\n");
-                    }
+                    Q_UNIMPLEMENTED(); // FIXME
+//                    if (!scTransition->conditionalExp.isEmpty()) { // we could cache the function calculating the test
+//                        cpp << l("        bool eventTest(QEvent *event) Q_DECL_OVERRIDE {\n");
+//                        cpp << l("            if (ScxmlBaseTransition::testEvent(e)\n");
+//                        cpp << l("                    && table()->evalBool(\"")
+//                            << cEscape(scTransition->conditionalExp) << l("\")\n");
+//                        cpp << l("                return true;\n");
+//                        cpp << l("            return false;\n");
+//                        cpp << l("        }\n");
+//                    }
                     if (!scTransition->instructionsOnTransition.statements.isEmpty()) {
                         cpp << l("    protected:\n");
                         cpp << l("        void onTransition(QEvent *event) Q_DECL_OVERRIDE {\n");
@@ -771,14 +774,15 @@ void CppDumper::dumpInit()
             QAbstractTransition *t = state->transitions().at(tIndex);
             if (Scxml::ScxmlTransition *scTransition = qobject_cast<Scxml::ScxmlTransition *>(t)) {
                 QString scName = transitionName(scTransition, false, tIndex, stateName);
-                if (scTransition->conditionalExp.isEmpty()) {
-                    if (!scTransition->instructionsOnTransition.statements.isEmpty()) {
-                        tIni << l("        QObject::connect(&") << scName
-                          << l(", &QAbstractTransition::triggered, table, &")
-                          << mainClassName << l("::onTransition_") << tIndex << l("_") << stateName
-                          << l(");\n");
-                    }
-                }
+                Q_UNIMPLEMENTED(); // FIXME
+//                if (scTransition->conditionalExp.isEmpty()) {
+//                    if (!scTransition->instructionsOnTransition.statements.isEmpty()) {
+//                        tIni << l("        QObject::connect(&") << scName
+//                          << l(", &QAbstractTransition::triggered, table, &")
+//                          << mainClassName << l("::onTransition_") << tIndex << l("_") << stateName
+//                          << l(");\n");
+//                    }
+//                }
                 QList<QByteArray> targetStates = scTransition->targetIds();
                 if (targetStates.size() == 1) {
                     tIni << l("        ") << scName << l(".setTargetState(&state_")

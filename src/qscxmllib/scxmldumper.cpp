@@ -212,15 +212,16 @@ protected:
                                 << ifI->instructionLocation();
             maxI = ifI->blocks.size();
         }
-        s.writeAttribute("cond", ifI->conditions.value(0));
-        if (!ifI->blocks.isEmpty())
-            accept(ifI->blocks.at(0));
-        for (int i = 1; i < maxI; ++i) {
-            s.writeStartElement("elseif");
-            s.writeAttribute("cond", ifI->conditions.at(i));
-            s.writeEndElement();
-            accept(ifI->blocks.at(i));
-        }
+        Q_UNIMPLEMENTED(); // FIXME
+//        s.writeAttribute("cond", ifI->conditions.value(0));
+//        if (!ifI->blocks.isEmpty())
+//            accept(ifI->blocks.at(0));
+//        for (int i = 1; i < maxI; ++i) {
+//            s.writeStartElement("elseif");
+//            s.writeAttribute("cond", ifI->conditions.at(i));
+//            s.writeEndElement();
+//            accept(ifI->blocks.at(i));
+//        }
         if (ifI->blocks.size() > maxI) {
             s.writeStartElement("else");
             s.writeEndElement();
@@ -310,7 +311,8 @@ void ScxmlDumper::dumpTransition(QAbstractTransition *transition)
     QString cond;
     if (ScxmlTransition *t = qobject_cast<ScxmlTransition *>(transition)) {
         event = QString::fromUtf8(t->eventSelector.join(' '));
-        cond = t->conditionalExp;
+        Q_UNIMPLEMENTED(); // FIXME:
+//        cond = t->conditionalExp;
     }
     if (!event.isEmpty())
         writeAttribute("event", event);

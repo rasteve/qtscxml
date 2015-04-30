@@ -366,11 +366,14 @@ private:
         } else {
             parentState = currentParent();
         }
+        DataModel::EvaluatorBool cond = nullptr;
+        if (transition->condition) {
+            createEvaluatorBool(QStringLiteral("transition"), QStringLiteral("cond"), *transition->condition.data(), &cond);
+        }
         auto newTransition = new ScxmlTransition(parentState,
                                                  toUtf8(transition->events),
                                                  toUtf8(transition->targets),
-                                                 transition->condition ? *transition->condition.data()
-                                                                       : QString());
+                                                 cond);
         parentState->addTransition(newTransition);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
         switch (transition->type) {
@@ -426,15 +429,15 @@ private:
     {
         auto instr = new ExecutableContent::Send(m_parents.last(), m_currentTransition);
         instr->event = node->event.toUtf8();
-        createEvaluator(QStringLiteral("send"), QStringLiteral("eventexpr"), node->eventexpr, &instr->eventexpr);
+        createEvaluatorString(QStringLiteral("send"), QStringLiteral("eventexpr"), node->eventexpr, &instr->eventexpr);
         instr->type = node->type;
-        createEvaluator(QStringLiteral("send"), QStringLiteral("typeexpr"), node->typeexpr, &instr->typeexpr);
+        createEvaluatorString(QStringLiteral("send"), QStringLiteral("typeexpr"), node->typeexpr, &instr->typeexpr);
         instr->target = node->target;
-        createEvaluator(QStringLiteral("send"), QStringLiteral("targetexpr"), node->targetexpr, &instr->targetexpr);
+        createEvaluatorString(QStringLiteral("send"), QStringLiteral("targetexpr"), node->targetexpr, &instr->targetexpr);
         instr->id = node->id;
         instr->idLocation = node->idLocation;
         instr->delay = node->delay;
-        createEvaluator(QStringLiteral("send"), QStringLiteral("delayexpr"), node->delayexpr, &instr->delayexpr);
+        createEvaluatorString(QStringLiteral("send"), QStringLiteral("delayexpr"), node->delayexpr, &instr->delayexpr);
         instr->namelist = node->namelist;
         copy(&instr->params, node->params);
         instr->content = node->content;
@@ -453,7 +456,7 @@ private:
     {
         auto instr = new ExecutableContent::Log(m_parents.last(), m_currentTransition);
         instr->label = node->label;
-        createEvaluator(QStringLiteral("log"), QStringLiteral("expr"), node->expr, &instr->expr);
+        createEvaluatorString(QStringLiteral("log"), QStringLiteral("expr"), node->expr, &instr->expr);
         add(instr);
     }
 
@@ -486,7 +489,14 @@ private:
     bool visit(DocumentModel::If *node) Q_DECL_OVERRIDE
     {
         auto instr = new ExecutableContent::If(m_parents.last(), m_currentTransition);
-        instr->conditions = node->conditions;
+        instr->conditions.resize(node->conditions.size());
+        QString tag = QStringLiteral("if");
+        for (int i = 0, ei = node->conditions.size(); i != ei; ++i) {
+            createEvaluatorBool(tag, QStringLiteral("cond"), node->conditions.at(i), &instr->conditions[i]);
+            if (i == 0) {
+                tag = QStringLiteral("elif");
+            }
+        }
         generate(&instr->blocks, node->blocks);
         add(instr);
         return false;
@@ -510,7 +520,7 @@ private:
     {
         auto instr = new ExecutableContent::Cancel(m_parents.last(), m_currentTransition);
         instr->sendid = node->sendid.toUtf8();
-        createEvaluator(QStringLiteral("cancel"), QStringLiteral("sendidexpr"), node->sendidexpr, &instr->sendidexpr);
+        createEvaluatorString(QStringLiteral("cancel"), QStringLiteral("sendidexpr"), node->sendidexpr, &instr->sendidexpr);
         add(instr);
     }
 
@@ -526,7 +536,7 @@ private:
         Q_ASSERT(finalState);
         auto &dd = finalState->doneData;
         dd.contents = node->contents;
-        createEvaluator(QStringLiteral("donedata"), QStringLiteral("expr"), node->expr, &dd.expr);
+        createEvaluatorString(QStringLiteral("donedata"), QStringLiteral("expr"), node->expr, &dd.expr);
         copy(&dd.params, node->params);
         return false;
     }
@@ -631,12 +641,21 @@ private: // Utility methods
         return QStringLiteral("%1 with %2=\"%3\"").arg(location, attrName, attrValue);
     }
 
-    void createEvaluator(const QString &instrName, const QString &attrName, const QString &expr, DataModel::EvaluatorString *dest) const
+    void createEvaluatorString(const QString &instrName, const QString &attrName, const QString &expr, DataModel::EvaluatorString *dest) const
     {
         Q_ASSERT(dest);
         if (!expr.isEmpty()) {
             QString loc = createContext(instrName, attrName, expr);
-            *dest = m_table->dataModel()->createEvaluator(expr, loc);
+            *dest = m_table->dataModel()->createEvaluatorString(expr, loc);
+        }
+    }
+
+    void createEvaluatorBool(const QString &instrName, const QString &attrName, const QString &cond, DataModel::EvaluatorBool *dest) const
+    {
+        Q_ASSERT(dest);
+        if (!cond.isEmpty()) {
+            QString loc = createContext(instrName, attrName, cond);
+            *dest = m_table->dataModel()->createEvaluatorBool(cond, loc);
         }
     }
 

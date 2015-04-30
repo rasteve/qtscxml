@@ -24,9 +24,16 @@ NoDataModel::NoDataModel(StateTable *table)
     : DataModel(table)
 {}
 
-DataModel::EvaluatorString NoDataModel::createEvaluator(const QString &expr, const QString &context)
+DataModel::EvaluatorString NoDataModel::createEvaluatorString(const QString &expr, const QString &context)
 {
     Q_UNUSED(expr);
     Q_UNUSED(context);
-    Q_UNREACHABLE(); // FIXME: give an error.
+    Q_UNREACHABLE();
+}
+
+DataModel::EvaluatorBool NoDataModel::createEvaluatorBool(const QString &expr, const QString &context)
+{
+    Q_UNUSED(expr);
+    Q_UNUSED(context);
+    Q_UNREACHABLE();
 }

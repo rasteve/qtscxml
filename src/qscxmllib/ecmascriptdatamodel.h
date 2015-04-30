@@ -30,7 +30,8 @@ public:
     EcmaScriptDataModel(StateTable *table);
     ~EcmaScriptDataModel() Q_DECL_OVERRIDE;
 
-    EvaluatorString createEvaluator(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
+    EvaluatorString createEvaluatorString(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
+    EvaluatorBool createEvaluatorBool(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
 
 private:
     EcmaScriptDataModelPrivate *d;

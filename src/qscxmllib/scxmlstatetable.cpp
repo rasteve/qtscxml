@@ -500,9 +500,9 @@ void InstructionVisitor::accept(const Instruction *instruction) {
 
 bool If::execute() const
 {
-    StateTable *t = table();
     for (int i = 0; i < conditions.size(); ++i) {
-        if (t->evalValueBool(conditions.at(i), [this]() -> QString { return instructionLocation(); })) {
+        bool ok = true;
+        if (conditions.at(i)(&ok) && ok) {
             return blocks.at(i)->execute();
         }
     }
@@ -741,23 +741,6 @@ void StateTable::doLog(const QString &label, const QString &msg)
 {
     qCDebug(scxmlLog) << label << ":" << msg;
     emit log(label, msg);
-}
-
-bool StateTable::evalValueBool(const QString &expr, std::function<QString()> context, bool defaultValue)
-{
-    QJSEngine *e = engine();
-    if (e) {
-        QJSValue v = e->evaluate(QStringLiteral("(function(){ return !!(%1); })()").arg(expr),
-                                 QStringLiteral("<expr>"), 1);
-        if (v.isError()) {
-            submitError(QByteArray("error.execution"),
-                        QStringLiteral("%1 in %2").arg(v.toString(), context()),
-                        /*sendid =*/ QByteArray());
-        } else {
-            return v.toBool();
-        }
-    }
-    return defaultValue;
 }
 
 QJSValue StateTable::evalJSValue(const QString &expr, std::function<QString()> context,
@@ -1461,7 +1444,8 @@ static QList<QByteArray> filterEmpty(const QList<QByteArray> &events) {
 }
 
 ScxmlTransition::ScxmlTransition(QState *sourceState, const QList<QByteArray> &eventSelector,
-                                 const QList<QByteArray> &targetIds, const QString &conditionalExp)
+                                 const QList<QByteArray> &targetIds,
+                                 const DataModel::EvaluatorBool &conditionalExp)
     : ScxmlBaseTransition(sourceState, filterEmpty(eventSelector))
     , conditionalExp(conditionalExp)
     , type(ScxmlEvent::External)
@@ -1471,18 +1455,12 @@ ScxmlTransition::ScxmlTransition(QState *sourceState, const QList<QByteArray> &e
 
 bool ScxmlTransition::eventTest(QEvent *event)
 {
-    if (ScxmlBaseTransition::eventTest(event)) {
-        if (conditionalExp.isEmpty())
-            return true;
-
 //        qCDebug(scxmlLog) << qPrintable(table()->engine()->evaluate(QLatin1String("JSON.stringify(_event)")).toString());
+    if (ScxmlBaseTransition::eventTest(event)) {
         bool ok = true;
-        bool result = table()->evalValueBool(conditionalExp, [this,&ok]() -> QString {
-                                                 ok = false;
-                                                 return transitionLocation();
-                                             });
-        qCDebug(scxmlLog) << Q_FUNC_INFO << ":" << conditionalExp << "evaluated to" << result;
-        return ok && result;
+        if (conditionalExp)
+            return conditionalExp(&ok) && ok;
+        return true;
     }
 
     return false;

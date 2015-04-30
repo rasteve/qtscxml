@@ -48,6 +48,27 @@ public:
             return v.toString();
         }
     }
+
+    bool evalBool(const QString &expr, const QString &context, bool *ok)
+    {
+        Q_ASSERT(ok);
+        QJSEngine *e = q->table()->engine();
+        Q_ASSERT(e);
+
+        QJSValue v = e->evaluate(QStringLiteral("(function(){ return !!(%1); })()").arg(expr),
+                                 QStringLiteral("<expr>"), 1);
+        if (v.isError()) {
+            *ok = false;
+            static QByteArray sendid;
+            q->table()->submitError(QByteArray("error.execution"),
+                                    QStringLiteral("%1 in %2").arg(v.toString(), context),
+                                    sendid);
+            return false;
+        } else {
+            *ok = true;
+            return v.toBool();
+        }
+    }
 };
 
 EcmaScriptDataModel::EcmaScriptDataModel(StateTable *table)
@@ -60,11 +81,20 @@ EcmaScriptDataModel::~EcmaScriptDataModel()
     delete d;
 }
 
-DataModel::EvaluatorString EcmaScriptDataModel::createEvaluator(const QString &expr, const QString &context)
+DataModel::EvaluatorString EcmaScriptDataModel::createEvaluatorString(const QString &expr, const QString &context)
 {
     const QString e = expr;
     const QString c = context;
     return [this, e, c](bool *ok) -> QString {
         return d->evalStr(e, c, ok);
+    };
+}
+
+DataModel::EvaluatorBool EcmaScriptDataModel::createEvaluatorBool(const QString &expr, const QString &context)
+{
+    const QString e = expr;
+    const QString c = context;
+    return [this, e, c](bool *ok) -> bool {
+        return d->evalBool(e, c, ok);
     };
 }
