@@ -46,6 +46,7 @@ public:
 
     bool verify(DocumentModel::ScxmlDocument *doc)
     {
+        m_doc = doc;
         foreach (DocumentModel::AbstractState *state, doc->allStates) {
             if (state->id.isEmpty()) {
                 continue;
@@ -200,7 +201,31 @@ private:
         m_parentNodes.removeLast();
     }
 
+    bool visit(DocumentModel::Send *node) Q_DECL_OVERRIDE
+    {
+        checkExpr(node->xmlLocation, QStringLiteral("send"), QStringLiteral("eventexpr"), node->eventexpr);
+        return true;
+    }
+
+    void visit(DocumentModel::Cancel *node) Q_DECL_OVERRIDE
+    {
+        checkExpr(node->xmlLocation, QStringLiteral("cancel"), QStringLiteral("sendidexpr"), node->sendidexpr);
+    }
+
+    bool visit(DocumentModel::DoneData *node) Q_DECL_OVERRIDE
+    {
+        checkExpr(node->xmlLocation, QStringLiteral("donedata"), QStringLiteral("expr"), node->expr);
+        return false;
+    }
+
 private:
+    void checkExpr(const DocumentModel::XmlLocation &loc, const QString &tag, const QString &attrName, const QString &attrValue)
+    {
+        if (m_doc->root->dataModel == DocumentModel::Scxml::NoDataModel && !attrValue.isEmpty()) {
+            error(loc, QStringLiteral("%1 in <%2> cannot be used with data model 'null'").arg(attrName, tag));
+        }
+    }
+
     void error(const DocumentModel::XmlLocation &location, const QString &message)
     {
         m_hasErrors = true;
@@ -220,6 +245,7 @@ private:
 
 private:
     std::function<void (const DocumentModel::XmlLocation &, const QString &)> m_errorHandler;
+    DocumentModel::ScxmlDocument *m_doc;
     bool m_hasErrors = false;
     QHash<QString, DocumentModel::AbstractState *> m_stateById;
     QVector<DocumentModel::Node *> m_parentNodes;
