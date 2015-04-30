@@ -20,6 +20,7 @@
 #define SCXMLDUMPER_H
 #include "scxmlglobals.h"
 #include "scxmlstatetable.h"
+#include "scxmlparser.h" // for the DocumentModel. FIXME: the DocumentModel should probably move out into a separate file.
 #include <QXmlStreamWriter>
 
 namespace Scxml {
@@ -38,7 +39,7 @@ class SCXML_EXPORT ScxmlDumper
 {
 public:
     ScxmlDumper(QXmlStreamWriter &stream) : s(stream) { }
-    void dump(StateTable *table);
+    void dump(StateTable *table, DocumentModel::ScxmlDocument *doc);
     void writeStartElement(const char *name) { s.writeStartElement(QLatin1String(name)); }
     void writeAttribute(const char *name, const char *value)  { s.writeAttribute(QLatin1String(name), QLatin1String(value)); }
     void writeAttribute(const char *name, QByteArray value)  { s.writeAttribute(QLatin1String(name), QString::fromUtf8(value)); }
@@ -55,7 +56,8 @@ private:
     void dumpTransition(QAbstractTransition *transition);
     void dumpInstruction(const ExecutableContent::Instruction *instruction);
 
-    StateTable *table;
+    StateTable *table = nullptr;
+    DocumentModel::ScxmlDocument *m_doc = nullptr;
 };
 
 }

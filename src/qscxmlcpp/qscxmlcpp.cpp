@@ -83,28 +83,32 @@ int main(int argc, char *argv[])
                               Scxml::ScxmlParser::loaderForDir(QFileInfo(file.fileName()).absolutePath()));
     parser.parse();
 
-    QFile outH(outHFileName);
-    if (!outH.open(QFile::WriteOnly)) {
-        std::cerr << "Error: cannot open " << outH.fileName().toStdString()
-                  << ": " << outH.errorString().toStdString() << usage.toStdString() << std::endl;
-        exit(-4);
+    if (auto doc = parser.scxmlDocument()) {
+        QFile outH(outHFileName);
+        if (!outH.open(QFile::WriteOnly)) {
+            std::cerr << "Error: cannot open " << outH.fileName().toStdString()
+                      << ": " << outH.errorString().toStdString() << usage.toStdString() << std::endl;
+            exit(-4);
+        }
+
+        QFile outCpp(outCppFileName);
+        if (!outCpp.open(QFile::WriteOnly)) {
+            std::cerr << "Error: cannot open " << outCpp.fileName().toStdString()
+                      << ": " << outCpp.errorString().toStdString()
+                      << usage.toStdString() << std::endl;
+            exit(-5);
+        }
+
+        QTextStream h(&outH);
+        QTextStream c(&outCpp);
+        Scxml::CppDumper dumper(h, c, outH.fileName(), options);
+        dumper.dump(parser.table(), doc);
+        outH.close();
+        outCpp.close();
+        a.exit();
+        return 0;
+    } else {
+        a.exit();
+        return -1;
     }
-
-    QFile outCpp(outCppFileName);
-    if (!outCpp.open(QFile::WriteOnly)) {
-        std::cerr << "Error: cannot open " << outCpp.fileName().toStdString()
-                  << ": " << outCpp.errorString().toStdString()
-                  << usage.toStdString() << std::endl;
-        exit(-5);
-    }
-
-    QTextStream h(&outH);
-    QTextStream c(&outCpp);
-    Scxml::CppDumper dumper(h, c, outH.fileName(), options);
-    dumper.dump(parser.table());
-    outH.close();
-    outCpp.close();
-
-    a.exit();
-    return 0;
 }

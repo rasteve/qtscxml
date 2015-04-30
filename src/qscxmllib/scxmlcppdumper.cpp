@@ -450,9 +450,10 @@ const char *headerStart =
         "\n";
 } // anonymous namespace
 
-void CppDumper::dump(StateTable *table)
+void CppDumper::dump(StateTable *table, DocumentModel::ScxmlDocument *doc)
 {
     this->table = table;
+    m_doc = doc;
     mainClassName = options.basename;
     if (mainClassName.isEmpty()) {
         mainClassName = mangleId(table->_name);

@@ -41,7 +41,7 @@ public:
         : h(headerStream), cpp(cppStream), headerName(headerName), options(options)
     {}
 
-    void dump(StateTable *table);
+    void dump(StateTable *table, DocumentModel::ScxmlDocument *doc);
     QTextStream &h;
     QTextStream &cpp;
     QString headerName;
@@ -67,7 +67,8 @@ private:
     QString transitionName(QAbstractTransition *transition, bool upcase = false, int tIndex = -1,
                            const QString &stateName = QString());
 
-    StateTable *table;
+    StateTable *table = nullptr;
+    DocumentModel::ScxmlDocument *m_doc = nullptr;
     QString mainClassName;
     CppDumpOptions options;
     QMap<QAbstractState *, QString> mangledStateNames;

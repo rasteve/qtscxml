@@ -44,14 +44,18 @@ int main(int argc, char *argv[])
     Scxml::ScxmlParser parser(&reader,
                               Scxml::ScxmlParser::loaderForDir(QFileInfo(file.fileName()).absolutePath()));
     parser.parse();
-    QFile outF(a.arguments().value(2, QLatin1String("out.scxml")));
-    outF.open(QFile::WriteOnly);
-    QXmlStreamWriter w(&outF);
-    w.setAutoFormattingIndent(2);
-    w.setAutoFormatting(true);
-    Scxml::ScxmlDumper dumper(w);
-    dumper.dump(parser.table());
-    outF.close();
-    a.exit();
+    if (auto doc = parser.scxmlDocument()) {
+        QFile outF(a.arguments().value(2, QLatin1String("out.scxml")));
+        outF.open(QFile::WriteOnly);
+        QXmlStreamWriter w(&outF);
+        w.setAutoFormattingIndent(2);
+        w.setAutoFormatting(true);
+        Scxml::ScxmlDumper dumper(w);
+        dumper.dump(parser.table(), doc);
+        outF.close();
+        a.exit();
+    } else {
+        a.exit(-1);
+    }
     return a.exec();
 }

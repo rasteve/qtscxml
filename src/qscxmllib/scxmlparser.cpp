@@ -17,6 +17,8 @@
  ****************************************************************************/
 
 #include "scxmlparser.h"
+#include "nodatamodel.h"
+#include "ecmascriptdatamodel.h"
 #include <QXmlStreamReader>
 #include <QLoggingCategory>
 #include <QState>
@@ -256,10 +258,10 @@ private:
 
         switch (scxml->dataModel) {
         case DocumentModel::Scxml::NoDataModel:
-            m_table->setDataModel(StateTable::None);
+            m_table->setDataModel(new NoDataModel(m_table));
             break;
         case DocumentModel::Scxml::JSDataModel:
-            m_table->setDataModel(StateTable::Javascript);
+            m_table->setDataModel(new EcmaScriptDataModel(m_table));
             break;
         default:
             Q_UNREACHABLE();
@@ -1219,7 +1221,12 @@ void ScxmlParser::parse()
     }
 }
 
-StateTable *ScxmlParser::table()
+DocumentModel::XmlLocation ScxmlParser::xmlLocation() const
+{
+    return DocumentModel::XmlLocation(m_reader->lineNumber(), m_reader->columnNumber());
+}
+
+DocumentModel::ScxmlDocument *ScxmlParser::scxmlDocument()
 {
     if (!m_doc)
         return nullptr;
@@ -1229,14 +1236,17 @@ StateTable *ScxmlParser::table()
     };
 
     if (ScxmlVerifier(handler).verify(m_doc.data()))
-        return StateTableBuilder().build(m_doc.data());
+        return m_doc.data();
     else
         return nullptr;
 }
 
-DocumentModel::XmlLocation ScxmlParser::xmlLocation() const
+StateTable *ScxmlParser::table()
 {
-    return DocumentModel::XmlLocation(m_reader->lineNumber(), m_reader->columnNumber());
+    if (DocumentModel::ScxmlDocument *doc = scxmlDocument())
+        return StateTableBuilder().build(doc);
+    else
+        return nullptr;
 }
 
 void ScxmlParser::addError(const QString &msg, ErrorMessage::Severity severity)

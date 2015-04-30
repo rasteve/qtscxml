@@ -187,21 +187,31 @@ struct SCXML_EXPORT InstructionSequences
 
 } // namespace ExecutableContent
 
+class DataModelPrivate;
+class SCXML_EXPORT DataModel: public QObject
+{
+    Q_OBJECT
+    Q_DISABLE_COPY(DataModel)
+
+public:
+    DataModel(StateTable *table);
+    virtual ~DataModel();
+
+    StateTable *table();
+
+private:
+    Q_DECLARE_PRIVATE(DataModel)
+};
+
 class StateTablePrivate;
 class SCXML_EXPORT StateTable: public QStateMachine
 {
     Q_OBJECT
-    Q_ENUMS(DataModelType BindingMethod)
+    Q_ENUMS(BindingMethod)
 
     static QAtomicInt m_sessionIdCounter;
 
 public:
-    enum DataModelType {
-        Javascript,
-        Json,
-        Xml,
-        None
-    };
     enum BindingMethod {
         EarlyBinding,
         LateBinding
@@ -211,20 +221,13 @@ public:
     StateTable(StateTablePrivate &dd, QObject *parent);
     ~StateTable();
 
-    StateTable *table() {
-        return this;
-    }
+    void addId(const QByteArray&,QObject*); // FIXME: remove
 
-    void addId(const QByteArray&,QObject*);
+    DataModel *dataModel() const;
+    void setDataModel(DataModel *dataModel);
 
     QJSValue datamodelJSValues() const;
 
-    void setDataModel(DataModelType dt) {
-        m_dataModel = dt;
-    }
-    DataModelType dataModel() const {
-        return m_dataModel;
-    }
     void setDataBinding(BindingMethod b) {
         m_dataBinding = b;
     }
@@ -234,10 +237,6 @@ public:
 
     void initializeDataFor(QState *);
 
-    //void toScxml(QXmlStreamWriter &dumper);
-    //void toCpp(QTextStream &dumper);
-    //void toQml(QTextStream &qml);
-    //bool writeDiffs(std::function<bool(const QString &)> diffDumper, const StateTable &other);
     void doLog(const QString &label, const QString &msg);
     QString evalValueStr(const QString &expr, std::function<QString()> context,
                          const QString &defaultValue = QString());
@@ -305,9 +304,9 @@ public:
     QStringList currentStates(bool compress = true);
 private:
     Q_DECLARE_PRIVATE(StateTable)
+    DataModel *m_dataModel;
     const int m_sessionId;
     ExecutableContent::InstructionSequence m_initialSetup;
-    DataModelType m_dataModel;
     QVector<ScxmlData> m_data;
     QJSEngine *m_engine;
     QJSValue m_dataModelJSValues;

@@ -569,6 +569,7 @@ public:
     ScxmlParser(QXmlStreamReader *xmlReader, LoaderFunction loader = Q_NULLPTR);
     void parse();
     DocumentModel::XmlLocation xmlLocation() const;
+    DocumentModel::ScxmlDocument *scxmlDocument();
     StateTable *table();
     void addError(const QString &msg, ErrorMessage::Severity severity = ErrorMessage::Error);
     void addError(const char *msg, ErrorMessage::Severity severity = ErrorMessage::Error);

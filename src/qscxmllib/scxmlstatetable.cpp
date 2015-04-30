@@ -676,13 +676,35 @@ bool Invoke::execute() const
 }
 } // namespace ExecutableContent
 
+class DataModelPrivate: public QObjectPrivate
+{
+    Q_DECLARE_PUBLIC(DataModel)
+
+public:
+    StateTable *table;
+};
+
+DataModel::DataModel(StateTable *table)
+    : QObject(table)
+{
+    Q_ASSERT(table);
+    Q_D(DataModel);
+    d->table = table;
+}
+
+DataModel::~DataModel()
+{}
+
 QAtomicInt StateTable::m_sessionIdCounter = QAtomicInt(0);
 
 StateTable::StateTable(QObject *parent)
     : QStateMachine(*new StateTablePrivate, parent)
+    , m_dataModel(nullptr)
     , m_sessionId(m_sessionIdCounter++)
-    , m_initialSetup(this, nullptr), m_dataModel(None)
-    , m_engine(nullptr), m_dataBinding(EarlyBinding), m_warnIndirectIdClashes(true)
+    , m_initialSetup(this, nullptr)
+    , m_engine(nullptr)
+    , m_dataBinding(EarlyBinding)
+    , m_warnIndirectIdClashes(true)
     , m_queuedEvents(nullptr)
 {
     connect(this, &QStateMachine::finished, this, &StateTable::onFinished);
@@ -690,9 +712,12 @@ StateTable::StateTable(QObject *parent)
 
 StateTable::StateTable(StateTablePrivate &dd, QObject *parent)
     : QStateMachine(dd, parent)
+    , m_dataModel(nullptr)
     , m_sessionId(m_sessionIdCounter++)
-    , m_initialSetup(this, nullptr), m_dataModel(None), m_engine(nullptr)
-    , m_dataBinding(EarlyBinding), m_warnIndirectIdClashes(true)
+    , m_initialSetup(this, nullptr)
+    , m_engine(nullptr)
+    , m_dataBinding(EarlyBinding)
+    , m_warnIndirectIdClashes(true)
     , m_queuedEvents(nullptr)
 {
     connect(this, &QStateMachine::finished, this, &StateTable::onFinished);
@@ -707,6 +732,16 @@ void StateTable::addId(const QByteArray &, QObject *)
 {
     // FIXME: remove this.
     Q_UNIMPLEMENTED();
+}
+
+DataModel *StateTable::dataModel() const
+{
+    return m_dataModel;
+}
+
+void StateTable::setDataModel(DataModel *dataModel)
+{
+    m_dataModel = dataModel;
 }
 
 QJSValue StateTable::datamodelJSValues() const {

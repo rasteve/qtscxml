@@ -251,9 +251,10 @@ protected:
 };
 } // anonymous namespace
 
-void ScxmlDumper::dump(StateTable *table)
+void ScxmlDumper::dump(StateTable *table, DocumentModel::ScxmlDocument *doc)
 {
     this->table = table;
+    m_doc = doc;
     s.writeStartDocument();
     scxmlStart();
     loopOnSubStates(table, [this](QState *state) -> bool { return this->enterState(state); },
@@ -268,17 +269,11 @@ void ScxmlDumper::scxmlStart() {
     writeAttribute("xmlns", "http://www.w3.org/2005/07/scxml");
     writeAttribute("version", "1.0");
     QString datamodel;
-    switch (table->dataModel()) {
-    case StateTable::Javascript:
+    switch (m_doc->root->dataModel) {
+    case DocumentModel::Scxml::JSDataModel:
         datamodel = QStringLiteral("ecmascript");
         break;
-    case StateTable::Json:
-        datamodel = QStringLiteral("json");
-        break;
-    case StateTable::Xml:
-        datamodel = QStringLiteral("xpath");
-        break;
-    case StateTable::None:
+    case DocumentModel::Scxml::NoDataModel:
         datamodel = QStringLiteral("none");
         break;
     }
