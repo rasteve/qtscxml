@@ -435,7 +435,8 @@ private:
         instr->target = node->target;
         createEvaluatorString(QStringLiteral("send"), QStringLiteral("targetexpr"), node->targetexpr, &instr->targetexpr);
         instr->id = node->id;
-        instr->idLocation = node->idLocation;
+        if (!node->idLocation.isEmpty())
+            instr->idLocation = m_table->dataModel()->createStringPropertySetter(node->idLocation);
         instr->delay = node->delay;
         createEvaluatorString(QStringLiteral("send"), QStringLiteral("delayexpr"), node->delayexpr, &instr->delayexpr);
         instr->namelist = node->namelist;
@@ -467,7 +468,7 @@ private:
         newData.src = data->src;
         newData.expr = data->expr;
         newData.context = currentParent();
-        m_table->m_data.append(newData);
+        m_table->dataModel()->addData(newData);
     }
 
     void visit(DocumentModel::Script *node) Q_DECL_OVERRIDE

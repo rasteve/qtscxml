@@ -26,7 +26,6 @@
 #include <QTimer>
 #include <QLoggingCategory>
 #include <QJSEngine>
-#include <QJsonDocument>
 #include <QtCore/private/qstatemachine_p.h>
 
 namespace Scxml {
@@ -90,7 +89,7 @@ class EventBuilder
     QVector<ExecutableContent::Param> params;
     ScxmlEvent::EventType eventType = ScxmlEvent::External;
     QByteArray id;
-    QString idLocation;
+    DataModel::StringPropertySetter idLocation;
     QString target;
     DataModel::EvaluatorString targetexpr;
     QString type;
@@ -161,7 +160,7 @@ public:
             if (ExecutableContent::Param::evaluate(params, table, dataValues, dataNames)) {
                 foreach (const QString &name, namelist) {
                     dataNames << name;
-                    dataValues << table->datamodelJSValues().property(name).toVariant();
+                    dataValues << table->dataModel()->propertyValue(name);
                 }
             } else {
                 // If the evaluation of the <param> tags fails, set _event.data to an empty string.
@@ -172,9 +171,9 @@ public:
         }
 
         QByteArray sendid = id;
-        if (!idLocation.isEmpty()) {
+        if (idLocation) {
             sendid = generateId();
-            table->datamodelJSValues().setProperty(idLocation, QString::fromUtf8(sendid));
+            idLocation(QString::fromUtf8(sendid));
         }
 
         QString origin = target;
@@ -398,8 +397,8 @@ bool AssignExpression::execute() const
     if (!table() || !table()->engine())
         return false;
 
-    auto dataModel = table()->datamodelJSValues();
-    if (dataModel.hasProperty(location)) {
+    auto dataModel = table()->dataModel();
+    if (dataModel->hasProperty(location)) {
         bool ok = true;
         auto value = table()->evalJSValue(expression, [this, &ok]() -> QString {
                                               ok = false;
@@ -407,7 +406,7 @@ bool AssignExpression::execute() const
                                               .arg(instructionLocation(), expression);
                                           });
         if (ok)
-            dataModel.setProperty(location, value);
+            dataModel->setProperty(location, value);
         return ok;
     } else {
         table()->submitError(QByteArray("error.execution"),
@@ -431,9 +430,6 @@ void InstructionVisitor::accept(const Instruction *instruction) {
         break;
     case Instruction::JavaScript:
         visitJavaScript(static_cast<const JavaScript *>(instruction));
-        break;
-    case Instruction::AssignJson:
-        visitAssignJson(static_cast<const AssignJson *>(instruction));
         break;
     case Instruction::AssignExpression:
         visitAssignExpression(static_cast<const AssignExpression *>(instruction));
@@ -648,6 +644,7 @@ class DataModelPrivate
 {
 public:
     StateTable *table;
+    QVector<ScxmlData> data;
 };
 
 DataModel::DataModel(StateTable *table)
@@ -662,9 +659,19 @@ DataModel::~DataModel()
     delete d;
 }
 
-StateTable *DataModel::table()
+StateTable *DataModel::table() const
 {
     return d->table;
+}
+
+QVector<ScxmlData> DataModel::data() const
+{
+    return d->data;
+}
+
+void DataModel::addData(const ScxmlData &data)
+{
+    d->data.append(data);
 }
 
 QAtomicInt StateTable::m_sessionIdCounter = QAtomicInt(0);
@@ -700,6 +707,11 @@ StateTable::~StateTable()
     delete m_queuedEvents;
 }
 
+int StateTable::sessionId() const
+{
+    return m_sessionId;
+}
+
 void StateTable::addId(const QByteArray &, QObject *)
 {
     // FIXME: remove this.
@@ -714,27 +726,6 @@ DataModel *StateTable::dataModel() const
 void StateTable::setDataModel(DataModel *dataModel)
 {
     m_dataModel = dataModel;
-}
-
-QJSValue StateTable::datamodelJSValues() const {
-    return m_dataModelJSValues;
-    // QQmlEngine::​setObjectOwnership
-}
-
-void StateTable::initializeDataFor(QState *s) {
-    if (!engine())
-        return;
-    foreach (const ScxmlData &data, m_data) {
-        if (data.context == s) {
-            QJSValue v;
-            if (!data.expr.isEmpty())
-                v = evalJSValue(data.expr, [this, &data]() -> QString {
-                    return QStringLiteral("initializeDataFor with data for %1 defined in state %2)")
-                            .arg(data.id, QString::fromUtf8(objectId(data.context)));
-                });
-            m_dataModelJSValues.setProperty(data.id, v);
-        }
-    }
 }
 
 void StateTable::doLog(const QString &label, const QString &msg)
@@ -835,7 +826,8 @@ void StateTable::beginSelectTransitions(QEvent *event)
     } else {
         _event.clear();
     }
-    assignEvent();
+
+    dataModel()->assignEvent(_event);
 }
 
 void StateTable::beginMicrostep(QEvent *event)
@@ -938,51 +930,6 @@ QStringList StateTable::currentStates(bool compress)
     return res;
 }
 
-void StateTable::assignEvent() {
-    if (m_engine)
-        m_dataModelJSValues.setProperty(QStringLiteral("_event"), _event.jsValue(m_engine));
-}
-
-void StateTable::setupDataModel()
-{
-    if (!engine())
-        return;
-    qCDebug(scxmlLog) << "initializing the datamodel";
-    setupSystemVariables();
-    foreach (const ScxmlData &data ,m_data) {
-        QJSValue v(QJSValue::UndefinedValue); // See B.2.1, and test456.
-        if ((dataBinding() == EarlyBinding || !data.context || data.context == this)
-                && !data.expr.isEmpty())
-            v = evalJSValue(data.expr, [this, &data]() -> QString {
-                return QStringLiteral("setupDataModel with data for %1 defined in state '%2'")
-                        .arg(data.id, QString::fromUtf8(objectId(data.context)));
-            });
-        qCDebug(scxmlLog) << "setting datamodel property" << data.id << "to" << v.toVariant();
-        m_dataModelJSValues.setProperty(data.id, v);
-        Q_ASSERT(m_dataModelJSValues.hasProperty(data.id));
-    }
-}
-
-void StateTable::setupSystemVariables()
-{
-    m_dataModelJSValues.setProperty(QStringLiteral("_sessionid"),
-                                    QStringLiteral("session%1").arg(m_sessionId));
-
-    m_dataModelJSValues.setProperty(QStringLiteral("_name"), _name);
-
-    auto scxml = engine()->newObject();
-    scxml.setProperty(QStringLiteral("location"), QStringLiteral("TODO")); // TODO
-    auto ioProcs = engine()->newObject();
-    ioProcs.setProperty(QStringLiteral("scxml"), scxml);
-    m_dataModelJSValues.setProperty(QStringLiteral("_ioprocessors"), ioProcs);
-
-    auto platformVars = PlatformProperties::create(engine(), this);
-    m_dataModelJSValues.setProperty(QStringLiteral("_x"), platformVars->jsValue());
-
-    m_dataModelJSValues.setProperty(QStringLiteral("In"),
-                                    engine()->evaluate(QStringLiteral("function(id){return _x.In(id);}")));
-}
-
 void StateTable::executeInitialSetup()
 {
     m_initialSetup.execute();
@@ -1032,7 +979,7 @@ bool loopOnSubStates(QState *startState,
 
 bool StateTable::init()
 {
-    setupDataModel();
+    dataModel()->setup();
     executeInitialSetup();
 
     bool res = true;
@@ -1065,8 +1012,6 @@ QJSEngine *StateTable::engine() const
 void StateTable::setEngine(QJSEngine *engine)
 {
     m_engine = engine;
-    if (engine)
-        m_dataModelJSValues = engine->globalObject();
 }
 
 void StateTable::submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid)
@@ -1184,33 +1129,6 @@ QString ScxmlEvent::scxmlType() const {
     return QLatin1String("external");
 }
 
-QJSValue ScxmlEvent::data(QJSEngine *engine) const {
-    if (dataNames().isEmpty()) {
-        if (dataValues().size() == 0) {
-            return QJSValue(QJSValue::NullValue);
-        } else if (dataValues().size() == 1) {
-            QString data = dataValues().first().toString();
-            QJsonParseError err;
-            QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8(), &err);
-            if (err.error == QJsonParseError::NoError)
-                return engine->toScriptValue(doc.toVariant());
-            else
-                return engine->toScriptValue(data);
-        } else {
-            Q_UNREACHABLE();
-            return QJSValue(QJSValue::UndefinedValue);
-        }
-    } else {
-        auto data = engine->newObject();
-
-        for (int i = 0, ei = std::min(dataNames().size(), dataValues().size()); i != ei; ++i) {
-            data.setProperty(dataNames().at(i), engine->toScriptValue(dataValues().at(i)));
-        }
-
-        return data;
-    }
-}
-
 void ScxmlEvent::reset(const QByteArray &name, ScxmlEvent::EventType eventType, QVariantList dataValues,
                        const QByteArray &sendid, const QString &origin,
                        const QString &origintype, const QByteArray &invokeid) {
@@ -1231,26 +1149,6 @@ void ScxmlEvent::clear() {
     m_origintype = QString();
     m_invokeid = QByteArray();
     m_dataValues = QVariantList();
-}
-
-QJSValue ScxmlEvent::jsValue(QJSEngine *engine) const {
-    QJSValue res = engine->newObject();
-    QJSValue dataValue = data(engine);
-    res.setProperty(QStringLiteral("data"), dataValue.isNull() ? QJSValue(QJSValue::UndefinedValue)
-                                                               : dataValue);
-    res.setProperty(QStringLiteral("invokeid"), invokeid().isEmpty() ? QJSValue(QJSValue::UndefinedValue)
-                                                                     : engine->toScriptValue(QString::fromUtf8(invokeid())));
-    if (!origintype().isEmpty())
-        res.setProperty(QStringLiteral("origintype"), engine->toScriptValue(origintype()));
-    res.setProperty(QStringLiteral("origin"), origin().isEmpty() ? QJSValue(QJSValue::UndefinedValue)
-                                                                 : engine->toScriptValue(origin()) );
-    res.setProperty(QStringLiteral("sendid"), sendid().isEmpty() ? QJSValue(QJSValue::UndefinedValue)
-                                                                 : engine->toScriptValue(QString::fromUtf8(sendid())));
-    res.setProperty(QStringLiteral("type"), engine->toScriptValue(scxmlType()));
-    res.setProperty(QStringLiteral("name"), engine->toScriptValue(QString::fromUtf8(name())));
-    res.setProperty(QStringLiteral("raw"), QStringLiteral("unsupported")); // See test178
-                                                                           // TODO: document this
-    return res;
 }
 
 /////////////
@@ -1494,7 +1392,7 @@ void ScxmlState::onEntry(QEvent *event) {
     if (!m_dataInitialized) {
         m_dataInitialized = true;
         // this might actually be a bit too late (parallel states might already have been entered)
-        table()->initializeDataFor(this);
+        table()->dataModel()->initializeDataFor(this);
     }
     QState::onEntry(event);
     onEntryInstructions.execute();
@@ -1617,29 +1515,6 @@ void XmlNode::dump(QXmlStreamWriter &s) const
         loopOnChilds([this, &s](const XmlNode &node) { node.dump(s); return true; }); // avoid recursion?
         s.writeEndElement();
     }
-}
-
-PlatformProperties *PlatformProperties::create(QJSEngine *engine, StateTable *table)
-{
-    PlatformProperties *pp = new PlatformProperties(engine);
-    pp->m_table = table;
-    pp->m_jsValue = engine->newQObject(pp);
-    return pp;
-}
-
-QString PlatformProperties::marks() const
-{
-    return QStringLiteral("the spot");
-}
-
-bool PlatformProperties::In(const QString &stateName)
-{
-    foreach (QAbstractState *s, table()->configuration()) {
-        if (s->objectName() == stateName)
-            return true;
-    }
-
-    return false;
 }
 
 } // namespace Scxml

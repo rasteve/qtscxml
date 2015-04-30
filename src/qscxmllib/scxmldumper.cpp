@@ -97,49 +97,6 @@ protected:
         s.writeEndElement();
     }
 
-    void visitAssignJson(const AssignJson *assign) Q_DECL_OVERRIDE {
-        s.writeStartElement("assign");
-        s.writeAttribute("location", assign->location);
-        const QJsonValue &v = assign->value;
-        switch (v.type()) {
-        case QJsonValue::Null:
-            s.s.writeCharacters(QLatin1String("null"));
-            break;
-        case QJsonValue::Bool:
-            if (v.toBool())
-                s.s.writeCharacters(QLatin1String("true"));
-            else
-                s.s.writeCharacters(QLatin1String("false"));
-            break;
-        case QJsonValue::Double:
-            s.s.writeCharacters(QString::number(v.toDouble()));
-            break;
-        case QJsonValue::String: { // ugly, use direct escaping?
-            QJsonArray arr;
-            QJsonDocument doc(arr);
-            QByteArray json = doc.toJson(QJsonDocument::Compact);
-            int from = json.indexOf('[');
-            int to = json.lastIndexOf(']');
-            s.s.writeCharacters(QString::fromUtf8(json.mid(from + 1, to - from - 1)));
-            break;
-        }
-        case QJsonValue::Array: {
-            QJsonDocument doc(assign->value.toArray());
-            s.s.writeCharacters(QString::fromUtf8(doc.toJson()));
-            break;
-        }
-        case QJsonValue::Object: {
-            QJsonDocument doc(assign->value.toObject());
-            s.s.writeCharacters(QString::fromUtf8(doc.toJson()));
-            break;
-        }
-        case QJsonValue::Undefined:
-            s.s.writeCharacters(QLatin1String("undefined"));
-            break;
-        }
-        s.writeEndElement();
-    }
-
     void visitAssignExpression(const AssignExpression *assign) Q_DECL_OVERRIDE {
         s.writeStartElement("assign");
         s.writeAttribute("location", assign->location);

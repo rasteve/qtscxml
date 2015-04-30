@@ -70,7 +70,6 @@ public:
     QString origin() const { return m_origin; }
     QString origintype() const { return m_origintype; }
     QByteArray invokeid() const { return m_invokeid; }
-    QJSValue data(QJSEngine *engine) const;
     QVariantList dataValues() const { return m_dataValues; }
     QStringList dataNames() const { return m_dataNames; }
     void reset(const QByteArray &name, EventType eventType = External,
@@ -78,7 +77,6 @@ public:
                const QString &origin = QString(), const QString &origintype = QString(),
                const QByteArray &invokeid = QByteArray());
     void clear();
-    QJSValue jsValue(QJSEngine *engine) const;
 
 private:
     QByteArray m_name;
@@ -119,7 +117,6 @@ public:
         Send,
         Log,
         JavaScript,
-        AssignJson,
         AssignExpression,
         If,
         Foreach,
@@ -195,15 +192,24 @@ class SCXML_EXPORT DataModel
 public:
     typedef std::function<QString (bool *)> EvaluatorString;
     typedef std::function<bool (bool *)> EvaluatorBool;
+    typedef std::function<void (const QString &)> StringPropertySetter;
 
 public:
     DataModel(StateTable *table);
     virtual ~DataModel();
 
-    StateTable *table();
+    StateTable *table() const;
+    QVector<ScxmlData> data() const;
+    void addData(const ScxmlData &data);
 
+    virtual void setup() = 0;
+    virtual void initializeDataFor(QState *state);
     virtual EvaluatorString createEvaluatorString(const QString &expr, const QString &context) = 0;
     virtual EvaluatorBool createEvaluatorBool(const QString &expr, const QString &context) = 0;
+    virtual StringPropertySetter createStringPropertySetter(const QString &propertyName) = 0;
+
+    virtual void assignEvent(const ScxmlEvent &event) = 0;
+    virtual QVariant propertyValue(const QString &name) const = 0;
 
 private:
     DataModelPrivate *d;
@@ -227,12 +233,12 @@ public:
     StateTable(StateTablePrivate &dd, QObject *parent);
     ~StateTable();
 
+    int sessionId() const;
+
     void addId(const QByteArray&,QObject*); // FIXME: remove
 
     DataModel *dataModel() const;
     void setDataModel(DataModel *dataModel);
-
-    QJSValue datamodelJSValues() const;
 
     void setDataBinding(BindingMethod b) {
         m_dataBinding = b;
@@ -240,8 +246,6 @@ public:
     BindingMethod dataBinding() const {
         return m_dataBinding;
     }
-
-    void initializeDataFor(QState *);
 
     void doLog(const QString &label, const QString &msg);
     QJSValue evalJSValue(const QString &expr, std::function<QString()> context,
@@ -289,9 +293,6 @@ protected:
     void beginSelectTransitions(QEvent *event) Q_DECL_OVERRIDE;
     void beginMicrostep(QEvent *event) Q_DECL_OVERRIDE;
     void endMicrostep(QEvent *event) Q_DECL_OVERRIDE;
-    virtual void assignEvent();
-    void setupDataModel();
-    void setupSystemVariables();
     void executeInitialSetup();
 
 public:
@@ -307,9 +308,7 @@ private:
     DataModel *m_dataModel;
     const int m_sessionId;
     ExecutableContent::InstructionSequence m_initialSetup;
-    QVector<ScxmlData> m_data;
     QJSEngine *m_engine;
-    QJSValue m_dataModelJSValues;
     BindingMethod m_dataBinding;
     bool m_warnIndirectIdClashes;
     friend class StateTableBuilder;
@@ -345,7 +344,7 @@ struct SCXML_EXPORT Send : public Instruction {
     QString target;
     DataModel::EvaluatorString targetexpr;
     QString id;
-    QString idLocation;
+    DataModel::StringPropertySetter idLocation;
     QString delay;
     DataModel::EvaluatorString delayexpr;
     QStringList namelist;
@@ -395,14 +394,6 @@ struct SCXML_EXPORT AssignExpression : public Instruction {
     XmlNode *content;
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::AssignExpression; }
     bool execute() const Q_DECL_OVERRIDE;
-};
-
-struct SCXML_EXPORT AssignJson : public Instruction {
-    AssignJson(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
-        : Instruction(parentState, transition) { }
-    QString location;
-    QJsonValue value;
-    Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::AssignJson; }
 };
 
 struct SCXML_EXPORT If : public Instruction {
@@ -463,7 +454,6 @@ protected:
     virtual void visitLog(const Log*) = 0;
     virtual void visitSend(const Send *) = 0;
     virtual void visitJavaScript(const JavaScript *) = 0;
-    virtual void visitAssignJson(const AssignJson *) = 0;
     virtual void visitAssignExpression(const AssignExpression *) = 0;
     virtual void visitCancel(const Cancel *) = 0;
 
@@ -636,32 +626,6 @@ protected:
     QVector<XmlNode> m_childs;
 };
 
-class PlatformProperties: public QObject
-{
-    Q_OBJECT
-
-    PlatformProperties &operator=(const PlatformProperties &) = delete;
-
-    PlatformProperties(QObject *parent)
-        : QObject(parent)
-        , m_table(0)
-    {}
-
-    Q_PROPERTY(QString marks READ marks CONSTANT)
-
-public:
-    static PlatformProperties *create(QJSEngine *engine, StateTable *table);
-
-    QJSEngine *engine() const { return qobject_cast<QJSEngine *>(parent()); }
-    StateTable *table() const { return m_table; }
-    QJSValue jsValue() const { return m_jsValue; }
-
-    QString marks() const;
-    Q_INVOKABLE bool In(const QString &stateName);
-
-private:
-    StateTable *m_table;
-    QJSValue m_jsValue;
-};
 } // namespace Scxml
+
 #endif // SCXMLSTATETABLE_H

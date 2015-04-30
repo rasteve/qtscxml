@@ -23,13 +23,19 @@
 
 namespace Scxml {
 
-class NoDataModel: public DataModel
+class SCXML_EXPORT NoDataModel: public DataModel
 {
 public:
     NoDataModel(StateTable *table);
 
+    void setup() Q_DECL_OVERRIDE;
+    void initializeDataFor(QState *state) Q_DECL_OVERRIDE;
     EvaluatorString createEvaluatorString(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
     EvaluatorBool createEvaluatorBool(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
+    StringPropertySetter createStringPropertySetter(const QString &propertyName) Q_DECL_OVERRIDE;
+
+    void assignEvent(const ScxmlEvent &event) Q_DECL_OVERRIDE;
+    QVariant propertyValue(const QString &name) const Q_DECL_OVERRIDE;
 };
 
 } // Scxml namespace

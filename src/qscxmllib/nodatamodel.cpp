@@ -24,6 +24,9 @@ NoDataModel::NoDataModel(StateTable *table)
     : DataModel(table)
 {}
 
+void NoDataModel::setup()
+{}
+
 DataModel::EvaluatorString NoDataModel::createEvaluatorString(const QString &expr, const QString &context)
 {
     Q_UNUSED(expr);
@@ -36,4 +39,21 @@ DataModel::EvaluatorBool NoDataModel::createEvaluatorBool(const QString &expr, c
     Q_UNUSED(expr);
     Q_UNUSED(context);
     Q_UNREACHABLE();
+}
+
+DataModel::StringPropertySetter NoDataModel::createStringPropertySetter(const QString &propertyName)
+{
+    Q_UNUSED(propertyName);
+    Q_UNREACHABLE();
+}
+
+void NoDataModel::assignEvent(const ScxmlEvent &event)
+{
+    Q_UNUSED(event);
+}
+
+QVariant NoDataModel::propertyValue(const QString &name) const
+{
+    Q_UNUSED(name);
+    return QVariant();
 }
