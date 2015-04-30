@@ -84,17 +84,17 @@ class EventBuilder
     StateTable* table = 0;
     QString instructionLocation;
     QByteArray event;
-    QString eventexpr;
+    DataModel::EvaluatorString eventexpr;
     QString contents;
-    QString contentExpr;
+    DataModel::EvaluatorString contentExpr;
     QVector<ExecutableContent::Param> params;
     ScxmlEvent::EventType eventType = ScxmlEvent::External;
     QByteArray id;
     QString idLocation;
     QString target;
-    QString targetexpr;
+    DataModel::EvaluatorString targetexpr;
     QString type;
-    QString typeexpr;
+    DataModel::EvaluatorString typeexpr;
     QStringList namelist;
 
     static QAtomicInt idCounter;
@@ -140,30 +140,22 @@ public:
     ScxmlEvent *buildEvent()
     {
         QByteArray eventName = event;
-        if (!eventexpr.isEmpty()) {
-            eventName = table->evalValueStr(eventexpr,
-                                            [&]() -> QString {
-                                                return QStringLiteral("%1 with eventexpr %2")
-                                                .arg(instructionLocation, eventexpr);
-                                            }).toUtf8();
+        bool ok = true;
+        if (eventexpr) {
+            eventName = eventexpr(&ok).toUtf8();
+            ok = true; // ignore failure.
         }
 
-        bool failure = false;
         QVariantList dataValues;
         QStringList dataNames;
         if (params.isEmpty() && namelist.isEmpty()) {
             QVariant data;
-            if (contentExpr.isEmpty()) {
-                data = contents;
+            if (contentExpr) {
+                data = contentExpr(&ok);
             } else {
-                data = table->evalValueStr(contentExpr,
-                                           [&]() -> QString {
-                                               failure = true;
-                                               return QStringLiteral("donedata with expr '%1'")
-                                               .arg(contentExpr);
-                                           }, QString::null);
+                data = contents;
             }
-            if (!data.isNull()) // if evaluation of expr failed, this will be a null value, which in turn means no data property is set on the event. See e.g. test528.
+            if (ok) // if evaluation of expr failed, which results in no data property being set on the event. See e.g. test528.
                 dataValues.append(data);
         } else {
             if (ExecutableContent::Param::evaluate(params, table, dataValues, dataNames)) {
@@ -186,14 +178,9 @@ public:
         }
 
         QString origin = target;
-        if (!targetexpr.isEmpty()) {
-            origin = table->evalValueStr(targetexpr,
-                                         [&]() -> QString {
-                                             failure = true;
-                                             return QStringLiteral("%1 with targetexpr %2")
-                                             .arg(instructionLocation, targetexpr);
-                                         });
-            if (failure)
+        if (targetexpr) {
+            origin = targetexpr(&ok);
+            if (!ok)
                 return nullptr;
         }
         if (origin.isEmpty()) {
@@ -221,14 +208,9 @@ public:
             // [6.2.5] and test198
             origintype = QStringLiteral("http://www.w3.org/TR/scxml/#SCXMLEventProcessor");
         }
-        if (!typeexpr.isEmpty()) {
-            origintype = table->evalValueStr(typeexpr,
-                                             [&]() -> QString {
-                                                 failure = true;
-                                                 return QStringLiteral("%1 with typeexpr %2")
-                                                 .arg(instructionLocation, typeexpr);
-                                             });
-            if (failure)
+        if (typeexpr) {
+            origintype = typeexpr(&ok);
+            if (!ok)
                 return nullptr;
         }
         if (!origintype.isEmpty() && origintype != QStringLiteral("http://www.w3.org/TR/scxml/#SCXMLEventProcessor")) {
@@ -566,15 +548,11 @@ bool Send::execute() const
 {
     Q_ASSERT(table() && table()->engine());
     QString delay = this->delay;
-    if (!delayexpr.isEmpty()) {
-        bool failure = false;
-        delay = table()->evalValueStr(delayexpr,
-                                      [this,&failure]() -> QString {
-                                          failure = true;
-                                          return QStringLiteral("%1 with delayexpr %2")
-                                          .arg(instructionLocation(), eventexpr);
-                                      });
-        if (failure) return false;
+    if (delayexpr) {
+        bool ok = false;
+        delay = delayexpr(&ok);
+        if (!ok)
+            return false;
     }
 
     ScxmlEvent *event = EventBuilder(table(), *this).buildEvent();
@@ -605,12 +583,7 @@ bool Raise::execute() const
 bool Log::execute() const
 {
     bool ok = true;
-    QString str = table()->evalValueStr(expr,
-                                        [this,&ok]()->QString {
-                                            ok = false;
-                                            return instructionLocation();
-                                        },
-                                        QString());
+    QString str = expr(&ok);
     if (ok)
         table()->doLog(label, str);
     return ok;
@@ -655,15 +628,10 @@ bool Param::evaluate(const QVector<Param> &params, StateTable *table, QVariantLi
 
 bool Cancel::execute() const
 {
-    QByteArray e = sendid.toUtf8();
+    QByteArray e = sendid;
     bool ok = true;
-    if (!sendidexpr.isEmpty())
-        e = table()->evalValueStr(sendidexpr,
-                                  [this,&ok]() -> QString {
-                                      ok = false;
-                                      return QStringLiteral("%1 with sendidexpr %2")
-                                      .arg(instructionLocation(), sendidexpr);
-                                  }).toUtf8();
+    if (sendidexpr)
+        e = sendidexpr(&ok).toUtf8();
     if (ok && !e.isEmpty())
         table()->cancelDelayedEvent(e);
     return ok;
@@ -676,24 +644,28 @@ bool Invoke::execute() const
 }
 } // namespace ExecutableContent
 
-class DataModelPrivate: public QObjectPrivate
+class DataModelPrivate
 {
-    Q_DECLARE_PUBLIC(DataModel)
-
 public:
     StateTable *table;
 };
 
 DataModel::DataModel(StateTable *table)
-    : QObject(table)
+    : d(new DataModelPrivate)
 {
     Q_ASSERT(table);
-    Q_D(DataModel);
     d->table = table;
 }
 
 DataModel::~DataModel()
-{}
+{
+    delete d;
+}
+
+StateTable *DataModel::table()
+{
+    return d->table;
+}
 
 QAtomicInt StateTable::m_sessionIdCounter = QAtomicInt(0);
 
@@ -769,41 +741,6 @@ void StateTable::doLog(const QString &label, const QString &msg)
 {
     qCDebug(scxmlLog) << label << ":" << msg;
     emit log(label, msg);
-}
-
-QString StateTable::evalValueStr(const QString &expr, std::function<QString()> context,
-                                 const QString &defaultValue)
-{
-    QJSEngine *e = engine();
-    if (e) {
-        QJSValue v = e->evaluate(QStringLiteral("(function(){ return (%1).toString(); })()").arg(expr),
-                                 QStringLiteral("<expr>"), 1);
-        if (v.isError()) {
-            submitError(QByteArray("error.execution"),
-                        QStringLiteral("%1 in %2").arg(v.toString(), context()),
-                        /*sendid =*/ QByteArray());
-        } else {
-            return v.toString();
-        }
-    }
-    return defaultValue;
-}
-
-int StateTable::evalValueInt(const QString &expr, std::function<QString()> context, int defaultValue)
-{
-    QJSEngine *e = engine();
-    if (e) {
-        QJSValue v = e->evaluate(QStringLiteral("(function(){ return (%1)|0; })()").arg(expr),
-                                 QStringLiteral("<expr>"), 1);
-        if (v.isError()) {
-            submitError(QByteArray("error.execution"),
-                        QStringLiteral("%1 in %2").arg(v.toString(), context()),
-                        /*sendid =*/ QByteArray());
-        } else {
-            return v.toInt();
-        }
-    }
-    return defaultValue;
 }
 
 bool StateTable::evalValueBool(const QString &expr, std::function<QString()> context, bool defaultValue)

@@ -23,3 +23,10 @@ using namespace Scxml;
 NoDataModel::NoDataModel(StateTable *table)
     : DataModel(table)
 {}
+
+DataModel::EvaluatorString NoDataModel::createEvaluator(const QString &expr, const QString &context)
+{
+    Q_UNUSED(expr);
+    Q_UNUSED(context);
+    Q_UNREACHABLE(); // FIXME: give an error.
+}

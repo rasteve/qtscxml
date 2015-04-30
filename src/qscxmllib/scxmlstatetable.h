@@ -188,10 +188,13 @@ struct SCXML_EXPORT InstructionSequences
 } // namespace ExecutableContent
 
 class DataModelPrivate;
-class SCXML_EXPORT DataModel: public QObject
+class SCXML_EXPORT DataModel
 {
-    Q_OBJECT
     Q_DISABLE_COPY(DataModel)
+
+public:
+    typedef std::function<QString (bool *)> EvaluatorString;
+    typedef std::function<bool (bool *)> EvaluatorBool;
 
 public:
     DataModel(StateTable *table);
@@ -199,8 +202,10 @@ public:
 
     StateTable *table();
 
+    virtual EvaluatorString createEvaluator(const QString &expr, const QString &context) = 0;
+
 private:
-    Q_DECLARE_PRIVATE(DataModel)
+    DataModelPrivate *d;
 };
 
 class StateTablePrivate;
@@ -238,10 +243,6 @@ public:
     void initializeDataFor(QState *);
 
     void doLog(const QString &label, const QString &msg);
-    QString evalValueStr(const QString &expr, std::function<QString()> context,
-                         const QString &defaultValue = QString());
-    int evalValueInt(const QString &expr, std::function<QString()> context,
-                     int defaultValue);
     bool evalValueBool(const QString &expr, std::function<QString()> context,
                        bool defaultValue = false);
     QJSValue evalJSValue(const QString &expr, std::function<QString()> context,
@@ -331,7 +332,7 @@ struct SCXML_EXPORT Param {
 
 struct SCXML_EXPORT DoneData {
     QString contents;
-    QString expr;
+    DataModel::EvaluatorString expr;
     QVector<Param> params;
 };
 
@@ -339,15 +340,15 @@ struct SCXML_EXPORT Send : public Instruction {
     Send(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
         : Instruction(parentState, transition) { }
     QByteArray event;
-    QString eventexpr;
+    DataModel::EvaluatorString eventexpr;
     QString type;
-    QString typeexpr;
+    DataModel::EvaluatorString typeexpr;
     QString target;
-    QString targetexpr;
+    DataModel::EvaluatorString targetexpr;
     QString id;
     QString idLocation;
     QString delay;
-    QString delayexpr;
+    DataModel::EvaluatorString delayexpr;
     QStringList namelist;
     QVector<Param> params;
     QString content;
@@ -367,7 +368,7 @@ struct SCXML_EXPORT Log : public Instruction {
     Log(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
         : Instruction(parentState, transition) { }
     QString label;
-    QString expr;
+    DataModel::EvaluatorString expr;
     virtual bool execute() const Q_DECL_OVERRIDE;
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::Log; }
 };
@@ -430,8 +431,8 @@ struct SCXML_EXPORT Foreach : public Instruction {
 struct SCXML_EXPORT Cancel : public Instruction {
     Cancel(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
         : Instruction(parentState, transition) { }
-    QString sendid;
-    QString sendidexpr;
+    QByteArray sendid;
+    DataModel::EvaluatorString sendidexpr;
     bool execute() const Q_DECL_OVERRIDE;
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::Cancel; }
 };

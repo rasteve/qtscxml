@@ -23,10 +23,17 @@
 
 namespace Scxml {
 
+class EcmaScriptDataModelPrivate;
 class EcmaScriptDataModel: public DataModel
 {
 public:
     EcmaScriptDataModel(StateTable *table);
+    ~EcmaScriptDataModel() Q_DECL_OVERRIDE;
+
+    EvaluatorString createEvaluator(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
+
+private:
+    EcmaScriptDataModelPrivate *d;
 };
 
 } // Scxml namespace

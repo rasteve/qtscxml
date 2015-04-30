@@ -38,26 +38,27 @@ protected:
 
     void visitSend(const Send *send) Q_DECL_OVERRIDE {
         s.writeStartElement("send");
-        if (!send->eventexpr.isEmpty())
-            s.writeAttribute("eventexpr", send->eventexpr);
-        else if (!send->event.isEmpty())
-            s.writeAttribute("event", send->event);
-        if (!send->targetexpr.isEmpty())
-            s.writeAttribute("targetexpr", send->targetexpr);
-        else if (!send->target.isEmpty())
-            s.writeAttribute("target", send->target);
-        if (!send->typeexpr.isEmpty())
-            s.writeAttribute("typeexpr", send->typeexpr);
-        else if (!send->type.isEmpty())
-            s.writeAttribute("type", send->type);
-        if (!send->idLocation.isEmpty())
-            s.writeAttribute("idlocation", send->idLocation);
-        else if (!send->id.isEmpty())
-            s.writeAttribute("id", send->id);
-        if (!send->delayexpr.isEmpty())
-            s.writeAttribute("delayexpr", send->delayexpr);
-        else if (!send->delay.isEmpty())
-            s.writeAttribute("delay", send->delay);
+        Q_UNIMPLEMENTED(); // FIXME
+//        if (!send->eventexpr.isEmpty())
+//            s.writeAttribute("eventexpr", send->eventexpr);
+//        else if (!send->event.isEmpty())
+//            s.writeAttribute("event", send->event);
+//        if (!send->targetexpr.isEmpty())
+//            s.writeAttribute("targetexpr", send->targetexpr);
+//        else if (!send->target.isEmpty())
+//            s.writeAttribute("target", send->target);
+//        if (!send->typeexpr.isEmpty())
+//            s.writeAttribute("typeexpr", send->typeexpr);
+//        else if (!send->type.isEmpty())
+//            s.writeAttribute("type", send->type);
+//        if (!send->idLocation.isEmpty())
+//            s.writeAttribute("idlocation", send->idLocation);
+//        else if (!send->id.isEmpty())
+//            s.writeAttribute("id", send->id);
+//        if (!send->delayexpr.isEmpty())
+//            s.writeAttribute("delayexpr", send->delayexpr);
+//        else if (!send->delay.isEmpty())
+//            s.writeAttribute("delay", send->delay);
         if (!send->namelist.isEmpty())
             s.writeAttribute("namelist", send->namelist.join(QLatin1Char(' ')));
         foreach (const Param &p, send->params) {
@@ -81,8 +82,9 @@ protected:
         s.writeStartElement("log");
         if (!log->label.isEmpty())
             s.writeAttribute("label", log->label);
-        if (!log->expr.isEmpty())
-            s.writeAttribute("expr", log->expr);
+        Q_UNIMPLEMENTED(); // FIXME
+//        if (!log->expr.isEmpty())
+//            s.writeAttribute("expr", log->expr);
         s.writeEndElement();
     }
 
@@ -150,10 +152,12 @@ protected:
 
     void visitCancel(const Cancel *c) Q_DECL_OVERRIDE {
         s.writeStartElement("cancel");
-        if (!c->sendidexpr.isEmpty())
-            s.writeAttribute("sendidexpr", c->sendidexpr);
-        else if (!c->sendid.isEmpty())
-            s.writeAttribute("sendid", c->sendid);
+        Q_UNIMPLEMENTED();
+        Q_UNUSED(c);
+//        if (!c->sendidexpr.isEmpty())
+//            s.writeAttribute("sendidexpr", c->sendidexpr);
+//        else if (!c->sendid.isEmpty())
+//            s.writeAttribute("sendid", c->sendid);
     }
 
     bool visitInvoke(const Invoke *invoke) Q_DECL_OVERRIDE {
@@ -399,31 +403,32 @@ void ScxmlDumper::inAbstractState(QAbstractState *state)
                 writeEndElement();
             }
         }
-        if (!finalState->doneData.contents.isEmpty()
-                || !finalState->doneData.expr.isEmpty()
-                || !finalState->doneData.params.isEmpty()) {
-            writeStartElement("donedata");
-            if (!finalState->doneData.contents.isEmpty()
-                    || !finalState->doneData.expr.isEmpty()) {
-                writeStartElement("content");
-                if (!finalState->doneData.expr.isEmpty())
-                    writeAttribute("expr", finalState->doneData.expr);
-                if (!finalState->doneData.contents.isEmpty()) {
-                    s.writeCDATA(finalState->doneData.contents);
-                }
-                writeEndElement(); // content
-            }
-            foreach (const ExecutableContent::Param &p, finalState->doneData.params) {
-                writeStartElement("param");
-                writeAttribute("name", p.name);
-                if (!p.expr.isEmpty())
-                    writeAttribute("expr", p.expr);
-                if (!p.location.isEmpty())
-                    writeAttribute("location", p.location);
-                writeEndElement(); // param
-            }
-            writeEndElement(); // donedata
-        }
+        Q_UNIMPLEMENTED(); // FIXME
+//        if (!finalState->doneData.contents.isEmpty()
+//                || !finalState->doneData.expr.isEmpty()
+//                || !finalState->doneData.params.isEmpty()) {
+//            writeStartElement("donedata");
+//            if (!finalState->doneData.contents.isEmpty()
+//                    || !finalState->doneData.expr.isEmpty()) {
+//                writeStartElement("content");
+//                if (!finalState->doneData.expr.isEmpty())
+//                    writeAttribute("expr", finalState->doneData.expr);
+//                if (!finalState->doneData.contents.isEmpty()) {
+//                    s.writeCDATA(finalState->doneData.contents);
+//                }
+//                writeEndElement(); // content
+//            }
+//            foreach (const ExecutableContent::Param &p, finalState->doneData.params) {
+//                writeStartElement("param");
+//                writeAttribute("name", p.name);
+//                if (!p.expr.isEmpty())
+//                    writeAttribute("expr", p.expr);
+//                if (!p.location.isEmpty())
+//                    writeAttribute("location", p.location);
+//                writeEndElement(); // param
+//            }
+//            writeEndElement(); // donedata
+//        }
         writeEndElement(); // final
     } else if (qobject_cast<QFinalState *>(state)) {
         writeStartElement("final");

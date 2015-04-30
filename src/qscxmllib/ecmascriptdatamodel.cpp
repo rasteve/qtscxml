@@ -20,7 +20,51 @@
 
 using namespace Scxml;
 
+class Scxml::EcmaScriptDataModelPrivate
+{
+    EcmaScriptDataModel *q;
+public:
+    EcmaScriptDataModelPrivate(EcmaScriptDataModel *q)
+        : q(q)
+    {}
+
+    QString evalStr(const QString &expr, const QString &context, bool *ok)
+    {
+        Q_ASSERT(ok);
+        QJSEngine *e = q->table()->engine();
+        Q_ASSERT(e);
+
+        QJSValue v = e->evaluate(QStringLiteral("(function(){ return (%1).toString(); })()").arg(expr),
+                                 QStringLiteral("<expr>"), 1);
+        if (v.isError()) {
+            *ok = false;
+            static QByteArray sendid;
+            q->table()->submitError(QByteArray("error.execution"),
+                                    QStringLiteral("%1 in %2").arg(v.toString(), context),
+                                    sendid);
+            return QString();
+        } else {
+            *ok = true;
+            return v.toString();
+        }
+    }
+};
 
 EcmaScriptDataModel::EcmaScriptDataModel(StateTable *table)
     : DataModel(table)
+    , d(new EcmaScriptDataModelPrivate(this))
 {}
+
+EcmaScriptDataModel::~EcmaScriptDataModel()
+{
+    delete d;
+}
+
+DataModel::EvaluatorString EcmaScriptDataModel::createEvaluator(const QString &expr, const QString &context)
+{
+    const QString e = expr;
+    const QString c = context;
+    return [this, e, c](bool *ok) -> QString {
+        return d->evalStr(e, c, ok);
+    };
+}

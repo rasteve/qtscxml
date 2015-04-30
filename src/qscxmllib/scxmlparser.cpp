@@ -426,15 +426,15 @@ private:
     {
         auto instr = new ExecutableContent::Send(m_parents.last(), m_currentTransition);
         instr->event = node->event.toUtf8();
-        instr->eventexpr = node->eventexpr;
+        createEvaluator(QStringLiteral("send"), QStringLiteral("eventexpr"), node->eventexpr, &instr->eventexpr);
         instr->type = node->type;
-        instr->typeexpr = node->typeexpr;
+        createEvaluator(QStringLiteral("send"), QStringLiteral("typeexpr"), node->typeexpr, &instr->typeexpr);
         instr->target = node->target;
-        instr->targetexpr = node->targetexpr;
+        createEvaluator(QStringLiteral("send"), QStringLiteral("targetexpr"), node->targetexpr, &instr->targetexpr);
         instr->id = node->id;
         instr->idLocation = node->idLocation;
         instr->delay = node->delay;
-        instr->delayexpr = node->delayexpr;
+        createEvaluator(QStringLiteral("send"), QStringLiteral("delayexpr"), node->delayexpr, &instr->delayexpr);
         instr->namelist = node->namelist;
         copy(&instr->params, node->params);
         instr->content = node->content;
@@ -453,7 +453,7 @@ private:
     {
         auto instr = new ExecutableContent::Log(m_parents.last(), m_currentTransition);
         instr->label = node->label;
-        instr->expr = node->expr;
+        createEvaluator(QStringLiteral("log"), QStringLiteral("expr"), node->expr, &instr->expr);
         add(instr);
     }
 
@@ -509,8 +509,8 @@ private:
     void visit(DocumentModel::Cancel *node) Q_DECL_OVERRIDE
     {
         auto instr = new ExecutableContent::Cancel(m_parents.last(), m_currentTransition);
-        instr->sendid = node->sendid;
-        instr->sendidexpr = node->sendidexpr;
+        instr->sendid = node->sendid.toUtf8();
+        createEvaluator(QStringLiteral("cancel"), QStringLiteral("sendidexpr"), node->sendidexpr, &instr->sendidexpr);
         add(instr);
     }
 
@@ -526,7 +526,7 @@ private:
         Q_ASSERT(finalState);
         auto &dd = finalState->doneData;
         dd.contents = node->contents;
-        dd.expr = node->expr;
+        createEvaluator(QStringLiteral("donedata"), QStringLiteral("expr"), node->expr, &dd.expr);
         copy(&dd.params, node->params);
         return false;
     }
@@ -614,6 +614,30 @@ private: // Utility methods
             visit(sequence);
         }
         m_currentInstructionSequence = previous;
+    }
+
+    QString createContext(const QString &instrName, const QString &attrName, const QString &attrValue) const
+    {
+        QString location;
+        if (m_currentTransition) {
+            QString state;
+            if (QState *s = m_currentTransition->sourceState()) {
+                state = QStringLiteral(" of state '%1'").arg(s->objectName());
+            }
+            location = QStringLiteral("%1 instruction in transition %2 %3").arg(instrName, m_currentTransition->objectName(), state);
+        } else {
+            location = QStringLiteral("%1 instruction in state %2").arg(instrName, m_parents.last()->objectName());
+        }
+        return QStringLiteral("%1 with %2=\"%3\"").arg(location, attrName, attrValue);
+    }
+
+    void createEvaluator(const QString &instrName, const QString &attrName, const QString &expr, DataModel::EvaluatorString *dest) const
+    {
+        Q_ASSERT(dest);
+        if (!expr.isEmpty()) {
+            QString loc = createContext(instrName, attrName, expr);
+            *dest = m_table->dataModel()->createEvaluator(expr, loc);
+        }
     }
 
 private:

@@ -198,6 +198,10 @@ protected:
 
     void visitSend(const Send *send) Q_DECL_OVERRIDE {
         maybeTable();
+#if 1
+        Q_UNIMPLEMENTED();
+        Q_UNUSED(send);
+#else // FIXME
         if (!send->delayexpr.isEmpty() || !send->delay.isEmpty()) {
             if (!send->delayexpr.isEmpty()) {
                 indented() << l("int delay = sTable->evalValueInt(QStringLiteral(\"")
@@ -229,6 +233,7 @@ protected:
             if (send->event.isEmpty())
                 qCWarning(scxmlLog) << "missing event from send in " << send->instructionLocation();
         }
+#endif
         /*if (!send->targetexpr.isEmpty()) {
             l("sTable->evalStr(QStringLiteral(\"") << cEscape(send->targetexpr) << l("\"),\n");
             s.writeAttribute("targetexpr", send->targetexpr);
@@ -264,7 +269,8 @@ protected:
     void visitLog(const Log *log) Q_DECL_OVERRIDE {
         maybeTable();
         indented() << l("sTable->doLog(QStringLiteral(\"") << cEscape(log->label) << l("\",\n");
-        indented() << l("    sTable->evalValueStr( QStringLiteral(\"") << cEscape(log->expr) << l("\")));\n");
+        Q_UNIMPLEMENTED(); // FIXME
+//        indented() << l("    sTable->evalValueStr( QStringLiteral(\"") << cEscape(log->expr) << l("\")));\n");
     }
 
     void visitJavaScript(const JavaScript *script) Q_DECL_OVERRIDE {
