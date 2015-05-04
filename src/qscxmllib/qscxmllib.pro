@@ -16,13 +16,15 @@ HEADERS += \
     scxmldumper.h \
     scxmlstatetable_p.h \
     scxmlcppdumper.h \
-    nodatamodel.h \
-    ecmascriptdatamodel.h
+    nulldatamodel.h \
+    ecmascriptdatamodel.h \
+    ecmascriptplatformproperties.h
 
 SOURCES += \
     scxmlparser.cpp \
     scxmlstatetable.cpp \
     scxmldumper.cpp \
     scxmlcppdumper.cpp \
-    nodatamodel.cpp \
-    ecmascriptdatamodel.cpp
+    nulldatamodel.cpp \
+    ecmascriptdatamodel.cpp \
+    ecmascriptplatformproperties.cpp

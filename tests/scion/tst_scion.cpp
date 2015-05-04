@@ -50,10 +50,6 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test441b.txml")
         // The following test needs manual inspection of the result.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test307.txml")
-        // FIXME: We do not yet support declaring variables in a <script> on any level.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test304.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test303.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test302.txml")
         // We do not (yet?) support invoke.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test215.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test216.txml")
@@ -198,7 +194,7 @@ void TestScion::scion()
     QFETCH(QString, json);
     QFETCH(TestStatus, testStatus);
 
-    fprintf(stderr, "\n\n%s\n%s\n\n", qPrintable(scxml), qPrintable(json));
+//    fprintf(stderr, "\n\n%s\n%s\n\n", qPrintable(scxml), qPrintable(json));
 
     if (testStatus == TestCrashes)
         QSKIP("Test is marked as a crasher");

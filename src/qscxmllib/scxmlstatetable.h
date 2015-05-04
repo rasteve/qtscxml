@@ -192,7 +192,9 @@ class SCXML_EXPORT DataModel
 public:
     typedef std::function<QString (bool *)> EvaluatorString;
     typedef std::function<bool (bool *)> EvaluatorBool;
-    typedef std::function<void (const QString &)> StringPropertySetter;
+    typedef std::function<QVariant (bool *)> EvaluatorVariant;
+    typedef std::function<void (bool *)> EvaluatorVoid;
+    typedef std::function<bool (bool *, std::function<bool ()>)> ForeachEvaluator;
 
 public:
     DataModel(StateTable *table);
@@ -203,13 +205,21 @@ public:
     void addData(const ScxmlData &data);
 
     virtual void setup() = 0;
-    virtual void initializeDataFor(QState *state);
+    virtual void initializeDataFor(QState *state) = 0;
     virtual EvaluatorString createEvaluatorString(const QString &expr, const QString &context) = 0;
     virtual EvaluatorBool createEvaluatorBool(const QString &expr, const QString &context) = 0;
-    virtual StringPropertySetter createStringPropertySetter(const QString &propertyName) = 0;
+    virtual EvaluatorVariant createEvaluatorVariant(const QString &expr, const QString &context) = 0;
+    virtual EvaluatorVoid createScriptEvaluator(const QString &script, const QString &context) = 0;
+    virtual EvaluatorVoid createAssignmentEvaluator(const QString &dest, const QString &expr,
+                                                    const QString &context) = 0;
+    virtual ForeachEvaluator createForeachEvaluator(const QString &array, const QString &item,
+                                                    const QString &index, const QString &context) = 0;
 
-    virtual void assignEvent(const ScxmlEvent &event) = 0;
-    virtual QVariant propertyValue(const QString &name) const = 0;
+    virtual void setEvent(const ScxmlEvent &event) = 0;
+
+    virtual QVariant property(const QString &name) const = 0;
+    virtual bool hasProperty(const QString &name) const = 0;
+    virtual void setStringProperty(const QString &name, const QString &value) = 0;
 
 private:
     DataModelPrivate *d;
@@ -248,8 +258,6 @@ public:
     }
 
     void doLog(const QString &label, const QString &msg);
-    QJSValue evalJSValue(const QString &expr, std::function<QString()> context,
-                         QJSValue defaultValue = QJSValue(), bool noRaise = false);
     ErrorDumper errorDumper();
     virtual bool init();
     QJSEngine *engine() const;
@@ -321,7 +329,7 @@ namespace ExecutableContent {
 
 struct SCXML_EXPORT Param {
     QString name;
-    QString expr;
+    DataModel::EvaluatorVariant expr;
     QString location;
 
     bool evaluate(StateTable *table, QVariantList &dataValues, QStringList &dataNames) const;
@@ -330,7 +338,7 @@ struct SCXML_EXPORT Param {
 
 struct SCXML_EXPORT DoneData {
     QString contents;
-    DataModel::EvaluatorString expr;
+    DataModel::EvaluatorString expr = nullptr;
     QVector<Param> params;
 };
 
@@ -338,15 +346,15 @@ struct SCXML_EXPORT Send : public Instruction {
     Send(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
         : Instruction(parentState, transition) { }
     QByteArray event;
-    DataModel::EvaluatorString eventexpr;
+    DataModel::EvaluatorString eventexpr = nullptr;
     QString type;
-    DataModel::EvaluatorString typeexpr;
+    DataModel::EvaluatorString typeexpr = nullptr;
     QString target;
-    DataModel::EvaluatorString targetexpr;
+    DataModel::EvaluatorString targetexpr = nullptr;
     QString id;
-    DataModel::StringPropertySetter idLocation;
+    QString idLocation;
     QString delay;
-    DataModel::EvaluatorString delayexpr;
+    DataModel::EvaluatorString delayexpr = nullptr;
     QStringList namelist;
     QVector<Param> params;
     QString content;
@@ -366,7 +374,7 @@ struct SCXML_EXPORT Log : public Instruction {
     Log(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
         : Instruction(parentState, transition) { }
     QString label;
-    DataModel::EvaluatorString expr;
+    DataModel::EvaluatorString expr = nullptr;
     virtual bool execute() const Q_DECL_OVERRIDE;
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::Log; }
 };
@@ -374,14 +382,13 @@ struct SCXML_EXPORT Log : public Instruction {
 struct SCXML_EXPORT Script : public Instruction {
     Script(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
         : Instruction(parentState, transition) { }
-    QString source;
-    QString src;
 };
 
 struct SCXML_EXPORT JavaScript : public Script {
     JavaScript(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
         : Script(parentState, transition) { }
-    mutable QJSValue compiledFunction;
+
+    DataModel::EvaluatorVoid go = nullptr;
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::JavaScript; }
     bool execute() const Q_DECL_OVERRIDE;
 };
@@ -390,7 +397,7 @@ struct SCXML_EXPORT AssignExpression : public Instruction {
     AssignExpression(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
         : Instruction(parentState, transition) { }
     QString location;
-    QString expression;
+    DataModel::EvaluatorVoid expression = nullptr;
     XmlNode *content;
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::AssignExpression; }
     bool execute() const Q_DECL_OVERRIDE;
@@ -410,9 +417,7 @@ struct SCXML_EXPORT If : public Instruction {
 struct SCXML_EXPORT Foreach : public Instruction {
     Foreach(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
         : Instruction(parentState, transition), block(parentState, transition) { }
-    QString array;
-    QString item;
-    QString index;
+    DataModel::ForeachEvaluator doIt = nullptr;
     InstructionSequence block;
     bool execute() const Q_DECL_OVERRIDE;
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::Foreach; }
@@ -422,7 +427,7 @@ struct SCXML_EXPORT Cancel : public Instruction {
     Cancel(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
         : Instruction(parentState, transition) { }
     QByteArray sendid;
-    DataModel::EvaluatorString sendidexpr;
+    DataModel::EvaluatorString sendidexpr = nullptr;
     bool execute() const Q_DECL_OVERRIDE;
     Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::Cancel; }
 };

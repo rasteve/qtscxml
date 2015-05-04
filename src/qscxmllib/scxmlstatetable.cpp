@@ -89,7 +89,7 @@ class EventBuilder
     QVector<ExecutableContent::Param> params;
     ScxmlEvent::EventType eventType = ScxmlEvent::External;
     QByteArray id;
-    DataModel::StringPropertySetter idLocation;
+    QString idLocation;
     QString target;
     DataModel::EvaluatorString targetexpr;
     QString type;
@@ -160,7 +160,7 @@ public:
             if (ExecutableContent::Param::evaluate(params, table, dataValues, dataNames)) {
                 foreach (const QString &name, namelist) {
                     dataNames << name;
-                    dataValues << table->dataModel()->propertyValue(name);
+                    dataValues << table->dataModel()->property(name);
                 }
             } else {
                 // If the evaluation of the <param> tags fails, set _event.data to an empty string.
@@ -171,9 +171,9 @@ public:
         }
 
         QByteArray sendid = id;
-        if (idLocation) {
+        if (!idLocation.isEmpty()) {
             sendid = generateId();
-            idLocation(QString::fromUtf8(sendid));
+            table->dataModel()->setStringProperty(idLocation, QString::fromUtf8(sendid));
         }
 
         QString origin = target;
@@ -364,32 +364,9 @@ bool Instruction::init() {
 
 bool JavaScript::execute() const
 {
-    StateTable *t = table();
-    QJSEngine *e = t->engine();
-    if (!e) {
-        qWarning(scxmlLog) << "Ignoring javascript in " << instructionLocation()
-                           << " as no engine is available";
-    }
-    if (!compiledFunction.isCallable()) {
-        compiledFunction = e->evaluate(QStringLiteral("(function() {\n%1\n})").arg(source),
-                                       QStringLiteral("<%1>").arg(instructionLocation()), 0);
-        if (!compiledFunction.isCallable()) {
-            qWarning(scxmlLog) << "Error compiling" << instructionLocation() << ":"
-                               << compiledFunction.toString()  << ", ignoring execution";
-            return false;
-        }
-    }
-    qCDebug(scxmlLog) << "executing:" << source;
-    QJSValue res = compiledFunction.callWithInstance(t->datamodelJSValues());
-    if (res.isError()) {
-        t->submitError(QByteArray("error.execution"), QStringLiteral("%1 in %2").arg(res.toString(), instructionLocation()),
-                       /*sendid =*/ QByteArray());
-        return false;
-    } else {
-        qCDebug(scxmlLog) << "result:" << res.toVariant();
-    }
-
-    return true;
+    bool ok = true;
+    go(&ok);
+    return ok;
 }
 
 bool AssignExpression::execute() const
@@ -399,14 +376,9 @@ bool AssignExpression::execute() const
 
     auto dataModel = table()->dataModel();
     if (dataModel->hasProperty(location)) {
+        Q_ASSERT(expression);
         bool ok = true;
-        auto value = table()->evalJSValue(expression, [this, &ok]() -> QString {
-                                              ok = false;
-                                              return QStringLiteral("%1 with expression %2")
-                                              .arg(instructionLocation(), expression);
-                                          });
-        if (ok)
-            dataModel->setProperty(location, value);
+        expression(&ok);
         return ok;
     } else {
         table()->submitError(QByteArray("error.execution"),
@@ -510,34 +482,11 @@ bool If::execute() const
 
 bool Foreach::execute() const
 {
-    Q_ASSERT(table() && table()->engine());
+    Q_ASSERT(doIt);
 
-    QJSValue jsArray = table()->datamodelJSValues().property(array);
-    if (!jsArray.isArray()) {
-        table()->submitError("error.execution", QStringLiteral("invalid array '%1' in %2")
-                             .arg(array, instructionLocation()), QByteArray());
-        return false;
-    }
-
-    if (table()->engine()->evaluate(QStringLiteral("(function(){var %1 = 0})()").arg(item)).isError()) {
-        table()->submitError("error.execution", QStringLiteral("invalid item '%1' in %2")
-                             .arg(item, instructionLocation()), QByteArray());
-        return false;
-    }
-
-    const int length = jsArray.property(QStringLiteral("length")).toInt();
-    const bool hasIndex = !index.isEmpty();
-
-    for (int currentIndex = 0; currentIndex < length; ++currentIndex) {
-        QJSValue currentItem = jsArray.property(static_cast<quint32>(currentIndex));
-        table()->datamodelJSValues().setProperty(item, currentItem);
-        if (hasIndex)
-            table()->datamodelJSValues().setProperty(index, currentIndex);
-        if (!block.execute())
-            return false;
-    }
-
-    return true;
+    bool ok = true;
+    bool evenMoreOk = doIt(&ok, [this](){ return block.execute(); });
+    return ok && evenMoreOk;
 }
 
 bool Send::execute() const
@@ -588,17 +537,14 @@ bool Log::execute() const
 bool Param::evaluate(StateTable *table, QVariantList &dataValues, QStringList &dataNames) const
 {
     bool success = true;
-    if (!expr.isEmpty()) {
-        auto v = table->evalJSValue(expr, [this,&success]() -> QString {
-            success = false;
-            return QStringLiteral("param with expr %1").arg(expr);
-        }).toVariant();
+    if (expr) {
+        auto v = expr(&success);
         dataValues.append(v);
         dataNames.append(name);
     } else if (!location.isEmpty()) {
-        auto dataModel = table->datamodelJSValues();
-        if (dataModel.hasProperty(location)) {
-            dataValues.append(dataModel.property(location).toVariant());
+        auto dataModel = table->dataModel();
+        if (dataModel->hasProperty(location)) {
+            dataValues.append(dataModel->property(location));
             dataNames.append(name);
         } else {
             table->submitError(QByteArray("error.execution"),
@@ -734,21 +680,6 @@ void StateTable::doLog(const QString &label, const QString &msg)
     emit log(label, msg);
 }
 
-QJSValue StateTable::evalJSValue(const QString &expr, std::function<QString()> context,
-                     QJSValue defaultValue, bool noRaise)
-{
-    QString getData = QStringLiteral("(function(){ return (\n%1\n); })()").arg(expr);
-    QJSValue v = engine()->evaluate(getData, QStringLiteral("<expr>"), 0);
-    if (v.isError() && !noRaise) {
-        submitError(QByteArray("error.execution"),
-                    QStringLiteral("Error in %1: %2\n<expr>:'%3'")
-                    .arg(context(), v.toString(), getData),
-                    /*sendid =*/ QByteArray());
-        v = defaultValue;
-    }
-    return v;
-}
-
 void StateTable::beginSelectTransitions(QEvent *event)
 {
     if (event && event->type() != QEvent::None) {
@@ -827,7 +758,7 @@ void StateTable::beginSelectTransitions(QEvent *event)
         _event.clear();
     }
 
-    dataModel()->assignEvent(_event);
+    dataModel()->setEvent(_event);
 }
 
 void StateTable::beginMicrostep(QEvent *event)

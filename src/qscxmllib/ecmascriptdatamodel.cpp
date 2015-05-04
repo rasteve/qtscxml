@@ -17,6 +17,7 @@
  ****************************************************************************/
 
 #include "ecmascriptdatamodel.h"
+#include "ecmascriptplatformproperties.h"
 
 #include <QJsonDocument>
 
@@ -71,18 +72,37 @@ public:
         }
     }
 
-    QJSValue evalJSValue(const QString &expr, const QString &context)
+    QJSValue evalJSValue(const QString &expr, const QString &context, bool *ok)
     {
         QString getData = QStringLiteral("(function(){ return (\n%1\n); })()").arg(expr);
         QJSValue v = engine()->evaluate(getData, QStringLiteral("<expr>"), 0);
         if (v.isError()) {
+            *ok = false;
+            static QByteArray sendid;
             table()->submitError(QByteArray("error.execution"),
-                                 QStringLiteral("Error in %1: %2\n<expr>:'%3'")
-                                 .arg(context, v.toString(), getData),
-                                 /*sendid =*/ QByteArray());
-            v = QJSValue();
+                                 QStringLiteral("%1 in %2").arg(v.toString(), context),
+                                 sendid);
+            return false;
+        } else {
+            *ok = true;
+            return v;
         }
-        return v;
+    }
+
+    QJSValue eval(const QString &script, const QString &context, bool *ok)
+    {
+        QJSValue v = engine()->evaluate(script, QStringLiteral("<expr>"), 0);
+        if (v.isError()) {
+            *ok = false;
+            static QByteArray sendid;
+            table()->submitError(QByteArray("error.execution"),
+                                 QStringLiteral("%1 in %2").arg(v.toString(), context),
+                                 sendid);
+            return false;
+        } else {
+            *ok = true;
+            return v;
+        }
     }
 
     void initializeDataFor(QState *s)
@@ -93,9 +113,10 @@ public:
             QJSValue v(QJSValue::UndefinedValue); // See B.2.1, and test456.
             if ((dataBinding() == StateTable::EarlyBinding || !data.context || data.context == s)
                     && !data.expr.isEmpty()) {
+                bool ok = true;
                 QString context = QStringLiteral("initializeDataFor with data for %1 defined in state '%2'")
                         .arg(data.id, data.context->objectName());
-                v = evalJSValue(data.expr, context);
+                v = evalJSValue(data.expr, context, &ok);
             }
             qCDebug(scxmlLog) << "setting datamodel property" << data.id << "to" << v.toVariant();
             dataModel.setProperty(data.id, v);
@@ -127,7 +148,7 @@ public:
         ioProcs.setProperty(QStringLiteral("scxml"), scxml);
         dataModel.setProperty(QStringLiteral("_ioprocessors"), ioProcs);
 
-        auto platformVars = EcmaScriptDataModel::PlatformProperties::create(engine(), table());
+        auto platformVars = PlatformProperties::create(engine(), table());
         dataModel.setProperty(QStringLiteral("_x"), platformVars->jsValue());
 
         dataModel.setProperty(QStringLiteral("In"),
@@ -235,22 +256,96 @@ DataModel::EvaluatorBool EcmaScriptDataModel::createEvaluatorBool(const QString 
     };
 }
 
-DataModel::StringPropertySetter EcmaScriptDataModel::createStringPropertySetter(const QString &propertyName)
+DataModel::EvaluatorVariant EcmaScriptDataModel::createEvaluatorVariant(const QString &expr, const QString &context)
 {
-    const QString pn = propertyName;
-    return [this, pn](const QString &value) {
-        d->dataModel.setProperty(pn, value);
+    const QString e = expr;
+    const QString c = context;
+    return [this, e, c](bool *ok) -> QVariant {
+        return d->evalJSValue(e, c, ok).toVariant();
     };
 }
 
-void EcmaScriptDataModel::assignEvent(const ScxmlEvent &event)
+DataModel::EvaluatorVoid EcmaScriptDataModel::createScriptEvaluator(const QString &expr, const QString &context)
+{
+    const QString e = expr, c = context;
+    return [this, e, c](bool *ok) {
+        Q_ASSERT(ok);
+        d->eval(e, c, ok);
+    };
+}
+
+DataModel::EvaluatorVoid EcmaScriptDataModel::createAssignmentEvaluator(const QString &dest,
+                                                                        const QString &expr,
+                                                                        const QString &context)
+{
+    const QString t = dest, e = expr, c = context;
+    return [this, t, e, c](bool *ok) {
+        Q_ASSERT(ok);
+        QJSValue v = d->evalJSValue(e, c, ok);
+        if (*ok)
+            d->dataModel.setProperty(t, v);
+    };
+}
+
+DataModel::ForeachEvaluator EcmaScriptDataModel::createForeachEvaluator(const QString &array,
+                                                                        const QString &item,
+                                                                        const QString &index,
+                                                                        const QString &context)
+{
+    const QString a = array, it = item, in = index, c = context;
+    return [this, a, it, in, c](bool *ok, std::function<bool ()> body) -> bool {
+        Q_ASSERT(ok);
+        static QByteArray sendid;
+
+        QJSValue jsArray = d->dataModel.property(a);
+        if (!jsArray.isArray()) {
+            table()->submitError("error.execution", QStringLiteral("invalid array '%1' in %2").arg(a, c), sendid);
+            *ok = false;
+            return false;
+        }
+
+        if (table()->engine()->evaluate(QStringLiteral("(function(){var %1 = 0})()").arg(it)).isError()) {
+            table()->submitError("error.execution", QStringLiteral("invalid item '%1' in %2")
+                                 .arg(it, c), sendid);
+            *ok = false;
+            return false;
+        }
+
+        const int length = jsArray.property(QStringLiteral("length")).toInt();
+        const bool hasIndex = !in.isEmpty();
+
+        for (int currentIndex = 0; currentIndex < length; ++currentIndex) {
+            QJSValue currentItem = jsArray.property(static_cast<quint32>(currentIndex));
+            d->dataModel.setProperty(it, currentItem);
+            if (hasIndex)
+                d->dataModel.setProperty(in, currentIndex);
+            if (!body())
+                return false;
+        }
+
+        return true;
+    };
+}
+
+void EcmaScriptDataModel::setEvent(const ScxmlEvent &event)
 {
     d->assignEvent(event);
 }
 
-QVariant EcmaScriptDataModel::propertyValue(const QString &name) const
+QVariant EcmaScriptDataModel::property(const QString &name) const
 {
     return d->dataModel.property(name).toVariant();
+}
+
+bool EcmaScriptDataModel::hasProperty(const QString &name) const
+{
+    return d->dataModel.hasProperty(name);
+}
+
+void EcmaScriptDataModel::setStringProperty(const QString &name, const QString &value)
+{
+    Q_ASSERT(hasProperty(name));
+    d->dataModel.setProperty(name, QJSValue(value));
 }
 
 QJSEngine *EcmaScriptDataModel::engine() const

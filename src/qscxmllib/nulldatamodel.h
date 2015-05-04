@@ -16,19 +16,17 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#ifndef ECMASCRIPTDATAMODEL_H
-#define ECMASCRIPTDATAMODEL_H
+#ifndef NULLDATAMODEL_H
+#define NULLDATAMODEL_H
 
 #include "scxmlstatetable.h"
 
 namespace Scxml {
 
-class EcmaScriptDataModelPrivate;
-class SCXML_EXPORT EcmaScriptDataModel: public DataModel
+class SCXML_EXPORT NullDataModel: public DataModel
 {
 public:
-    EcmaScriptDataModel(StateTable *table);
-    ~EcmaScriptDataModel() Q_DECL_OVERRIDE;
+    NullDataModel(StateTable *table);
 
     void setup() Q_DECL_OVERRIDE;
     void initializeDataFor(QState *state) Q_DECL_OVERRIDE;
@@ -46,13 +44,8 @@ public:
     QVariant property(const QString &name) const Q_DECL_OVERRIDE;
     bool hasProperty(const QString &name) const Q_DECL_OVERRIDE;
     void setStringProperty(const QString &name, const QString &value) Q_DECL_OVERRIDE;
-
-    QJSEngine *engine() const;
-
-private:
-    EcmaScriptDataModelPrivate *d;
 };
 
 } // Scxml namespace
 
-#endif // ECMASCRIPTDATAMODEL_H
+#endif // NULLDATAMODEL_H

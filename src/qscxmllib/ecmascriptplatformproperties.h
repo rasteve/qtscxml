@@ -16,28 +16,43 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#ifndef NODATAMODEL_H
-#define NODATAMODEL_H
+#ifndef ECMASCRIPTPLATFORMPROPERTIES_H
+#define ECMASCRIPTPLATFORMPROPERTIES_H
 
-#include "scxmlstatetable.h"
+#include "scxmlglobals.h"
+
+#include <QJSValue>
+#include <QObject>
 
 namespace Scxml {
 
-class SCXML_EXPORT NoDataModel: public DataModel
+class StateTable;
+class SCXML_EXPORT PlatformProperties: public QObject
 {
+    Q_OBJECT
+
+    PlatformProperties &operator=(const PlatformProperties &) = delete;
+
+    PlatformProperties(QObject *parent);
+
+    Q_PROPERTY(QString marks READ marks CONSTANT)
+
 public:
-    NoDataModel(StateTable *table);
+    static PlatformProperties *create(QJSEngine *engine, StateTable *table);
 
-    void setup() Q_DECL_OVERRIDE;
-    void initializeDataFor(QState *state) Q_DECL_OVERRIDE;
-    EvaluatorString createEvaluatorString(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
-    EvaluatorBool createEvaluatorBool(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
-    StringPropertySetter createStringPropertySetter(const QString &propertyName) Q_DECL_OVERRIDE;
+    QJSEngine *engine() const;
+    StateTable *table() const;
+    QJSValue jsValue() const;
 
-    void assignEvent(const ScxmlEvent &event) Q_DECL_OVERRIDE;
-    QVariant propertyValue(const QString &name) const Q_DECL_OVERRIDE;
+    QString marks() const;
+
+    Q_INVOKABLE bool In(const QString &stateName);
+
+private:
+    class Data;
+    Data *data;
 };
 
 } // Scxml namespace
 
-#endif // NODATAMODEL_H
+#endif // ECMASCRIPTPLATFORMPROPERTIES_H

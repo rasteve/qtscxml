@@ -17,7 +17,7 @@
  ****************************************************************************/
 
 #include "scxmlparser.h"
-#include "nodatamodel.h"
+#include "nulldatamodel.h"
 #include "ecmascriptdatamodel.h"
 #include <QXmlStreamReader>
 #include <QLoggingCategory>
@@ -221,7 +221,7 @@ private:
 private:
     void checkExpr(const DocumentModel::XmlLocation &loc, const QString &tag, const QString &attrName, const QString &attrValue)
     {
-        if (m_doc->root->dataModel == DocumentModel::Scxml::NoDataModel && !attrValue.isEmpty()) {
+        if (m_doc->root->dataModel == DocumentModel::Scxml::NullDataModel && !attrValue.isEmpty()) {
             error(loc, QStringLiteral("%1 in <%2> cannot be used with data model 'null'").arg(attrName, tag));
         }
     }
@@ -283,8 +283,8 @@ private:
         m_table = new StateTable;
 
         switch (scxml->dataModel) {
-        case DocumentModel::Scxml::NoDataModel:
-            m_table->setDataModel(new NoDataModel(m_table));
+        case DocumentModel::Scxml::NullDataModel:
+            m_table->setDataModel(new NullDataModel(m_table));
             break;
         case DocumentModel::Scxml::JSDataModel:
             m_table->setDataModel(new EcmaScriptDataModel(m_table));
@@ -461,8 +461,7 @@ private:
         instr->target = node->target;
         createEvaluatorString(QStringLiteral("send"), QStringLiteral("targetexpr"), node->targetexpr, &instr->targetexpr);
         instr->id = node->id;
-        if (!node->idLocation.isEmpty())
-            instr->idLocation = m_table->dataModel()->createStringPropertySetter(node->idLocation);
+        instr->idLocation = node->idLocation;
         instr->delay = node->delay;
         createEvaluatorString(QStringLiteral("send"), QStringLiteral("delayexpr"), node->delayexpr, &instr->delayexpr);
         instr->namelist = node->namelist;
@@ -500,8 +499,8 @@ private:
     void visit(DocumentModel::Script *node) Q_DECL_OVERRIDE
     {
         auto instr = new ExecutableContent::JavaScript(m_parents.last(), m_currentTransition);
-        instr->source = node->content;
-        instr->src = node->src;
+        auto ctxt = createContext(QStringLiteral("script"), QStringLiteral("source"), node->content);
+        instr->go = m_table->dataModel()->createScriptEvaluator(node->content, ctxt);
         add(instr);
     }
 
@@ -509,7 +508,8 @@ private:
     {
         auto instr = new ExecutableContent::AssignExpression(m_parents.last(), m_currentTransition);
         instr->location = node->location;
-        instr->expression = node->expr;
+        auto ctxt = createContext(QStringLiteral("assign"), QStringLiteral("expr"), node->expr);
+        instr->expression = m_table->dataModel()->createAssignmentEvaluator(instr->location, node->expr, ctxt);
         add(instr);
     }
 
@@ -532,9 +532,8 @@ private:
     bool visit(DocumentModel::Foreach *node) Q_DECL_OVERRIDE
     {
         auto instr = new ExecutableContent::Foreach(m_parents.last(), m_currentTransition);
-        instr->array = node->array;
-        instr->item = node->item;
-        instr->index = node->index;
+        auto ctxt = createContext(QStringLiteral("foreach"));
+        instr->doIt = m_table->dataModel()->createForeachEvaluator(node->array, node->item, node->index, ctxt);
         ExecutableContent::InstructionSequence *previous = m_currentInstructionSequence;
         m_currentInstructionSequence = &instr->block;
         visit(&node->block);
@@ -637,7 +636,7 @@ private: // Utility methods
         auto toIt = to->begin();
         foreach (DocumentModel::Param *f, from) {
             toIt->name = f->name;
-            toIt->expr = f->expr;
+            createEvaluatorVariant(QStringLiteral("param"), QStringLiteral("expr"), f->expr, &toIt->expr);
             toIt->location = f->location;
             ++toIt;
         }
@@ -653,18 +652,22 @@ private: // Utility methods
         m_currentInstructionSequence = previous;
     }
 
-    QString createContext(const QString &instrName, const QString &attrName, const QString &attrValue) const
+    QString createContext(const QString &instrName) const
     {
-        QString location;
         if (m_currentTransition) {
             QString state;
             if (QState *s = m_currentTransition->sourceState()) {
                 state = QStringLiteral(" of state '%1'").arg(s->objectName());
             }
-            location = QStringLiteral("%1 instruction in transition %2 %3").arg(instrName, m_currentTransition->objectName(), state);
+            return QStringLiteral("%1 instruction in transition %2 %3").arg(instrName, m_currentTransition->objectName(), state);
         } else {
-            location = QStringLiteral("%1 instruction in state %2").arg(instrName, m_parents.last()->objectName());
+            return QStringLiteral("%1 instruction in state %2").arg(instrName, m_parents.last()->objectName());
         }
+    }
+
+    QString createContext(const QString &instrName, const QString &attrName, const QString &attrValue) const
+    {
+        QString location = createContext(instrName);
         return QStringLiteral("%1 with %2=\"%3\"").arg(location, attrName, attrValue);
     }
 
@@ -683,6 +686,15 @@ private: // Utility methods
         if (!cond.isEmpty()) {
             QString loc = createContext(instrName, attrName, cond);
             *dest = m_table->dataModel()->createEvaluatorBool(cond, loc);
+        }
+    }
+
+    void createEvaluatorVariant(const QString &instrName, const QString &attrName, const QString &cond, DataModel::EvaluatorVariant *dest) const
+    {
+        Q_ASSERT(dest);
+        if (!cond.isEmpty()) {
+            QString loc = createContext(instrName, attrName, cond);
+            *dest = m_table->dataModel()->createEvaluatorVariant(cond, loc);
         }
     }
 
@@ -791,7 +803,7 @@ void ScxmlParser::parse()
                 pNew.initialId = attributes.value(QLatin1String("initial")).toUtf8();
                 QStringRef datamodel = attributes.value(QLatin1String("datamodel"));
                 if (datamodel.isEmpty() || datamodel == QLatin1String("null")) {
-                    scxml->dataModel = DocumentModel::Scxml::NoDataModel;
+                    scxml->dataModel = DocumentModel::Scxml::NullDataModel;
                 } else if (datamodel == QLatin1String("ecmascript")) {
                     scxml->dataModel = DocumentModel::Scxml::JSDataModel;
                 } else {

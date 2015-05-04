@@ -312,7 +312,7 @@ struct HistoryState: public AbstractState, public StateOrTransition
 struct Scxml: public StateContainer, public Node
 {
     enum DataModelType {
-        NoDataModel,
+        NullDataModel,
         JSDataModel
     };
     enum BindingMethod {
@@ -322,7 +322,7 @@ struct Scxml: public StateContainer, public Node
 
     QStringList initial;
     QString name;
-    DataModelType dataModel = NoDataModel;
+    DataModelType dataModel = NullDataModel;
     BindingMethod binding = EarlyBinding;
     QVector<StateOrTransition *> children;
     QVector<DataElement *> dataElements;

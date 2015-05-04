@@ -66,8 +66,8 @@ protected:
             s.writeAttribute("name", p.name);
             if (!p.location.isEmpty())
                 s.writeAttribute("location", p.location);
-            else if (!p.expr.isEmpty())
-                s.writeAttribute("expr", p.expr);
+//            else if (!p.expr.isEmpty())
+//                s.writeAttribute("expr", p.expr);
             s.writeEndElement();
         }
         if (!send->content.isEmpty()) {
@@ -90,10 +90,11 @@ protected:
 
     void visitJavaScript(const JavaScript *script) Q_DECL_OVERRIDE {
         s.writeStartElement("script");
-        if (!script->src.isEmpty())
-            s.writeAttribute("src", script->src);
-        else if (!script->source.isEmpty())
-            s.s.writeCharacters(script->source); // escape? use CDATA?
+        Q_UNUSED(script);
+//        if (!script->src.isEmpty())
+//            s.writeAttribute("src", script->src);
+//        else if (!script->source.isEmpty())
+//            s.s.writeCharacters(script->source); // escape? use CDATA?
         s.writeEndElement();
     }
 
@@ -102,8 +103,9 @@ protected:
         s.writeAttribute("location", assign->location);
         if (assign->content)
             assign->content->dump(s.s);
-        else if (!assign->expression.isEmpty())
-            s.writeAttribute("expr", assign->expression);
+        Q_UNIMPLEMENTED(); // FIXME
+//        else if (!assign->expression.isEmpty())
+//            s.writeAttribute("expr", assign->expression);
         s.writeEndElement();
     }
 
@@ -140,8 +142,8 @@ protected:
             s.writeAttribute("name", p.name);
             if (!p.location.isEmpty())
                 s.writeAttribute("location", p.location);
-            else if (!p.expr.isEmpty())
-                s.writeAttribute("expr", p.expr);
+//            else if (!p.expr.isEmpty())
+//                s.writeAttribute("expr", p.expr);
             s.writeEndElement();
         }
         if (!invoke->finalize.statements.isEmpty()) {
@@ -195,11 +197,12 @@ protected:
 
     void endVisitIf(const If *) Q_DECL_OVERRIDE { }
     bool visitForeach(const Foreach *foreachI) Q_DECL_OVERRIDE {
+        Q_UNUSED(foreachI);
         s.writeStartElement("foreach");
-        s.writeAttribute("array", foreachI->array);
-        s.writeAttribute("item", foreachI->item);
-        if (!foreachI->index.isEmpty())
-            s.writeAttribute("index", foreachI->index);
+//        s.writeAttribute("array", foreachI->array);
+//        s.writeAttribute("item", foreachI->item);
+//        if (!foreachI->index.isEmpty())
+//            s.writeAttribute("index", foreachI->index);
         return true;
     }
 
@@ -235,7 +238,7 @@ void ScxmlDumper::scxmlStart() {
     case DocumentModel::Scxml::JSDataModel:
         datamodel = QStringLiteral("ecmascript");
         break;
-    case DocumentModel::Scxml::NoDataModel:
+    case DocumentModel::Scxml::NullDataModel:
         datamodel = QStringLiteral("none");
         break;
     }
