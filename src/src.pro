@@ -2,7 +2,6 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     qscxmllib \
-    qscxmlparse \
     qscxmlcpp
 
 qscxmlparse.depends = qscxmllib

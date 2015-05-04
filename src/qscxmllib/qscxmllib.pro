@@ -13,7 +13,6 @@ HEADERS += \
     scxmlparser.h \
     scxmlstatetable.h \
     scxmlglobals.h \
-    scxmldumper.h \
     scxmlstatetable_p.h \
     scxmlcppdumper.h \
     nulldatamodel.h \
@@ -23,7 +22,6 @@ HEADERS += \
 SOURCES += \
     scxmlparser.cpp \
     scxmlstatetable.cpp \
-    scxmldumper.cpp \
     scxmlcppdumper.cpp \
     nulldatamodel.cpp \
     ecmascriptdatamodel.cpp \

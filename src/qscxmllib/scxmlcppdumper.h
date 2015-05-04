@@ -18,14 +18,18 @@
 
 #ifndef CPPDUMPER_H
 #define CPPDUMPER_H
-#include "scxmldumper.h"
+
+#include "scxmlglobals.h"
+#include "scxmlparser.h"
+#include "scxmlstatetable.h"
+
 #include <QTextStream>
 
 namespace Scxml {
 
 struct MainClass;
 
-struct SCXML_EXPORT CppDumpOptions : public DumpOptions
+struct SCXML_EXPORT CppDumpOptions
 {
     CppDumpOptions() : usePrivateApi(false), nameQObjects(false) { }
     QString basename;
