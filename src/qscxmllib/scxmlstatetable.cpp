@@ -1242,13 +1242,6 @@ bool ScxmlBaseTransition::init() {
     return !failure;
 }
 
-QList<QByteArray> ScxmlBaseTransition::targetIds() const {
-    QList<QByteArray> res;
-    foreach (QAbstractState *s, targetStates())
-        res << s->objectName().toUtf8();
-    return res;
-}
-
 void ScxmlBaseTransition::onTransition(QEvent *event)
 {
     Q_UNUSED(event);
@@ -1273,13 +1266,11 @@ static QList<QByteArray> filterEmpty(const QList<QByteArray> &events) {
 }
 
 ScxmlTransition::ScxmlTransition(QState *sourceState, const QList<QByteArray> &eventSelector,
-                                 const QList<QByteArray> &targetIds,
                                  const DataModel::EvaluatorBool &conditionalExp)
     : ScxmlBaseTransition(sourceState, filterEmpty(eventSelector))
     , conditionalExp(conditionalExp)
     , type(ScxmlEvent::External)
     , instructionsOnTransition(sourceState, this)
-    , m_targetIds(filterEmpty(targetIds))
 {}
 
 bool ScxmlTransition::eventTest(QEvent *event)

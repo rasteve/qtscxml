@@ -16,6 +16,7 @@ qscxmlcpp.variable_out = QSCXMLCPP_HEADERS
 qscxmlcpp.commands = $$QMAKE_QSCXMLCPP -name-qobjects ${QMAKE_FILE_IN} -oh ${QMAKE_FILE_OUT} -ocpp $$QSCXMLCPP_DIR/${QMAKE_FILE_BASE}$${first(QMAKE_EXT_CPP)}
 qscxmlcpp.output = $$QSCXMLCPP_DIR/${QMAKE_FILE_BASE}$${first(QMAKE_EXT_H)}
 qscxmlcpp.CONFIG += target_predeps
+qscxmlcpp.depends += $$[QT_HOST_BINS]/qscxmlcpp
 
 QMAKE_EXTRA_COMPILERS += qscxmlcpp
 

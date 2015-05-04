@@ -351,6 +351,7 @@ struct ScxmlDocument
     QVector<Transition *> allTransitions;
     QVector<Node *> allNodes;
     QVector<InstructionSequence *> allSequences;
+    bool isVerified = false;
 
     ~ScxmlDocument()
     {

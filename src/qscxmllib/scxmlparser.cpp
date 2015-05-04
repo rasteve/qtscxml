@@ -46,6 +46,10 @@ public:
 
     bool verify(DocumentModel::ScxmlDocument *doc)
     {
+        if (doc->isVerified)
+            return false;
+
+        doc->isVerified = true;
         m_doc = doc;
         foreach (DocumentModel::AbstractState *state, doc->allStates) {
             if (state->id.isEmpty()) {
@@ -66,14 +70,23 @@ public:
 private:
     bool visit(DocumentModel::Scxml *scxml) Q_DECL_OVERRIDE
     {
-        foreach (const QString &initial, scxml->initial) {
-            if (DocumentModel::AbstractState *s = m_stateById.value(initial))
-                scxml->initialStates.append(s);
-            else
-                error(scxml->xmlLocation, QStringLiteral("initial state '%1' not found for <scxml> element").arg(initial));
+        Q_ASSERT(scxml->initialStates.isEmpty());
+
+        if (scxml->initial.isEmpty()) {
+            if (auto firstChild = firstAbstractState(scxml)) {
+                scxml->initialStates.append(firstChild);
+            }
+        } else {
+            foreach (const QString &initial, scxml->initial) {
+                if (DocumentModel::AbstractState *s = m_stateById.value(initial))
+                    scxml->initialStates.append(s);
+                else
+                    error(scxml->xmlLocation, QStringLiteral("initial state '%1' not found for <scxml> element").arg(initial));
+            }
         }
 
         m_parentNodes.append(scxml);
+
         return true;
     }
 
@@ -82,28 +95,13 @@ private:
         m_parentNodes.removeLast();
     }
 
-    static int transitionCount(DocumentModel::State *state)
-    {
-        int count = 0;
-        foreach (DocumentModel::StateOrTransition *child, state->children) {
-            if (child->asTransition())
-                ++count;
-        }
-        return count;
-    }
-
-    static DocumentModel::Transition *firstTransition(DocumentModel::State *state)
-    {
-        foreach (DocumentModel::StateOrTransition *child, state->children) {
-            if (DocumentModel::Transition *t = child->asTransition())
-                return t;
-        }
-        return nullptr;
-    }
-
     bool visit(DocumentModel::State *state) Q_DECL_OVERRIDE
     {
-        if (!state->initial.isEmpty()) {
+        Q_ASSERT(state->initialState == nullptr);
+
+        if (state->initial.isEmpty()) {
+            state->initialState = firstAbstractState(state);
+        } else {
             Q_ASSERT(state->type == DocumentModel::State::Normal);
             if (DocumentModel::AbstractState *s = m_stateById.value(state->initial)) {
                 state->initialState = s;
@@ -157,11 +155,17 @@ private:
 
     bool visit(DocumentModel::Transition *transition) Q_DECL_OVERRIDE
     {
-        if (!transition->targets.isEmpty())
-            transition->targetStates.reserve(transition->targets.size());
+        Q_ASSERT(transition->targetStates.isEmpty());
+
+        if (int size = transition->targets.size())
+            transition->targetStates.reserve(size);
         foreach (const QString &target, transition->targets) {
             if (DocumentModel::AbstractState *s = m_stateById.value(target)) {
-                transition->targetStates.append(s);
+                if (transition->targetStates.contains(s)) {
+                    error(transition->xmlLocation, QStringLiteral("duplicate target '%1'").arg(target));
+                } else {
+                    transition->targetStates.append(s);
+                }
             } else if (!target.isEmpty()) {
                 error(transition->xmlLocation, QStringLiteral("unknown state '%1' in target").arg(target));
             }
@@ -219,6 +223,43 @@ private:
     }
 
 private:
+    static int transitionCount(DocumentModel::State *state)
+    {
+        int count = 0;
+        foreach (DocumentModel::StateOrTransition *child, state->children) {
+            if (child->asTransition())
+                ++count;
+        }
+        return count;
+    }
+
+    static DocumentModel::Transition *firstTransition(DocumentModel::State *state)
+    {
+        foreach (DocumentModel::StateOrTransition *child, state->children) {
+            if (DocumentModel::Transition *t = child->asTransition())
+                return t;
+        }
+        return nullptr;
+    }
+
+    static DocumentModel::AbstractState *firstAbstractState(DocumentModel::StateContainer *container)
+    {
+        QVector<DocumentModel::StateOrTransition *> children;
+        if (auto state = container->asState())
+            children = state->children;
+        else if (auto scxml = container->asScxml())
+            children = scxml->children;
+        else
+            Q_UNREACHABLE();
+        foreach (DocumentModel::StateOrTransition *child, children) {
+            if (DocumentModel::State *s = child->asState())
+                return s;
+            else if (DocumentModel::HistoryState *h = child->asHistoryState())
+                return h;
+        }
+        return nullptr;
+    }
+
     void checkExpr(const DocumentModel::XmlLocation &loc, const QString &tag, const QString &attrName, const QString &attrValue)
     {
         if (m_doc->root->dataModel == DocumentModel::Scxml::NullDataModel && !attrValue.isEmpty()) {
@@ -265,6 +306,7 @@ public:
 
         doc->root->accept(this);
         wireTransitions();
+        applyInitialStates();
 
         m_parents.clear();
         m_allTransitions.clear();
@@ -317,11 +359,12 @@ private:
         visit(&scxml->initialSetup);
         m_currentInstructionSequence = 0;
 
-        foreach (DocumentModel::AbstractState *initialState, scxml->initialStates) {
-            ensureInitialState(initialState);
-        }
-        ensureInitialState(nullptr);
         m_parents.removeLast();
+
+        foreach (auto initialState, scxml->initialStates) {
+            Q_ASSERT(initialState);
+            m_initialStates.append(qMakePair(m_table, initialState));
+        }
 
         return false;
     }
@@ -336,6 +379,8 @@ private:
             onEntry = &s->onEntryInstructions;
             onExit = &s->onExitInstructions;
             newState = s;
+            if (state->initialState)
+                m_initialStates.append(qMakePair(s, state->initialState));
         } break;
         case DocumentModel::State::Parallel: {
             auto s = new ScxmlState(currentParent());
@@ -375,8 +420,6 @@ private:
         if (state->doneData)
             state->doneData->accept(this);
 
-        if (state->type == DocumentModel::State::Normal)
-            ensureInitialState(state->initialState);
         m_parents.removeLast();
         return false;
     }
@@ -398,7 +441,6 @@ private:
         }
         auto newTransition = new ScxmlTransition(parentState,
                                                  toUtf8(transition->events),
-                                                 toUtf8(transition->targets),
                                                  cond);
         parentState->addTransition(newTransition);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
@@ -586,29 +628,6 @@ private: // Utility methods
         return parent;
     }
 
-    void ensureInitialState(DocumentModel::AbstractState *initialState)
-    {
-        if (initialState) {
-            auto state = m_docStatesToQStates.value(initialState);
-            Q_ASSERT(state);
-            currentParent()->setInitialState(state);
-        }
-        if (!currentParent()->initialState()) {
-            QAbstractState *firstState = 0;
-            loopOnSubStates(currentParent(), [&firstState](QState *s) -> bool {
-                if (!firstState)
-                    firstState = s;
-                return false;
-            }, Q_NULLPTR, [&firstState](QAbstractState *s) -> void {
-                if (!firstState)
-                    firstState = s;
-            });
-            if (firstState) {
-                currentParent()->setInitialState(firstState);
-            }
-        }
-    }
-
     void wireTransitions()
     {
         for (QHash<QAbstractTransition *, DocumentModel::Transition*>::const_iterator i = m_allTransitions.begin(), ei = m_allTransitions.end(); i != ei; ++i) {
@@ -620,6 +639,16 @@ private: // Utility methods
                 targets.append(target);
             }
             i.key()->setTargetStates(targets);
+        }
+    }
+
+    void applyInitialStates()
+    {
+        foreach (const auto &init, m_initialStates) {
+            Q_ASSERT(init.second);
+            auto initialState = m_docStatesToQStates.value(init.second);
+            Q_ASSERT(initialState);
+            init.first->setInitialState(initialState);
         }
     }
 
@@ -704,6 +733,7 @@ private:
     QHash<DocumentModel::AbstractState *, QAbstractState *> m_docStatesToQStates;
     QAbstractTransition *m_currentTransition = nullptr;
     ExecutableContent::InstructionSequence *m_currentInstructionSequence = nullptr;
+    QVector<QPair<QState *, DocumentModel::AbstractState *>> m_initialStates;
 };
 
 ScxmlParser::ScxmlParser(QXmlStreamReader *reader, LoaderFunction loader)

@@ -520,8 +520,6 @@ public:
     virtual bool clear();
     virtual bool init();
 
-    virtual QList<QByteArray> targetIds() const;
-
     QList<QByteArray> eventSelector;
 protected:
     void onTransition(QEvent *event) Q_DECL_OVERRIDE;
@@ -534,19 +532,15 @@ class SCXML_EXPORT ScxmlTransition : public ScxmlBaseTransition {
 public:
     typedef QSharedPointer<ConcreteSignalTransition> TransitionPtr;
     ScxmlTransition(QState * sourceState = 0, const QList<QByteArray> &eventSelector = QList<QByteArray>(),
-                    const QList<QByteArray> &targetIds = QList<QByteArray>(),
                     const DataModel::EvaluatorBool &conditionalExp = nullptr);
 
     bool eventTest(QEvent *event) Q_DECL_OVERRIDE;
-    QList<QByteArray> targetIds() const  Q_DECL_OVERRIDE { return m_targetIds; }
 
     DataModel::EvaluatorBool conditionalExp;
     ScxmlEvent::EventType type;
     ExecutableContent::InstructionSequence instructionsOnTransition;
 protected:
     void onTransition(QEvent *event) Q_DECL_OVERRIDE;
-private:
-    QList<QByteArray> m_targetIds;
 };
 
 class SCXML_EXPORT ScxmlState: public QState

@@ -57,9 +57,6 @@ public:
     }
 
 private:
-    void dumpConstructor();
-    void dumpDeclareStates();
-    void dumpDeclareTranstions();
     void dumpSlotsForEvents(MainClass &clazz);
     void dumpExecutableContent();
     void dumpInstructions(const ExecutableContent::Instruction *i);
@@ -76,7 +73,6 @@ private:
     QString mainClassName;
     CppDumpOptions options;
     QMap<QAbstractState *, QString> mangledStateNames;
-
     QString mangledName(QAbstractState *state);
 };
 

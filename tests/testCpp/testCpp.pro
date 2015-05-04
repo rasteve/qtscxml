@@ -9,13 +9,11 @@ CONFIG -= app_bundle
 
 TEMPLATE = app
 
-HEADERS += \
-    out.h
-
 SOURCES += \
-    testcpp.cpp \
-    out.cpp
+    testcpp.cpp
 
-OTHER_FILES += genTestSxcml.py
+OTHER_FILES += genTestSxcml.py out.scxml
+STATECHARTS = out.scxml
 
 load(qt_tool)
+load(qscxmlcpp)
