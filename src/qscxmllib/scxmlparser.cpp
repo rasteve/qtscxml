@@ -47,7 +47,7 @@ public:
     bool verify(DocumentModel::ScxmlDocument *doc)
     {
         if (doc->isVerified)
-            return false;
+            return true;
 
         doc->isVerified = true;
         m_doc = doc;
@@ -191,18 +191,14 @@ private:
                     error(t->xmlLocation, QStringLiteral("history state can only have one transition"));
                 } else {
                     seenTransition = true;
+                    m_parentNodes.append(state);
                     t->accept(this);
+                    m_parentNodes.removeLast();
                 }
             }
         }
 
-        m_parentNodes.append(state);
-        return true;
-    }
-
-    void endVisit(DocumentModel::HistoryState *) Q_DECL_OVERRIDE
-    {
-        m_parentNodes.removeLast();
+        return false;
     }
 
     bool visit(DocumentModel::Send *node) Q_DECL_OVERRIDE
@@ -443,7 +439,6 @@ private:
                                                  toUtf8(transition->events),
                                                  cond);
         parentState->addTransition(newTransition);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
         switch (transition->type) {
         case DocumentModel::Transition::External:
             newTransition->setTransitionType(QAbstractTransition::ExternalTransition);
@@ -454,7 +449,6 @@ private:
         default:
             Q_UNREACHABLE();
         }
-#endif
 
         m_currentTransition = newTransition;
         m_allTransitions.insert(newTransition, transition);
@@ -814,7 +808,7 @@ void ScxmlParser::parse()
                 m_doc->root->xmlLocation = xmlLocation();
                 auto scxml = m_doc->root;
                 if (m_state != StartingParsing || !m_stack.isEmpty()) {
-                    addError("found scxml tag mid stream");
+                    addError(xmlLocation(), QStringLiteral("found scxml tag mid stream"));
                     m_state = ParsingError;
                     return;
                 } else {
@@ -1140,7 +1134,7 @@ void ScxmlParser::parse()
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("invoke")) {
                 if (true) {
-                    addError(QStringLiteral("<invoke> is not supported"));
+                    addError(xmlLocation(), QStringLiteral("<invoke> is not supported"));
                     m_state = ParsingError;
                 } else {
                     if (!checkAttributes(attributes, "|event,eventexpr,id,idlocation,type,typeexpr,namelist,delay,delayexpr")) return;

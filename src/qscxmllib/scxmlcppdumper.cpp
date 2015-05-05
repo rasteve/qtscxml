@@ -73,6 +73,7 @@ struct Method {
 };
 
 struct MainClass {
+    StringListDumper implIncludes;
     QString className;
     StringListDumper classFields;
     Method init;
@@ -445,10 +446,12 @@ protected:
     {
         // init:
         if (!node->name.isEmpty()) {
-            clazz.init.impl << QStringLiteral("table->_name = ") + cEscape(node->name) + QLatin1Char(';');
+            clazz.init.impl << QStringLiteral("table._name = QStringLiteral(\"") + cEscape(node->name) + QStringLiteral("\");");
+            if (m_options.nameQObjects)
+                clazz.init.impl << QStringLiteral("table.setObjectName(QStringLiteral(\"") + cEscape(node->name) + QStringLiteral("\"));");
         }
         foreach (AbstractState *s, node->initialStates) {
-            clazz.init.impl << QStringLiteral("table->setInitialState(&state_") + mangledName(s) + QStringLiteral(");");
+            clazz.init.impl << QStringLiteral("table.setInitialState(&state_") + mangledName(s) + QStringLiteral(");");
         }
 
         // visit the kids:
@@ -466,20 +469,13 @@ protected:
         auto stateName = QStringLiteral("state_") + mangledName(node);
         // Declaration:
         if (node->type == State::Final) {
-            clazz.classFields << QStringLiteral("Scxml::ScxmlFinalState state_") + mangledName(node) + QLatin1Char(';');
+            clazz.classFields << QStringLiteral("Scxml::ScxmlFinalState ") + stateName + QLatin1Char(';');
         } else {
-            clazz.classFields << QStringLiteral("Scxml::ScxmlState state_") + mangledName(node) + QLatin1Char(';');
+            clazz.classFields << QStringLiteral("Scxml::ScxmlState ") + stateName + QLatin1Char(';');
         }
 
         // Initializer:
-        QString init = stateName + QLatin1Char('(');
-        if (State *parentState = node->parent->asState()) {
-            init += QStringLiteral("&state_") + mangledName(parentState);
-        } else {
-            init += QStringLiteral("table");
-        }
-        init += QLatin1Char(')');
-        clazz.constructor.initializer << init;
+        clazz.constructor.initializer << generateInitializer(node);
 
         // init:
         if (!node->id.isEmpty() && m_options.nameQObjects) {
@@ -504,7 +500,6 @@ protected:
 
     bool visit(Transition *node) Q_DECL_OVERRIDE
     {
-        if (m_parents.last()->asHistoryState()) { Q_UNIMPLEMENTED(); }
         const QString tName = transitionName(node);
         m_knownEvents.unite(node->events.toSet());
 
@@ -516,8 +511,12 @@ protected:
         auto parent = m_parents.last();
         if (State *parentState = parent->asState()) {
             parentName = QStringLiteral("state_") + mangledName(parentState);
+        } else if (HistoryState *historyState = parent->asHistoryState()) {
+            parentName = QStringLiteral("state_") + mangledName(historyState) + QStringLiteral("_defaultConfiguration");
+        } else if (parent->asScxml()) {
+            parentName = QStringLiteral("table");
         } else {
-            Q_UNIMPLEMENTED();
+            Q_UNREACHABLE();
         }
         QString initializer = tName + QStringLiteral("(&") + parentName + QStringLiteral(", QList<QByteArray>()");
         foreach (const QString &event, node->events) {
@@ -547,6 +546,59 @@ protected:
         m_parents.removeLast();
     }
 
+    bool visit(DocumentModel::HistoryState *node) Q_DECL_OVERRIDE
+    {
+        // Includes:
+        clazz.implIncludes << "QHistoryState";
+
+        auto stateName = QStringLiteral("state_") + mangledName(node);
+        // Declaration:
+        clazz.classFields << QStringLiteral("QHistoryState ") + stateName + QLatin1Char(';');
+
+        // Initializer:
+        clazz.constructor.initializer << generateInitializer(node);
+
+        // init:
+        if (!node->id.isEmpty() && m_options.nameQObjects) {
+            clazz.init.impl << stateName + QStringLiteral(".setObjectName(QStringLiteral(\"") + cEscape(node->id) + QStringLiteral("\"));");
+        }
+        QString depth;
+        switch (node->type) {
+        case DocumentModel::HistoryState::Shallow:
+            depth = QStringLiteral("Shallow");
+            break;
+        case DocumentModel::HistoryState::Deep:
+            depth = QStringLiteral("Deep");
+            break;
+        default:
+            Q_UNREACHABLE();
+        }
+        clazz.init.impl << stateName + QStringLiteral(".setHistoryType(QHistoryState::") + depth + QStringLiteral("History);");
+
+        // visit the kids:
+        if (Transition *t = node->defaultConfiguration()) {
+            // Declaration:
+            clazz.classFields << QStringLiteral("QState ") + stateName + QStringLiteral("_defaultConfiguration;");
+
+            // Initializer:
+            QString init = stateName + QStringLiteral("_defaultConfiguration(&state_");
+            if (State *parentState = node->parent->asState()) {
+                init += mangledName(parentState);
+            }
+            clazz.constructor.initializer << init + QLatin1Char(')');
+
+            // init:
+            clazz.init.impl << stateName + QStringLiteral(".setDefaultState(&")
+                               + stateName + QStringLiteral(");");
+
+            //  visit the kid:
+            m_parents.append(node);
+            t->accept(this);
+            m_parents.removeLast();
+        }
+        return false;
+    }
+
 private:
     QString mangledName(AbstractState *state)
     {
@@ -568,16 +620,40 @@ private:
         auto parent = m_parents.last();
         if (State *parentState = parent->asState()) {
             parentName = mangledName(parentState);
-            foreach (StateOrTransition *sot, parentState->children) {
-                if (sot == t)
-                    break;
-                else
-                    ++idx;
-            }
+            idx = childIndex(t, parentState->children);
+        } else if (HistoryState *historyState = parent->asHistoryState()) {
+            parentName = mangledName(historyState);
+        } else if (Scxml *scxml = parent->asScxml()) {
+            parentName = QStringLiteral("table");
+            idx = childIndex(t, scxml->children);
         } else {
-            Q_UNIMPLEMENTED();
+            Q_UNREACHABLE();
         }
         return QStringLiteral("transition_%1_%2").arg(parentName, QString::number(idx));
+    }
+
+    static int childIndex(StateOrTransition *child, const QVector<StateOrTransition *> &children) {
+        int idx = 0;
+        foreach (StateOrTransition *sot, children) {
+            if (sot == child)
+                break;
+            else
+                ++idx;
+        }
+        return idx;
+    }
+
+    QString generateInitializer(AbstractState *node)
+    {
+        auto stateName = QStringLiteral("state_") + mangledName(node);
+        QString init = stateName + QStringLiteral("(&");
+        if (State *parentState = node->parent->asState()) {
+            init += QStringLiteral("state_") + mangledName(parentState);
+        } else {
+            init += QStringLiteral("table");
+        }
+        init += QLatin1Char(')');
+        return init;
     }
 
     void addEvents()
@@ -609,11 +685,10 @@ private:
 };
 } // anonymous namespace
 
-void CppDumper::dump(StateTable *table, DocumentModel::ScxmlDocument *doc)
+void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
 {
-    this->table = table;
     m_doc = doc;
-    mainClassName = options.basename;
+    mainClassName = options.classname;
     if (mainClassName.isEmpty()) {
         mainClassName = mangleId(doc->root->name);
         if (!mainClassName.isEmpty())
@@ -653,12 +728,16 @@ void CppDumper::dump(StateTable *table, DocumentModel::ScxmlDocument *doc)
     // Generate the .cpp file:
     cpp << l("#include \"") << headerName << l("\"") << endl
         << endl;
+    if (!clazz.implIncludes.isEmpty()) {
+        clazz.implIncludes.write(cpp, QStringLiteral("#include <"), QStringLiteral(">\n"));
+        cpp << endl;
+    }
     if (!options.namespaceName.isEmpty())
-        h << l("namespace ") << options.namespaceName << l(" {") << endl;
+        cpp << l("namespace ") << options.namespaceName << l(" {") << endl;
 
     cpp << l("struct ") << mainClassName << l("::Data {") << endl;
 
-    cpp << l("    Data(Scxml::StateTable *table)\n        : table(table)") << endl;
+    cpp << l("    Data(Scxml::StateTable &table)\n        : table(table)") << endl;
     clazz.constructor.initializer.write(cpp, QStringLiteral("        , "), QStringLiteral("\n"));
     cpp << l("    {}") << endl;
 
@@ -673,14 +752,14 @@ void CppDumper::dump(StateTable *table, DocumentModel::ScxmlDocument *doc)
 
 
     cpp << endl
-        << l("    Scxml::StateTable *table;") << endl;
+        << l("    Scxml::StateTable &table;") << endl;
     clazz.classFields.write(cpp, QStringLiteral("    "), QStringLiteral("\n"));
 
     cpp << l("};") << endl
         << endl;
     cpp << mainClassName << l("::") << mainClassName << l("(QObject *parent)") << endl
         << l("    : Scxml::StateTable(parent)") << endl
-        << l("    , data(new Data(this))") << endl
+        << l("    , data(new Data(*this))") << endl
         << l("{}") << endl
         << endl;
     cpp << mainClassName << l("::~") << mainClassName << l("()") << endl
@@ -693,11 +772,12 @@ void CppDumper::dump(StateTable *table, DocumentModel::ScxmlDocument *doc)
     cpp << endl;
 
     if (!options.namespaceName.isEmpty())
-        h << l("} // namespace ") << options.namespaceName << endl;
+        cpp << l("} // namespace ") << options.namespaceName << endl;
 }
 
 void CppDumper::dumpExecutableContent()
 {
+#if 0
     // dump special transitions
     bool inSlots = false;
     loopOnSubStates(table, [this, &inSlots](QState *state) -> bool {
@@ -774,6 +854,7 @@ void CppDumper::dumpExecutableContent()
     if (inSlots) {
         cpp << l("public:\n");
     }
+#endif
 }
 
 void CppDumper::dumpInstructions(const ExecutableContent::Instruction *i)

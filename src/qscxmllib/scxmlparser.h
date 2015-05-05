@@ -441,32 +441,42 @@ public:
     void visit(InstructionSequence *sequence)
     {
         Q_ASSERT(sequence);
-        Q_FOREACH (Instruction *instruction, *sequence)
+        Q_FOREACH (Instruction *instruction, *sequence) {
+            Q_ASSERT(instruction);
             instruction->accept(this);
+        }
     }
 
     void visit(const QVector<DataElement *> &dataElements)
     {
-        Q_FOREACH (DataElement *dataElement, dataElements)
+        Q_FOREACH (DataElement *dataElement, dataElements) {
+            Q_ASSERT(dataElement);
             dataElement->accept(this);
+        }
     }
 
     void visit(const QVector<StateOrTransition *> &children)
     {
-        Q_FOREACH (StateOrTransition *child, children)
+        Q_FOREACH (StateOrTransition *child, children) {
+            Q_ASSERT(child);
             child->accept(this);
+        }
     }
 
     void visit(const InstructionSequences &sequences)
     {
-        Q_FOREACH (InstructionSequence *sequence, sequences)
+        Q_FOREACH (InstructionSequence *sequence, sequences) {
+            Q_ASSERT(sequence);
             visit(sequence);
+        }
     }
 
     void visit(const QVector<Param *> &params)
     {
-        Q_FOREACH (Param *param, params)
+        Q_FOREACH (Param *param, params) {
+            Q_ASSERT(param);
             param->accept(this);
+        }
     }
 };
 
