@@ -74,6 +74,8 @@ public:
 
     QJSValue evalJSValue(const QString &expr, const QString &context, bool *ok)
     {
+        Q_ASSERT(engine());
+
         QString getData = QStringLiteral("(function(){ return (\n%1\n); })()").arg(expr);
         QJSValue v = engine()->evaluate(getData, QStringLiteral("<expr>"), 0);
         if (v.isError()) {
@@ -107,7 +109,7 @@ public:
 
     void initializeDataFor(QState *s)
     {
-        Q_ASSERT(engine());
+        Q_ASSERT(!dataModel.isUndefined());
 
         foreach (const ScxmlData &data, q->data()) {
             QJSValue v(QJSValue::UndefinedValue); // See B.2.1, and test456.
@@ -281,9 +283,17 @@ DataModel::EvaluatorVoid EcmaScriptDataModel::createAssignmentEvaluator(const QS
     const QString t = dest, e = expr, c = context;
     return [this, t, e, c](bool *ok) {
         Q_ASSERT(ok);
-        QJSValue v = d->evalJSValue(e, c, ok);
-        if (*ok)
-            d->dataModel.setProperty(t, v);
+        if (hasProperty(t)) {
+            QJSValue v = d->evalJSValue(e, c, ok);
+            if (*ok)
+                d->dataModel.setProperty(t, v);
+        } else {
+            *ok = false;
+            static QByteArray sendid;
+            table()->submitError(QByteArray("error.execution"),
+                                 QStringLiteral("%1 in %2 does not exist").arg(t, c),
+                                 sendid);
+        }
     };
 }
 

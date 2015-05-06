@@ -22,7 +22,9 @@
 #include <QScxmlLib/scxmlparser.h>
 
 #include "scxml/scion.h"
-//#include "scxml/compiled_tests.h"
+#include "scxml/compiled_tests.h"
+
+Q_DECLARE_METATYPE(std::function<Scxml::StateTable *()>);
 
 enum { SpyWaitTime = 8000 };
 
@@ -146,10 +148,13 @@ class TestScion: public QObject
 
 private slots:
     void initTestCase();
-    void scion_data();
-    void scion();
+    void dynamic_data();
+    void dynamic();
+    void compiled_data();
+    void compiled();
 
 private:
+    void generateData();
     bool runTest(StateTable *stateMachine, const QJsonObject &testDescription);
 };
 
@@ -165,11 +170,12 @@ enum TestStatus {
 };
 Q_DECLARE_METATYPE(TestStatus)
 
-void TestScion::scion_data()
+void TestScion::generateData()
 {
     QTest::addColumn<QString>("scxml");
     QTest::addColumn<QString>("json");
     QTest::addColumn<TestStatus>("testStatus");
+    QTest::addColumn<std::function<Scxml::StateTable *()>>("creator");
 
     const int nrOfTests = sizeof(testBases) / sizeof(const char *);
     for (int i = 0; i < nrOfTests; ++i) {
@@ -185,15 +191,22 @@ void TestScion::scion_data()
             testStatus = TestIsOk;
         QTest::newRow(testBases[i]) << base + QLatin1String(".scxml")
                                     << base + QLatin1String(".json")
-                                    << testStatus;
+                                    << testStatus
+                                    << creators[i];
     }
 }
 
-void TestScion::scion()
+void TestScion::dynamic_data()
+{
+    generateData();
+}
+
+void TestScion::dynamic()
 {
     QFETCH(QString, scxml);
     QFETCH(QString, json);
     QFETCH(TestStatus, testStatus);
+    QFETCH(std::function<Scxml::StateTable *()>, creator);
 
 //    fprintf(stderr, "\n\n%s\n%s\n\n", qPrintable(scxml), qPrintable(json));
 
@@ -240,6 +253,40 @@ static QStringList getStates(const QJsonObject &obj, const QString &key)
     }
     std::sort(states.begin(), states.end());
     return states;
+}
+
+void TestScion::compiled_data()
+{
+    generateData();
+}
+
+void TestScion::compiled()
+{
+    QFETCH(QString, scxml);
+    QFETCH(QString, json);
+    QFETCH(TestStatus, testStatus);
+    QFETCH(std::function<Scxml::StateTable *()>, creator);
+
+    if (testStatus == TestCrashes)
+        QSKIP("Test is marked as a crasher");
+    if (testStatus == TestUsesDifferentSemantics)
+        QSKIP("Test uses different semantics");
+
+    QFile jsonFile(QLatin1String(":/") + json);
+    QVERIFY(jsonFile.open(QIODevice::ReadOnly));
+    auto testDescription = QJsonDocument::fromJson(jsonFile.readAll());
+    jsonFile.close();
+
+    auto table = creator();
+    if (table == nullptr && testStatus == TestFails) {
+        QEXPECT_FAIL("", "This is expected to fail", Abort);
+    }
+    QVERIFY(table != nullptr);
+    table->init();
+
+    if (testStatus == TestFails)
+        QEXPECT_FAIL("", "This is expected to fail", Abort);
+    QVERIFY(runTest(table, testDescription.object()));
 }
 
 static bool verifyStates(StateTable *stateMachine, const QJsonObject &stateDescription, const QString &key, int counter)

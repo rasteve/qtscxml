@@ -120,7 +120,7 @@ public:
 
     EventBuilder(StateTable *table, const ExecutableContent::Send &send)
         : table(table)
-        , instructionLocation(send.instructionLocation())
+        , instructionLocation(send.instructionLocation)
         , event(send.event)
         , eventexpr(send.eventexpr)
         , contents(send.content)
@@ -241,11 +241,11 @@ QAtomicInt EventBuilder::idCounter = QAtomicInt(0);
 
 namespace ExecutableContent {
 
-bool InstructionSequence::execute() const
+bool InstructionSequence::execute(Scxml::StateTable *table) const
 {
     foreach (Instruction::Ptr instruction, statements) {
         if (instruction) {
-            if (!instruction->execute()) {
+            if (!instruction->execute(table)) {
                 return false;
             }
         }
@@ -262,12 +262,6 @@ bool InstructionSequence::bind()
     return true;
 }
 
-InstructionSequences::InstructionSequences(QAbstractState *parentState, QAbstractTransition *transition)
-    : parentState(parentState)
-    , transition(transition)
-{
-}
-
 InstructionSequences::~InstructionSequences()
 {
     qDeleteAll(sequences);
@@ -275,25 +269,25 @@ InstructionSequences::~InstructionSequences()
 
 InstructionSequence *InstructionSequences::newInstructions()
 {
-    InstructionSequence *s = new InstructionSequence(parentState, transition);
+    InstructionSequence *s = new InstructionSequence;
     sequences.append(s);
     return s;
 }
 
-bool InstructionSequences::init()
+bool InstructionSequences::init(StateTable *table)
 {
     foreach (InstructionSequence *s, sequences) {
-        if (!s->init())
+        if (!s->init(table))
             return false;
     }
 
     return true;
 }
 
-void InstructionSequences::execute()
+void InstructionSequences::execute(StateTable *table)
 {
     foreach (const InstructionSequence *sequence, sequences)
-        sequence->execute();
+        sequence->execute(table);
 }
 
 InstructionSequences::const_iterator InstructionSequences::begin() const
@@ -331,167 +325,55 @@ void InstructionSequences::append(InstructionSequence *s)
     sequences.append(s);
 }
 
-StateTable *Instruction::table() const {
-    if (parentState) {
-        if (StateTable *table = qobject_cast<StateTable *>(parentState))
-            return table;
-        else
-            return qobject_cast<StateTable *>(parentState->machine());
-    }
-    if (transition)
-        return qobject_cast<StateTable *>(transition->machine());
-    qCWarning(scxmlLog) << "Cannot find StateTable of free standing Instruction";
-    return 0;
-}
-
-QString Instruction::instructionLocation() const {
-    if (transition)
-        return QStringLiteral("instruction in transition %1 of state %2")
-                .arg(transition->objectName(),
-                     (transition->sourceState() ? transition->sourceState()->objectName():
-                                                  QStringLiteral("*NULL*")));
-    else if (parentState)
-        return QStringLiteral("instruction in state %1").arg(parentState->objectName());
-    else
-        return QStringLiteral("free standing instruction");
-}
-
-bool Instruction::init() {
-    if (table()->dataBinding() == StateTable::EarlyBinding)
+bool Instruction::init(Scxml::StateTable *table) {
+    if (table->dataBinding() == StateTable::EarlyBinding)
         return bind();
     return true;
 }
 
-bool JavaScript::execute() const
+bool JavaScript::execute(Scxml::StateTable *table) const
 {
+    Q_UNUSED(table);
     bool ok = true;
     go(&ok);
     return ok;
 }
 
-bool AssignExpression::execute() const
+bool AssignExpression::execute(StateTable *table) const
 {
-    if (!table() || !table()->engine())
-        return false;
-
-    auto dataModel = table()->dataModel();
-    if (dataModel->hasProperty(location)) {
-        Q_ASSERT(expression);
-        bool ok = true;
-        expression(&ok);
-        return ok;
-    } else {
-        table()->submitError(QByteArray("error.execution"),
-                             QStringLiteral("Error in %1: location '%2' does not exist.")
-                             .arg(instructionLocation(), location),
-                             /*sendid =*/ QByteArray());
-        return false;
-    }
+    Q_UNUSED(table);
+    Q_ASSERT(expression);
+    bool ok = true;
+    expression(&ok);
+    return ok;
 }
 
-InstructionVisitor::~InstructionVisitor()
-{}
-
-void InstructionVisitor::accept(const Instruction *instruction) {
-    switch (instruction->instructionKind()) {
-    case Instruction::Raise:
-        visitRaise(static_cast<const Raise *>(instruction));
-        break;
-    case Instruction::Send:
-        visitSend(static_cast<const Send *>(instruction));
-        break;
-    case Instruction::JavaScript:
-        visitJavaScript(static_cast<const JavaScript *>(instruction));
-        break;
-    case Instruction::AssignExpression:
-        visitAssignExpression(static_cast<const AssignExpression *>(instruction));
-        break;
-    case Instruction::If: {
-        auto ifInstruction = static_cast<const If *>(instruction);
-        if (!visitIf(ifInstruction))
-            break;
-        for (int iblock = 0; iblock < ifInstruction->blocks.size(); ++iblock) {
-            const InstructionSequence *block = ifInstruction->blocks.at(iblock);
-            if (visitSequence(block)) {
-                for (int i = 0; i < block->statements.size(); ++i) {
-                    accept(block->statements[i].data());
-                }
-            }
-            endVisitSequence(block);
-        }
-        endVisitIf(ifInstruction);
-        break;
-    }
-    case Instruction::Foreach: {
-        auto foreachInstruction = static_cast<const Foreach *>(instruction);
-        if (!visitForeach(foreachInstruction))
-            break;
-        if (!visitSequence(&foreachInstruction->block))
-            break;
-        for (int i = 0; i < foreachInstruction->block.statements.size(); ++i)
-            accept(foreachInstruction->block.statements[i].data());
-        endVisitSequence(&foreachInstruction->block);
-        endVisitForeach(foreachInstruction);
-        break;
-    }
-    case Instruction::Log:
-        visitLog(static_cast<const Log *>(instruction));
-        break;
-    case Instruction::Cancel:
-        visitCancel(static_cast<const Cancel *>(instruction));
-        break;
-    case Instruction::Invoke: {
-        visitInvoke(static_cast<const Invoke *>(instruction));
-        auto invokeInstruction = static_cast<const Invoke *>(instruction);
-        if (!visitInvoke(invokeInstruction))
-            break;
-        if (!visitSequence(&invokeInstruction->finalize))
-            break;
-        for (int i = 0; i < invokeInstruction->finalize.statements.size(); ++i)
-            accept(invokeInstruction->finalize.statements[i].data());
-        endVisitSequence(&invokeInstruction->finalize);
-        endVisitInvoke(invokeInstruction);
-        break;
-    }
-    case Instruction::Sequence: {
-        auto sequenceInstruction = static_cast<const InstructionSequence *>(instruction);
-        if (!visitSequence(sequenceInstruction))
-            break;
-        for (int i = 0; i < sequenceInstruction->statements.size(); ++i) {
-            accept(sequenceInstruction->statements[i].data());
-        }
-        endVisitSequence(sequenceInstruction);
-        break;
-    }
-    }
-}
-
-bool If::execute() const
+bool If::execute(Scxml::StateTable *table) const
 {
     for (int i = 0; i < conditions.size(); ++i) {
         bool ok = true;
         if (conditions.at(i)(&ok) && ok) {
-            return blocks.at(i)->execute();
+            return blocks.at(i)->execute(table);
         }
     }
     if (conditions.size() < blocks.size())
-        return blocks.at(conditions.size())->execute();
+        return blocks.at(conditions.size())->execute(table);
 
     return true;
 }
 
-bool Foreach::execute() const
+bool Foreach::execute(StateTable *table) const
 {
     Q_ASSERT(doIt);
 
     bool ok = true;
-    bool evenMoreOk = doIt(&ok, [this](){ return block.execute(); });
+    bool evenMoreOk = doIt(&ok, [this,table](){ return block.execute(table); });
     return ok && evenMoreOk;
 }
 
-bool Send::execute() const
+bool Send::execute(StateTable *table) const
 {
-    Q_ASSERT(table() && table()->engine());
+    Q_ASSERT(table && table->engine());
     QString delay = this->delay;
     if (delayexpr) {
         bool ok = false;
@@ -500,16 +382,16 @@ bool Send::execute() const
             return false;
     }
 
-    ScxmlEvent *event = EventBuilder(table(), *this).buildEvent();
+    ScxmlEvent *event = EventBuilder(table, *this).buildEvent();
     if (!event)
         return false;
 
     if (delay.isEmpty()) {
-        table()->submitEvent(event);
+        table->submitEvent(event);
     } else {
         int msecs = parseTime(delay);
         if (msecs >= 0) {
-            table()->submitDelayedEvent(msecs, event);
+            table->submitDelayedEvent(msecs, event);
         } else {
             qCDebug(scxmlLog) << "failed to parse delay time" << delay;
             return false;
@@ -519,18 +401,18 @@ bool Send::execute() const
     return true;
 }
 
-bool Raise::execute() const
+bool Raise::execute(StateTable *table) const
 {
-    table()->submitEvent(event, QVariantList(), QStringList(), ScxmlEvent::Internal);
+    table->submitEvent(event, QVariantList(), QStringList(), ScxmlEvent::Internal);
     return true;
 }
 
-bool Log::execute() const
+bool Log::execute(StateTable *table) const
 {
     bool ok = true;
     QString str = expr(&ok);
     if (ok)
-        table()->doLog(label, str);
+        table->doLog(label, str);
     return ok;
 }
 
@@ -568,20 +450,22 @@ bool Param::evaluate(const QVector<Param> &params, StateTable *table, QVariantLi
     return true;
 }
 
-bool Cancel::execute() const
+bool Cancel::execute(StateTable *table) const
 {
     QByteArray e = sendid;
     bool ok = true;
     if (sendidexpr)
         e = sendidexpr(&ok).toUtf8();
     if (ok && !e.isEmpty())
-        table()->cancelDelayedEvent(e);
+        table->cancelDelayedEvent(e);
     return ok;
 }
 
-bool Invoke::execute() const
+bool Invoke::execute(Scxml::StateTable *table) const
 {
-    Q_ASSERT(false);
+    Q_UNUSED(table);
+    Q_UNIMPLEMENTED();
+    Q_UNREACHABLE();
     return false;
 }
 } // namespace ExecutableContent
@@ -626,7 +510,6 @@ StateTable::StateTable(QObject *parent)
     : QStateMachine(*new StateTablePrivate, parent)
     , m_dataModel(nullptr)
     , m_sessionId(m_sessionIdCounter++)
-    , m_initialSetup(this, nullptr)
     , m_engine(nullptr)
     , m_dataBinding(EarlyBinding)
     , m_warnIndirectIdClashes(true)
@@ -639,7 +522,6 @@ StateTable::StateTable(StateTablePrivate &dd, QObject *parent)
     : QStateMachine(dd, parent)
     , m_dataModel(nullptr)
     , m_sessionId(m_sessionIdCounter++)
-    , m_initialSetup(this, nullptr)
     , m_engine(nullptr)
     , m_dataBinding(EarlyBinding)
     , m_warnIndirectIdClashes(true)
@@ -863,7 +745,7 @@ QStringList StateTable::currentStates(bool compress)
 
 void StateTable::executeInitialSetup()
 {
-    m_initialSetup.execute();
+    m_initialSetup.execute(this);
 }
 
 bool loopOnSubStates(QState *startState,
@@ -1270,7 +1152,6 @@ ScxmlTransition::ScxmlTransition(QState *sourceState, const QList<QByteArray> &e
     : ScxmlBaseTransition(sourceState, filterEmpty(eventSelector))
     , conditionalExp(conditionalExp)
     , type(ScxmlEvent::External)
-    , instructionsOnTransition(sourceState, this)
 {}
 
 bool ScxmlTransition::eventTest(QEvent *event)
@@ -1288,7 +1169,11 @@ bool ScxmlTransition::eventTest(QEvent *event)
 
 void ScxmlTransition::onTransition(QEvent *)
 {
-    instructionsOnTransition.execute();
+    instructionsOnTransition.execute(table());
+}
+
+StateTable *ScxmlTransition::table() const {
+    return qobject_cast<StateTable *>(machine());
 }
 
 StateTable *ScxmlState::table() const {
@@ -1298,9 +1183,9 @@ StateTable *ScxmlState::table() const {
 bool ScxmlState::init()
 {
     m_dataInitialized = (table()->dataBinding() == StateTable::EarlyBinding);
-    if (!onEntryInstructions.init())
+    if (!onEntryInstructions.init(table()))
         return false;
-    if (!onExitInstructions.init())
+    if (!onExitInstructions.init(table()))
         return false;
     return true;
 }
@@ -1317,12 +1202,12 @@ void ScxmlState::onEntry(QEvent *event) {
         table()->dataModel()->initializeDataFor(this);
     }
     QState::onEntry(event);
-    onEntryInstructions.execute();
+    onEntryInstructions.execute(table());
 }
 
 void ScxmlState::onExit(QEvent *event) {
     QState::onExit(event);
-    onExitInstructions.execute();
+    onExitInstructions.execute(table());
 }
 
 StateTable *ScxmlFinalState::table() const {
@@ -1331,21 +1216,21 @@ StateTable *ScxmlFinalState::table() const {
 
 bool ScxmlFinalState::init()
 {
-    if (!onEntryInstructions.init())
+    if (!onEntryInstructions.init(table()))
         return false;
-    if (!onExitInstructions.init())
+    if (!onExitInstructions.init(table()))
         return false;
     return true;
 }
 
 void ScxmlFinalState::onEntry(QEvent *event) {
     QFinalState::onEntry(event);
-    onEntryInstructions.execute();
+    onEntryInstructions.execute(table());
 }
 
 void ScxmlFinalState::onExit(QEvent *event) {
     QFinalState::onExit(event);
-    onExitInstructions.execute();
+    onExitInstructions.execute(table());
 }
 
 bool XmlNode::isText() const {

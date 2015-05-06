@@ -112,47 +112,18 @@ namespace ExecutableContent {
 struct SCXML_EXPORT Instruction {
 public:
     typedef QSharedPointer<Instruction> Ptr; // avoid smart pointer and simply delete in InstructionSequence destructor?
-    enum Kind {
-        Raise,
-        Send,
-        Log,
-        JavaScript,
-        AssignExpression,
-        If,
-        Foreach,
-        Cancel,
-        Invoke,
-        Sequence
-    };
-    Instruction(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
-        : parentState(parentState), transition(transition) {
-        if (!parentState && !transition)
-            qCDebug(scxmlLog) << "scxml: unbound instruction";
-    }
 
     virtual ~Instruction() { }
 
-    StateTable *table() const;
-    QString instructionLocation() const;
-
-    virtual bool execute() const = 0;
-    virtual Kind instructionKind() const = 0;
-    virtual bool init();
+    virtual bool execute(StateTable *table) const = 0;
+    virtual bool init(StateTable *table);
     virtual void clear() { }
     virtual bool bind() { return true; }
-
-    QAbstractState *parentState;
-    QAbstractTransition *transition;
 };
 
 struct SCXML_EXPORT InstructionSequence : public Instruction {
-    InstructionSequence(QAbstractState *parentState, QAbstractTransition *transition)
-        : Instruction(parentState, transition) { }
-    bool execute() const Q_DECL_OVERRIDE;
+    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
 
-    Kind instructionKind() const Q_DECL_OVERRIDE {
-        return Sequence;
-    }
     bool bind() Q_DECL_OVERRIDE;
 
     QList<Instruction::Ptr> statements;
@@ -163,12 +134,11 @@ struct SCXML_EXPORT InstructionSequences
     typedef QList<InstructionSequence *> InstructionSequenceList;
     typedef InstructionSequenceList::const_iterator const_iterator;
 
-    InstructionSequences(QAbstractState *parentState, QAbstractTransition *transition);
     ~InstructionSequences();
 
     InstructionSequence *newInstructions();
-    bool init();
-    void execute();
+    bool init(StateTable *table);
+    void execute(StateTable *table);
     const_iterator begin() const;
     const_iterator end() const;
     int size() const;
@@ -177,8 +147,6 @@ struct SCXML_EXPORT InstructionSequences
     InstructionSequence *last() const;
     void append(InstructionSequence *s);
 
-    QAbstractState *parentState;
-    QAbstractTransition *transition;
     InstructionSequenceList sequences;
 };
 
@@ -343,8 +311,7 @@ struct SCXML_EXPORT DoneData {
 };
 
 struct SCXML_EXPORT Send : public Instruction {
-    Send(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
-        : Instruction(parentState, transition) { }
+    QString instructionLocation;
     QByteArray event;
     DataModel::EvaluatorString eventexpr = nullptr;
     QString type;
@@ -358,86 +325,55 @@ struct SCXML_EXPORT Send : public Instruction {
     QStringList namelist;
     QVector<Param> params;
     QString content;
-    bool execute() const Q_DECL_OVERRIDE;
-    Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::Send; }
+    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
 };
 
 struct SCXML_EXPORT Raise : public Instruction {
-    Raise(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
-        : Instruction(parentState, transition) { }
+    Raise(const QByteArray &event): event(event) {}
     QByteArray event;
-    bool execute() const Q_DECL_OVERRIDE;
-    Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::Raise; }
+    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
 };
 
 struct SCXML_EXPORT Log : public Instruction {
-    Log(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
-        : Instruction(parentState, transition) { }
     QString label;
     DataModel::EvaluatorString expr = nullptr;
-    virtual bool execute() const Q_DECL_OVERRIDE;
-    Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::Log; }
+    virtual bool execute(StateTable *table) const Q_DECL_OVERRIDE;
 };
 
 struct SCXML_EXPORT Script : public Instruction {
-    Script(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
-        : Instruction(parentState, transition) { }
 };
 
 struct SCXML_EXPORT JavaScript : public Script {
-    JavaScript(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
-        : Script(parentState, transition) { }
-
     DataModel::EvaluatorVoid go = nullptr;
-    Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::JavaScript; }
-    bool execute() const Q_DECL_OVERRIDE;
+    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
 };
 
 struct SCXML_EXPORT AssignExpression : public Instruction {
-    AssignExpression(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
-        : Instruction(parentState, transition) { }
     QString location;
     DataModel::EvaluatorVoid expression = nullptr;
     XmlNode *content;
-    Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::AssignExpression; }
-    bool execute() const Q_DECL_OVERRIDE;
+    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
 };
 
 struct SCXML_EXPORT If : public Instruction {
-    If(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
-        : Instruction(parentState, transition)
-        , blocks(parentState, transition)
-    {}
     QVector<DataModel::EvaluatorBool> conditions;
     InstructionSequences blocks;
-    bool execute() const Q_DECL_OVERRIDE;
-    Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::If; }
+    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
 };
 
 struct SCXML_EXPORT Foreach : public Instruction {
-    Foreach(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
-        : Instruction(parentState, transition), block(parentState, transition) { }
     DataModel::ForeachEvaluator doIt = nullptr;
     InstructionSequence block;
-    bool execute() const Q_DECL_OVERRIDE;
-    Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::Foreach; }
+    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
 };
 
 struct SCXML_EXPORT Cancel : public Instruction {
-    Cancel(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
-        : Instruction(parentState, transition) { }
     QByteArray sendid;
     DataModel::EvaluatorString sendidexpr = nullptr;
-    bool execute() const Q_DECL_OVERRIDE;
-    Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::Cancel; }
+    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
 };
 
 struct SCXML_EXPORT Invoke : public Instruction {
-    Invoke(QAbstractState *parentState = 0, QAbstractTransition *transition = 0)
-        : Instruction(parentState, transition)
-        , finalize(parentState, transition)
-    {}
-
     QString type;
     QString typeexpr;
     QString src;
@@ -449,30 +385,7 @@ struct SCXML_EXPORT Invoke : public Instruction {
     QList<Param> params;
     XmlNode *content;
     InstructionSequence finalize;
-    bool execute() const Q_DECL_OVERRIDE;
-    Kind instructionKind() const Q_DECL_OVERRIDE { return Instruction::Invoke; }
-};
-
-class SCXML_EXPORT InstructionVisitor {
-protected:
-    virtual void visitRaise(const Raise *) = 0;
-    virtual void visitLog(const Log*) = 0;
-    virtual void visitSend(const Send *) = 0;
-    virtual void visitJavaScript(const JavaScript *) = 0;
-    virtual void visitAssignExpression(const AssignExpression *) = 0;
-    virtual void visitCancel(const Cancel *) = 0;
-
-    virtual bool visitInvoke(const Invoke *) = 0;
-    virtual void endVisitInvoke(const Invoke *) = 0;
-    virtual bool visitIf(const If *) = 0;
-    virtual void endVisitIf(const If *) = 0;
-    virtual bool visitForeach(const Foreach *) = 0;
-    virtual void endVisitForeach(const Foreach *) = 0;
-    virtual bool visitSequence(const InstructionSequence *) = 0;
-    virtual void endVisitSequence(const InstructionSequence *) = 0;
-public:
-    virtual ~InstructionVisitor();
-    void accept(const Instruction *instruction);
+    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
 };
 
 } // namespace ExecutableContent
@@ -535,6 +448,7 @@ public:
                     const DataModel::EvaluatorBool &conditionalExp = nullptr);
 
     bool eventTest(QEvent *event) Q_DECL_OVERRIDE;
+    StateTable *table() const;
 
     DataModel::EvaluatorBool conditionalExp;
     ScxmlEvent::EventType type;
@@ -548,11 +462,13 @@ class SCXML_EXPORT ScxmlState: public QState
     Q_OBJECT
 public:
     ScxmlState(QState *parent = 0)
-        : QState(parent), onEntryInstructions(this, nullptr) , onExitInstructions(this, nullptr)
-        , m_dataInitialized(false) { }
+        : QState(parent)
+        , m_dataInitialized(false)
+    {}
     ScxmlState(QStatePrivate &dd, QState *parent = 0)
-        : QState(dd, parent), onEntryInstructions(this, nullptr), onExitInstructions(this, nullptr)
-        , m_dataInitialized(false) { }
+        : QState(dd, parent)
+        , m_dataInitialized(false)
+    {}
     StateTable *table() const;
     virtual bool init();
     QString stateLocation() const;
@@ -579,8 +495,6 @@ class SCXML_EXPORT ScxmlFinalState: public QFinalState
 public:
     ScxmlFinalState(QState *parent)
         : QFinalState(parent)
-        , onEntryInstructions(this, nullptr)
-        , onExitInstructions(this, nullptr)
     {}
     StateTable *table() const;
     virtual bool init();

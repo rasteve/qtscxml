@@ -1,5 +1,7 @@
 #include "out.h"
 
+#include <QScxmlLib/nulldatamodel.h>
+
 struct StateMachine::Data {
     Data(Scxml::StateTable &table)
         : table(table)
@@ -64,6 +66,7 @@ struct StateMachine::Data {
     {}
 
     bool init() {
+        table.setDataModel(new Scxml::NullDataModel(&table));
         table.setInitialState(&state_s__1);
         state_s__1.setObjectName(QStringLiteral("s_1"));
         state_s__1.addTransition(&transition_s__1_0);

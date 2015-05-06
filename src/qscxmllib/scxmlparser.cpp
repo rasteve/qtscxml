@@ -33,8 +33,6 @@
 #include <QVector>
 #include <private/qabstracttransition_p.h>
 
-static Q_LOGGING_CATEGORY(scxmlParserLog, "scxml.parser")
-
 namespace Scxml {
 
 class ScxmlVerifier: public DocumentModel::NodeVisitor
@@ -489,7 +487,8 @@ private:
 
     bool visit(DocumentModel::Send *node) Q_DECL_OVERRIDE
     {
-        auto instr = new ExecutableContent::Send(m_parents.last(), m_currentTransition);
+        auto instr = new ExecutableContent::Send;
+        instr->instructionLocation = createContext(QStringLiteral("send"));
         instr->event = node->event.toUtf8();
         createEvaluatorString(QStringLiteral("send"), QStringLiteral("eventexpr"), node->eventexpr, &instr->eventexpr);
         instr->type = node->type;
@@ -509,14 +508,12 @@ private:
 
     void visit(DocumentModel::Raise *node) Q_DECL_OVERRIDE
     {
-        auto instr = new ExecutableContent::Raise(m_parents.last(), m_currentTransition);
-        instr->event = node->event.toUtf8();
-        add(instr);
+        add(new ExecutableContent::Raise(node->event.toUtf8()));
     }
 
     void visit(DocumentModel::Log *node) Q_DECL_OVERRIDE
     {
-        auto instr = new ExecutableContent::Log(m_parents.last(), m_currentTransition);
+        auto instr = new ExecutableContent::Log();
         instr->label = node->label;
         createEvaluatorString(QStringLiteral("log"), QStringLiteral("expr"), node->expr, &instr->expr);
         add(instr);
@@ -534,7 +531,7 @@ private:
 
     void visit(DocumentModel::Script *node) Q_DECL_OVERRIDE
     {
-        auto instr = new ExecutableContent::JavaScript(m_parents.last(), m_currentTransition);
+        auto instr = new ExecutableContent::JavaScript;
         auto ctxt = createContext(QStringLiteral("script"), QStringLiteral("source"), node->content);
         instr->go = m_table->dataModel()->createScriptEvaluator(node->content, ctxt);
         add(instr);
@@ -542,16 +539,16 @@ private:
 
     void visit(DocumentModel::Assign *node) Q_DECL_OVERRIDE
     {
-        auto instr = new ExecutableContent::AssignExpression(m_parents.last(), m_currentTransition);
+        auto instr = new ExecutableContent::AssignExpression;
         instr->location = node->location;
         auto ctxt = createContext(QStringLiteral("assign"), QStringLiteral("expr"), node->expr);
-        instr->expression = m_table->dataModel()->createAssignmentEvaluator(instr->location, node->expr, ctxt);
+        instr->expression = m_table->dataModel()->createAssignmentEvaluator(node->location, node->expr, ctxt);
         add(instr);
     }
 
     bool visit(DocumentModel::If *node) Q_DECL_OVERRIDE
     {
-        auto instr = new ExecutableContent::If(m_parents.last(), m_currentTransition);
+        auto instr = new ExecutableContent::If;
         instr->conditions.resize(node->conditions.size());
         QString tag = QStringLiteral("if");
         for (int i = 0, ei = node->conditions.size(); i != ei; ++i) {
@@ -567,7 +564,7 @@ private:
 
     bool visit(DocumentModel::Foreach *node) Q_DECL_OVERRIDE
     {
-        auto instr = new ExecutableContent::Foreach(m_parents.last(), m_currentTransition);
+        auto instr = new ExecutableContent::Foreach;
         auto ctxt = createContext(QStringLiteral("foreach"));
         instr->doIt = m_table->dataModel()->createForeachEvaluator(node->array, node->item, node->index, ctxt);
         ExecutableContent::InstructionSequence *previous = m_currentInstructionSequence;
@@ -580,7 +577,7 @@ private:
 
     void visit(DocumentModel::Cancel *node) Q_DECL_OVERRIDE
     {
-        auto instr = new ExecutableContent::Cancel(m_parents.last(), m_currentTransition);
+        auto instr = new ExecutableContent::Cancel;
         instr->sendid = node->sendid.toUtf8();
         createEvaluatorString(QStringLiteral("cancel"), QStringLiteral("sendidexpr"), node->sendidexpr, &instr->sendidexpr);
         add(instr);

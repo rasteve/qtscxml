@@ -87,39 +87,38 @@ struct MainClass {
 };
 
 namespace {
-using namespace ExecutableContent;
 
-QByteArray cEscape(const QByteArray &str)
-{ // should handle even trigraphs?
-    QByteArray res;
-    int lastI = 0;
-    for (int i = 0; i < str.length(); ++i) {
-        unsigned char c = str.at(i);
-        if (c < ' ' || c == '\\' || c == '\"') {
-            res.append(str.mid(lastI, i - lastI));
-            lastI = i + 1;
-            if (c == '\\') {
-                res.append("\\\\");
-            } else if (c == '\"') {
-                res.append("\"");
-            } else {
-                char buf[4];
-                buf[0] = '\\';
-                buf[3] = '0' + (c & 0x7);
-                c >>= 3;
-                buf[2] = '0' + (c & 0x7);
-                c >>= 3;
-                buf[1] = '0' + (c & 0x7);
-                res.append(&buf[0], 4);
-            }
-        }
-    }
-    if (lastI != 0) {
-        res.append(str.mid(lastI));
-        return res;
-    }
-    return str;
-}
+//QByteArray cEscape(const QByteArray &str)
+//{ // should handle even trigraphs?
+//    QByteArray res;
+//    int lastI = 0;
+//    for (int i = 0; i < str.length(); ++i) {
+//        unsigned char c = str.at(i);
+//        if (c < ' ' || c == '\\' || c == '\"') {
+//            res.append(str.mid(lastI, i - lastI));
+//            lastI = i + 1;
+//            if (c == '\\') {
+//                res.append("\\\\");
+//            } else if (c == '\"') {
+//                res.append("\"");
+//            } else {
+//                char buf[4];
+//                buf[0] = '\\';
+//                buf[3] = '0' + (c & 0x7);
+//                c >>= 3;
+//                buf[2] = '0' + (c & 0x7);
+//                c >>= 3;
+//                buf[1] = '0' + (c & 0x7);
+//                res.append(&buf[0], 4);
+//            }
+//        }
+//    }
+//    if (lastI != 0) {
+//        res.append(str.mid(lastI));
+//        return res;
+//    }
+//    return str;
+//}
 
 QString cEscape(const QString &str)
 {// should handle even trigraphs?
@@ -154,18 +153,13 @@ QString cEscape(const QString &str)
     return str;
 }
 
-//QString cEscape(const char *str)
+//QString qba(const QByteArray &bytes)
 //{
-//    return cEscape(QString::fromLatin1(str));
+//    QString str = QString::fromLatin1("QByteArray::fromRawData(\"");
+//    auto esc = cEscape(bytes);
+//    str += QString::fromLatin1(esc) + QLatin1String("\", ") + QString::number(esc.length()) + QLatin1String(")");
+//    return str;
 //}
-
-QString qba(const QByteArray &bytes)
-{
-    QString str = QString::fromLatin1("QByteArray::fromRawData(\"");
-    auto esc = cEscape(bytes);
-    str += QString::fromLatin1(esc) + QLatin1String("\", ") + QString::number(esc.length()) + QLatin1String(")");
-    return str;
-}
 
 QString qba(const QString &bytes)
 {
@@ -174,244 +168,6 @@ QString qba(const QString &bytes)
     str += esc + QLatin1String("\", ") + QString::number(esc.length()) + QLatin1String(")");
     return str;
 }
-
-class DumpCppInstructionVisitor : public InstructionVisitor {
-    QLatin1String l(const char *str) { return QLatin1String(str); }
-    QTextStream &s;
-    int indentSize;
-    bool didDumpTable;
-public:
-    DumpCppInstructionVisitor(QTextStream &dumper, int indentSize = 0)
-        : s(dumper)
-        , indentSize(indentSize)
-        , didDumpTable(false) { }
-    QTextStream & indented() {
-        for (int i = 0; i < indentSize; ++i)
-            s << QLatin1Char(' ');
-        return s;
-    }
-protected:
-    void maybeTable() {
-        if (didDumpTable)
-            return;
-        didDumpTable = true;
-        indented() << "StateTable *sTable = table();\n";
-    }
-
-    void visitRaise(const Raise *r) Q_DECL_OVERRIDE {
-        maybeTable();
-        indented() << l("sTable->submitEvent(") << qba(r->event) << l(");\n");
-    }
-
-    void visitSend(const Send *send) Q_DECL_OVERRIDE {
-        maybeTable();
-#if 1
-        Q_UNIMPLEMENTED();
-        Q_UNUSED(send);
-#else // FIXME
-        if (!send->delayexpr.isEmpty() || !send->delay.isEmpty()) {
-            if (!send->delayexpr.isEmpty()) {
-                indented() << l("int delay = sTable->evalValueInt(QStringLiteral(\"")
-                  << cEscape(send->delayexpr)
-                  << l("\"), []() -> QString { return QStringLiteral(\"")
-                  << cEscape(send->instructionLocation())
-                  << l("\"); }, 0);\n");
-            } else {
-                bool ok;
-                send->delay.toInt(&ok);
-                if (ok) {
-                    indented() << l("int delay = ") << send->delay << l(";\n");
-                } else {
-                    indented() << l("int delay = 0;");
-                    qCWarning(scxmlLog) << "could not convert delay '" << send->delay
-                                        << "' to int, using 0 instead in "
-                                        << send->instructionLocation();
-                }
-            }
-            indented() << l("sTable->submitDelayedEvent(delay, ");
-        } else {
-            indented() << l("sTable->submitEvent(");
-        }
-        if (!send->eventexpr.isEmpty()) {
-            s << l("sTable->evalStr(QStringLiteral(\"") << cEscape(send->eventexpr)
-              << l("\"),\n");
-        } else {
-            s << qba(send->event) << "\n";
-            if (send->event.isEmpty())
-                qCWarning(scxmlLog) << "missing event from send in " << send->instructionLocation();
-        }
-#endif
-        /*if (!send->targetexpr.isEmpty()) {
-            l("sTable->evalStr(QStringLiteral(\"") << cEscape(send->targetexpr) << l("\"),\n");
-            s.writeAttribute("targetexpr", send->targetexpr);
-        else if (!send->target.isEmpty())
-            s.writeAttribute("target", send->target);
-        if (!send->typeexpr.isEmpty())
-            s.writeAttribute("typeexpr", send->typeexpr);
-        else if (!send->type.isEmpty())
-            s.writeAttribute("type", send->type);
-        if (!send->idLocation.isEmpty())
-            s.writeAttribute("idlocation", send->idLocation);
-        else if (!send->id.isEmpty())
-            s.writeAttribute("id", send->id);
-        if (!send->namelist.isEmpty())
-            s.writeAttribute("namelist", send->namelist.join(QLatin1Char(' ')));
-        foreach (const Param &p, send->params) {
-            s.writeStartElement("param");
-            s.writeAttribute("name", p.name);
-            if (!p.location.isEmpty())
-                s.writeAttribute("location", p.location);
-            else if (!p.expr.isEmpty())
-                s.writeAttribute("expr", p.expr);
-            s.writeEndElement();
-        }
-        if (send->content) {
-            s.writeStartElement("content");
-            send->content->dump(s.s);
-            s.writeEndElement();
-        }*/
-        indented() << l("    QVariant());\n");
-    }
-
-    void visitLog(const Log *log) Q_DECL_OVERRIDE {
-        maybeTable();
-        indented() << l("sTable->doLog(QStringLiteral(\"") << cEscape(log->label) << l("\",\n");
-        Q_UNIMPLEMENTED(); // FIXME
-//        indented() << l("    sTable->evalValueStr( QStringLiteral(\"") << cEscape(log->expr) << l("\")));\n");
-    }
-
-    void visitJavaScript(const JavaScript *script) Q_DECL_OVERRIDE {
-        Q_UNUSED(script)
-
-        /*s.writeStartElement("script");
-        if (!script->src.isEmpty())
-            s.writeAttribute("src", script->src);
-        else if (!script->source.isEmpty())
-            s.s.writeCharacters(script->source); // escape? use CDATA?
-        s.writeEndElement();*/
-    }
-
-    void visitAssignExpression(const AssignExpression *assign) Q_DECL_OVERRIDE {
-        Q_UNUSED(assign)
-
-        /*
-        s.writeStartElement("assign");
-        s.writeAttribute("location", assign->location);
-        if (assign->content)
-            assign->content->dump(s.s);
-        else if (!assign->expression.isEmpty())
-            s.writeAttribute("expr", assign->expression);
-        s.writeEndElement();*/
-    }
-
-    void visitCancel(const Cancel *c) Q_DECL_OVERRIDE {
-        Q_UNUSED(c)
-
-        /*s.writeStartElement("cancel");
-        if (!c->sendidexpr.isEmpty())
-            s.writeAttribute("sendidexpr", c->sendidexpr);
-        else if (!c->sendid.isEmpty())
-            s.writeAttribute("sendid", c->sendid);*/
-    }
-
-    bool visitInvoke(const Invoke *invoke) Q_DECL_OVERRIDE {
-        Q_UNUSED(invoke)
-
-        /*s.writeStartElement("invoke");
-        if (!invoke->typeexpr.isEmpty())
-            s.writeAttribute("typeexpr", invoke->typeexpr);
-        else if (!invoke->type.isEmpty())
-            s.writeAttribute("type", invoke->type);
-        if (!invoke->srcexpr.isEmpty())
-            s.writeAttribute("srcexpr", invoke->srcexpr);
-        else if (!invoke->src.isEmpty())
-            s.writeAttribute("src", invoke->src);
-        if (!invoke->idLocation.isEmpty())
-            s.writeAttribute("idlocation", invoke->idLocation);
-        else if (!invoke->id.isEmpty())
-            s.writeAttribute("id", invoke->id);
-        if (!invoke->namelist.isEmpty())
-            s.writeAttribute("namelist", invoke->namelist.join(QLatin1Char(' ')));
-        if (invoke->autoforward)
-            s.writeAttribute("autoforward", "true");
-        foreach (const Param &p, invoke->params) {
-            s.writeStartElement("param");
-            s.writeAttribute("name", p.name);
-            if (!p.location.isEmpty())
-                s.writeAttribute("location", p.location);
-            else if (!p.expr.isEmpty())
-                s.writeAttribute("expr", p.expr);
-            s.writeEndElement();
-        }
-        if (!invoke->finalize.statements.isEmpty()) {
-            s.writeStartElement("finalize");
-            accept(&invoke->finalize);
-            s.writeEndElement();
-        }
-        if (invoke->content) {
-            s.writeStartElement("content");
-            invoke->content->dump(s.s);
-            s.writeEndElement();
-        }
-        s.writeEndElement();*/
-        return false;
-    }
-
-    void endVisitInvoke(const Invoke *) Q_DECL_OVERRIDE { }
-
-    bool visitIf(const If *ifI) Q_DECL_OVERRIDE {
-        Q_UNUSED(ifI)
-
-        /*s.writeStartElement("if");
-        int maxI = ifI->conditions.size();
-        if (ifI->blocks.size() < maxI) {
-            qCWarning(scxmlLog) << "if instruction with too few blocks " << ifI->blocks.size()
-                                << " for " << ifI->conditions.size() << " conditions "
-                                << ifI->instructionLocation();
-            maxI = ifI->blocks.size();
-        }
-        s.writeAttribute("cond", ifI->conditions.value(0));
-        if (!ifI->blocks.isEmpty())
-            accept(&ifI->blocks[0]);
-        for (int i = 1; i < maxI; ++i) {
-            s.writeStartElement("elseif");
-            s.writeAttribute("cond", ifI->conditions.at(i));
-            s.writeEndElement();
-            accept(&ifI->blocks[i]);
-        }
-        if (ifI->blocks.size() > maxI) {
-            s.writeStartElement("else");
-            s.writeEndElement();
-            accept(&ifI->blocks[maxI]);
-            if (ifI->blocks.size() > maxI + 1) {
-                qCWarning(scxmlLog) << "if instruction with too many blocks " << ifI->blocks.size()
-                                    << " for " << ifI->conditions.size() << " conditions "
-                                    << ifI->instructionLocation();
-            }
-        }
-        s.writeEndElement();*/
-        return false;
-    }
-
-    void endVisitIf(const If *) Q_DECL_OVERRIDE { }
-    bool visitForeach(const Foreach *foreachI) Q_DECL_OVERRIDE {
-        Q_UNUSED(foreachI)
-
-        /*s.writeStartElement("foreach");
-        s.writeAttribute("array", foreachI->array);
-        s.writeAttribute("item", foreachI->item);
-        if (!foreachI->index.isEmpty())
-            s.writeAttribute("index", foreachI->index);*/
-        return true;
-    }
-
-    void endVisitForeach(const Foreach *) Q_DECL_OVERRIDE {
-        //s.writeEndElement();
-    }
-    bool visitSequence(const InstructionSequence *) Q_DECL_OVERRIDE { return true; }
-    void endVisitSequence(const InstructionSequence *) Q_DECL_OVERRIDE { }
-
-};
 
 const char *headerStart =
         "#include <QScxmlLib/scxmlstatetable.h>\n"
@@ -442,6 +198,8 @@ public:
     }
 
 protected:
+    using NodeVisitor::visit;
+
     bool visit(Scxml *node) Q_DECL_OVERRIDE
     {
         // init:
@@ -450,6 +208,21 @@ protected:
             if (m_options.nameQObjects)
                 clazz.init.impl << QStringLiteral("table.setObjectName(QStringLiteral(\"") + cEscape(node->name) + QStringLiteral("\"));");
         }
+        QString dmName;
+        switch (node->dataModel) {
+        case Scxml::NullDataModel:
+            dmName = QStringLiteral("Null");
+            clazz.implIncludes << QStringLiteral("QScxmlLib/nulldatamodel.h");
+            break;
+        case Scxml::JSDataModel:
+            dmName = QStringLiteral("EcmaScript");
+            clazz.implIncludes << QStringLiteral("QScxmlLib/ecmascriptdatamodel.h");
+            break;
+        default:
+            Q_UNREACHABLE();
+        }
+        clazz.init.impl << QStringLiteral("table.setDataModel(new Scxml::") + dmName + QStringLiteral("DataModel(&table));");
+
         foreach (AbstractState *s, node->initialStates) {
             clazz.init.impl << QStringLiteral("table.setInitialState(&state_") + mangledName(s) + QStringLiteral(");");
         }
@@ -490,12 +263,14 @@ protected:
 
         // visit the kids:
         m_parents.append(node);
-        return true;
-    }
-
-    void endVisit(State *) Q_DECL_OVERRIDE
-    {
+        visit(node->dataElements);
+        visit(node->children);
+        generate(stateName + QStringLiteral(".onEntryInstructions"), node->onEntry);
+        generate(stateName + QStringLiteral(".onExitInstructions"), node->onExit);
+        if (node->doneData)
+            node->doneData->accept(this);
         m_parents.removeLast();
+        return false;
     }
 
     bool visit(Transition *node) Q_DECL_OVERRIDE
@@ -538,12 +313,16 @@ protected:
 
         // visit the kids:
         m_parents.append(node);
+        m_currentTransitionName = tName;
+        m_currentInstructionSequence = tName + QStringLiteral(".instructionsOnTransition");
         return true;
     }
 
     void endVisit(Transition *) Q_DECL_OVERRIDE
     {
+        m_currentInstructionSequence.clear();
         m_parents.removeLast();
+        m_currentTransitionName.clear();
     }
 
     bool visit(DocumentModel::HistoryState *node) Q_DECL_OVERRIDE
@@ -597,6 +376,12 @@ protected:
             m_parents.removeLast();
         }
         return false;
+    }
+
+    void visit(Raise *node) Q_DECL_OVERRIDE
+    {
+        if (!m_currentInstructionSequence.isEmpty()) // TODO: remove this check.
+        clazz.init.impl << m_currentInstructionSequence + QStringLiteral(".statements.append(Scxml::ExecutableContent::Instruction::Ptr(new Scxml::ExecutableContent::Raise(") + qba(node->event) + QStringLiteral(")));");
     }
 
 private:
@@ -684,13 +469,30 @@ private:
         }
     }
 
+    void generate(const QString &outSequences, const InstructionSequences &inSequences)
+    {
+        QString previous = m_currentInstructionSequence;
+        foreach (DocumentModel::InstructionSequence *sequence, inSequences) {
+            if (sequence->isEmpty())
+                continue;
+            clazz.init.impl << QStringLiteral("{ Scxml::ExecutableContent::InstructionSequence &seq = *")
+                               + outSequences + QStringLiteral(".newInstructions();");
+            m_currentInstructionSequence = QStringLiteral("  seq");
+            visit(sequence);
+            clazz.init.impl << QStringLiteral("}");
+        }
+        m_currentInstructionSequence = previous;
+    }
+
 private:
     MainClass &clazz;
     const QString &m_mainClassName;
     const CppDumpOptions &m_options;
     QHash<DocumentModel::AbstractState *, QString> m_mangledNames;
     QVector<Node *> m_parents;
+    QString m_currentInstructionSequence;
     QSet<QString> m_knownEvents;
+    QString m_currentTransitionName;
 };
 } // anonymous namespace
 
@@ -870,12 +672,6 @@ void CppDumper::dumpExecutableContent()
         cpp << l("public:\n");
     }
 #endif
-}
-
-void CppDumper::dumpInstructions(const ExecutableContent::Instruction *i)
-{
-    DumpCppInstructionVisitor visitor(cpp);
-    visitor.accept(i);
 }
 
 void CppDumper::dumpInit()
