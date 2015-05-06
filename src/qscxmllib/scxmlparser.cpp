@@ -738,6 +738,16 @@ ScxmlParser::ScxmlParser(QXmlStreamReader *reader, LoaderFunction loader)
     , m_state(StartingParsing)
 { }
 
+QString ScxmlParser::fileName() const
+{
+    return m_fileName;
+}
+
+void ScxmlParser::setFileName(const QString &fileName)
+{
+    m_fileName = fileName;
+}
+
 DocumentModel::AbstractState *ScxmlParser::currentParent() const
 {
     DocumentModel::AbstractState *parent = m_currentParent->asAbstractState();
@@ -767,7 +777,7 @@ void ScxmlParser::parse()
         case QXmlStreamReader::EndDocument:
             // The reader reports the end of the document.
             if (!m_stack.isEmpty() || m_state != FinishedParsing) {
-                addError("document finished without a proper scxml item");
+                addError(QStringLiteral("document finished without a proper scxml item"));
                 m_state = ParsingError;
             }
             break;
@@ -816,11 +826,11 @@ void ScxmlParser::parse()
                 }
                 if (!checkAttributes(attributes, "version|initial,datamodel,binding,name")) return;
                 if (m_reader->namespaceUri() != QLatin1String("http://www.w3.org/2005/07/scxml")) {
-                    addError("default namespace must be set with xmlns=\"http://www.w3.org/2005/07/scxml\" in the scxml tag");
+                    addError(QStringLiteral("default namespace must be set with xmlns=\"http://www.w3.org/2005/07/scxml\" in the scxml tag"));
                     return;
                 }
                 if (attributes.value(QLatin1String("version")) != QLatin1String("1.0")) {
-                    addError("unsupported scxml version, expected 1.0 in scxml tag");
+                    addError(QStringLiteral("unsupported scxml version, expected 1.0 in scxml tag"));
                     return;
                 }
                 ParserState pNew = ParserState(ParserState::Scxml);
@@ -934,7 +944,7 @@ void ScxmlParser::parse()
                     }
                     // intentional fall-through
                 default:
-                    addError("unexpected container state for onentry");
+                    addError(QStringLiteral("unexpected container state for onentry"));
                     m_state = ParsingError;
                     break;
                 }
@@ -952,7 +962,7 @@ void ScxmlParser::parse()
                     }
                     // intentional fall-through
                 default:
-                    addError("unexpected container state for onexit");
+                    addError(QStringLiteral("unexpected container state for onexit"));
                     m_state = ParsingError;
                     break;
                 }
@@ -1013,7 +1023,7 @@ void ScxmlParser::parse()
                 data->src = attributes.value(QLatin1String("src")).toString();
                 data->expr = attributes.value(QLatin1String("expr")).toString();
                 if (!data->src.isEmpty()) {
-                    addError("the source attribute in a data tag is unsupported"); // FIXME: use a loader like in <script>
+                    addError(QStringLiteral("the source attribute in a data tag is unsupported")); // FIXME: use a loader like in <script>
                 }
                 if (DocumentModel::Scxml *scxml = m_currentParent->asScxml()) {
                     scxml->dataElements.append(data);
@@ -1166,10 +1176,10 @@ void ScxmlParser::parse()
                 pNew.instructionContainer = &invoke->finalize;
                 m_stack.append(pNew);
             } else {
-                qCWarning(scxmlParserLog) << "unexpected element " << elName;
+                addError(QStringLiteral("unexpected element %1").arg(elName.toString()));
             }
             if (m_stack.size()>1 && !m_stack.at(m_stack.size()-2).validChild(m_stack.last().kind)) {
-                addError("invalid child");
+                addError(QStringLiteral("invalid child"));
                 m_state = ParsingError;
             }
             break;
@@ -1207,16 +1217,16 @@ void ScxmlParser::parse()
                 if (!p.chars.trimmed().isEmpty()) {
                     scriptI->content = p.chars.trimmed();
                     if (!scriptI->src.isEmpty())
-                        addError("both scr and source content given to script, will ignore external content");
+                        addError(QStringLiteral("both scr and source content given to script, will ignore external content"));
                 } else if (!scriptI->src.isEmpty()) {
                     if (!m_loader) {
-                        addError("cannot parse a document with external dependencies without a loader");
+                        addError(QStringLiteral("cannot parse a document with external dependencies without a loader"));
                         m_state = ParsingError;
                     } else {
                         bool ok;
                         QByteArray data = m_loader(scriptI->src, ok, this);
                         if (!ok) {
-                            addError("failed to load external dependency");
+                            addError(QStringLiteral("failed to load external dependency"));
                             m_state = ParsingError;
                         } else {
                             scriptI->content = QString::fromUtf8(data);
@@ -1234,7 +1244,7 @@ void ScxmlParser::parse()
             case ParserState::Invoke: {
                 DocumentModel::InstructionSequence *instructions = m_stack.last().instructionContainer;
                 if (!instructions) {
-                    addError("got executable content within an element that did not set instructionContainer");
+                    addError(QStringLiteral("got executable content within an element that did not set instructionContainer"));
                     m_state = ParsingError;
                     return;
                 }
@@ -1274,17 +1284,17 @@ void ScxmlParser::parse()
                     Q_UNREACHABLE();
                 }
                 if (!data->src.isEmpty() && !data->expr.isEmpty()) {
-                    addError("data element with both 'src' and 'expr' attributes");
+                    addError(QStringLiteral("data element with both 'src' and 'expr' attributes"));
                     m_state = ParsingError;
                     return;
                 }
                 if (!p.chars.trimmed().isEmpty()) {
                     if (!data->src.isEmpty()) {
-                        addError("data element with both 'src' attribute and CDATA");
+                        addError(QStringLiteral("data element with both 'src' attribute and CDATA"));
                         m_state = ParsingError;
                         return;
                     } else if (!data->expr.isEmpty()) {
-                        addError("data element with both 'expr' attribute and CDATA");
+                        addError(QStringLiteral("data element with both 'expr' attribute and CDATA"));
                         m_state = ParsingError;
                         return;
                     } else {
@@ -1321,7 +1331,7 @@ void ScxmlParser::parse()
     }
     if (m_reader->hasError()
             && m_reader->error() != QXmlStreamReader::PrematureEndOfDocumentError) {
-        addError("Error parsing scxml file");
+        addError(QStringLiteral("Error parsing scxml file"));
         addError(m_reader->errorString());
         m_state = ParsingError;
     }
@@ -1357,32 +1367,23 @@ StateTable *ScxmlParser::table()
 
 void ScxmlParser::addError(const QString &msg, ErrorMessage::Severity severity)
 {
-    m_errors.append(ErrorMessage(severity, msg, QStringLiteral("%1:%2 %3").arg(m_reader->lineNumber())
-                                 .arg(m_reader->columnNumber())
-                                 .arg((m_reader->error() != QXmlStreamReader::NoError) ? m_reader->errorString() : QString())));
-    switch (severity){
-    case ErrorMessage::Debug:
-        qCDebug(scxmlLog) << m_errors.last().msg << m_errors.last().parserState;
-        break;
-    case ErrorMessage::Info:
-        qCWarning(scxmlLog) << m_errors.last().msg << m_errors.last().parserState;
-        break;
-    case ErrorMessage::Error:
-        qCWarning(scxmlLog) << m_errors.last().msg << m_errors.last().parserState;
-        break;
-    }
+    m_errors.append(ErrorMessage(m_fileName,
+                                 m_reader->lineNumber(),
+                                 m_reader->columnNumber(),
+                                 severity,
+                                 msg));
     if (severity == ErrorMessage::Error)
         m_state = ParsingError;
 }
 
-void ScxmlParser::addError(const char *msg, ErrorMessage::Severity severity)
-{
-    addError(QString::fromLatin1(msg), severity);
-}
-
 void ScxmlParser::addError(const DocumentModel::XmlLocation &location, const QString &msg)
 {
-    qCWarning(scxmlLog) << QStringLiteral("%1:%2 %3").arg(location.line).arg(location.column).arg(msg);
+    m_errors.append(ErrorMessage(m_fileName,
+                                 location.line,
+                                 location.column,
+                                 ErrorMessage::Error,
+                                 msg));
+    m_state = ParsingError;
 }
 
 bool ScxmlParser::maybeId(const QXmlStreamAttributes &attributes, QString *id)
@@ -1408,7 +1409,7 @@ bool ScxmlParser::checkAttributes(const QXmlStreamAttributes &attributes, const 
     requiredNames = attrSplit.value(0).split(QLatin1Char(','), QString::SkipEmptyParts);
     optionalNames = attrSplit.value(1).split(QLatin1Char(','), QString::SkipEmptyParts);
     if (attrSplit.size() > 2) {
-        addError("Internal error, invalid attribStr in checkAttributes");
+        addError(QStringLiteral("Internal error, invalid attribStr in checkAttributes"));
         m_state = ParsingError;
     }
     foreach (const QString &rName, requiredNames)

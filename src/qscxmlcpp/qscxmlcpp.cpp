@@ -23,8 +23,6 @@
 #include <QFile>
 #include <QFileInfo>
 
-#include <iostream>
-
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
@@ -32,6 +30,9 @@ int main(int argc, char *argv[])
     QString usage = QStringLiteral("\nusage: %1 [-namespace <namespace>] [-o <base/out/name>] [-oh <header/out>] [-ocpp <cpp/out>] [-use-private-api]\n").arg(QFileInfo(args.value(0)).baseName());
            usage += QStringLiteral("      [-classname <stateMachineClassName>] [-name-qobjects] <input.scxml>\n\n");
            usage += QStringLiteral("compiles the given input.scxml file to a header and cpp file\n");
+
+    QTextStream errs(stderr, QIODevice::WriteOnly);
+    QTextStream outs(stderr, QIODevice::WriteOnly);
 
     Scxml::CppDumpOptions options;
     QString scxmlFileName;
@@ -57,18 +58,18 @@ int main(int argc, char *argv[])
         } else if (scxmlFileName.isEmpty()) {
             scxmlFileName = arg;
         } else {
-            std::cerr << "Unexpected argument:" << arg.toStdString()
-                      << usage.toStdString() << std::endl;
+            errs << QStringLiteral("Unexpected argument: %1").arg(arg) << endl;
+            errs << usage;
             exit(-1);
         }
     }
     if (scxmlFileName.isEmpty()) {
-        std::cerr << "No input filename given:" << usage.toStdString() << std::endl;
+        errs << QStringLiteral("Error: no input files.") << endl;
         exit(-2);
     }
     QFile file(scxmlFileName);
     if (!file.open(QFile::ReadOnly)) {
-        std::cerr << "Error: could not open input file " << scxmlFileName.toStdString();
+        errs << QStringLiteral("Error: cannot open input file %1").arg(scxmlFileName);
         exit(-3);
     }
     if (outFileName.isEmpty())
@@ -81,27 +82,39 @@ int main(int argc, char *argv[])
     QXmlStreamReader reader(&file);
     Scxml::ScxmlParser parser(&reader,
                               Scxml::ScxmlParser::loaderForDir(QFileInfo(file.fileName()).absolutePath()));
+    parser.setFileName(file.fileName());
     parser.parse();
+    if (!parser.errors().isEmpty()) {
+        foreach (const Scxml::ErrorMessage &error, parser.errors()) {
+            errs << error.fileName
+                 << QLatin1Char(':')
+                 << error.line
+                 << QLatin1Char(':')
+                 << error.column
+                 << QStringLiteral(": ")
+                 << error.severityString()
+                 << QStringLiteral(": ")
+                 << error.msg
+                 << endl;
+        }
+    }
 
     if (auto doc = parser.scxmlDocument()) {
         QFile outH(outHFileName);
         if (!outH.open(QFile::WriteOnly)) {
-            std::cerr << "Error: cannot open " << outH.fileName().toStdString()
-                      << ": " << outH.errorString().toStdString() << usage.toStdString() << std::endl;
+            errs << QStringLiteral("Error: cannot open '%1': %2").arg(outH.fileName(), outH.errorString()) << endl;
             exit(-4);
         }
 
         QFile outCpp(outCppFileName);
         if (!outCpp.open(QFile::WriteOnly)) {
-            std::cerr << "Error: cannot open " << outCpp.fileName().toStdString()
-                      << ": " << outCpp.errorString().toStdString()
-                      << usage.toStdString() << std::endl;
+            errs << QStringLiteral("Error: cannot open '%1': %2").arg(outCpp.fileName(), outCpp.errorString()) << endl;
             exit(-5);
         }
 
         QTextStream h(&outH);
         QTextStream c(&outCpp);
-        Scxml::CppDumper dumper(h, c, outH.fileName(), options);
+        Scxml::CppDumper dumper(h, c, QFileInfo(outH).fileName(), options);
         dumper.dump(doc);
         outH.close();
         outCpp.close();
@@ -109,6 +122,6 @@ int main(int argc, char *argv[])
         return 0;
     } else {
         a.exit();
-        return -1;
+        return -6;
     }
 }

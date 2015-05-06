@@ -608,7 +608,14 @@ private:
         if (!name.isEmpty())
             return name;
 
-        name = CppDumper::mangleId(state->id);
+        QString id = state->id;
+        if (State *s = state->asState()) {
+            if (s->type == State::Initial) {
+                id = s->parent->asState()->id + QStringLiteral("_initial");
+            }
+        }
+
+        name = CppDumper::mangleId(id);
         m_mangledNames.insert(state, name);
         return name;
     }
@@ -665,11 +672,13 @@ private:
                     || event.startsWith(QStringLiteral("qevent."))) {
                 continue;
             }
+            if (event.contains(QLatin1Char('*')))
+                continue;
 
-            clazz.publicSlotDeclarations << QStringLiteral("void event_") + event.replace(QLatin1Char('.'), QLatin1Char('_')) + QStringLiteral("();");
+            clazz.publicSlotDeclarations << QStringLiteral("void event_") + CppDumper::mangleId(event) + QStringLiteral("();");
             clazz.publicSlotDefinitions << QStringLiteral("void ") + m_mainClassName
                                            + QStringLiteral("::event_")
-                                           + event.replace(QLatin1Char('.'), QLatin1Char('_'))
+                                           + CppDumper::mangleId(event)
                                            + QStringLiteral("()\n{ submitEvent(") + qba(event)
                                            + QStringLiteral("); }");
         }
@@ -700,9 +709,13 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     DumperVisitor(clazz, mainClassName, options).process(doc);
 
     // Generate the .h file:
+    const QString headerGuard = headerName.toUpper().replace(QLatin1Char('.'), QLatin1Char('_'));
+    h << QStringLiteral("#ifndef ") << headerGuard << endl
+      << QStringLiteral("#define ") << headerGuard << endl
+      << endl;
     h << l(headerStart);
     if (!options.namespaceName.isEmpty())
-        h << l("namespace ") << options.namespaceName << l(" {") << endl;
+        h << l("namespace ") << options.namespaceName << l(" {") << endl << endl;
     h << l("class ") << mainClassName << l(" : public Scxml::StateTable\n{") << endl;
     h << QLatin1String("    Q_OBJECT\n\n");
     h << QLatin1String("public:\n");
@@ -723,7 +736,9 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
       << l("};") << endl;
 
     if (!options.namespaceName.isEmpty())
-        h << l("} // namespace ") << options.namespaceName << endl;
+        h << endl << l("} // namespace ") << options.namespaceName << endl;
+    h << endl
+      << QStringLiteral("#endif // ") << headerGuard << endl;
 
     // Generate the .cpp file:
     cpp << l("#include \"") << headerName << l("\"") << endl

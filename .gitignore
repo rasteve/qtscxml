@@ -17,5 +17,6 @@ qrc_*.cpp
 tst_scion
 .qmake.cache
 *.pch
-compiled_tests.h
+tests/scion/compiled_tests.h
 tests/scion/scxml
+tests/scion/scion.h

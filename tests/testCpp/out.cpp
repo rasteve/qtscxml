@@ -1,15 +1,15 @@
 #include "out.h"
 
 struct StateMachine::Data {
-    Data(Scxml::StateTable *table)
+    Data(Scxml::StateTable &table)
         : table(table)
-        , state_s__1(table)
+        , state_s__1(&table)
         , transition_s__1_0(&state_s__1, QList<QByteArray>() << QByteArray::fromRawData("E19", 3))
         , transition_s__1_1(&state_s__1, QList<QByteArray>() << QByteArray::fromRawData("E47", 3))
         , transition_s__1_2(&state_s__1, QList<QByteArray>() << QByteArray::fromRawData("E37", 3))
         , transition_s__1_3(&state_s__1, QList<QByteArray>() << QByteArray::fromRawData("E93", 3))
         , transition_s__1_4(&state_s__1, QList<QByteArray>() << QByteArray::fromRawData("E17", 3))
-        , state_s__2(table)
+        , state_s__2(&table)
         , state_s__2__1(&state_s__2)
         , state_s__2__1__1(&state_s__2__1)
         , transition_s__2__1__1_0(&state_s__2__1__1, QList<QByteArray>() << QByteArray::fromRawData("E89", 3))
@@ -64,7 +64,8 @@ struct StateMachine::Data {
     {}
 
     bool init() {
-        table->setInitialState(&state_s__1);
+        table.setInitialState(&state_s__1);
+        state_s__1.setObjectName(QStringLiteral("s_1"));
         state_s__1.addTransition(&transition_s__1_0);
         transition_s__1_0.setTargetStates(QList<QAbstractState *>() << &state_s__1);
         state_s__1.addTransition(&transition_s__1_1);
@@ -75,8 +76,11 @@ struct StateMachine::Data {
         transition_s__1_3.setTargetStates(QList<QAbstractState *>() << &state_s__1);
         state_s__1.addTransition(&transition_s__1_4);
         transition_s__1_4.setTargetStates(QList<QAbstractState *>() << &state_s__1);
+        state_s__2.setObjectName(QStringLiteral("s_2"));
         state_s__2.setInitialState(&state_s__2__1);
+        state_s__2__1.setObjectName(QStringLiteral("s_2_1"));
         state_s__2__1.setInitialState(&state_s__2__1__1);
+        state_s__2__1__1.setObjectName(QStringLiteral("s_2_1_1"));
         state_s__2__1__1.addTransition(&transition_s__2__1__1_0);
         transition_s__2__1__1_0.setTargetStates(QList<QAbstractState *>() << &state_s__2);
         state_s__2__1__1.addTransition(&transition_s__2__1__1_1);
@@ -85,9 +89,13 @@ struct StateMachine::Data {
         transition_s__2__1__1_2.setTargetStates(QList<QAbstractState *>() << &state_s__2__1);
         state_s__2__1__1.addTransition(&transition_s__2__1__1_3);
         transition_s__2__1__1_3.setTargetStates(QList<QAbstractState *>() << &state_s__2);
+        state_s__2__1__2.setObjectName(QStringLiteral("s_2_1_2"));
         state_s__2__1__2.setInitialState(&state_s__2__1__2__1);
+        state_s__2__1__2__1.setObjectName(QStringLiteral("s_2_1_2_1"));
         state_s__2__1__2__1.setInitialState(&state_s__2__1__2__1__1);
+        state_s__2__1__2__1__1.setObjectName(QStringLiteral("s_2_1_2_1_1"));
         state_s__2__1__2__1__1.setInitialState(&state_s__2__1__2__1__1__1);
+        state_s__2__1__2__1__1__1.setObjectName(QStringLiteral("s_2_1_2_1_1_1"));
         state_s__2__1__2__1__1__1.addTransition(&transition_s__2__1__2__1__1__1_0);
         transition_s__2__1__2__1__1__1_0.setTargetStates(QList<QAbstractState *>() << &state_s__2__1__1);
         state_s__2__1__2__1__1__1.addTransition(&transition_s__2__1__2__1__1__1_1);
@@ -98,6 +106,7 @@ struct StateMachine::Data {
         transition_s__2__1__2__1__1__1_3.setTargetStates(QList<QAbstractState *>() << &state_s__2__1);
         state_s__2__1__2__1__1__1.addTransition(&transition_s__2__1__2__1__1__1_4);
         transition_s__2__1__2__1__1__1_4.setTargetStates(QList<QAbstractState *>() << &state_s__1);
+        state_s__2__1__2__1__1__2.setObjectName(QStringLiteral("s_2_1_2_1_1_2"));
         state_s__2__1__2__1__1__2.addTransition(&transition_s__2__1__2__1__1__2_0);
         transition_s__2__1__2__1__1__2_0.setTargetStates(QList<QAbstractState *>() << &state_s__2__1__1);
         state_s__2__1__2__1__1__2.addTransition(&transition_s__2__1__2__1__1__2_1);
@@ -106,6 +115,7 @@ struct StateMachine::Data {
         transition_s__2__1__2__1__1__2_2.setTargetStates(QList<QAbstractState *>() << &state_s__2__1__2__1__1);
         state_s__2__1__2__1__1__2.addTransition(&transition_s__2__1__2__1__1__2_3);
         transition_s__2__1__2__1__1__2_3.setTargetStates(QList<QAbstractState *>() << &state_s__2__1__2__1);
+        state_s__2__1__2__1__1__3.setObjectName(QStringLiteral("s_2_1_2_1_1_3"));
         state_s__2__1__2__1__1__3.addTransition(&transition_s__2__1__2__1__1__3_0);
         transition_s__2__1__2__1__1__3_0.setTargetStates(QList<QAbstractState *>() << &state_s__2__1__2__1);
         state_s__2__1__2__1__1__3.addTransition(&transition_s__2__1__2__1__1__3_1);
@@ -170,7 +180,7 @@ struct StateMachine::Data {
         return true;
     }
 
-    Scxml::StateTable *table;
+    Scxml::StateTable &table;
     Scxml::ScxmlState state_s__1;
     Scxml::ScxmlTransition transition_s__1_0;
     Scxml::ScxmlTransition transition_s__1_1;
@@ -233,7 +243,7 @@ struct StateMachine::Data {
 
 StateMachine::StateMachine(QObject *parent)
     : Scxml::StateTable(parent)
-    , data(new Data(this))
+    , data(new Data(*this))
 {}
 
 StateMachine::~StateMachine()

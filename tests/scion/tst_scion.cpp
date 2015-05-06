@@ -21,7 +21,8 @@
 
 #include <QScxmlLib/scxmlparser.h>
 
-#include "../3rdparty/scion.h"
+#include "scxml/scion.h"
+//#include "scxml/compiled_tests.h"
 
 enum { SpyWaitTime = 8000 };
 

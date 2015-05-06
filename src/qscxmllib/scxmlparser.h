@@ -540,21 +540,33 @@ struct ErrorMessage
         Info,
         Error
     };
-    Severity severity;
+
+    QString fileName;
+    int line = 0;
+    int column = 0;
+    Severity severity = Debug;
     QString msg;
-    QString parserState;
-    ErrorMessage(Severity severity = Severity::Error,
-                 const QString &msg = QStringLiteral("UnknownError"),
-                 const QString &parserState = QString())
-        : severity(severity), msg(msg), parserState(parserState){ }
-    QString severityString() const {
+    ErrorMessage(const QString &fileName,
+                 int line,
+                 int column,
+                 Severity severity,
+                 const QString &msg)
+        : fileName(fileName)
+        , line(line)
+        , column(column)
+        , severity(severity)
+        , msg(msg)
+    {}
+
+    QString severityString() const
+    {
         switch (severity) {
         case Debug:
-            return QStringLiteral("Debug: ");
+            return QStringLiteral("debug");
         case Info:
-            return QStringLiteral("Info: ");
+            return QStringLiteral("info");
         case Error:
-            return QStringLiteral("Error: ");
+            return QStringLiteral("error");
         }
         return QStringLiteral("Severity%1: ").arg(severity);
     }
@@ -578,12 +590,13 @@ public:
     };
 
     ScxmlParser(QXmlStreamReader *xmlReader, LoaderFunction loader = Q_NULLPTR);
+    QString fileName() const;
+    void setFileName(const QString &fileName);
     void parse();
     DocumentModel::XmlLocation xmlLocation() const;
     DocumentModel::ScxmlDocument *scxmlDocument();
     StateTable *table();
     void addError(const QString &msg, ErrorMessage::Severity severity = ErrorMessage::Error);
-    void addError(const char *msg, ErrorMessage::Severity severity = ErrorMessage::Error);
     void addError(const DocumentModel::XmlLocation &location, const QString &msg);
     std::function<bool(const QString &)> errorDumper() {
         return [this](const QString &msg) -> bool { this->addError(msg); return true; };
@@ -592,12 +605,14 @@ public:
     State state() const { return m_state; }
     QList<ErrorMessage> errors() const { return m_errors; }
 
-private:
+private: // helper methods
     bool maybeId(const QXmlStreamAttributes &attributes, QString *id);
     bool checkAttributes(const QXmlStreamAttributes &attributes, const char *attribStr);
     bool checkAttributes(const QXmlStreamAttributes &attributes, QStringList requiredNames,
                          QStringList optionalNames);
 
+private: // fields
+    QString m_fileName;
     QSet<QString> m_allIds;
     DocumentModel::AbstractState *currentParent() const;
 

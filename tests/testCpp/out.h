@@ -1,3 +1,6 @@
+#ifndef OUT_H
+#define OUT_H
+
 #include <QScxmlLib/scxmlstatetable.h>
 
 class StateMachine : public Scxml::StateTable
@@ -53,3 +56,5 @@ private:
     struct Data;
     struct Data *data;
 };
+
+#endif // OUT_H
