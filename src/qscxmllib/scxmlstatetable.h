@@ -297,19 +297,35 @@ private:
 
 namespace ExecutableContent {
 
-struct SCXML_EXPORT Param {
-    QString name;
-    DataModel::ToVariantEvaluator expr;
-    QString location;
+class SCXML_EXPORT Param
+{
+public:
+    Param();
+    Param(const QString &name, const DataModel::ToVariantEvaluator &expr, const QString &location);
 
     bool evaluate(StateTable *table, QVariantList &dataValues, QStringList &dataNames) const;
     static bool evaluate(const QVector<Param> &params, StateTable *table, QVariantList &dataValues, QStringList &dataNames);
+
+private:
+    QString name;
+    DataModel::ToVariantEvaluator expr = nullptr;
+    QString location;
 };
 
-struct SCXML_EXPORT DoneData {
-    QString contents;
-    DataModel::ToStringEvaluator expr = nullptr;
-    QVector<Param> params;
+class SCXML_EXPORT DoneData
+{
+public:
+    DoneData();
+    DoneData(const QString &contents, const DataModel::ToStringEvaluator &expr, const QVector<Param> &params);
+
+    QString contents() const;
+    DataModel::ToStringEvaluator expr() const;
+    QVector<Param> params() const;
+
+private:
+    QString m_contents;
+    DataModel::ToStringEvaluator m_expr = nullptr;
+    QVector<Param> m_params;
 };
 
 struct SCXML_EXPORT Send : public Instruction {
@@ -385,16 +401,27 @@ struct SCXML_EXPORT If : public Instruction {
     bool execute(StateTable *table) const Q_DECL_OVERRIDE;
 };
 
-struct SCXML_EXPORT Foreach : public Instruction {
+class SCXML_EXPORT Foreach : public Instruction
+{
+public:
+    Foreach(const DataModel::ForeachEvaluator &it, const InstructionSequence &block);
+
+    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
+
+private:
     DataModel::ForeachEvaluator doIt = nullptr;
     InstructionSequence block;
-    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
 };
 
-struct SCXML_EXPORT Cancel : public Instruction {
-    QByteArray sendid;
-    DataModel::ToStringEvaluator sendidexpr = nullptr;
+class SCXML_EXPORT Cancel : public Instruction
+{
+public:
+    Cancel(const QByteArray &sendid, const DataModel::ToStringEvaluator &sendidexpr);
     bool execute(StateTable *table) const Q_DECL_OVERRIDE;
+
+private:
+    QByteArray sendid;
+    DataModel::ToStringEvaluator sendidexpr;
 };
 
 struct SCXML_EXPORT Invoke : public Instruction {
@@ -517,20 +544,22 @@ class SCXML_EXPORT ScxmlFinalState: public QFinalState
 {
     Q_OBJECT
 public:
-    ScxmlFinalState(QState *parent)
-        : QFinalState(parent)
-    {}
+    ScxmlFinalState(QState *parent = 0);
     StateTable *table() const;
     virtual bool init();
 
+    const ExecutableContent::DoneData &doneData() const;
+    void setDoneData(const ExecutableContent::DoneData &doneData);
+
     ExecutableContent::InstructionSequences onEntryInstructions;
     ExecutableContent::InstructionSequences onExitInstructions;
-    ExecutableContent::DoneData doneData;
+
 protected:
     void onEntry(QEvent * event) Q_DECL_OVERRIDE;
     void onExit(QEvent * event) Q_DECL_OVERRIDE;
+
 private:
-    friend class ScxmlParser;
+    ExecutableContent::DoneData m_doneData;
 };
 
 // Simple basic Xml "dom" to support the scxml xpath data model without qtxml dependency

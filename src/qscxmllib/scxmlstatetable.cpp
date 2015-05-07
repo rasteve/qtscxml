@@ -113,9 +113,9 @@ public:
         : table(table)
         , instructionLocation(instructionLocation)
         , event(event)
-        , contents(doneData.contents)
-        , contentExpr(doneData.expr)
-        , params(doneData.params)
+        , contents(doneData.contents())
+        , contentExpr(doneData.expr())
+        , params(doneData.params())
     {}
 
     EventBuilder(StateTable *table, const ExecutableContent::Send &send)
@@ -370,6 +370,11 @@ bool If::execute(Scxml::StateTable *table) const
     return true;
 }
 
+Foreach::Foreach(const DataModel::ForeachEvaluator &it, const InstructionSequence &block)
+    : doIt(it)
+    , block(block)
+{}
+
 bool Foreach::execute(StateTable *table) const
 {
     Q_ASSERT(doIt);
@@ -433,6 +438,15 @@ bool Log::execute(StateTable *table) const
     return ok;
 }
 
+Param::Param()
+{}
+
+Param::Param(const QString &name, const DataModel::ToVariantEvaluator &expr, const QString &location)
+    : name(name)
+    , expr(expr)
+    , location(location)
+{}
+
 bool Param::evaluate(StateTable *table, QVariantList &dataValues, QStringList &dataNames) const
 {
     bool success = true;
@@ -467,6 +481,11 @@ bool Param::evaluate(const QVector<Param> &params, StateTable *table, QVariantLi
     return true;
 }
 
+Cancel::Cancel(const QByteArray &sendid, const DataModel::ToStringEvaluator &sendidexpr)
+    : sendid(sendid)
+    , sendidexpr(sendidexpr)
+{}
+
 bool Cancel::execute(StateTable *table) const
 {
     QByteArray e = sendid;
@@ -485,6 +504,31 @@ bool Invoke::execute(Scxml::StateTable *table) const
     Q_UNREACHABLE();
     return false;
 }
+
+DoneData::DoneData()
+{}
+
+DoneData::DoneData(const QString &contents, const DataModel::ToStringEvaluator &expr, const QVector<Param> &params)
+    : m_contents(contents)
+    , m_expr(expr)
+    , m_params(params)
+{}
+
+QString DoneData::contents() const
+{
+    return m_contents;
+}
+
+DataModel::ToStringEvaluator DoneData::expr() const
+{
+    return m_expr;
+}
+
+QVector<Param> DoneData::params() const
+{
+    return m_params;
+}
+
 } // namespace ExecutableContent
 
 class DataModelPrivate
@@ -706,7 +750,7 @@ void StateTablePrivate::emitStateFinished(QState *forState, QFinalState *guiltyS
     if (ScxmlFinalState *finalState = qobject_cast<ScxmlFinalState *>(guiltyState)) {
         if (!q->isRunning())
             return;
-        const ExecutableContent::DoneData &doneData = finalState->doneData;
+        const ExecutableContent::DoneData &doneData = finalState->doneData();
 
         QByteArray eventName = forState->objectName().toUtf8();
         eventName.prepend("done.state.");
@@ -1232,6 +1276,10 @@ void ScxmlState::onExit(QEvent *event) {
     onExitInstructions.execute(table());
 }
 
+ScxmlFinalState::ScxmlFinalState(QState *parent)
+    : QFinalState(parent)
+{}
+
 StateTable *ScxmlFinalState::table() const {
     return qobject_cast<StateTable *>(machine());
 }
@@ -1243,6 +1291,16 @@ bool ScxmlFinalState::init()
     if (!onExitInstructions.init(table()))
         return false;
     return true;
+}
+
+const ExecutableContent::DoneData &ScxmlFinalState::doneData() const
+{
+    return m_doneData;
+}
+
+void ScxmlFinalState::setDoneData(const ExecutableContent::DoneData &doneData)
+{
+    m_doneData = doneData;
 }
 
 void ScxmlFinalState::onEntry(QEvent *event) {

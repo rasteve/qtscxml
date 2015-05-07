@@ -451,6 +451,36 @@ protected:
         addInstruction(QStringLiteral("AssignExpression"), { expr });
     }
 
+    bool visit(Foreach *node) Q_DECL_OVERRIDE
+    {
+        QString ctxt = createContext(QStringLiteral("foreach"));
+        QString it = createEvaluator(QStringLiteral("Foreach"), { node->array, node->item, node->index, ctxt });
+        QString previous = m_currentInstructionSequence;
+        ExecutableContent::InstructionSequence seq;
+        clazz.init.impl << QStringLiteral("{ Scxml::ExecutableContent::InstructionSequence seq;");
+        clazz.init.impl << QStringLiteral("  seq.statements.reserve(%1);").arg(node->block.size());
+        m_currentInstructionSequence = QStringLiteral("  seq");
+        visit(&node->block);
+        m_currentInstructionSequence = previous;
+        addInstruction(QStringLiteral("Foreach"), { it, QStringLiteral("seq" )});
+        clazz.init.impl << QStringLiteral("}");
+        return false;
+
+    }
+
+    void visit(Cancel *node) Q_DECL_OVERRIDE
+    {
+        QString context = createContext(QStringLiteral("cancel"), QStringLiteral("sendidexpr"), node->sendidexpr);
+        QString sendidexpr = createEvaluator(QStringLiteral("ToString"), { node->sendidexpr, context });
+        addInstruction(QStringLiteral("Cancel"), { qba(node->sendid), sendidexpr });
+    }
+
+    bool visit(Invoke *) Q_DECL_OVERRIDE
+    {
+        Q_UNIMPLEMENTED();
+        return false;
+    }
+
 private:
     void addInstruction(const QString &instr, const QStringList &args)
     {

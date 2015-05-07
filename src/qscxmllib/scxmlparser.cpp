@@ -500,7 +500,7 @@ private:
         instr->delay = node->delay;
         instr->delayexpr = createEvaluatorString(QStringLiteral("send"), QStringLiteral("delayexpr"), node->delayexpr);
         instr->namelist = node->namelist;
-        copy(&instr->params, node->params);
+        instr->params = create(node->params);
         instr->content = node->content;
         add(instr);
         return false;
@@ -539,8 +539,7 @@ private:
     {
         auto ctxt = createContext(QStringLiteral("assign"), QStringLiteral("expr"), node->expr);
         auto expr = m_table->dataModel()->createAssignmentEvaluator(node->location, node->expr, ctxt);
-        auto instr = new ExecutableContent::AssignExpression(expr);
-        add(instr);
+        add(new ExecutableContent::AssignExpression(expr));
     }
 
     bool visit(DocumentModel::If *node) Q_DECL_OVERRIDE
@@ -561,23 +560,21 @@ private:
 
     bool visit(DocumentModel::Foreach *node) Q_DECL_OVERRIDE
     {
-        auto instr = new ExecutableContent::Foreach;
         auto ctxt = createContext(QStringLiteral("foreach"));
-        instr->doIt = m_table->dataModel()->createForeachEvaluator(node->array, node->item, node->index, ctxt);
+        auto it = m_table->dataModel()->createForeachEvaluator(node->array, node->item, node->index, ctxt);
         ExecutableContent::InstructionSequence *previous = m_currentInstructionSequence;
-        m_currentInstructionSequence = &instr->block;
+        ExecutableContent::InstructionSequence seq;
+        m_currentInstructionSequence = &seq;
         visit(&node->block);
         m_currentInstructionSequence = previous;
-        add(instr);
+        add(new ExecutableContent::Foreach(it, seq));
         return false;
     }
 
     void visit(DocumentModel::Cancel *node) Q_DECL_OVERRIDE
     {
-        auto instr = new ExecutableContent::Cancel;
-        instr->sendid = node->sendid.toUtf8();
-        instr->sendidexpr = createEvaluatorString(QStringLiteral("cancel"), QStringLiteral("sendidexpr"), node->sendidexpr);
-        add(instr);
+        auto sendidexpr = createEvaluatorString(QStringLiteral("cancel"), QStringLiteral("sendidexpr"), node->sendidexpr);
+        add(new ExecutableContent::Cancel(node->sendid.toUtf8(), sendidexpr));
     }
 
     bool visit(DocumentModel::Invoke *) Q_DECL_OVERRIDE
@@ -590,10 +587,10 @@ private:
     {
         auto finalState = qobject_cast<ScxmlFinalState *>(m_parents.last());
         Q_ASSERT(finalState);
-        auto &dd = finalState->doneData;
-        dd.contents = node->contents;
-        dd.expr = createEvaluatorString(QStringLiteral("donedata"), QStringLiteral("expr"), node->expr);
-        copy(&dd.params, node->params);
+        ExecutableContent::DoneData dd(node->contents,
+                                       createEvaluatorString(QStringLiteral("donedata"), QStringLiteral("expr"), node->expr),
+                                       create(node->params));
+        finalState->setDoneData(dd);
         return false;
     }
 
@@ -646,17 +643,18 @@ private: // Utility methods
         m_currentInstructionSequence->statements.append(ExecutableContent::Instruction::Ptr(instr));
     }
 
-    void copy(QVector<ExecutableContent::Param> *to, const QVector<DocumentModel::Param *> &from) const
+    QVector<ExecutableContent::Param> create(const QVector<DocumentModel::Param *> &from) const
     {
-        Q_ASSERT(to);
-        to->resize(from.size());
-        auto toIt = to->begin();
+        QVector<ExecutableContent::Param> to;
+        to.reserve(from.size());
         foreach (DocumentModel::Param *f, from) {
-            toIt->name = f->name;
-            toIt->expr = createEvaluatorVariant(QStringLiteral("param"), QStringLiteral("expr"), f->expr);
-            toIt->location = f->location;
-            ++toIt;
+            ExecutableContent::Param param(
+                        f->name,
+                        createEvaluatorVariant(QStringLiteral("param"), QStringLiteral("expr"), f->expr),
+                        f->location);
+            to.append(param);
         }
+        return to;
     }
 
     void generate(ExecutableContent::InstructionSequences *outSequences, const DocumentModel::InstructionSequences &inSequences)
