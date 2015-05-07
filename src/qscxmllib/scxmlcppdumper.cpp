@@ -132,14 +132,19 @@ QString cEscape(const QString &str)
             if (c == QLatin1Char('\\')) {
                 res.append(QLatin1String("\\\\"));
             } else if (c == QLatin1Char('\"')) {
-                res.append(QLatin1String("\""));
+                res.append(QLatin1String("\\\""));
+            } else if (c == QLatin1Char('\n')) {
+                res.append(QLatin1String("\\n"));
+            } else if (c == QLatin1Char('\r')) {
+                res.append(QLatin1String("\\r"));
             } else {
                 char buf[6];
                 ushort cc = c.unicode();
                 buf[0] = '\\';
                 buf[1] = 'u';
                 for (int i = 0; i < 4; ++i) {
-                    buf[5 - i] = '0' + (cc & 0xF);
+                    ushort ccc = cc & 0xF;
+                    buf[5 - i] = ccc <= 9 ? '0' + ccc : 'a' + ccc - 10;
                     cc >>= 4;
                 }
                 res.append(QLatin1String(&buf[0], 6));
@@ -169,20 +174,46 @@ QString qba(const QString &bytes)
     return str;
 }
 
+QString strLit(const QString &str)
+{
+    if (str.isNull())
+        return QStringLiteral("QString()");
+    return QStringLiteral("QStringLiteral(\"%1\")").arg(cEscape(str));
+}
+
 const char *headerStart =
         "#include <QScxmlLib/scxmlstatetable.h>\n"
         "\n";
 
 using namespace DocumentModel;
+
+class DataModelWriter
+{
+public:
+    virtual ~DataModelWriter()
+    {}
+};
+
+class NullDataModelWriter: public DataModelWriter
+{
+public:
+};
+
+class EcmaScriptDataModelWriter: public DataModelWriter
+{
+public:
+};
+
 class DumperVisitor: public DocumentModel::NodeVisitor
 {
     Q_DISABLE_COPY(DumperVisitor)
 
 public:
-    DumperVisitor(MainClass &clazz, const QString &mainClassName, const CppDumpOptions &options)
+    DumperVisitor(MainClass &clazz, const QString &mainClassName, const CppDumpOptions &options, DataModelWriter *dataModelWriter)
         : clazz(clazz)
         , m_mainClassName(mainClassName)
         , m_options(options)
+        , m_dataModelWriter(dataModelWriter)
     {}
 
     void process(ScxmlDocument *doc)
@@ -229,12 +260,25 @@ protected:
 
         // visit the kids:
         m_parents.append(node);
-        return true;
-    }
+        visit(node->children);
+        visit(node->dataElements);
 
-    void endVisit(Scxml *) Q_DECL_OVERRIDE
-    {
+        int iCnt = node->initialSetup.size();
+        if (node->script)
+            ++iCnt;
+        if (iCnt > 0) {
+            clazz.init.impl << QStringLiteral("{ Scxml::ExecutableContent::InstructionSequence seq;");
+            clazz.init.impl << QStringLiteral("  seq.statements.reserve(%1);").arg(iCnt);
+            m_currentInstructionSequence = QStringLiteral("  seq");
+            if (node->script)
+                node->script->accept(this);
+            visit(&node->initialSetup);
+            clazz.init.impl << QStringLiteral("  table.setInitialSetup(seq);");
+            clazz.init.impl << QStringLiteral("}");
+            m_currentInstructionSequence.clear();
+        }
         m_parents.removeLast();
+        return false;
     }
 
     bool visit(State *node) Q_DECL_OVERRIDE
@@ -315,6 +359,8 @@ protected:
         m_parents.append(node);
         m_currentTransitionName = tName;
         m_currentInstructionSequence = tName + QStringLiteral(".instructionsOnTransition");
+        if (!node->instructionsOnTransition.isEmpty())
+            clazz.init.impl << m_currentInstructionSequence + QStringLiteral(".statements.reserve(%1);").arg(node->instructionsOnTransition.size());
         return true;
     }
 
@@ -381,10 +427,47 @@ protected:
     void visit(Raise *node) Q_DECL_OVERRIDE
     {
         if (!m_currentInstructionSequence.isEmpty()) // TODO: remove this check.
-        clazz.init.impl << m_currentInstructionSequence + QStringLiteral(".statements.append(Scxml::ExecutableContent::Instruction::Ptr(new Scxml::ExecutableContent::Raise(") + qba(node->event) + QStringLiteral(")));");
+        addInstruction(QStringLiteral("Raise"), { qba(node->event) });
+    }
+
+    void visit(Log *node) Q_DECL_OVERRIDE
+    {
+        QString context = createContext(QStringLiteral("log"), QStringLiteral("expr"), node->expr);
+        QString expr = createEvaluator(QStringLiteral("ToString"), { node->expr, context });
+        addInstruction(QStringLiteral("Log"), { strLit(node->label), expr });
+    }
+
+    void visit(Script *node) Q_DECL_OVERRIDE
+    {
+        QString context = createContext(QStringLiteral("script"), QStringLiteral("source"), node->content);
+        auto func = createEvaluator(QStringLiteral("Script"), { node->content, context });
+        addInstruction(QStringLiteral("JavaScript"), { func });
+    }
+
+    void visit(Assign *node) Q_DECL_OVERRIDE
+    {
+        QString context = createContext(QStringLiteral("assign"), QStringLiteral("expr"), node->expr);
+        QString expr = createEvaluator(QStringLiteral("Assignment"), { node->location, node->expr, context });
+        addInstruction(QStringLiteral("AssignExpression"), { expr });
     }
 
 private:
+    void addInstruction(const QString &instr, const QStringList &args)
+    {
+        static QString callTemplate = QStringLiteral("%1.statements.append(Scxml::ExecutableContent::Instruction::Ptr(new Scxml::ExecutableContent::%2(%3)));");
+        clazz.init.impl << callTemplate.arg(m_currentInstructionSequence, instr, args.join(QStringLiteral(", ")));
+    }
+
+    QString createEvaluator(const QString &kind, const QStringList &args)
+    {
+        // TODO: move to datamodel
+        static QString callTemplate = QStringLiteral("table.dataModel()->create%1Evaluator(%2)");
+        QStringList strArgs;
+        foreach (const QString &arg, args)
+            strArgs.append(strLit(arg));
+        return callTemplate.arg(kind, strArgs.join(QStringLiteral(", ")));
+    }
+
     QString mangledName(AbstractState *state)
     {
         Q_ASSERT(state);
@@ -471,12 +554,17 @@ private:
 
     void generate(const QString &outSequences, const InstructionSequences &inSequences)
     {
+        if (inSequences.isEmpty())
+            return;
+
         QString previous = m_currentInstructionSequence;
+        clazz.init.impl << outSequences + QStringLiteral(".sequences.reserve(%1);").arg(inSequences.size());
         foreach (DocumentModel::InstructionSequence *sequence, inSequences) {
             if (sequence->isEmpty())
                 continue;
             clazz.init.impl << QStringLiteral("{ Scxml::ExecutableContent::InstructionSequence &seq = *")
                                + outSequences + QStringLiteral(".newInstructions();");
+            clazz.init.impl << QStringLiteral("  seq.statements.reserve(%1);").arg(sequence->size());
             m_currentInstructionSequence = QStringLiteral("  seq");
             visit(sequence);
             clazz.init.impl << QStringLiteral("}");
@@ -484,10 +572,42 @@ private:
         m_currentInstructionSequence = previous;
     }
 
+    QString createContext(const QString &instrName) const
+    {
+        if (!m_currentTransitionName.isEmpty()) {
+            QString state = parentStateName();
+            return QStringLiteral("%1 instruction in transition of state '%2'").arg(instrName, state);
+        } else {
+            return QStringLiteral("%1 instruction in state %2").arg(instrName, parentStateName());
+        }
+    }
+
+    QString createContext(const QString &instrName, const QString &attrName, const QString &attrValue) const
+    {
+        QString location = createContext(instrName);
+        return QStringLiteral("%1 with %2=\"%3\"").arg(location, attrName, attrValue);
+    }
+
+    QString parentStateName() const
+    {
+        for (int i = m_parents.size() - 1; i >= 0; --i) {
+            Node *node = m_parents.at(i);
+            if (State *s = node->asState())
+                return s->id;
+            else if (HistoryState *h = node->asHistoryState())
+                return h->id;
+            else if (Scxml *l = node->asScxml())
+                return l->name;
+        }
+
+        return QString();
+    }
+
 private:
     MainClass &clazz;
     const QString &m_mainClassName;
     const CppDumpOptions &m_options;
+    DataModelWriter *m_dataModelWriter;
     QHash<DocumentModel::AbstractState *, QString> m_mangledNames;
     QVector<Node *> m_parents;
     QString m_currentInstructionSequence;
@@ -508,7 +628,19 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     }
 
     MainClass clazz;
-    DumperVisitor(clazz, mainClassName, options).process(doc);
+    QScopedPointer<DataModelWriter> dataModelWriter;
+    switch (doc->root->dataModel) {
+    case Scxml::NullDataModel:
+        dataModelWriter.reset(new NullDataModelWriter);
+        break;
+    case Scxml::JSDataModel:
+        dataModelWriter.reset(new EcmaScriptDataModelWriter);
+        break;
+    default:
+        Q_UNREACHABLE();
+    }
+
+    DumperVisitor(clazz, mainClassName, options, dataModelWriter.data()).process(doc);
 
     // Generate the .h file:
     const QString headerGuard = headerName.toUpper().replace(QLatin1Char('.'), QLatin1Char('_'));

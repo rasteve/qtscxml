@@ -240,7 +240,7 @@ void EcmaScriptDataModel::initializeDataFor(QState *state)
     d->initializeDataFor(state);
 }
 
-DataModel::EvaluatorString EcmaScriptDataModel::createEvaluatorString(const QString &expr, const QString &context)
+DataModel::ToStringEvaluator EcmaScriptDataModel::createToStringEvaluator(const QString &expr, const QString &context)
 {
     const QString e = expr;
     const QString c = context;
@@ -249,7 +249,7 @@ DataModel::EvaluatorString EcmaScriptDataModel::createEvaluatorString(const QStr
     };
 }
 
-DataModel::EvaluatorBool EcmaScriptDataModel::createEvaluatorBool(const QString &expr, const QString &context)
+DataModel::ToBoolEvaluator EcmaScriptDataModel::createToBoolEvaluator(const QString &expr, const QString &context)
 {
     const QString e = expr;
     const QString c = context;
@@ -258,7 +258,7 @@ DataModel::EvaluatorBool EcmaScriptDataModel::createEvaluatorBool(const QString 
     };
 }
 
-DataModel::EvaluatorVariant EcmaScriptDataModel::createEvaluatorVariant(const QString &expr, const QString &context)
+DataModel::ToVariantEvaluator EcmaScriptDataModel::createToVariantEvaluator(const QString &expr, const QString &context)
 {
     const QString e = expr;
     const QString c = context;
@@ -267,7 +267,7 @@ DataModel::EvaluatorVariant EcmaScriptDataModel::createEvaluatorVariant(const QS
     };
 }
 
-DataModel::EvaluatorVoid EcmaScriptDataModel::createScriptEvaluator(const QString &expr, const QString &context)
+DataModel::ToVoidEvaluator EcmaScriptDataModel::createScriptEvaluator(const QString &expr, const QString &context)
 {
     const QString e = expr, c = context;
     return [this, e, c](bool *ok) {
@@ -276,7 +276,7 @@ DataModel::EvaluatorVoid EcmaScriptDataModel::createScriptEvaluator(const QStrin
     };
 }
 
-DataModel::EvaluatorVoid EcmaScriptDataModel::createAssignmentEvaluator(const QString &dest,
+DataModel::ToVoidEvaluator EcmaScriptDataModel::createAssignmentEvaluator(const QString &dest,
                                                                         const QString &expr,
                                                                         const QString &context)
 {

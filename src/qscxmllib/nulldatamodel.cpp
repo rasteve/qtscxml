@@ -32,7 +32,7 @@ void NullDataModel::initializeDataFor(QState *state)
     Q_UNUSED(state);
 }
 
-DataModel::EvaluatorString NullDataModel::createEvaluatorString(const QString &expr, const QString &context)
+DataModel::ToStringEvaluator NullDataModel::createToStringEvaluator(const QString &expr, const QString &context)
 {
     Q_UNUSED(expr);
     Q_UNUSED(context);
@@ -40,7 +40,7 @@ DataModel::EvaluatorString NullDataModel::createEvaluatorString(const QString &e
     return nullptr;
 }
 
-DataModel::EvaluatorBool NullDataModel::createEvaluatorBool(const QString &expr, const QString &context)
+DataModel::ToBoolEvaluator NullDataModel::createToBoolEvaluator(const QString &expr, const QString &context)
 {
     Q_UNUSED(expr);
     Q_UNUSED(context);
@@ -48,7 +48,7 @@ DataModel::EvaluatorBool NullDataModel::createEvaluatorBool(const QString &expr,
     return nullptr;
 }
 
-DataModel::EvaluatorVariant NullDataModel::createEvaluatorVariant(const QString &expr, const QString &context)
+DataModel::ToVariantEvaluator NullDataModel::createToVariantEvaluator(const QString &expr, const QString &context)
 {
     Q_UNUSED(expr);
     Q_UNUSED(context);
@@ -56,7 +56,7 @@ DataModel::EvaluatorVariant NullDataModel::createEvaluatorVariant(const QString 
     return nullptr;
 }
 
-DataModel::EvaluatorVoid NullDataModel::createScriptEvaluator(const QString &expr, const QString &context)
+DataModel::ToVoidEvaluator NullDataModel::createScriptEvaluator(const QString &expr, const QString &context)
 {
     Q_UNUSED(expr);
     Q_UNUSED(context);
@@ -64,7 +64,7 @@ DataModel::EvaluatorVoid NullDataModel::createScriptEvaluator(const QString &exp
     return nullptr;
 }
 
-DataModel::EvaluatorVoid NullDataModel::createAssignmentEvaluator(const QString &dest, const QString &expr, const QString &context)
+DataModel::ToVoidEvaluator NullDataModel::createAssignmentEvaluator(const QString &dest, const QString &expr, const QString &context)
 {
     Q_UNUSED(dest);
     Q_UNUSED(expr);

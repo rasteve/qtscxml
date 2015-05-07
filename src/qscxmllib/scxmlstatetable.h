@@ -158,10 +158,10 @@ class SCXML_EXPORT DataModel
     Q_DISABLE_COPY(DataModel)
 
 public:
-    typedef std::function<QString (bool *)> EvaluatorString;
-    typedef std::function<bool (bool *)> EvaluatorBool;
-    typedef std::function<QVariant (bool *)> EvaluatorVariant;
-    typedef std::function<void (bool *)> EvaluatorVoid;
+    typedef std::function<QString (bool *)> ToStringEvaluator;
+    typedef std::function<bool (bool *)> ToBoolEvaluator;
+    typedef std::function<QVariant (bool *)> ToVariantEvaluator;
+    typedef std::function<void (bool *)> ToVoidEvaluator;
     typedef std::function<bool (bool *, std::function<bool ()>)> ForeachEvaluator;
 
 public:
@@ -174,12 +174,12 @@ public:
 
     virtual void setup() = 0;
     virtual void initializeDataFor(QState *state) = 0;
-    virtual EvaluatorString createEvaluatorString(const QString &expr, const QString &context) = 0;
-    virtual EvaluatorBool createEvaluatorBool(const QString &expr, const QString &context) = 0;
-    virtual EvaluatorVariant createEvaluatorVariant(const QString &expr, const QString &context) = 0;
-    virtual EvaluatorVoid createScriptEvaluator(const QString &script, const QString &context) = 0;
-    virtual EvaluatorVoid createAssignmentEvaluator(const QString &dest, const QString &expr,
-                                                    const QString &context) = 0;
+    virtual ToStringEvaluator createToStringEvaluator(const QString &expr, const QString &context) = 0;
+    virtual ToBoolEvaluator createToBoolEvaluator(const QString &expr, const QString &context) = 0;
+    virtual ToVariantEvaluator createToVariantEvaluator(const QString &expr, const QString &context) = 0;
+    virtual ToVoidEvaluator createScriptEvaluator(const QString &script, const QString &context) = 0;
+    virtual ToVoidEvaluator createAssignmentEvaluator(const QString &dest, const QString &expr,
+                                                      const QString &context) = 0;
     virtual ForeachEvaluator createForeachEvaluator(const QString &array, const QString &item,
                                                     const QString &index, const QString &context) = 0;
 
@@ -279,6 +279,8 @@ public:
     typedef QHash<QString, QString> Dict;
     QStringList _ioprocessors;
     QStringList currentStates(bool compress = true);
+    void setInitialSetup(const ExecutableContent::InstructionSequence &sequence);
+
 private:
     Q_DECLARE_PRIVATE(StateTable)
     DataModel *m_dataModel;
@@ -297,7 +299,7 @@ namespace ExecutableContent {
 
 struct SCXML_EXPORT Param {
     QString name;
-    DataModel::EvaluatorVariant expr;
+    DataModel::ToVariantEvaluator expr;
     QString location;
 
     bool evaluate(StateTable *table, QVariantList &dataValues, QStringList &dataNames) const;
@@ -306,57 +308,79 @@ struct SCXML_EXPORT Param {
 
 struct SCXML_EXPORT DoneData {
     QString contents;
-    DataModel::EvaluatorString expr = nullptr;
+    DataModel::ToStringEvaluator expr = nullptr;
     QVector<Param> params;
 };
 
 struct SCXML_EXPORT Send : public Instruction {
     QString instructionLocation;
     QByteArray event;
-    DataModel::EvaluatorString eventexpr = nullptr;
+    DataModel::ToStringEvaluator eventexpr = nullptr;
     QString type;
-    DataModel::EvaluatorString typeexpr = nullptr;
+    DataModel::ToStringEvaluator typeexpr = nullptr;
     QString target;
-    DataModel::EvaluatorString targetexpr = nullptr;
+    DataModel::ToStringEvaluator targetexpr = nullptr;
     QString id;
     QString idLocation;
     QString delay;
-    DataModel::EvaluatorString delayexpr = nullptr;
+    DataModel::ToStringEvaluator delayexpr = nullptr;
     QStringList namelist;
     QVector<Param> params;
     QString content;
     bool execute(StateTable *table) const Q_DECL_OVERRIDE;
 };
 
-struct SCXML_EXPORT Raise : public Instruction {
-    Raise(const QByteArray &event): event(event) {}
-    QByteArray event;
+class SCXML_EXPORT Raise : public Instruction
+{
+public:
+    Raise(const QByteArray &event);
+
     bool execute(StateTable *table) const Q_DECL_OVERRIDE;
+
+private:
+    QByteArray event;
 };
 
-struct SCXML_EXPORT Log : public Instruction {
-    QString label;
-    DataModel::EvaluatorString expr = nullptr;
+class SCXML_EXPORT Log : public Instruction
+{
+public:
+    Log(const QString &label, const DataModel::ToStringEvaluator &expr);
+
     virtual bool execute(StateTable *table) const Q_DECL_OVERRIDE;
+
+private:
+    QString label;
+    DataModel::ToStringEvaluator expr;
 };
 
 struct SCXML_EXPORT Script : public Instruction {
 };
 
-struct SCXML_EXPORT JavaScript : public Script {
-    DataModel::EvaluatorVoid go = nullptr;
+class SCXML_EXPORT JavaScript : public Script
+{
+public:
+    JavaScript(const DataModel::ToVoidEvaluator &go);
+
     bool execute(StateTable *table) const Q_DECL_OVERRIDE;
+
+private:
+    DataModel::ToVoidEvaluator go;
 };
 
-struct SCXML_EXPORT AssignExpression : public Instruction {
-    QString location;
-    DataModel::EvaluatorVoid expression = nullptr;
-    XmlNode *content;
+class SCXML_EXPORT AssignExpression : public Instruction
+{
+public:
+    AssignExpression(const DataModel::ToVoidEvaluator &expression);
+
     bool execute(StateTable *table) const Q_DECL_OVERRIDE;
+
+private:
+    QString location;
+    DataModel::ToVoidEvaluator expression;
 };
 
 struct SCXML_EXPORT If : public Instruction {
-    QVector<DataModel::EvaluatorBool> conditions;
+    QVector<DataModel::ToBoolEvaluator> conditions;
     InstructionSequences blocks;
     bool execute(StateTable *table) const Q_DECL_OVERRIDE;
 };
@@ -369,7 +393,7 @@ struct SCXML_EXPORT Foreach : public Instruction {
 
 struct SCXML_EXPORT Cancel : public Instruction {
     QByteArray sendid;
-    DataModel::EvaluatorString sendidexpr = nullptr;
+    DataModel::ToStringEvaluator sendidexpr = nullptr;
     bool execute(StateTable *table) const Q_DECL_OVERRIDE;
 };
 
@@ -445,12 +469,12 @@ class SCXML_EXPORT ScxmlTransition : public ScxmlBaseTransition {
 public:
     typedef QSharedPointer<ConcreteSignalTransition> TransitionPtr;
     ScxmlTransition(QState * sourceState = 0, const QList<QByteArray> &eventSelector = QList<QByteArray>(),
-                    const DataModel::EvaluatorBool &conditionalExp = nullptr);
+                    const DataModel::ToBoolEvaluator &conditionalExp = nullptr);
 
     bool eventTest(QEvent *event) Q_DECL_OVERRIDE;
     StateTable *table() const;
 
-    DataModel::EvaluatorBool conditionalExp;
+    DataModel::ToBoolEvaluator conditionalExp;
     ScxmlEvent::EventType type;
     ExecutableContent::InstructionSequence instructionsOnTransition;
 protected:

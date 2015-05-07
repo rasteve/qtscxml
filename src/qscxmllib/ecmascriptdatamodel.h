@@ -32,12 +32,12 @@ public:
 
     void setup() Q_DECL_OVERRIDE;
     void initializeDataFor(QState *state) Q_DECL_OVERRIDE;
-    EvaluatorString createEvaluatorString(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
-    EvaluatorBool createEvaluatorBool(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
-    EvaluatorVariant createEvaluatorVariant(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
-    EvaluatorVoid createScriptEvaluator(const QString &script, const QString &context) Q_DECL_OVERRIDE;
-    EvaluatorVoid createAssignmentEvaluator(const QString &dest, const QString &expr,
-                                            const QString &context) Q_DECL_OVERRIDE;
+    ToStringEvaluator createToStringEvaluator(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
+    ToBoolEvaluator createToBoolEvaluator(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
+    ToVariantEvaluator createToVariantEvaluator(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
+    ToVoidEvaluator createScriptEvaluator(const QString &script, const QString &context) Q_DECL_OVERRIDE;
+    ToVoidEvaluator createAssignmentEvaluator(const QString &dest, const QString &expr,
+                                              const QString &context) Q_DECL_OVERRIDE;
     ForeachEvaluator createForeachEvaluator(const QString &array, const QString &item,
                                             const QString &index, const QString &context) Q_DECL_OVERRIDE;
 

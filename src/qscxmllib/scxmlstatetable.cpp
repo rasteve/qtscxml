@@ -83,17 +83,17 @@ class EventBuilder
     StateTable* table = 0;
     QString instructionLocation;
     QByteArray event;
-    DataModel::EvaluatorString eventexpr;
+    DataModel::ToStringEvaluator eventexpr;
     QString contents;
-    DataModel::EvaluatorString contentExpr;
+    DataModel::ToStringEvaluator contentExpr;
     QVector<ExecutableContent::Param> params;
     ScxmlEvent::EventType eventType = ScxmlEvent::External;
     QByteArray id;
     QString idLocation;
     QString target;
-    DataModel::EvaluatorString targetexpr;
+    DataModel::ToStringEvaluator targetexpr;
     QString type;
-    DataModel::EvaluatorString typeexpr;
+    DataModel::ToStringEvaluator typeexpr;
     QStringList namelist;
 
     static QAtomicInt idCounter;
@@ -331,6 +331,10 @@ bool Instruction::init(Scxml::StateTable *table) {
     return true;
 }
 
+JavaScript::JavaScript(const DataModel::ToVoidEvaluator &go)
+    : go(go)
+{}
+
 bool JavaScript::execute(Scxml::StateTable *table) const
 {
     Q_UNUSED(table);
@@ -338,6 +342,10 @@ bool JavaScript::execute(Scxml::StateTable *table) const
     go(&ok);
     return ok;
 }
+
+AssignExpression::AssignExpression(const DataModel::ToVoidEvaluator &expression)
+    : expression(expression)
+{}
 
 bool AssignExpression::execute(StateTable *table) const
 {
@@ -401,11 +409,20 @@ bool Send::execute(StateTable *table) const
     return true;
 }
 
+Raise::Raise(const QByteArray &event)
+    : event(event)
+{}
+
 bool Raise::execute(StateTable *table) const
 {
     table->submitEvent(event, QVariantList(), QStringList(), ScxmlEvent::Internal);
     return true;
 }
+
+Log::Log(const QString &label, const DataModel::ToStringEvaluator &expr)
+    : label(label)
+    , expr(expr)
+{}
 
 bool Log::execute(StateTable *table) const
 {
@@ -741,6 +758,11 @@ QStringList StateTable::currentStates(bool compress)
     }
     std::sort(res.begin(), res.end());
     return res;
+}
+
+void StateTable::setInitialSetup(const ExecutableContent::InstructionSequence &sequence)
+{
+    m_initialSetup = sequence;
 }
 
 void StateTable::executeInitialSetup()
@@ -1148,7 +1170,7 @@ static QList<QByteArray> filterEmpty(const QList<QByteArray> &events) {
 }
 
 ScxmlTransition::ScxmlTransition(QState *sourceState, const QList<QByteArray> &eventSelector,
-                                 const DataModel::EvaluatorBool &conditionalExp)
+                                 const DataModel::ToBoolEvaluator &conditionalExp)
     : ScxmlBaseTransition(sourceState, filterEmpty(eventSelector))
     , conditionalExp(conditionalExp)
     , type(ScxmlEvent::External)
