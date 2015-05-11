@@ -113,7 +113,8 @@ public:
 
         foreach (const DataModel::Data &data, q->data()) {
             QJSValue v(QJSValue::UndefinedValue); // See B.2.1, and test456.
-            if ((dataBinding() == StateTable::EarlyBinding || !data.context || data.context == s)
+            Q_ASSERT(data.context);
+            if ((dataBinding() == StateTable::EarlyBinding || data.context == table() || data.context == s)
                     && !data.expr.isEmpty()) {
                 bool ok = true;
                 QString context = QStringLiteral("initializeDataFor with data for %1 defined in state '%2'")

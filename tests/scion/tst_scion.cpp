@@ -282,7 +282,6 @@ void TestScion::compiled()
         QEXPECT_FAIL("", "This is expected to fail", Abort);
     }
     QVERIFY(table != nullptr);
-    table->init();
 
     if (testStatus == TestFails)
         QEXPECT_FAIL("", "This is expected to fail", Abort);

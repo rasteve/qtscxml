@@ -355,6 +355,12 @@ protected:
         clazz.constructor.initializer << initializer;
 
         // init:
+        if (node->condition) {
+            QString condExpr = *node->condition.data();
+            QString ctxt = createContext(QStringLiteral("transition"), QStringLiteral("cond"), condExpr);
+            QString cond = createEvaluator(QStringLiteral("ToBool"), { condExpr, ctxt });
+            clazz.init.impl << tName + QStringLiteral(".conditionalExp = %1;").arg(cond);
+        }
         clazz.init.impl << parentName + QStringLiteral(".addTransition(&") + tName + QStringLiteral(");");
         if (node->type == Transition::Internal) {
             clazz.init.impl << tName + QStringLiteral(".setTransitionType(QAbstractTransition::InternalTransition);");
@@ -451,8 +457,6 @@ protected:
     {
         QString code = QStringLiteral("table.dataModel()->addData(Scxml::DataModel::Data(%1, %2, %3, %4));");
         QString parent = QStringLiteral("&") + parentStateMemberName();
-        if (m_parents.last()->asScxml())
-            parent = QStringLiteral("nullptr");
         clazz.init.impl << code.arg(strLit(data->id), strLit(data->src), strLit(data->expr), parent);
     }
 
@@ -791,12 +795,9 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     cpp << l("    {}") << endl;
 
     cpp << endl;
-//    dumpExecutableContent();
-//    dumpInit();
-    cpp << l("    bool init() {\n");
+    cpp << l("    void init() {\n");
     clazz.init.impl.write(cpp, QStringLiteral("        "), QStringLiteral("\n"));
     cpp << endl
-        << l("        return true;") << endl
         << l("    }") << endl;
 
 
@@ -815,7 +816,7 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
         << l("{ delete data; }") << endl
         << endl;
     cpp << l("bool ") << mainClassName << l("::init()") << endl
-        << l("{ return data->init(); }") << endl;
+        << l("{ data->init(); return StateTable::init(); }") << endl;
     cpp << endl;
     clazz.publicSlotDefinitions.write(cpp, QStringLiteral("\n"), QStringLiteral("\n"));
     cpp << endl;

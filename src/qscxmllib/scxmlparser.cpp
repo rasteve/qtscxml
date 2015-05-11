@@ -520,7 +520,10 @@ private:
 
     void visit(DocumentModel::DataElement *data) Q_DECL_OVERRIDE
     {
-        m_table->dataModel()->addData(DataModel::Data(data->id, data->src, data->expr, currentParent()));
+        QState *parent = currentParent();
+        if (!parent)
+            parent = m_table;
+        m_table->dataModel()->addData(DataModel::Data(data->id, data->src, data->expr, parent));
     }
 
     void visit(DocumentModel::Script *node) Q_DECL_OVERRIDE

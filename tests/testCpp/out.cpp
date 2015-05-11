@@ -65,7 +65,7 @@ struct StateMachine::Data {
         , transition_s__2_3(&state_s__2, QList<QByteArray>() << QByteArray::fromRawData("E28", 3))
     {}
 
-    bool init() {
+    void init() {
         table.setDataModel(new Scxml::NullDataModel(&table));
         table.setDataBinding(Scxml::StateTable::EarlyBinding);
         table.setInitialState(&state_s__1);
@@ -181,7 +181,6 @@ struct StateMachine::Data {
         state_s__2.addTransition(&transition_s__2_3);
         transition_s__2_3.setTargetStates(QList<QAbstractState *>() << &state_s__2__1__2__1);
 
-        return true;
     }
 
     Scxml::StateTable &table;
@@ -254,7 +253,7 @@ StateMachine::~StateMachine()
 { delete data; }
 
 bool StateMachine::init()
-{ return data->init(); }
+{ data->init(); return StateTable::init(); }
 
 
 void StateMachine::event_E10()

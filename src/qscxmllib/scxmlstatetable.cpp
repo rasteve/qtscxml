@@ -544,7 +544,9 @@ DataModel::Data::Data(const QString &id, const QString &src, const QString &expr
     , src(src)
     , expr(expr)
     , context(context)
-{}
+{
+    Q_ASSERT(context);
+}
 
 class DataModelPrivate
 {
