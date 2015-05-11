@@ -97,6 +97,7 @@ int main(int argc, char *argv[])
                  << error.msg
                  << endl;
         }
+        return -7;
     }
 
     if (auto doc = parser.scxmlDocument()) {

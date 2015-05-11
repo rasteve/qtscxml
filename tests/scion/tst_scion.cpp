@@ -36,12 +36,6 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         // FIXME: Currently we do not support loading data from a src.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test552.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test558.txml")
-        // FIXME: Currently we do not support loading scripts from a src.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test301.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/script-src/test0")
-        << QLatin1String("scion-tests/scxml-test-framework/test/script-src/test1")
-        << QLatin1String("scion-tests/scxml-test-framework/test/script-src/test2")
-        << QLatin1String("scion-tests/scxml-test-framework/test/script-src/test3")
         // A nested state machine is used, which we do not support.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test187.txml")
         // We do not support the optional basic http event i/o processor.
@@ -120,6 +114,12 @@ static QSet<QString> differentSemantics = QSet<QString>()
         // Qt does not support forcing initial states that are not marked as such.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test413.txml") // FIXME: verify initial state setting...
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test576.txml")
+        // FIXME: Currently we do not support loading scripts from a src.
+        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test301.txml")
+        << QLatin1String("scion-tests/scxml-test-framework/test/script-src/test0")
+        << QLatin1String("scion-tests/scxml-test-framework/test/script-src/test1")
+        << QLatin1String("scion-tests/scxml-test-framework/test/script-src/test2")
+        << QLatin1String("scion-tests/scxml-test-framework/test/script-src/test3")
         ;
 
 class MySignalSpy: public QSignalSpy

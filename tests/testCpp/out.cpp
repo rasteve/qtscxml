@@ -180,7 +180,6 @@ struct StateMachine::Data {
         transition_s__2_2.setTargetStates(QList<QAbstractState *>() << &state_s__2__1__2);
         state_s__2.addTransition(&transition_s__2_3);
         transition_s__2_3.setTargetStates(QList<QAbstractState *>() << &state_s__2__1__2__1);
-
     }
 
     Scxml::StateTable &table;

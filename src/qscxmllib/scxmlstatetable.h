@@ -333,6 +333,22 @@ private:
 };
 
 struct SCXML_EXPORT Send : public Instruction {
+    Send();
+    Send(const QString &instructionLocation,
+         const QByteArray &event,
+         const DataModel::ToStringEvaluator &eventexpr,
+         const QString &type,
+         const DataModel::ToStringEvaluator &typeexpr,
+         const QString target,
+         const DataModel::ToStringEvaluator &targetexpr,
+         const QString &id,
+         const QString &idLocation,
+         const QString &delay,
+         const DataModel::ToStringEvaluator &delayexpr,
+         const QStringList &namelist,
+         const QVector<Param> &params,
+         const QString &content);
+
     QString instructionLocation;
     QByteArray event;
     DataModel::ToStringEvaluator eventexpr = nullptr;

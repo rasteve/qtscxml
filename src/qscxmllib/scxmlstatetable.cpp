@@ -392,6 +392,39 @@ bool Foreach::execute(StateTable *table) const
     return ok && evenMoreOk;
 }
 
+Send::Send()
+{}
+
+Send::Send(const QString &instructionLocation,
+           const QByteArray &event,
+           const DataModel::ToStringEvaluator &eventexpr,
+           const QString &type,
+           const DataModel::ToStringEvaluator &typeexpr,
+           const QString target,
+           const DataModel::ToStringEvaluator &targetexpr,
+           const QString &id,
+           const QString &idLocation,
+           const QString &delay,
+           const DataModel::ToStringEvaluator &delayexpr,
+           const QStringList &namelist,
+           const QVector<Param> &params,
+           const QString &content)
+    : instructionLocation(instructionLocation)
+    , event(event)
+    , eventexpr(eventexpr)
+    , type(type)
+    , typeexpr(typeexpr)
+    , target(target)
+    , targetexpr(targetexpr)
+    , id(id)
+    , idLocation(idLocation)
+    , delay(delay)
+    , delayexpr(delayexpr)
+    , namelist(namelist)
+    , params(params)
+    , content(content)
+{}
+
 bool Send::execute(StateTable *table) const
 {
     Q_ASSERT(table && table->engine());

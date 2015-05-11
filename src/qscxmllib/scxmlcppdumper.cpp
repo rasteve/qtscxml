@@ -358,7 +358,7 @@ protected:
         if (node->condition) {
             QString condExpr = *node->condition.data();
             QString ctxt = createContext(QStringLiteral("transition"), QStringLiteral("cond"), condExpr);
-            QString cond = createEvaluator(QStringLiteral("ToBool"), { condExpr, ctxt });
+            QString cond = createEvaluator(QStringLiteral("ToBool"), 1, { condExpr, ctxt });
             clazz.init.impl << tName + QStringLiteral(".conditionalExp = %1;").arg(cond);
         }
         clazz.init.impl << parentName + QStringLiteral(".addTransition(&") + tName + QStringLiteral(");");
@@ -430,13 +430,43 @@ protected:
 
             // init:
             clazz.init.impl << stateName + QStringLiteral(".setDefaultState(&")
-                               + stateName + QStringLiteral(");");
+                               + stateName + QStringLiteral("_defaultConfiguration);");
 
             //  visit the kid:
             m_parents.append(node);
             t->accept(this);
             m_parents.removeLast();
         }
+        return false;
+    }
+
+    bool visit(DocumentModel::Send *node) Q_DECL_OVERRIDE
+    {
+        QString eventexpr = createEvaluator(QStringLiteral("ToString"), 1, { node->eventexpr, createContext(QStringLiteral("send"), QStringLiteral("eventexpr"), node->eventexpr) });
+        QString typeexpr = createEvaluator(QStringLiteral("ToString"), 1, { node->typeexpr, createContext(QStringLiteral("send"), QStringLiteral("typeexpr"), node->typeexpr) });
+        QString targetexpr = createEvaluator(QStringLiteral("ToString"), 1, { node->targetexpr, createContext(QStringLiteral("send"), QStringLiteral("targetexpr"), node->targetexpr) });
+        QString delayexpr = createEvaluator(QStringLiteral("ToString"), 1, { node->delayexpr, createContext(QStringLiteral("send"), QStringLiteral("delayexpr"), node->delayexpr) });
+        generateParams(node->params);
+        QString namelist = QStringLiteral("QStringList()");
+        foreach (const QString &name, node->namelist)
+            namelist += QStringLiteral(" << ") + strLit(name);
+        addInstruction(QStringLiteral("Send"), {
+                           strLit(createContext(QStringLiteral("send"))),
+                           qba(node->event),
+                           eventexpr,
+                           strLit(node->type),
+                           typeexpr,
+                           strLit(node->target),
+                           targetexpr,
+                           strLit(node->id),
+                           strLit(node->idLocation),
+                           strLit(node->delay),
+                           delayexpr,
+                           namelist,
+                           QStringLiteral("params"),
+                           strLit(node->content)
+                       });
+        clazz.init.impl << QStringLiteral("}");
         return false;
     }
 
@@ -449,7 +479,7 @@ protected:
     void visit(Log *node) Q_DECL_OVERRIDE
     {
         QString context = createContext(QStringLiteral("log"), QStringLiteral("expr"), node->expr);
-        QString expr = createEvaluator(QStringLiteral("ToString"), { node->expr, context });
+        QString expr = createEvaluator(QStringLiteral("ToString"), 1, { node->expr, context });
         addInstruction(QStringLiteral("Log"), { strLit(node->label), expr });
     }
 
@@ -463,14 +493,14 @@ protected:
     void visit(Script *node) Q_DECL_OVERRIDE
     {
         QString context = createContext(QStringLiteral("script"), QStringLiteral("source"), node->content);
-        auto func = createEvaluator(QStringLiteral("Script"), { node->content, context });
+        auto func = createEvaluator(QStringLiteral("Script"), 1, { node->content, context });
         addInstruction(QStringLiteral("JavaScript"), { func });
     }
 
     void visit(Assign *node) Q_DECL_OVERRIDE
     {
         QString context = createContext(QStringLiteral("assign"), QStringLiteral("expr"), node->expr);
-        QString expr = createEvaluator(QStringLiteral("Assignment"), { node->location, node->expr, context });
+        QString expr = createEvaluator(QStringLiteral("Assignment"), 2, { node->location, node->expr, context });
         addInstruction(QStringLiteral("AssignExpression"), { expr });
     }
 
@@ -482,7 +512,7 @@ protected:
         for (int i = 0, ei = node->conditions.size(); i != ei; ++i) {
             QString condExpr = node->conditions.at(i);
             QString ctxt = createContext(tag, QStringLiteral("cond"), condExpr);
-            QString cond = createEvaluator(QStringLiteral("ToBool"), { condExpr, ctxt });
+            QString cond = createEvaluator(QStringLiteral("ToBool"), 1, { condExpr, ctxt });
             clazz.init.impl << QStringLiteral("  conditions.append(%1);").arg(cond);
             if (i == 0) {
                 tag = QStringLiteral("elif");
@@ -498,16 +528,18 @@ protected:
     bool visit(Foreach *node) Q_DECL_OVERRIDE
     {
         QString ctxt = createContext(QStringLiteral("foreach"));
-        QString it = createEvaluator(QStringLiteral("Foreach"), { node->array, node->item, node->index, ctxt });
+        QString it = createEvaluator(QStringLiteral("Foreach"), 0, { node->array, node->item, node->index, ctxt });
         QString previous = m_currentInstructionSequence;
         ExecutableContent::InstructionSequence seq;
-        clazz.init.impl << QStringLiteral("{ Scxml::ExecutableContent::InstructionSequence seq;");
-        clazz.init.impl << QStringLiteral("  seq.statements.reserve(%1);").arg(node->block.size());
-        m_currentInstructionSequence = QStringLiteral("  seq");
+        ++m_sequenceDepth;
+        clazz.init.impl << QStringLiteral("{ Scxml::ExecutableContent::InstructionSequence seq%1;").arg(m_sequenceDepth);
+        clazz.init.impl << QStringLiteral("  seq%1.statements.reserve(%2);").arg(m_sequenceDepth).arg(node->block.size());
+        m_currentInstructionSequence = QStringLiteral("  seq%1").arg(m_sequenceDepth);
         visit(&node->block);
         m_currentInstructionSequence = previous;
-        addInstruction(QStringLiteral("Foreach"), { it, QStringLiteral("seq" )});
+        addInstruction(QStringLiteral("Foreach"), { it, QStringLiteral("seq%1").arg(m_sequenceDepth) });
         clazz.init.impl << QStringLiteral("}");
+        --m_sequenceDepth;
         return false;
 
     }
@@ -515,7 +547,7 @@ protected:
     void visit(Cancel *node) Q_DECL_OVERRIDE
     {
         QString context = createContext(QStringLiteral("cancel"), QStringLiteral("sendidexpr"), node->sendidexpr);
-        QString sendidexpr = createEvaluator(QStringLiteral("ToString"), { node->sendidexpr, context });
+        QString sendidexpr = createEvaluator(QStringLiteral("ToString"), 1, { node->sendidexpr, context });
         addInstruction(QStringLiteral("Cancel"), { qba(node->sendid), sendidexpr });
     }
 
@@ -528,29 +560,38 @@ protected:
     bool visit(DocumentModel::DoneData *node) Q_DECL_OVERRIDE
     {
         QString context = createContext(QStringLiteral("donedata"), QStringLiteral("expr"), node->expr);
-        QString expr = createEvaluator(QStringLiteral("ToString"), { node->expr, context });
-        clazz.init.impl << QStringLiteral("{ QVector<Scxml::ExecutableContent::Param> params;");
-        clazz.init.impl << QStringLiteral("  params.reserve(%1);").arg(node->params.size());
-        foreach (DocumentModel::Param *p, node->params) {
-            QString context = createContext(QStringLiteral("param"), QStringLiteral("expr"), p->expr);
-            QString eval = createEvaluator(QStringLiteral("ToVariant"), { p->expr, context });
-            clazz.init.impl << QStringLiteral("  params.append(Scxml::ExecutableContent::Param(%1, %2, %3));").arg(strLit(p->name), eval, strLit(p->location));
-        }
+        QString expr = createEvaluator(QStringLiteral("ToString"), 1, { node->expr, context });
+        generateParams(node->params);
         clazz.init.impl << QStringLiteral("  %1.setDoneData(Scxml::ExecutableContent::DoneData(%2, %3, %4));").arg(parentStateMemberName(), strLit(node->contents), expr, QStringLiteral("params"));
         clazz.init.impl << QStringLiteral("}");
         return false;
     }
 
 private:
+    void generateParams(const QVector<Param *> &params)
+    {
+        clazz.init.impl << QStringLiteral("{ QVector<Scxml::ExecutableContent::Param> params;");
+        if (!params.isEmpty())
+            clazz.init.impl << QStringLiteral("  params.reserve(%1);").arg(params.size());
+        foreach (DocumentModel::Param *p, params) {
+            QString context = createContext(QStringLiteral("param"), QStringLiteral("expr"), p->expr);
+            QString eval = createEvaluator(QStringLiteral("ToVariant"), 1, { p->expr, context });
+            clazz.init.impl << QStringLiteral("  params.append(Scxml::ExecutableContent::Param(%1, %2, %3));").arg(strLit(p->name), eval, strLit(p->location));
+        }
+    }
+
     void addInstruction(const QString &instr, const QStringList &args)
     {
         static QString callTemplate = QStringLiteral("%1.statements.append(Scxml::ExecutableContent::Instruction::Ptr(new Scxml::ExecutableContent::%2(%3)));");
         clazz.init.impl << callTemplate.arg(m_currentInstructionSequence, instr, args.join(QStringLiteral(", ")));
     }
 
-    QString createEvaluator(const QString &kind, const QStringList &args)
+    QString createEvaluator(const QString &kind, ushort argToCheckForEmpty, const QStringList &args)
     {
         // TODO: move to datamodel
+        if (argToCheckForEmpty > 0 && args.at(argToCheckForEmpty - 1).isEmpty())
+            return QStringLiteral("nullptr");
+
         static QString callTemplate = QStringLiteral("table.dataModel()->create%1Evaluator(%2)");
         QStringList strArgs;
         foreach (const QString &arg, args)
@@ -644,20 +685,22 @@ private:
 
     void generate(const QString &outSequences, const InstructionSequences &inSequences)
     {
-        if (inSequences.isEmpty())
-            return;
-
         QString previous = m_currentInstructionSequence;
-        clazz.init.impl << outSequences + QStringLiteral(".sequences.reserve(%1);").arg(inSequences.size());
+        if (!inSequences.isEmpty())
+            clazz.init.impl << outSequences + QStringLiteral(".sequences.reserve(%1);").arg(inSequences.size());
         foreach (DocumentModel::InstructionSequence *sequence, inSequences) {
-            if (sequence->isEmpty())
-                continue;
-            clazz.init.impl << QStringLiteral("{ Scxml::ExecutableContent::InstructionSequence &seq = *")
-                               + outSequences + QStringLiteral(".newInstructions();");
-            clazz.init.impl << QStringLiteral("  seq.statements.reserve(%1);").arg(sequence->size());
-            m_currentInstructionSequence = QStringLiteral("  seq");
+            ++m_sequenceDepth;
+            clazz.init.impl << QStringLiteral("{ Scxml::ExecutableContent::InstructionSequence &seq%1 = *%2.newInstructions();")
+                               .arg(QString::number(m_sequenceDepth), outSequences);
+            if (sequence->isEmpty()) {
+                clazz.init.impl << QStringLiteral("  Q_UNUSED(seq%1);").arg(m_sequenceDepth);
+            } else {
+                clazz.init.impl << QStringLiteral("  seq%1.statements.reserve(%2);").arg(m_sequenceDepth).arg(sequence->size());
+            }
+            m_currentInstructionSequence = QStringLiteral("  seq%1").arg(m_sequenceDepth);
             visit(sequence);
             clazz.init.impl << QStringLiteral("}");
+            --m_sequenceDepth;
         }
         m_currentInstructionSequence = previous;
     }
@@ -717,6 +760,7 @@ private:
     QString m_currentInstructionSequence;
     QSet<QString> m_knownEvents;
     QString m_currentTransitionName;
+    int m_sequenceDepth = 0;
 };
 } // anonymous namespace
 
@@ -797,8 +841,7 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     cpp << endl;
     cpp << l("    void init() {\n");
     clazz.init.impl.write(cpp, QStringLiteral("        "), QStringLiteral("\n"));
-    cpp << endl
-        << l("    }") << endl;
+    cpp << l("    }") << endl;
 
 
     cpp << endl
