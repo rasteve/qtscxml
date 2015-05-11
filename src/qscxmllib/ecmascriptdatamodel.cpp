@@ -111,7 +111,7 @@ public:
     {
         Q_ASSERT(!dataModel.isUndefined());
 
-        foreach (const ScxmlData &data, q->data()) {
+        foreach (const DataModel::Data &data, q->data()) {
             QJSValue v(QJSValue::UndefinedValue); // See B.2.1, and test456.
             if ((dataBinding() == StateTable::EarlyBinding || !data.context || data.context == s)
                     && !data.expr.isEmpty()) {

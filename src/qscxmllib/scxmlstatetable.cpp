@@ -531,11 +531,21 @@ QVector<Param> DoneData::params() const
 
 } // namespace ExecutableContent
 
+DataModel::Data::Data()
+{}
+
+DataModel::Data::Data(const QString &id, const QString &src, const QString &expr, QState *context)
+    : id(id)
+    , src(src)
+    , expr(expr)
+    , context(context)
+{}
+
 class DataModelPrivate
 {
 public:
     StateTable *table;
-    QVector<ScxmlData> data;
+    QVector<DataModel::Data> data;
 };
 
 DataModel::DataModel(StateTable *table)
@@ -555,12 +565,12 @@ StateTable *DataModel::table() const
     return d->table;
 }
 
-QVector<ScxmlData> DataModel::data() const
+QVector<DataModel::Data> DataModel::data() const
 {
     return d->data;
 }
 
-void DataModel::addData(const ScxmlData &data)
+void DataModel::addData(const DataModel::Data &data)
 {
     d->data.append(data);
 }

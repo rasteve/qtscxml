@@ -91,12 +91,6 @@ private:
 
 
 typedef std::function<bool(const QString &)> ErrorDumper;
-struct ScxmlData {
-    QString id;
-    QString src;
-    QString expr;
-    QState *context;
-};
 
 class ScxmlParser;
 
@@ -158,6 +152,16 @@ class SCXML_EXPORT DataModel
     Q_DISABLE_COPY(DataModel)
 
 public:
+    struct Data {
+        Data();
+        Data(const QString &id, const QString &src, const QString &expr, QState *context);
+
+        QString id;
+        QString src;
+        QString expr;
+        QState *context = nullptr;
+    };
+
     typedef std::function<QString (bool *)> ToStringEvaluator;
     typedef std::function<bool (bool *)> ToBoolEvaluator;
     typedef std::function<QVariant (bool *)> ToVariantEvaluator;
@@ -169,8 +173,8 @@ public:
     virtual ~DataModel();
 
     StateTable *table() const;
-    QVector<ScxmlData> data() const;
-    void addData(const ScxmlData &data);
+    QVector<Data> data() const;
+    void addData(const Data &data);
 
     virtual void setup() = 0;
     virtual void initializeDataFor(QState *state) = 0;

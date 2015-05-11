@@ -67,6 +67,7 @@ struct StateMachine::Data {
 
     bool init() {
         table.setDataModel(new Scxml::NullDataModel(&table));
+        table.setDataBinding(Scxml::StateTable::EarlyBinding);
         table.setInitialState(&state_s__1);
         state_s__1.setObjectName(QStringLiteral("s_1"));
         state_s__1.addTransition(&transition_s__1_0);

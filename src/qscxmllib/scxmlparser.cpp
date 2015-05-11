@@ -520,12 +520,7 @@ private:
 
     void visit(DocumentModel::DataElement *data) Q_DECL_OVERRIDE
     {
-        ScxmlData newData;
-        newData.id = data->id;
-        newData.src = data->src;
-        newData.expr = data->expr;
-        newData.context = currentParent();
-        m_table->dataModel()->addData(newData);
+        m_table->dataModel()->addData(DataModel::Data(data->id, data->src, data->expr, currentParent()));
     }
 
     void visit(DocumentModel::Script *node) Q_DECL_OVERRIDE

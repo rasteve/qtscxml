@@ -254,6 +254,19 @@ protected:
         }
         clazz.init.impl << QStringLiteral("table.setDataModel(new Scxml::") + dmName + QStringLiteral("DataModel(&table));");
 
+        QString binding;
+        switch (node->binding) {
+        case DocumentModel::Scxml::EarlyBinding:
+            binding = QStringLiteral("Early");
+            break;
+        case DocumentModel::Scxml::LateBinding:
+            binding = QStringLiteral("Late");
+            break;
+        default:
+            Q_UNREACHABLE();
+        }
+        clazz.init.impl << QStringLiteral("table.setDataBinding(Scxml::StateTable::%1Binding);").arg(binding);
+
         foreach (AbstractState *s, node->initialStates) {
             clazz.init.impl << QStringLiteral("table.setInitialState(&state_") + mangledName(s) + QStringLiteral(");");
         }
@@ -328,15 +341,12 @@ protected:
         // Initializer:
         QString parentName;
         auto parent = m_parents.last();
-        if (State *parentState = parent->asState()) {
-            parentName = QStringLiteral("state_") + mangledName(parentState);
-        } else if (HistoryState *historyState = parent->asHistoryState()) {
+        if (HistoryState *historyState = parent->asHistoryState()) {
             parentName = QStringLiteral("state_") + mangledName(historyState) + QStringLiteral("_defaultConfiguration");
-        } else if (parent->asScxml()) {
-            parentName = QStringLiteral("table");
         } else {
-            Q_UNREACHABLE();
+            parentName = parentStateMemberName();
         }
+        Q_ASSERT(!parentName.isEmpty());
         QString initializer = tName + QStringLiteral("(&") + parentName + QStringLiteral(", QList<QByteArray>()");
         foreach (const QString &event, node->events) {
             initializer += QStringLiteral(" << ") + qba(event);
@@ -435,6 +445,15 @@ protected:
         QString context = createContext(QStringLiteral("log"), QStringLiteral("expr"), node->expr);
         QString expr = createEvaluator(QStringLiteral("ToString"), { node->expr, context });
         addInstruction(QStringLiteral("Log"), { strLit(node->label), expr });
+    }
+
+    void visit(DataElement *data) Q_DECL_OVERRIDE
+    {
+        QString code = QStringLiteral("table.dataModel()->addData(Scxml::DataModel::Data(%1, %2, %3, %4));");
+        QString parent = QStringLiteral("&") + parentStateMemberName();
+        if (m_parents.last()->asScxml())
+            parent = QStringLiteral("nullptr");
+        clazz.init.impl << code.arg(strLit(data->id), strLit(data->src), strLit(data->expr), parent);
     }
 
     void visit(Script *node) Q_DECL_OVERRIDE
@@ -630,6 +649,20 @@ private:
                 return l->name;
         }
 
+        return QString();
+    }
+
+    QString parentStateMemberName()
+    {
+        Node *parent = m_parents.last();
+        if (State *s = parent->asState())
+            return QStringLiteral("state_") + mangledName(s);
+        else if (HistoryState *h = parent->asHistoryState())
+            return QStringLiteral("state_") + mangledName(h);
+        else if (parent->asScxml())
+            return QStringLiteral("table");
+        else
+            Q_UNIMPLEMENTED();
         return QString();
     }
 
