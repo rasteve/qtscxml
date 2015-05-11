@@ -125,8 +125,8 @@ struct SCXML_EXPORT InstructionSequence : public Instruction {
 
 struct SCXML_EXPORT InstructionSequences
 {
-    typedef QList<InstructionSequence *> InstructionSequenceList;
-    typedef InstructionSequenceList::const_iterator const_iterator;
+    typedef QVector<InstructionSequence *> Sequences;
+    typedef Sequences::const_iterator const_iterator;
 
     ~InstructionSequences();
 
@@ -141,7 +141,7 @@ struct SCXML_EXPORT InstructionSequences
     InstructionSequence *last() const;
     void append(InstructionSequence *s);
 
-    InstructionSequenceList sequences;
+    Sequences sequences;
 };
 
 } // namespace ExecutableContent
@@ -399,10 +399,16 @@ private:
     DataModel::ToVoidEvaluator expression;
 };
 
-struct SCXML_EXPORT If : public Instruction {
+class SCXML_EXPORT If : public Instruction
+{
+public:
+    If(const QVector<DataModel::ToBoolEvaluator> &conditions, const InstructionSequences &blocks);
+
+    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
+
+private:
     QVector<DataModel::ToBoolEvaluator> conditions;
     InstructionSequences blocks;
-    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
 };
 
 class SCXML_EXPORT Foreach : public Instruction

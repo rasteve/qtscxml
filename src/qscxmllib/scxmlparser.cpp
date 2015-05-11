@@ -539,17 +539,17 @@ private:
 
     bool visit(DocumentModel::If *node) Q_DECL_OVERRIDE
     {
-        auto instr = new ExecutableContent::If;
-        instr->conditions.resize(node->conditions.size());
+        QVector<DataModel::ToBoolEvaluator> conditions(node->conditions.size());
         QString tag = QStringLiteral("if");
         for (int i = 0, ei = node->conditions.size(); i != ei; ++i) {
-            instr->conditions[i] = createEvaluatorBool(tag, QStringLiteral("cond"), node->conditions.at(i));
+            conditions[i] = createEvaluatorBool(tag, QStringLiteral("cond"), node->conditions.at(i));
             if (i == 0) {
                 tag = QStringLiteral("elif");
             }
         }
-        generate(&instr->blocks, node->blocks);
-        add(instr);
+        ExecutableContent::InstructionSequences blocks;
+        generate(&blocks, node->blocks);
+        add(new ExecutableContent::If(conditions, blocks));
         return false;
     }
 

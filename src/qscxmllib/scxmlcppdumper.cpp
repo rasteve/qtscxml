@@ -470,6 +470,27 @@ protected:
         addInstruction(QStringLiteral("AssignExpression"), { expr });
     }
 
+    bool visit(If *node) Q_DECL_OVERRIDE
+    {
+        clazz.init.impl << QStringLiteral("{ QVector<Scxml::DataModel::ToBoolEvaluator> conditions;");
+        clazz.init.impl << QStringLiteral("  conditions.reserve(%1);").arg(node->conditions.size());
+        QString tag = QStringLiteral("if");
+        for (int i = 0, ei = node->conditions.size(); i != ei; ++i) {
+            QString condExpr = node->conditions.at(i);
+            QString ctxt = createContext(tag, QStringLiteral("cond"), condExpr);
+            QString cond = createEvaluator(QStringLiteral("ToBool"), { condExpr, ctxt });
+            clazz.init.impl << QStringLiteral("  conditions.append(%1);").arg(cond);
+            if (i == 0) {
+                tag = QStringLiteral("elif");
+            }
+        }
+        clazz.init.impl << QStringLiteral("  Scxml::ExecutableContent::InstructionSequences blocks;");
+        generate(QStringLiteral("blocks"), node->blocks);
+        addInstruction(QStringLiteral("If"), { QStringLiteral("conditions"), QStringLiteral("blocks") });
+        clazz.init.impl << QStringLiteral("}");
+        return false;
+    }
+
     bool visit(Foreach *node) Q_DECL_OVERRIDE
     {
         QString ctxt = createContext(QStringLiteral("foreach"));
@@ -497,6 +518,22 @@ protected:
     bool visit(Invoke *) Q_DECL_OVERRIDE
     {
         Q_UNIMPLEMENTED();
+        return false;
+    }
+
+    bool visit(DocumentModel::DoneData *node) Q_DECL_OVERRIDE
+    {
+        QString context = createContext(QStringLiteral("donedata"), QStringLiteral("expr"), node->expr);
+        QString expr = createEvaluator(QStringLiteral("ToString"), { node->expr, context });
+        clazz.init.impl << QStringLiteral("{ QVector<Scxml::ExecutableContent::Param> params;");
+        clazz.init.impl << QStringLiteral("  params.reserve(%1);").arg(node->params.size());
+        foreach (DocumentModel::Param *p, node->params) {
+            QString context = createContext(QStringLiteral("param"), QStringLiteral("expr"), p->expr);
+            QString eval = createEvaluator(QStringLiteral("ToVariant"), { p->expr, context });
+            clazz.init.impl << QStringLiteral("  params.append(Scxml::ExecutableContent::Param(%1, %2, %3));").arg(strLit(p->name), eval, strLit(p->location));
+        }
+        clazz.init.impl << QStringLiteral("  %1.setDoneData(Scxml::ExecutableContent::DoneData(%2, %3, %4));").arg(parentStateMemberName(), strLit(node->contents), expr, QStringLiteral("params"));
+        clazz.init.impl << QStringLiteral("}");
         return false;
     }
 
@@ -625,9 +662,9 @@ private:
     {
         if (!m_currentTransitionName.isEmpty()) {
             QString state = parentStateName();
-            return QStringLiteral("%1 instruction in transition of state '%2'").arg(instrName, state);
+            return QStringLiteral("<%1> instruction in transition of state '%2'").arg(instrName, state);
         } else {
-            return QStringLiteral("%1 instruction in state %2").arg(instrName, parentStateName());
+            return QStringLiteral("<%1> instruction in state '%2'").arg(instrName, parentStateName());
         }
     }
 

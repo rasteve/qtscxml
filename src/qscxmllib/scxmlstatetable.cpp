@@ -356,6 +356,11 @@ bool AssignExpression::execute(StateTable *table) const
     return ok;
 }
 
+If::If(const QVector<DataModel::ToBoolEvaluator> &conditions, const InstructionSequences &blocks)
+    : conditions(conditions)
+    , blocks(blocks)
+{}
+
 bool If::execute(Scxml::StateTable *table) const
 {
     for (int i = 0; i < conditions.size(); ++i) {
