@@ -356,21 +356,24 @@ bool AssignExpression::execute(StateTable *table) const
     return ok;
 }
 
-If::If(const QVector<DataModel::ToBoolEvaluator> &conditions, const InstructionSequences &blocks)
+If::If(QVector<Scxml::DataModel::ToBoolEvaluator> conditions, Scxml::ExecutableContent::InstructionSequences *blocks)
     : conditions(conditions)
     , blocks(blocks)
 {}
+
+If::~If()
+{ delete blocks; }
 
 bool If::execute(Scxml::StateTable *table) const
 {
     for (int i = 0; i < conditions.size(); ++i) {
         bool ok = true;
         if (conditions.at(i)(&ok) && ok) {
-            return blocks.at(i)->execute(table);
+            return blocks->at(i)->execute(table);
         }
     }
-    if (conditions.size() < blocks.size())
-        return blocks.at(conditions.size())->execute(table);
+    if (conditions.size() < blocks->size())
+        return blocks->at(conditions.size())->execute(table);
 
     return true;
 }

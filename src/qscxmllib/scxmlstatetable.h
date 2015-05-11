@@ -120,7 +120,7 @@ struct SCXML_EXPORT InstructionSequence : public Instruction {
 
     bool bind() Q_DECL_OVERRIDE;
 
-    QList<Instruction::Ptr> statements;
+    QVector<Instruction::Ptr> statements;
 };
 
 struct SCXML_EXPORT InstructionSequences
@@ -402,13 +402,14 @@ private:
 class SCXML_EXPORT If : public Instruction
 {
 public:
-    If(const QVector<DataModel::ToBoolEvaluator> &conditions, const InstructionSequences &blocks);
+    If(const QVector<DataModel::ToBoolEvaluator> conditions, InstructionSequences *blocks);
+    ~If();
 
     bool execute(StateTable *table) const Q_DECL_OVERRIDE;
 
 private:
     QVector<DataModel::ToBoolEvaluator> conditions;
-    InstructionSequences blocks;
+    InstructionSequences *blocks;
 };
 
 class SCXML_EXPORT Foreach : public Instruction

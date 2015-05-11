@@ -488,8 +488,8 @@ protected:
                 tag = QStringLiteral("elif");
             }
         }
-        clazz.init.impl << QStringLiteral("  Scxml::ExecutableContent::InstructionSequences blocks;");
-        generate(QStringLiteral("blocks"), node->blocks);
+        clazz.init.impl << QStringLiteral("  Scxml::ExecutableContent::InstructionSequences *blocks = new Scxml::ExecutableContent::InstructionSequences;");
+        generate(QStringLiteral("(*blocks)"), node->blocks);
         addInstruction(QStringLiteral("If"), { QStringLiteral("conditions"), QStringLiteral("blocks") });
         clazz.init.impl << QStringLiteral("}");
         return false;

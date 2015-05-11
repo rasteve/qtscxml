@@ -550,8 +550,8 @@ private:
                 tag = QStringLiteral("elif");
             }
         }
-        ExecutableContent::InstructionSequences blocks;
-        generate(&blocks, node->blocks);
+        ExecutableContent::InstructionSequences *blocks = new ExecutableContent::InstructionSequences;
+        generate(blocks, node->blocks);
         add(new ExecutableContent::If(conditions, blocks));
         return false;
     }
