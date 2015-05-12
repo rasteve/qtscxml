@@ -46,32 +46,19 @@ public:
     {}
 
     void dump(DocumentModel::ScxmlDocument *doc);
+
+private:
     QTextStream &h;
     QTextStream &cpp;
     QString headerName;
-
     static QString mangleId(const QString &id);
-    static QString mangleId(const QByteArray &id)
-    {
-        return mangleId(QString::fromUtf8(id));
-    }
-
-private:
-    void dumpSlotsForEvents(MainClass &clazz);
-    void dumpExecutableContent();
-    void dumpInit();
 
     static QByteArray b(const char *str) { return QByteArray(str); }
     static QLatin1String l (const char *str) { return QLatin1String(str); }
 
-    QString transitionName(QAbstractTransition *transition, bool upcase = false, int tIndex = -1,
-                           const QString &stateName = QString());
-
     DocumentModel::ScxmlDocument *m_doc = nullptr;
     QString mainClassName;
     CppDumpOptions options;
-    QMap<QAbstractState *, QString> mangledStateNames;
-    QString mangledName(QAbstractState *state);
 };
 
 } // namespace Scxml

@@ -57,12 +57,6 @@ struct StringListDumper {
     QStringList text;
 };
 
-//StringListDumper &endl(StringListDumper &s)
-//{
-//    s << QLatin1String("\n");
-//    return s;
-//}
-
 struct Method {
     QString name;
     StringListDumper publicDeclaration; // void f(int i = 0);
@@ -88,40 +82,8 @@ struct MainClass {
 
 namespace {
 
-//QByteArray cEscape(const QByteArray &str)
-//{ // should handle even trigraphs?
-//    QByteArray res;
-//    int lastI = 0;
-//    for (int i = 0; i < str.length(); ++i) {
-//        unsigned char c = str.at(i);
-//        if (c < ' ' || c == '\\' || c == '\"') {
-//            res.append(str.mid(lastI, i - lastI));
-//            lastI = i + 1;
-//            if (c == '\\') {
-//                res.append("\\\\");
-//            } else if (c == '\"') {
-//                res.append("\"");
-//            } else {
-//                char buf[4];
-//                buf[0] = '\\';
-//                buf[3] = '0' + (c & 0x7);
-//                c >>= 3;
-//                buf[2] = '0' + (c & 0x7);
-//                c >>= 3;
-//                buf[1] = '0' + (c & 0x7);
-//                res.append(&buf[0], 4);
-//            }
-//        }
-//    }
-//    if (lastI != 0) {
-//        res.append(str.mid(lastI));
-//        return res;
-//    }
-//    return str;
-//}
-
 QString cEscape(const QString &str)
-{// should handle even trigraphs?
+{
     QString res;
     int lastI = 0;
     for (int i = 0; i < str.length(); ++i) {
@@ -157,14 +119,6 @@ QString cEscape(const QString &str)
     }
     return str;
 }
-
-//QString qba(const QByteArray &bytes)
-//{
-//    QString str = QString::fromLatin1("QByteArray::fromRawData(\"");
-//    auto esc = cEscape(bytes);
-//    str += QString::fromLatin1(esc) + QLatin1String("\", ") + QString::number(esc.length()) + QLatin1String(")");
-//    return str;
-//}
 
 QString qba(const QString &bytes)
 {
@@ -866,223 +820,6 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
 
     if (!options.namespaceName.isEmpty())
         cpp << l("} // namespace ") << options.namespaceName << endl;
-}
-
-void CppDumper::dumpExecutableContent()
-{
-#if 0
-    // dump special transitions
-    bool inSlots = false;
-    loopOnSubStates(table, [this, &inSlots](QState *state) -> bool {
-        QString stateName = mangledName(state);
-        if (ScxmlState *sState = qobject_cast<ScxmlState *>(state)) {
-            foreach (const ::Scxml::ExecutableContent::InstructionSequence *onEntryInstruction, sState->onEntryInstructions) {
-                if (!onEntryInstruction->statements.isEmpty()) {
-                    if (!inSlots) {
-                        cpp << l("public slots:\n");
-                        inSlots = true;
-                    }
-                    cpp << l("        void onEnter_") << stateName
-                        << l("() {\n");
-                    dumpInstructions(onEntryInstruction);
-                    cpp << l("        }\n");
-                }
-            }
-            foreach (const ::Scxml::ExecutableContent::InstructionSequence *onExitInstruction, sState->onExitInstructions) {
-                if (!onExitInstruction->statements.isEmpty()) {
-                    if (!inSlots) {
-                        cpp << l("public slots:\n");
-                        inSlots = true;
-                    }
-                    cpp << l("        void onExit_") << stateName
-                        << l("() {\n");
-                    dumpInstructions(onExitInstruction);
-                    cpp << l("        }\n\n");
-                }
-            }
-        }
-        for (int tIndex = 0; tIndex < state->transitions().size(); ++tIndex) {
-            QAbstractTransition *t = state->transitions().at(tIndex);
-            if (::Scxml::ScxmlTransition *scTransition = qobject_cast<::Scxml::ScxmlTransition *>(t)) {
-                Q_UNIMPLEMENTED(); // FIXME
-                /*if (scTransition->conditionalExp.isEmpty()) {
-                    if (scTransition->instructionsOnTransition.statements.isEmpty())
-                        continue;
-                    if (!inSlots) {
-                        cpp << l("public slots:\n");
-                        inSlots = true;
-                    }
-                    cpp << l("        void on") << transitionName(scTransition, true, tIndex, stateName)
-                        << l("() {\n");
-                    dumpInstructions(&scTransition->instructionsOnTransition);
-                    cpp << l("        }\n\n");
-                } else*/ {
-                    if (inSlots) { // avoid ?
-                        cpp << l("public:\n");
-                        inSlots = false;
-                    }
-//                    cpp << l("    class ") << transitionName(scTransition, true, tIndex, stateName) << " : Scxml::ScxmlBaseTransition {\n";
-                    Q_UNIMPLEMENTED(); // FIXME
-//                    if (!scTransition->conditionalExp.isEmpty()) { // we could cache the function calculating the test
-//                        cpp << l("        bool eventTest(QEvent *event) Q_DECL_OVERRIDE {\n");
-//                        cpp << l("            if (ScxmlBaseTransition::testEvent(e)\n");
-//                        cpp << l("                    && table()->evalBool(\"")
-//                            << cEscape(scTransition->conditionalExp) << l("\")\n");
-//                        cpp << l("                return true;\n");
-//                        cpp << l("            return false;\n");
-//                        cpp << l("        }\n");
-//                    }
-//                    if (!scTransition->instructionsOnTransition.statements.isEmpty()) {
-//                        cpp << l("    protected:\n");
-//                        cpp << l("        void onTransition(QEvent *event) Q_DECL_OVERRIDE {\n");
-//                        dumpInstructions(&scTransition->instructionsOnTransition);
-//                        cpp << l("        }\n");
-//                    }
-//                    cpp << l("    };\n\n");
-                }
-            }
-        }
-        return true;
-    }, Q_NULLPTR, Q_NULLPTR);
-    if (inSlots) {
-        cpp << l("public:\n");
-    }
-#endif
-}
-
-void CppDumper::dumpInit()
-{
-//    StringListDumper sIni; // state initialization
-//    StringListDumper tIni; // transition initialization
-
-//    loopOnSubStates(table, [this,&sIni,&tIni](QState *state) -> bool {
-//        QByteArray rawStateName = state->objectName().toUtf8();
-//        QString stateName = mangleId(rawStateName);
-//        sIni << l("        table->addId(") << qba(rawStateName) << l(", &state_") << stateName
-//             << l(");\n");
-//        if (options.nameQObjects)
-//            sIni << l("        state_") << stateName
-//                 << l(".setObjectName(QStringLiteral(\"") << cEscape(rawStateName) << l("\"));\n");
-//        if (state->childMode() == QState::ParallelStates)
-//            sIni << l("        state_") << stateName << l(".setChildMode(QState::ParallelStates);\n");
-//        if (ScxmlState *sState = qobject_cast<ScxmlState *>(state)) {
-//            foreach (const ::Scxml::ExecutableContent::InstructionSequence *onEntryInstruction, sState->onEntryInstructions) {
-//                if (!onEntryInstruction->statements.isEmpty()) {
-//                    sIni << l("        QObject::connect(&state_") << stateName
-//                         << l(", &QAbstractState::entered, table, &") << mainClassName << l("::onEnter_")
-//                         << stateName << l(");\n");
-//                }
-//            }
-//            foreach (const ::Scxml::ExecutableContent::InstructionSequence *onExitInstruction, sState->onExitInstructions) {
-//                if (!onExitInstruction->statements.isEmpty()) {
-//                    sIni << l("        QObject::connect(&state_") << stateName
-//                         << l(", &QAbstractState::exited, table, &") << mainClassName << l("::onExit_")
-//                         << stateName << l(");\n");
-//                }
-//            }
-//        }
-
-//        if (state->childMode() == QState::ExclusiveStates && state->initialState()) {
-//            tIni << l("\n        state_") << stateName << l(".setInitialState(&state_")
-//                 << mangledName(state->initialState()) << l(");\n");
-//        }
-//        tIni << "\n";
-//        for (int tIndex = 0; tIndex < state->transitions().size(); ++tIndex) {
-//            QAbstractTransition *t = state->transitions().at(tIndex);
-//            if (::Scxml::ScxmlTransition *scTransition = qobject_cast<::Scxml::ScxmlTransition *>(t)) {
-//                QString scName = transitionName(scTransition, false, tIndex, stateName);
-//                Q_UNIMPLEMENTED(); // FIXME
-////                if (scTransition->conditionalExp.isEmpty()) {
-////                    if (!scTransition->instructionsOnTransition.statements.isEmpty()) {
-////                        tIni << l("        QObject::connect(&") << scName
-////                          << l(", &QAbstractTransition::triggered, table, &")
-////                          << mainClassName << l("::onTransition_") << tIndex << l("_") << stateName
-////                          << l(");\n");
-////                    }
-////                }
-//                QList<QByteArray> targetStates = scTransition->targetIds();
-//                if (targetStates.size() == 1) {
-//                    tIni << l("        ") << scName << l(".setTargetState(&state_")
-//                      << mangleId(targetStates.first()) << l(");\n");
-//                } else if (targetStates.size() > 1) {
-//                    tIni << l("        ") << scName << l(".setTargetStates(QList<QAbstractState *>() ");
-//                    foreach (const QByteArray &tState, targetStates)
-//                        tIni << l("\n            << &state_") << mangleId(tState);
-//                    tIni << l(");\n");
-//                }
-//                tIni << l("        ") << scName << l(".init();\n");
-//            }
-//        }
-
-//        return true;
-//    }, nullptr, [this,&sIni](QAbstractState *state) -> void {
-//        QByteArray rawStateName = state->objectName().toUtf8();
-//        QString stateName = mangleId(rawStateName);
-//        sIni << l("        table->addId(") << qba(rawStateName) << l(", &state_") << stateName
-//             << l(");\n");
-//        if (options.nameQObjects)
-//            sIni << l("        state_") << stateName
-//                 << l(".setObjectName(QStringLiteral(\"") << cEscape(rawStateName) << l("\"));\n");
-//        if (ScxmlFinalState *sState = qobject_cast<ScxmlFinalState *>(state)) {
-//            foreach (const ::Scxml::ExecutableContent::InstructionSequence *onEntryInstruction, sState->onEntryInstructions) {
-//                if (!onEntryInstruction->statements.isEmpty()) {
-//                    sIni << l("        QObject::connect(&state_") << stateName
-//                         << l(", &QAbstractState::entered, table, &") << mainClassName << l("::onEnter_")
-//                         << stateName << l(");\n");
-//                }
-//            }
-//            foreach (const ::Scxml::ExecutableContent::InstructionSequence *onExitInstruction, sState->onExitInstructions) {
-//                if (!onExitInstruction->statements.isEmpty()) {
-//                    sIni << l("        QObject::connect(&state_") << stateName
-//                         << l(", &QAbstractState::exited, table, &") << mainClassName << l("::onExit_")
-//                         << stateName << l(");\n");
-//                }
-//            }
-//        }
-//    });
-
-//    cpp << l("    bool init() {\n");
-//    sIni.write(cpp, QStringLiteral(""), QStringLiteral(""));
-
-//    if (table->initialState()) {
-//        cpp << l("\n        table->setInitialState(&state_")
-//            << mangledName(table->initialState()) << l(");") << endl;
-//    }
-
-//    tIni.write(cpp, QStringLiteral(""), QStringLiteral(""));
-//    cpp << endl;
-//    cpp << l("        return true;\n");
-//    cpp << l("    }\n");
-}
-
-QString CppDumper::transitionName(QAbstractTransition *transition, bool upcase, int tIndex,
-                                  const QString &stateName)
-{
-    Q_ASSERT(transition->sourceState());
-    if (tIndex < 0)
-        tIndex = transition->sourceState()->transitions().indexOf(transition);
-    Q_ASSERT(tIndex >= 0);
-    QString stateNameStr;
-    if (stateName.isEmpty())
-        stateNameStr = mangledName(transition->sourceState());
-    else
-        stateNameStr = stateName;
-    QString name = QStringLiteral("transition_%1_%2")
-            .arg(stateNameStr, QString::number(tIndex));
-    if (upcase)
-        name[0] = QLatin1Char('T');
-    return name;
-}
-
-QString CppDumper::mangledName(QAbstractState *state)
-{
-    QString mangledName = mangledStateNames.value(state);
-    if (!mangledName.isEmpty())
-        return mangledName;
-
-    mangledName = mangleId(state->objectName());
-    mangledStateNames.insert(state, mangledName);
-    return mangledName;
 }
 
 QString CppDumper::mangleId(const QString &id)
