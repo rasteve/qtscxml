@@ -106,9 +106,6 @@ static QSet<QString> differentSemantics = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test326.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test329.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test346.txml")
-        // internal event by <raise>
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test421.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test423.txml")
         // Scion apparently sets <data> values without a src/expr attribute to 0. We set it to undefined, as specified in B.2.1.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test456.txml") // replaced by modified_test456
         // Qt does not support forcing initial states that are not marked as such.
