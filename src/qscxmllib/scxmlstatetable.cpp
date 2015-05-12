@@ -654,12 +654,6 @@ int StateTable::sessionId() const
     return m_sessionId;
 }
 
-void StateTable::addId(const QByteArray &, QObject *)
-{
-    // FIXME: remove this.
-    Q_UNIMPLEMENTED();
-}
-
 DataModel *StateTable::dataModel() const
 {
     return m_dataModel;
@@ -668,6 +662,16 @@ DataModel *StateTable::dataModel() const
 void StateTable::setDataModel(DataModel *dataModel)
 {
     m_dataModel = dataModel;
+}
+
+void StateTable::setDataBinding(StateTable::BindingMethod b)
+{
+    m_dataBinding = b;
+}
+
+StateTable::BindingMethod StateTable::dataBinding() const
+{
+    return m_dataBinding;
 }
 
 void StateTable::doLog(const QString &label, const QString &msg)

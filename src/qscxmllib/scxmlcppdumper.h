@@ -47,11 +47,12 @@ public:
 
     void dump(DocumentModel::ScxmlDocument *doc);
 
+    static QString mangleId(const QString &id);
+
 private:
     QTextStream &h;
     QTextStream &cpp;
     QString headerName;
-    static QString mangleId(const QString &id);
 
     static QByteArray b(const char *str) { return QByteArray(str); }
     static QLatin1String l (const char *str) { return QLatin1String(str); }

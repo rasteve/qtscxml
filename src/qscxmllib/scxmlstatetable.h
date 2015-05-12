@@ -217,17 +217,11 @@ public:
 
     int sessionId() const;
 
-    void addId(const QByteArray&,QObject*); // FIXME: remove
-
     DataModel *dataModel() const;
     void setDataModel(DataModel *dataModel);
 
-    void setDataBinding(BindingMethod b) {
-        m_dataBinding = b;
-    }
-    BindingMethod dataBinding() const {
-        return m_dataBinding;
-    }
+    void setDataBinding(BindingMethod b);
+    BindingMethod dataBinding() const;
 
     void doLog(const QString &label, const QString &msg);
     ErrorDumper errorDumper();
@@ -278,10 +272,8 @@ protected:
 public:
     // use q_property for these?
     ScxmlEvent _event;
-    QString _sessionid;
     QString _name;
     typedef QHash<QString, QString> Dict;
-    QStringList _ioprocessors;
     QStringList currentStates(bool compress = true);
     void setInitialSetup(const ExecutableContent::InstructionSequence &sequence);
 
