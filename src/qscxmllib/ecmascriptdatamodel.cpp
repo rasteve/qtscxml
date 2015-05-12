@@ -146,7 +146,7 @@ public:
         dataModel.setProperty(QStringLiteral("_name"), table()->_name);
 
         auto scxml = engine()->newObject();
-        scxml.setProperty(QStringLiteral("location"), QStringLiteral("TODO")); // TODO
+        scxml.setProperty(QStringLiteral("location"), QStringLiteral("#_scxml_%1").arg(table()->sessionId()));
         auto ioProcs = engine()->newObject();
         ioProcs.setProperty(QStringLiteral("scxml"), scxml);
         dataModel.setProperty(QStringLiteral("_ioprocessors"), ioProcs);

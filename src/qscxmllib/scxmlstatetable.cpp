@@ -1036,7 +1036,8 @@ bool StateTable::isLegalTarget(const QString &target) const
 
 bool StateTable::isDispatchableTarget(const QString &target) const
 {
-    return target == QStringLiteral("#_internal");
+    return target == QStringLiteral("#_internal")
+            || target == QStringLiteral("#_scxml_%1").arg(sessionId());
 }
 
 void StateTable::onFinished()
