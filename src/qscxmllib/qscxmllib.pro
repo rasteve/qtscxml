@@ -1,7 +1,7 @@
 TARGET = QScxmlLib
 MODULE = qscxmllib
 
-QT       += core core-private qml
+QT       += core core-private qml qml-private
 
 load(qt_module)
 

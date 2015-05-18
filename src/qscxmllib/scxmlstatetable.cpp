@@ -173,7 +173,9 @@ public:
         QByteArray sendid = id;
         if (!idLocation.isEmpty()) {
             sendid = generateId();
-            table->dataModel()->setStringProperty(idLocation, QString::fromUtf8(sendid));
+            table->dataModel()->setStringProperty(idLocation, QString::fromUtf8(sendid), instructionLocation, &ok);
+            if (!ok)
+                return nullptr;
         }
 
         QString origin = target;

@@ -100,10 +100,7 @@ static QSet<QString> weDieOnThese = QSet<QString>()
            ;
 
 static QSet<QString> differentSemantics = QSet<QString>()
-        // The data model does not mark the system variables as read-only:
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test322.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test324.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test326.txml")
+        // FIXME: looks like a bug in internal event ordering when writing to read-only variables.
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test329.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test346.txml")
         // Scion apparently sets <data> values without a src/expr attribute to 0. We set it to undefined, as specified in B.2.1.

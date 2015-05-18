@@ -100,9 +100,11 @@ bool NullDataModel::hasProperty(const QString &name) const
     return false;
 }
 
-void NullDataModel::setStringProperty(const QString &name, const QString &value)
+void NullDataModel::setStringProperty(const QString &name, const QString &value, const QString &context, bool *ok)
 {
     Q_UNUSED(name);
     Q_UNUSED(value);
+    Q_UNUSED(context);
+    Q_UNUSED(ok);
     Q_UNREACHABLE();
 }

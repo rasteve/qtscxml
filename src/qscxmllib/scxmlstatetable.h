@@ -191,7 +191,8 @@ public:
 
     virtual QVariant property(const QString &name) const = 0;
     virtual bool hasProperty(const QString &name) const = 0;
-    virtual void setStringProperty(const QString &name, const QString &value) = 0;
+    virtual void setStringProperty(const QString &name, const QString &value, const QString &context,
+                                   bool *ok) = 0;
 
 private:
     DataModelPrivate *d;
