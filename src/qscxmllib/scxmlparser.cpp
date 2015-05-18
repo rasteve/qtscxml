@@ -429,7 +429,7 @@ private:
         } else {
             parentState = currentParent();
         }
-        DataModel::ToBoolEvaluator cond = nullptr;
+        DataModel::EvaluatorId cond = DataModel::NoEvaluator;
         if (transition->condition) {
             cond = createEvaluatorBool(QStringLiteral("transition"), QStringLiteral("cond"), *transition->condition.data());
         }
@@ -542,7 +542,7 @@ private:
 
     bool visit(DocumentModel::If *node) Q_DECL_OVERRIDE
     {
-        QVector<DataModel::ToBoolEvaluator> conditions(node->conditions.size());
+        QVector<DataModel::EvaluatorId> conditions(node->conditions.size());
         QString tag = QStringLiteral("if");
         for (int i = 0, ei = node->conditions.size(); i != ei; ++i) {
             conditions[i] = createEvaluatorBool(tag, QStringLiteral("cond"), node->conditions.at(i));
@@ -684,34 +684,34 @@ private: // Utility methods
         return QStringLiteral("%1 with %2=\"%3\"").arg(location, attrName, attrValue);
     }
 
-    DataModel::ToStringEvaluator createEvaluatorString(const QString &instrName, const QString &attrName, const QString &expr) const
+    DataModel::EvaluatorId createEvaluatorString(const QString &instrName, const QString &attrName, const QString &expr) const
     {
         if (!expr.isEmpty()) {
             QString loc = createContext(instrName, attrName, expr);
             return m_table->dataModel()->createToStringEvaluator(expr, loc);
         }
 
-        return nullptr;
+        return DataModel::NoEvaluator;
     }
 
-    DataModel::ToBoolEvaluator createEvaluatorBool(const QString &instrName, const QString &attrName, const QString &cond) const
+    DataModel::EvaluatorId createEvaluatorBool(const QString &instrName, const QString &attrName, const QString &cond) const
     {
         if (!cond.isEmpty()) {
             QString loc = createContext(instrName, attrName, cond);
             return m_table->dataModel()->createToBoolEvaluator(cond, loc);
         }
 
-        return nullptr;
+        return DataModel::NoEvaluator;
     }
 
-    DataModel::ToVariantEvaluator createEvaluatorVariant(const QString &instrName, const QString &attrName, const QString &cond) const
+    DataModel::EvaluatorId createEvaluatorVariant(const QString &instrName, const QString &attrName, const QString &cond) const
     {
         if (!cond.isEmpty()) {
             QString loc = createContext(instrName, attrName, cond);
             return m_table->dataModel()->createToVariantEvaluator(cond, loc);
         }
 
-        return nullptr;
+        return DataModel::NoEvaluator;
     }
 
 private:

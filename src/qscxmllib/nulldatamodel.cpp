@@ -32,55 +32,95 @@ void NullDataModel::initializeDataFor(QState *state)
     Q_UNUSED(state);
 }
 
-DataModel::ToStringEvaluator NullDataModel::createToStringEvaluator(const QString &expr, const QString &context)
+DataModel::EvaluatorId NullDataModel::createToStringEvaluator(const QString &expr, const QString &context)
 {
     Q_UNUSED(expr);
     Q_UNUSED(context);
     Q_UNREACHABLE();
-    return nullptr;
+    return DataModel::NoEvaluator;
 }
 
-DataModel::ToBoolEvaluator NullDataModel::createToBoolEvaluator(const QString &expr, const QString &context)
+DataModel::EvaluatorId NullDataModel::createToBoolEvaluator(const QString &expr, const QString &context)
 {
     Q_UNUSED(expr);
     Q_UNUSED(context);
     Q_UNREACHABLE();
-    return nullptr;
+    return DataModel::NoEvaluator;
 }
 
-DataModel::ToVariantEvaluator NullDataModel::createToVariantEvaluator(const QString &expr, const QString &context)
+DataModel::EvaluatorId NullDataModel::createToVariantEvaluator(const QString &expr, const QString &context)
 {
     Q_UNUSED(expr);
     Q_UNUSED(context);
     Q_UNREACHABLE();
-    return nullptr;
+    return DataModel::NoEvaluator;
 }
 
-DataModel::ToVoidEvaluator NullDataModel::createScriptEvaluator(const QString &expr, const QString &context)
+DataModel::EvaluatorId NullDataModel::createScriptEvaluator(const QString &expr, const QString &context)
 {
     Q_UNUSED(expr);
     Q_UNUSED(context);
     Q_UNREACHABLE();
-    return nullptr;
+    return DataModel::NoEvaluator;
 }
 
-DataModel::ToVoidEvaluator NullDataModel::createAssignmentEvaluator(const QString &dest, const QString &expr, const QString &context)
+DataModel::EvaluatorId NullDataModel::createAssignmentEvaluator(const QString &dest, const QString &expr, const QString &context)
 {
     Q_UNUSED(dest);
     Q_UNUSED(expr);
     Q_UNUSED(context);
     Q_UNREACHABLE();
-    return nullptr;
+    return DataModel::NoEvaluator;
 }
 
-DataModel::ForeachEvaluator NullDataModel::createForeachEvaluator(const QString &array, const QString &item, const QString &index, const QString &context)
+DataModel::EvaluatorId NullDataModel::createForeachEvaluator(const QString &array, const QString &item, const QString &index, const QString &context)
 {
     Q_UNUSED(array);
     Q_UNUSED(item);
     Q_UNUSED(index);
     Q_UNUSED(context);
     Q_UNREACHABLE();
-    return nullptr;
+    return DataModel::NoEvaluator;
+}
+
+QString NullDataModel::evaluateToString(DataModel::EvaluatorId id, bool *ok)
+{
+    Q_UNUSED(id);
+    Q_UNUSED(ok);
+    Q_UNREACHABLE();
+    return QString();
+}
+
+bool NullDataModel::evaluateToBool(DataModel::EvaluatorId id, bool *ok)
+{
+    Q_UNUSED(id);
+    Q_UNUSED(ok);
+    Q_UNREACHABLE();
+    return false;
+}
+
+QVariant NullDataModel::evaluateToVariant(DataModel::EvaluatorId id, bool *ok)
+{
+    Q_UNUSED(id);
+    Q_UNUSED(ok);
+    Q_UNREACHABLE();
+    return QVariant();
+}
+
+void NullDataModel::evaluateToVoid(DataModel::EvaluatorId id, bool *ok)
+{
+    Q_UNUSED(id);
+    Q_UNUSED(ok);
+    Q_UNREACHABLE();
+}
+
+bool NullDataModel::evaluateForeach(DataModel::EvaluatorId id, bool *ok, std::function<bool ()> body)
+{
+    Q_UNUSED(id);
+    Q_UNUSED(ok);
+    Q_UNUSED(body);
+    Q_UNREACHABLE();
+    return false;
 }
 
 void NullDataModel::setEvent(const ScxmlEvent &event)

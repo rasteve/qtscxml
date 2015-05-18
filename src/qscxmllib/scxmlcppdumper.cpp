@@ -160,7 +160,7 @@ public:
     virtual QString createEvaluator(Evaluator kind, ushort argToCheckForEmpty, const QStringList &args) const
     {
         if (argToCheckForEmpty > 0 && args.at(argToCheckForEmpty - 1).isEmpty())
-            return QStringLiteral("nullptr");
+            return QStringLiteral("Scxml::DataModel::NoEvaluator");
 
         QString kindString;
         switch (kind) {
@@ -482,7 +482,7 @@ protected:
 
     bool visit(If *node) Q_DECL_OVERRIDE
     {
-        clazz.init.impl << QStringLiteral("{ QVector<Scxml::DataModel::ToBoolEvaluator> conditions;");
+        clazz.init.impl << QStringLiteral("{ QVector<Scxml::DataModel::EvaluatorId> conditions;");
         clazz.init.impl << QStringLiteral("  conditions.reserve(%1);").arg(node->conditions.size());
         QString tag = QStringLiteral("if");
         for (int i = 0, ei = node->conditions.size(); i != ei; ++i) {

@@ -83,17 +83,17 @@ class EventBuilder
     StateTable* table = 0;
     QString instructionLocation;
     QByteArray event;
-    DataModel::ToStringEvaluator eventexpr;
+    DataModel::EvaluatorId eventexpr = DataModel::NoEvaluator;
     QString contents;
-    DataModel::ToStringEvaluator contentExpr;
+    DataModel::EvaluatorId contentExpr = DataModel::NoEvaluator;
     QVector<ExecutableContent::Param> params;
     ScxmlEvent::EventType eventType = ScxmlEvent::External;
     QByteArray id;
     QString idLocation;
     QString target;
-    DataModel::ToStringEvaluator targetexpr;
+    DataModel::EvaluatorId targetexpr = DataModel::NoEvaluator;
     QString type;
-    DataModel::ToStringEvaluator typeexpr;
+    DataModel::EvaluatorId typeexpr = DataModel::NoEvaluator;
     QStringList namelist;
 
     static QAtomicInt idCounter;
@@ -138,10 +138,12 @@ public:
 
     ScxmlEvent *buildEvent()
     {
+        DataModel *dataModel = table ? table->dataModel() : nullptr;
+
         QByteArray eventName = event;
         bool ok = true;
-        if (eventexpr) {
-            eventName = eventexpr(&ok).toUtf8();
+        if (eventexpr != DataModel::NoEvaluator) {
+            eventName = dataModel->evaluateToString(eventexpr, &ok).toUtf8();
             ok = true; // ignore failure.
         }
 
@@ -149,8 +151,8 @@ public:
         QStringList dataNames;
         if (params.isEmpty() && namelist.isEmpty()) {
             QVariant data;
-            if (contentExpr) {
-                data = contentExpr(&ok);
+            if (contentExpr != DataModel::NoEvaluator) {
+                data = dataModel->evaluateToString(contentExpr, &ok);
             } else {
                 data = contents;
             }
@@ -160,7 +162,7 @@ public:
             if (ExecutableContent::Param::evaluate(params, table, dataValues, dataNames)) {
                 foreach (const QString &name, namelist) {
                     dataNames << name;
-                    dataValues << table->dataModel()->property(name);
+                    dataValues << dataModel->property(name);
                 }
             } else {
                 // If the evaluation of the <param> tags fails, set _event.data to an empty string.
@@ -179,8 +181,8 @@ public:
         }
 
         QString origin = target;
-        if (targetexpr) {
-            origin = targetexpr(&ok);
+        if (targetexpr != DataModel::NoEvaluator) {
+            origin = dataModel->evaluateToString(targetexpr, &ok);
             if (!ok)
                 return nullptr;
         }
@@ -209,8 +211,8 @@ public:
             // [6.2.5] and test198
             origintype = QStringLiteral("http://www.w3.org/TR/scxml/#SCXMLEventProcessor");
         }
-        if (typeexpr) {
-            origintype = typeexpr(&ok);
+        if (typeexpr != DataModel::NoEvaluator) {
+            origintype = dataModel->evaluateToString(typeexpr, &ok);
             if (!ok)
                 return nullptr;
         }
@@ -333,32 +335,30 @@ bool Instruction::init(Scxml::StateTable *table) {
     return true;
 }
 
-JavaScript::JavaScript(const DataModel::ToVoidEvaluator &go)
+JavaScript::JavaScript(Scxml::DataModel::EvaluatorId go)
     : go(go)
 {}
 
 bool JavaScript::execute(Scxml::StateTable *table) const
 {
-    Q_UNUSED(table);
     bool ok = true;
-    go(&ok);
+    table->dataModel()->evaluateToVoid(go, &ok);
     return ok;
 }
 
-AssignExpression::AssignExpression(const DataModel::ToVoidEvaluator &expression)
+AssignExpression::AssignExpression(Scxml::DataModel::EvaluatorId expression)
     : expression(expression)
 {}
 
 bool AssignExpression::execute(StateTable *table) const
 {
-    Q_UNUSED(table);
-    Q_ASSERT(expression);
+    Q_ASSERT(expression != DataModel::NoEvaluator);
     bool ok = true;
-    expression(&ok);
+    table->dataModel()->evaluateToVoid(expression, &ok);
     return ok;
 }
 
-If::If(QVector<Scxml::DataModel::ToBoolEvaluator> conditions, Scxml::ExecutableContent::InstructionSequences *blocks)
+If::If(const QVector<Scxml::DataModel::EvaluatorId> &conditions, Scxml::ExecutableContent::InstructionSequences *blocks)
     : conditions(conditions)
     , blocks(blocks)
 {}
@@ -368,9 +368,10 @@ If::~If()
 
 bool If::execute(Scxml::StateTable *table) const
 {
+    auto dm = table->dataModel();
     for (int i = 0; i < conditions.size(); ++i) {
         bool ok = true;
-        if (conditions.at(i)(&ok) && ok) {
+        if (dm->evaluateToBool(conditions.at(i), &ok) && ok) {
             return blocks->at(i)->execute(table);
         }
     }
@@ -380,17 +381,15 @@ bool If::execute(Scxml::StateTable *table) const
     return true;
 }
 
-Foreach::Foreach(const DataModel::ForeachEvaluator &it, const InstructionSequence &block)
+Foreach::Foreach(Scxml::DataModel::EvaluatorId it, const InstructionSequence &block)
     : doIt(it)
     , block(block)
 {}
 
 bool Foreach::execute(StateTable *table) const
 {
-    Q_ASSERT(doIt);
-
     bool ok = true;
-    bool evenMoreOk = doIt(&ok, [this,table](){ return block.execute(table); });
+    bool evenMoreOk = table->dataModel()->evaluateForeach(doIt, &ok, [this,table](){ return block.execute(table); });
     return ok && evenMoreOk;
 }
 
@@ -399,15 +398,15 @@ Send::Send()
 
 Send::Send(const QString &instructionLocation,
            const QByteArray &event,
-           const DataModel::ToStringEvaluator &eventexpr,
+           DataModel::EvaluatorId eventexpr,
            const QString &type,
-           const DataModel::ToStringEvaluator &typeexpr,
+           DataModel::EvaluatorId typeexpr,
            const QString target,
-           const DataModel::ToStringEvaluator &targetexpr,
+           DataModel::EvaluatorId targetexpr,
            const QString &id,
            const QString &idLocation,
            const QString &delay,
-           const DataModel::ToStringEvaluator &delayexpr,
+           DataModel::EvaluatorId delayexpr,
            const QStringList &namelist,
            const QVector<Param> &params,
            const QString &content)
@@ -429,11 +428,10 @@ Send::Send(const QString &instructionLocation,
 
 bool Send::execute(StateTable *table) const
 {
-    Q_ASSERT(table && table->engine());
     QString delay = this->delay;
-    if (delayexpr) {
+    if (delayexpr != DataModel::NoEvaluator) {
         bool ok = false;
-        delay = delayexpr(&ok);
+        delay = table->dataModel()->evaluateToString(delayexpr, &ok);
         if (!ok)
             return false;
     }
@@ -467,7 +465,7 @@ bool Raise::execute(StateTable *table) const
     return true;
 }
 
-Log::Log(const QString &label, const DataModel::ToStringEvaluator &expr)
+Log::Log(const QString &label, Scxml::DataModel::EvaluatorId expr)
     : label(label)
     , expr(expr)
 {}
@@ -475,7 +473,7 @@ Log::Log(const QString &label, const DataModel::ToStringEvaluator &expr)
 bool Log::execute(StateTable *table) const
 {
     bool ok = true;
-    QString str = expr(&ok);
+    QString str = table->dataModel()->evaluateToString(expr, &ok);
     if (ok)
         table->doLog(label, str);
     return ok;
@@ -484,7 +482,7 @@ bool Log::execute(StateTable *table) const
 Param::Param()
 {}
 
-Param::Param(const QString &name, const DataModel::ToVariantEvaluator &expr, const QString &location)
+Param::Param(const QString &name, Scxml::DataModel::EvaluatorId expr, const QString &location)
     : name(name)
     , expr(expr)
     , location(location)
@@ -493,8 +491,8 @@ Param::Param(const QString &name, const DataModel::ToVariantEvaluator &expr, con
 bool Param::evaluate(StateTable *table, QVariantList &dataValues, QStringList &dataNames) const
 {
     bool success = true;
-    if (expr) {
-        auto v = expr(&success);
+    if (expr != DataModel::NoEvaluator) {
+        auto v = table->dataModel()->evaluateToVariant(expr, &success);
         dataValues.append(v);
         dataNames.append(name);
     } else if (!location.isEmpty()) {
@@ -524,7 +522,7 @@ bool Param::evaluate(const QVector<Param> &params, StateTable *table, QVariantLi
     return true;
 }
 
-Cancel::Cancel(const QByteArray &sendid, const DataModel::ToStringEvaluator &sendidexpr)
+Cancel::Cancel(const QByteArray &sendid, Scxml::DataModel::EvaluatorId sendidexpr)
     : sendid(sendid)
     , sendidexpr(sendidexpr)
 {}
@@ -533,8 +531,8 @@ bool Cancel::execute(StateTable *table) const
 {
     QByteArray e = sendid;
     bool ok = true;
-    if (sendidexpr)
-        e = sendidexpr(&ok).toUtf8();
+    if (sendidexpr != DataModel::NoEvaluator)
+        e = table->dataModel()->evaluateToString(sendidexpr, &ok).toUtf8();
     if (ok && !e.isEmpty())
         table->cancelDelayedEvent(e);
     return ok;
@@ -551,7 +549,7 @@ bool Invoke::execute(Scxml::StateTable *table) const
 DoneData::DoneData()
 {}
 
-DoneData::DoneData(const QString &contents, const DataModel::ToStringEvaluator &expr, const QVector<Param> &params)
+DoneData::DoneData(const QString &contents, Scxml::DataModel::EvaluatorId expr, const QVector<Param> &params)
     : m_contents(contents)
     , m_expr(expr)
     , m_params(params)
@@ -562,7 +560,7 @@ QString DoneData::contents() const
     return m_contents;
 }
 
-DataModel::ToStringEvaluator DoneData::expr() const
+Scxml::DataModel::EvaluatorId DoneData::expr() const
 {
     return m_expr;
 }
@@ -1274,7 +1272,7 @@ static QList<QByteArray> filterEmpty(const QList<QByteArray> &events) {
 }
 
 ScxmlTransition::ScxmlTransition(QState *sourceState, const QList<QByteArray> &eventSelector,
-                                 const DataModel::ToBoolEvaluator &conditionalExp)
+                                 DataModel::EvaluatorId conditionalExp)
     : ScxmlBaseTransition(sourceState, filterEmpty(eventSelector))
     , conditionalExp(conditionalExp)
     , type(ScxmlEvent::External)
@@ -1285,8 +1283,8 @@ bool ScxmlTransition::eventTest(QEvent *event)
 //        qCDebug(scxmlLog) << qPrintable(table()->engine()->evaluate(QLatin1String("JSON.stringify(_event)")).toString());
     if (ScxmlBaseTransition::eventTest(event)) {
         bool ok = true;
-        if (conditionalExp)
-            return conditionalExp(&ok) && ok;
+        if (conditionalExp != DataModel::NoEvaluator)
+            return table()->dataModel()->evaluateToBool(conditionalExp, &ok) && ok;
         return true;
     }
 

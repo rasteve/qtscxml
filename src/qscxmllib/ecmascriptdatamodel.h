@@ -32,14 +32,21 @@ public:
 
     void setup() Q_DECL_OVERRIDE;
     void initializeDataFor(QState *state) Q_DECL_OVERRIDE;
-    ToStringEvaluator createToStringEvaluator(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
-    ToBoolEvaluator createToBoolEvaluator(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
-    ToVariantEvaluator createToVariantEvaluator(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
-    ToVoidEvaluator createScriptEvaluator(const QString &script, const QString &context) Q_DECL_OVERRIDE;
-    ToVoidEvaluator createAssignmentEvaluator(const QString &dest, const QString &expr,
-                                              const QString &context) Q_DECL_OVERRIDE;
-    ForeachEvaluator createForeachEvaluator(const QString &array, const QString &item,
-                                            const QString &index, const QString &context) Q_DECL_OVERRIDE;
+
+    EvaluatorId createToStringEvaluator(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
+    EvaluatorId createToBoolEvaluator(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
+    EvaluatorId createToVariantEvaluator(const QString &expr, const QString &context) Q_DECL_OVERRIDE;
+    EvaluatorId createScriptEvaluator(const QString &script, const QString &context) Q_DECL_OVERRIDE;
+    EvaluatorId createAssignmentEvaluator(const QString &dest, const QString &expr,
+                                          const QString &context) Q_DECL_OVERRIDE;
+    EvaluatorId createForeachEvaluator(const QString &array, const QString &item,
+                                       const QString &index, const QString &context) Q_DECL_OVERRIDE;
+
+    QString evaluateToString(EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
+    bool evaluateToBool(EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
+    QVariant evaluateToVariant(EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
+    void evaluateToVoid(EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
+    bool evaluateForeach(EvaluatorId id, bool *ok, std::function<bool()> body) Q_DECL_OVERRIDE;
 
     void setEvent(const ScxmlEvent &event) Q_DECL_OVERRIDE;
 

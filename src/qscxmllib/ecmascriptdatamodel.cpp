@@ -25,6 +25,26 @@
 
 using namespace Scxml;
 
+typedef std::function<QString (bool *)> ToStringEvaluator;
+typedef std::function<bool (bool *)> ToBoolEvaluator;
+typedef std::function<QVariant (bool *)> ToVariantEvaluator;
+typedef std::function<void (bool *)> ToVoidEvaluator;
+typedef std::function<bool (bool *, std::function<bool ()>)> ForeachEvaluator;
+
+namespace {
+template <typename T>
+class MyVector: public QVector<T>
+{
+public:
+    quint32 add(const T &t)
+    {
+        quint32 pos = this->size();
+        this->append(t);
+        return pos;
+    }
+};
+} // anonymous namespace
+
 class Scxml::EcmaScriptDataModelPrivate
 {
 public:
@@ -226,6 +246,12 @@ public:
         table()->submitError(QByteArray("error.execution"), msg.arg(name, context), sendid);
     }
 
+    MyVector<ToStringEvaluator> toStringEvaluators;
+    MyVector<ToBoolEvaluator> toBoolEvaluators;
+    MyVector<ToVariantEvaluator> toVariantEvaluators;
+    MyVector<ToVoidEvaluator> toVoidEvaluators;
+    MyVector<ForeachEvaluator> foreachEvaluators;
+
 private: // Uses private API
     static void setReadonlyProperty(QJSValue *object, const QString& name, const QJSValue& value)
     {
@@ -324,48 +350,48 @@ void EcmaScriptDataModel::initializeDataFor(QState *state)
     d->initializeDataFor(state);
 }
 
-DataModel::ToStringEvaluator EcmaScriptDataModel::createToStringEvaluator(const QString &expr, const QString &context)
+DataModel::EvaluatorId EcmaScriptDataModel::createToStringEvaluator(const QString &expr, const QString &context)
 {
     const QString e = expr;
     const QString c = context;
-    return [this, e, c](bool *ok) -> QString {
+    return d->toStringEvaluators.add([this, e, c](bool *ok) -> QString {
         return d->evalStr(e, c, ok);
-    };
+    });
 }
 
-DataModel::ToBoolEvaluator EcmaScriptDataModel::createToBoolEvaluator(const QString &expr, const QString &context)
+DataModel::EvaluatorId EcmaScriptDataModel::createToBoolEvaluator(const QString &expr, const QString &context)
 {
     const QString e = expr;
     const QString c = context;
-    return [this, e, c](bool *ok) -> bool {
+    return d->toBoolEvaluators.add([this, e, c](bool *ok) -> bool {
         return d->evalBool(e, c, ok);
-    };
+    });
 }
 
-DataModel::ToVariantEvaluator EcmaScriptDataModel::createToVariantEvaluator(const QString &expr, const QString &context)
+DataModel::EvaluatorId EcmaScriptDataModel::createToVariantEvaluator(const QString &expr, const QString &context)
 {
     const QString e = expr;
     const QString c = context;
-    return [this, e, c](bool *ok) -> QVariant {
+    return d->toVariantEvaluators.add([this, e, c](bool *ok) -> QVariant {
         return d->evalJSValue(e, c, ok).toVariant();
-    };
+    });
 }
 
-DataModel::ToVoidEvaluator EcmaScriptDataModel::createScriptEvaluator(const QString &expr, const QString &context)
+DataModel::EvaluatorId EcmaScriptDataModel::createScriptEvaluator(const QString &expr, const QString &context)
 {
     const QString e = expr, c = context;
-    return [this, e, c](bool *ok) {
+    return d->toVoidEvaluators.add([this, e, c](bool *ok) {
         Q_ASSERT(ok);
         d->eval(e, c, ok);
-    };
+    });
 }
 
-DataModel::ToVoidEvaluator EcmaScriptDataModel::createAssignmentEvaluator(const QString &dest,
-                                                                        const QString &expr,
-                                                                        const QString &context)
+DataModel::EvaluatorId EcmaScriptDataModel::createAssignmentEvaluator(const QString &dest,
+                                                                      const QString &expr,
+                                                                      const QString &context)
 {
     const QString t = dest, e = expr, c = context;
-    return [this, t, e, c](bool *ok) {
+    return d->toVoidEvaluators.add([this, t, e, c](bool *ok) {
         Q_ASSERT(ok);
         static QByteArray sendid;
         if (hasProperty(t)) {
@@ -378,16 +404,16 @@ DataModel::ToVoidEvaluator EcmaScriptDataModel::createAssignmentEvaluator(const 
                                  QStringLiteral("%1 in %2 does not exist").arg(t, c),
                                  sendid);
         }
-    };
+    });
 }
 
-DataModel::ForeachEvaluator EcmaScriptDataModel::createForeachEvaluator(const QString &array,
-                                                                        const QString &item,
-                                                                        const QString &index,
-                                                                        const QString &context)
+DataModel::EvaluatorId EcmaScriptDataModel::createForeachEvaluator(const QString &array,
+                                                                   const QString &item,
+                                                                   const QString &index,
+                                                                   const QString &context)
 {
     const QString a = array, it = item, in = index, c = context;
-    return [this, a, it, in, c](bool *ok, std::function<bool ()> body) -> bool {
+    return d->foreachEvaluators.add([this, a, it, in, c](bool *ok, std::function<bool ()> body) -> bool {
         Q_ASSERT(ok);
         static QByteArray sendid;
 
@@ -423,7 +449,47 @@ DataModel::ForeachEvaluator EcmaScriptDataModel::createForeachEvaluator(const QS
         }
 
         return true;
-    };
+    });
+}
+
+QString EcmaScriptDataModel::evaluateToString(DataModel::EvaluatorId id, bool *ok)
+{
+    Q_ASSERT(id >= 0);
+    Q_ASSERT(id < d->toStringEvaluators.size());
+
+    return d->toStringEvaluators.at(id)(ok);
+}
+
+bool EcmaScriptDataModel::evaluateToBool(DataModel::EvaluatorId id, bool *ok)
+{
+    Q_ASSERT(id >= 0);
+    Q_ASSERT(id < d->toBoolEvaluators.size());
+
+    return d->toBoolEvaluators.at(id)(ok);
+}
+
+QVariant EcmaScriptDataModel::evaluateToVariant(DataModel::EvaluatorId id, bool *ok)
+{
+    Q_ASSERT(id >= 0);
+    Q_ASSERT(id < d->toVariantEvaluators.size());
+
+    return d->toVariantEvaluators.at(id)(ok);
+}
+
+void EcmaScriptDataModel::evaluateToVoid(DataModel::EvaluatorId id, bool *ok)
+{
+    Q_ASSERT(id >= 0);
+    Q_ASSERT(id < d->toVoidEvaluators.size());
+
+    return d->toVoidEvaluators.at(id)(ok);
+}
+
+bool EcmaScriptDataModel::evaluateForeach(DataModel::EvaluatorId id, bool *ok, std::function<bool ()> body)
+{
+    Q_ASSERT(id >= 0);
+    Q_ASSERT(id < d->foreachEvaluators.size());
+
+    return d->foreachEvaluators.at(id)(ok, body);
 }
 
 void EcmaScriptDataModel::setEvent(const ScxmlEvent &event)
