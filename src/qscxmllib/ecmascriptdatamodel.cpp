@@ -158,8 +158,8 @@ public:
     {
         QJSValue _event = engine()->newObject();
         QJSValue dataValue = eventDataAsJSValue(event);
-        _event.setProperty(QStringLiteral("data"), dataValue.isNull() ? QJSValue(QJSValue::UndefinedValue)
-                                                                      : dataValue);
+        _event.setProperty(QStringLiteral("data"), dataValue.isUndefined() ? QJSValue(QJSValue::UndefinedValue)
+                                                                           : dataValue);
         _event.setProperty(QStringLiteral("invokeid"), event.invokeid().isEmpty() ? QJSValue(QJSValue::UndefinedValue)
                                                                                   : engine()->toScriptValue(QString::fromUtf8(event.invokeid())));
         if (!event.origintype().isEmpty())
@@ -180,15 +180,20 @@ public:
     {
         if (event.dataNames().isEmpty()) {
             if (event.dataValues().size() == 0) {
-                return QJSValue(QJSValue::NullValue);
+                return QJSValue(QJSValue::UndefinedValue);
             } else if (event.dataValues().size() == 1) {
-                QString data = event.dataValues().first().toString();
-                QJsonParseError err;
-                QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8(), &err);
-                if (err.error == QJsonParseError::NoError)
-                    return engine()->toScriptValue(doc.toVariant());
-                else
-                    return engine()->toScriptValue(data);
+                auto dataValue = event.dataValues().first();
+                if (dataValue == QVariant(QMetaType::VoidStar, 0)) {
+                    return QJSValue(QJSValue::NullValue);
+                } else {
+                    QString data = dataValue.toString();
+                    QJsonParseError err;
+                    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8(), &err);
+                    if (err.error == QJsonParseError::NoError)
+                        return engine()->toScriptValue(doc.toVariant());
+                    else
+                        return engine()->toScriptValue(data);
+                }
             } else {
                 Q_UNREACHABLE();
                 return QJSValue(QJSValue::UndefinedValue);
@@ -364,7 +369,10 @@ DataModel::EvaluatorId EcmaScriptDataModel::createToBoolEvaluator(const QString 
     const QString e = expr;
     const QString c = context;
     return d->toBoolEvaluators.add([this, e, c](bool *ok) -> bool {
-        return d->evalBool(e, c, ok);
+        qDebug()<<"evaluating"<<e;
+        bool res = d->evalBool(e, c, ok);
+        qDebug()<<"result:"<<res<<"ok:"<<*ok;
+        return res;
     });
 }
 
@@ -392,6 +400,7 @@ DataModel::EvaluatorId EcmaScriptDataModel::createAssignmentEvaluator(const QStr
 {
     const QString t = dest, e = expr, c = context;
     return d->toVoidEvaluators.add([this, t, e, c](bool *ok) {
+        qDebug()<<"executing"<<t<<"="<<e;
         Q_ASSERT(ok);
         static QByteArray sendid;
         if (hasProperty(t)) {

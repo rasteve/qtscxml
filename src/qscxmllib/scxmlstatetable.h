@@ -100,52 +100,6 @@ bool loopOnSubStates(QState *startState,
                   std::function<void(QAbstractState *)> inAbstractState = Q_NULLPTR);
 class StateTable;
 
-namespace ExecutableContent {
-
-// dirty mix: AST, but directly executable...
-struct SCXML_EXPORT Instruction {
-public:
-    typedef QSharedPointer<Instruction> Ptr; // avoid smart pointer and simply delete in InstructionSequence destructor?
-
-    virtual ~Instruction() { }
-
-    virtual bool execute(StateTable *table) const = 0;
-    virtual bool init(StateTable *table);
-    virtual void clear() { }
-    virtual bool bind() { return true; }
-};
-
-struct SCXML_EXPORT InstructionSequence : public Instruction {
-    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
-
-    bool bind() Q_DECL_OVERRIDE;
-
-    QVector<Instruction::Ptr> statements;
-};
-
-struct SCXML_EXPORT InstructionSequences
-{
-    typedef QVector<InstructionSequence *> Sequences;
-    typedef Sequences::const_iterator const_iterator;
-
-    ~InstructionSequences();
-
-    InstructionSequence *newInstructions();
-    bool init(StateTable *table);
-    void execute(StateTable *table);
-    const_iterator begin() const;
-    const_iterator end() const;
-    int size() const;
-    bool isEmpty() const;
-    const InstructionSequence *at(int idx) const;
-    InstructionSequence *last() const;
-    void append(InstructionSequence *s);
-
-    Sequences sequences;
-};
-
-} // namespace ExecutableContent
-
 class DataModelPrivate;
 class SCXML_EXPORT DataModel
 {
@@ -202,6 +156,247 @@ private:
     DataModelPrivate *d;
 };
 
+namespace ExecutableContent {
+
+typedef int ContainerId;
+enum { NoInstruction = -1 };
+typedef qint32 StringId;
+enum { NoString = -1 };
+typedef qint32 ByteArrayId;
+typedef qint32 *Instructions;
+
+#if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
+#pragma pack(push, 4) // 4 == sizeof(qint32)
+#endif
+
+template <typename T>
+struct Array
+{
+    qint32 count;
+    // T[] data;
+    T *data() { return const_cast<T *>(const_data()); }
+    const T *const_data() const { return reinterpret_cast<const T *>(reinterpret_cast<const char *>(this) + sizeof(Array<T>)); }
+
+    const T &at(int pos) { return *(data() + pos); }
+    int dataSize() const { return count * sizeof(T) / sizeof(qint32); }
+    int size() const { return sizeof(Array<T>) / sizeof(qint32) + dataSize(); }
+};
+
+struct SCXML_EXPORT ByteArray: Array<char>
+{
+//    static int calculateSize(const QByteArray &str) {
+//        return (sizeof(ByteArray) + str.length() * sizeof(char) + 7) & ~0x7;
+//    }
+};
+
+struct SCXML_EXPORT Param
+{
+    StringId name;
+    DataModel::EvaluatorId expr;
+    StringId location;
+
+    static int calculateSize() { return sizeof(Param) / sizeof(qint32); }
+};
+
+struct SCXML_EXPORT Instruction
+{
+    enum InstructionType: qint32 {
+        Sequence = 1,
+        Sequences,
+        Send,
+        Raise,
+        Log,
+        JavaScript,
+        Assign,
+        If,
+        Foreach,
+        Cancel,
+        Invoke,
+        DoneData = 42 // see below
+    } instructionType;
+};
+
+struct SCXML_EXPORT DoneData: Instruction // ok, this is not an instruction, but it gets allocated there.
+{
+    StringId contents;
+    DataModel::EvaluatorId expr;
+    Array<Param> params;
+
+    static InstructionType kind() { return Instruction::DoneData; }
+};
+
+struct SCXML_EXPORT InstructionSequence: Instruction
+{
+    qint32 entryCount; // the amount of qint32's that the instructions take up
+    // Instruction[] instructions;
+
+    static InstructionType kind() { return Instruction::Sequence; }
+    Instructions instructions() { return reinterpret_cast<Instructions>(this) + sizeof(InstructionSequence) / sizeof(qint32); }
+    int size() const { return sizeof(InstructionSequence) / sizeof(qint32) + entryCount; }
+};
+
+struct SCXML_EXPORT InstructionSequences: Instruction
+{
+    qint32 sequenceCount;
+    qint32 entryCount; // the amount of qint32's that the sequences take up
+    // InstructionSequence[] sequences;
+
+    static InstructionType kind() { return Instruction::Sequences; }
+    InstructionSequence *sequences() {
+        return reinterpret_cast<InstructionSequence *>(reinterpret_cast<Instructions>(this) + sizeof(InstructionSequences) / sizeof(qint32));
+    }
+    int size() const { return sizeof(InstructionSequences)/sizeof(qint32) + entryCount; }
+    Instructions at(int pos) {
+        Instructions seq = reinterpret_cast<Instructions>(sequences());
+        while (pos--) {
+            seq += reinterpret_cast<InstructionSequence *>(seq)->size();
+        }
+        return seq;
+    }
+};
+
+struct SCXML_EXPORT Send: Instruction
+{
+    StringId instructionLocation;
+    ByteArrayId event;
+    DataModel::EvaluatorId eventexpr;
+    StringId type;
+    DataModel::EvaluatorId typeexpr;
+    StringId target;
+    DataModel::EvaluatorId targetexpr;
+    ByteArrayId id;
+    StringId idLocation;
+    StringId delay;
+    DataModel::EvaluatorId delayexpr;
+    StringId content;
+    Array<StringId> namelist;
+//    Array<Param> params;
+
+    static InstructionType kind() { return Instruction::Send; }
+    int size() { return sizeof(Send) / sizeof(qint32) + namelist.dataSize() + params()->size(); }
+    Array<Param> *params() {
+        return reinterpret_cast<Array<Param> *>(
+                    reinterpret_cast<Instructions>(this) + sizeof(Send) / sizeof(qint32) + namelist.dataSize());
+    }
+    static int calculateExtraSize(int paramCount, int nameCount) {
+        return 1 + paramCount * sizeof(Param) / sizeof(qint32) + nameCount * sizeof(StringId) / sizeof(qint32);
+    }
+};
+
+struct SCXML_EXPORT Raise: Instruction
+{
+    ByteArrayId event;
+
+    static InstructionType kind() { return Instruction::Raise; }
+    int size() const { return sizeof(Raise) / sizeof(qint32); }
+};
+
+struct SCXML_EXPORT Log: Instruction
+{
+    StringId label;
+    DataModel::EvaluatorId expr;
+
+    static InstructionType kind() { return Instruction::Log; }
+    int size() const { return sizeof(Log) / sizeof(qint32); }
+};
+
+struct SCXML_EXPORT JavaScript: Instruction
+{
+    DataModel::EvaluatorId go;
+
+    static InstructionType kind() { return Instruction::JavaScript; }
+    int size() const { return sizeof(JavaScript) / sizeof(qint32); }
+};
+
+struct SCXML_EXPORT Assign: Instruction
+{
+    DataModel::EvaluatorId expression;
+
+    static InstructionType kind() { return Instruction::Assign; }
+    int size() const { return sizeof(Assign) / sizeof(qint32); }
+};
+
+struct SCXML_EXPORT If: Instruction
+{
+    Array<DataModel::EvaluatorId> conditions;
+    // InstructionSequences blocks;
+    InstructionSequences *blocks() {
+        return reinterpret_cast<InstructionSequences *>(
+                    reinterpret_cast<Instructions>(this) + sizeof(If) / sizeof(qint32) + conditions.dataSize());
+    }
+
+    static InstructionType kind() { return Instruction::If; }
+    int size() { return sizeof(If) / sizeof(qint32) + blocks()->size() + conditions.dataSize(); }
+};
+
+struct SCXML_EXPORT Foreach: Instruction
+{
+    DataModel::EvaluatorId doIt;
+    InstructionSequence block;
+
+    static InstructionType kind() { return Instruction::Foreach; }
+    int size() const { return sizeof(Foreach) / sizeof(qint32) + block.entryCount; }
+    Instructions blockstart() { return reinterpret_cast<Instructions>(&block); }
+};
+
+struct SCXML_EXPORT Cancel: Instruction
+{
+    ByteArrayId sendid;
+    DataModel::EvaluatorId sendidexpr;
+
+    static InstructionType kind() { return Instruction::Cancel; }
+    int size() const { return sizeof(Cancel) / sizeof(qint32); }
+};
+
+struct SCXML_EXPORT Invoke: Instruction
+{
+    StringId type;
+    StringId typeexpr;
+    StringId src;
+    StringId srcexpr;
+    StringId id;
+    StringId idLocation;
+    Array<StringId> namelist;
+    qint32 autoforward;
+    Array<Param> params;
+    InstructionSequence finalize;
+
+    static InstructionType kind() { return Instruction::Invoke; }
+};
+
+#if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
+#pragma pack(pop)
+#endif
+
+class SCXML_EXPORT ExecutionEngine
+{
+public:
+    ExecutionEngine(StateTable *table);
+    ~ExecutionEngine();
+
+    void setStringTable(const QVector<QString> &strings);
+    QString string(StringId id) const;
+
+    void setByteArrayTable(const QVector<QByteArray> &byteArrays);
+    QByteArray byteArray(ByteArrayId id) const;
+
+    void setInstructions(Instructions instructions);
+    bool execute(ContainerId ip);
+
+    const ExecutableContent::DoneData *doneData(ContainerId id) const;
+
+private:
+    bool step(Instructions &ip);
+
+private:
+    StateTable *table;
+    QVector<QString> strings;
+    QVector<QByteArray> byteArrays;
+    Instructions instructions;
+};
+
+} // ExecutableContent namespace
+
 class StateTablePrivate;
 class SCXML_EXPORT StateTable: public QStateMachine
 {
@@ -227,6 +422,8 @@ public:
 
     void setDataBinding(BindingMethod b);
     BindingMethod dataBinding() const;
+
+    ExecutableContent::ExecutionEngine *executionEngine() const;
 
     void doLog(const QString &label, const QString &msg);
     ErrorDumper errorDumper();
@@ -280,15 +477,16 @@ public:
     QString _name;
     typedef QHash<QString, QString> Dict;
     QStringList currentStates(bool compress = true);
-    void setInitialSetup(const ExecutableContent::InstructionSequence &sequence);
+    void setInitialSetup(ExecutableContent::ContainerId sequence);
 
 private:
     Q_DECLARE_PRIVATE(StateTable)
     DataModel *m_dataModel;
     const int m_sessionId;
-    ExecutableContent::InstructionSequence m_initialSetup;
+    ExecutableContent::ContainerId m_initialSetup = ExecutableContent::NoInstruction;
     QJSEngine *m_engine;
     BindingMethod m_dataBinding;
+    ExecutableContent::ExecutionEngine *m_executionEngine;
     bool m_warnIndirectIdClashes;
     friend class StateTableBuilder;
 
@@ -296,174 +494,6 @@ private:
     QVector<QueuedEvent> *m_queuedEvents;
 };
 
-namespace ExecutableContent {
-
-class SCXML_EXPORT Param
-{
-public:
-    Param();
-    Param(const QString &name, DataModel::EvaluatorId expr, const QString &location);
-
-    bool evaluate(StateTable *table, QVariantList &dataValues, QStringList &dataNames) const;
-    static bool evaluate(const QVector<Param> &params, StateTable *table, QVariantList &dataValues, QStringList &dataNames);
-
-private:
-    QString name;
-    DataModel::EvaluatorId expr = DataModel::NoEvaluator;
-    QString location;
-};
-
-class SCXML_EXPORT DoneData
-{
-public:
-    DoneData();
-    DoneData(const QString &contents, DataModel::EvaluatorId expr, const QVector<Param> &params);
-
-    QString contents() const;
-    DataModel::EvaluatorId expr() const;
-    QVector<Param> params() const;
-
-private:
-    QString m_contents;
-    DataModel::EvaluatorId m_expr = DataModel::NoEvaluator;
-    QVector<Param> m_params;
-};
-
-struct SCXML_EXPORT Send : public Instruction {
-    Send();
-    Send(const QString &instructionLocation,
-         const QByteArray &event,
-         DataModel::EvaluatorId eventexpr,
-         const QString &type,
-         DataModel::EvaluatorId typeexpr,
-         const QString target,
-         DataModel::EvaluatorId targetexpr,
-         const QString &id,
-         const QString &idLocation,
-         const QString &delay,
-         DataModel::EvaluatorId delayexpr,
-         const QStringList &namelist,
-         const QVector<Param> &params,
-         const QString &content);
-
-    QString instructionLocation;
-    QByteArray event;
-    DataModel::EvaluatorId eventexpr = DataModel::NoEvaluator;
-    QString type;
-    DataModel::EvaluatorId typeexpr = DataModel::NoEvaluator;
-    QString target;
-    DataModel::EvaluatorId targetexpr = DataModel::NoEvaluator;
-    QString id;
-    QString idLocation;
-    QString delay;
-    DataModel::EvaluatorId delayexpr = DataModel::NoEvaluator;
-    QStringList namelist;
-    QVector<Param> params;
-    QString content;
-    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
-};
-
-class SCXML_EXPORT Raise : public Instruction
-{
-public:
-    Raise(const QByteArray &event);
-
-    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
-
-private:
-    QByteArray event;
-};
-
-class SCXML_EXPORT Log : public Instruction
-{
-public:
-    Log(const QString &label, DataModel::EvaluatorId expr);
-
-    virtual bool execute(StateTable *table) const Q_DECL_OVERRIDE;
-
-private:
-    QString label;
-    DataModel::EvaluatorId expr = DataModel::NoEvaluator;
-};
-
-struct SCXML_EXPORT Script : public Instruction {
-};
-
-class SCXML_EXPORT JavaScript : public Script
-{
-public:
-    JavaScript(DataModel::EvaluatorId go);
-
-    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
-
-private:
-    DataModel::EvaluatorId go = DataModel::NoEvaluator;
-};
-
-class SCXML_EXPORT AssignExpression : public Instruction
-{
-public:
-    AssignExpression(DataModel::EvaluatorId expression);
-
-    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
-
-private:
-    QString location;
-    DataModel::EvaluatorId expression = DataModel::NoEvaluator;
-};
-
-class SCXML_EXPORT If : public Instruction
-{
-public:
-    If(const QVector<DataModel::EvaluatorId> &conditions, InstructionSequences *blocks);
-    ~If();
-
-    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
-
-private:
-    QVector<DataModel::EvaluatorId> conditions;
-    InstructionSequences *blocks;
-};
-
-class SCXML_EXPORT Foreach : public Instruction
-{
-public:
-    Foreach(DataModel::EvaluatorId it, const InstructionSequence &block);
-
-    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
-
-private:
-    DataModel::EvaluatorId doIt = DataModel::NoEvaluator;
-    InstructionSequence block;
-};
-
-class SCXML_EXPORT Cancel : public Instruction
-{
-public:
-    Cancel(const QByteArray &sendid, DataModel::EvaluatorId sendidexpr);
-    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
-
-private:
-    QByteArray sendid;
-    DataModel::EvaluatorId sendidexpr = DataModel::NoEvaluator;
-};
-
-struct SCXML_EXPORT Invoke : public Instruction {
-    QString type;
-    QString typeexpr;
-    QString src;
-    QString srcexpr;
-    QString id;
-    QString idLocation;
-    QStringList namelist;
-    bool autoforward;
-    QList<Param> params;
-    XmlNode *content;
-    InstructionSequence finalize;
-    bool execute(StateTable *table) const Q_DECL_OVERRIDE;
-};
-
-} // namespace ExecutableContent
 // this transition is used only to ensure that the signal is forwarded to the state machine
 // (mess with private api instead?), it never triggers, because it will have the incorrect
 // precedence as we add it late...
@@ -527,7 +557,8 @@ public:
 
     DataModel::EvaluatorId conditionalExp = DataModel::NoEvaluator;
     ScxmlEvent::EventType type;
-    ExecutableContent::InstructionSequence instructionsOnTransition;
+    ExecutableContent::ContainerId instructionsOnTransition = ExecutableContent::NoInstruction;
+
 protected:
     void onTransition(QEvent *event) Q_DECL_OVERRIDE;
 };
@@ -548,8 +579,9 @@ public:
     virtual bool init();
     QString stateLocation() const;
 
-    ExecutableContent::InstructionSequences onEntryInstructions;
-    ExecutableContent::InstructionSequences onExitInstructions;
+    ExecutableContent::ContainerId onEntryInstructions = ExecutableContent::NoInstruction;
+    ExecutableContent::ContainerId onExitInstructions = ExecutableContent::NoInstruction;
+
 protected:
     void onEntry(QEvent * event) Q_DECL_OVERRIDE;
     void onExit(QEvent * event) Q_DECL_OVERRIDE;
@@ -572,18 +604,19 @@ public:
     StateTable *table() const;
     virtual bool init();
 
-    const ExecutableContent::DoneData &doneData() const;
-    void setDoneData(const ExecutableContent::DoneData &doneData);
+    ExecutableContent::ContainerId doneData() const;
+    void setDoneData(ExecutableContent::ContainerId doneData);
 
-    ExecutableContent::InstructionSequences onEntryInstructions;
-    ExecutableContent::InstructionSequences onExitInstructions;
+    ExecutableContent::StringId location = ExecutableContent::NoString;
+    ExecutableContent::ContainerId onEntryInstructions = ExecutableContent::NoInstruction;
+    ExecutableContent::ContainerId onExitInstructions = ExecutableContent::NoInstruction;
 
 protected:
     void onEntry(QEvent * event) Q_DECL_OVERRIDE;
     void onExit(QEvent * event) Q_DECL_OVERRIDE;
 
 private:
-    ExecutableContent::DoneData m_doneData;
+    ExecutableContent::ContainerId m_doneData = ExecutableContent::NoInstruction;
 };
 
 // Simple basic Xml "dom" to support the scxml xpath data model without qtxml dependency

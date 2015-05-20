@@ -253,7 +253,7 @@ struct State: public AbstractState, public StateOrTransition
     QVector<StateOrTransition *> children;
     InstructionSequences onEntry;
     InstructionSequences onExit;
-    DoneData *doneData = 0;
+    DoneData *doneData = nullptr;
     Type type = Normal;
 
     AbstractState *initialState = nullptr; // filled during verification

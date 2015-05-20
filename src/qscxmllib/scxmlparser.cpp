@@ -33,6 +33,8 @@
 #include <QVector>
 #include <private/qabstracttransition_p.h>
 
+#include <typeinfo>
+
 namespace Scxml {
 
 class ScxmlVerifier: public DocumentModel::NodeVisitor
@@ -297,16 +299,25 @@ public:
         m_parents.reserve(32);
         m_allTransitions.reserve(doc->allTransitions.size());
         m_docStatesToQStates.reserve(doc->allStates.size());
+        m_activeSequences.reserve(4);
 
         doc->root->accept(this);
         wireTransitions();
         applyInitialStates();
 
+        m_table->executionEngine()->setInstructions(m_instructions.copy());
+        m_stringTable.squeeze();
+        m_table->executionEngine()->setStringTable(m_stringTable);
+        m_byteArrayTable.squeeze();
+        m_table->executionEngine()->setByteArrayTable(m_byteArrayTable);
+
         m_parents.clear();
         m_allTransitions.clear();
         m_docStatesToQStates.clear();
-        m_currentInstructionSequence = nullptr;
         m_currentTransition = nullptr;
+        m_stringTable.clear();
+        m_byteArrayTable.clear();
+        m_activeSequences.clear();
 
         return m_table;
     }
@@ -346,12 +357,14 @@ private:
         visit(scxml->children);
         visit(scxml->dataElements);
 
-        m_currentInstructionSequence = &m_table->m_initialSetup;
-        if (scxml->script) {
-            scxml->script->accept(this);
+        if (scxml->script || !scxml->initialSetup.isEmpty()) {
+            m_table->setInitialSetup(startNewSequence());
+            if (scxml->script) {
+                scxml->script->accept(this);
+            }
+            visit(&scxml->initialSetup);
+            endSequence();
         }
-        visit(&scxml->initialSetup);
-        m_currentInstructionSequence = 0;
 
         m_parents.removeLast();
 
@@ -366,7 +379,7 @@ private:
     bool visit(DocumentModel::State *state) Q_DECL_OVERRIDE
     {
         QAbstractState *newState = nullptr;
-        ExecutableContent::InstructionSequences *onEntry = nullptr, *onExit = nullptr;
+        ExecutableContent::ContainerId *onEntry = nullptr, *onExit = nullptr;
         switch (state->type) {
         case DocumentModel::State::Normal: {
             auto s = new ScxmlState(currentParent());
@@ -392,6 +405,7 @@ private:
         } break;
         case DocumentModel::State::Final: {
             auto s = new ScxmlFinalState(currentParent());
+            s->location = createContext(QStringLiteral("<final>"));
             onEntry = &s->onEntryInstructions;
             onExit = &s->onExitInstructions;
             newState = s;
@@ -448,16 +462,16 @@ private:
             Q_UNREACHABLE();
         }
 
-        m_currentTransition = newTransition;
         m_allTransitions.insert(newTransition, transition);
-        m_currentInstructionSequence = &newTransition->instructionsOnTransition;
-        return true;
-    }
-
-    void endVisit(DocumentModel::Transition *) Q_DECL_OVERRIDE
-    {
-        m_currentInstructionSequence = 0;
-        m_currentTransition = 0;
+        if (!transition->instructionsOnTransition.isEmpty()) {
+            m_currentTransition = newTransition;
+            newTransition->instructionsOnTransition = startNewSequence();
+            visit(&transition->instructionsOnTransition);
+            endSequence();
+            m_currentTransition = 0;
+        }
+        Q_ASSERT(newTransition->table());
+        return false;
     }
 
     bool visit(DocumentModel::HistoryState *state) Q_DECL_OVERRIDE
@@ -487,35 +501,35 @@ private:
 
     bool visit(DocumentModel::Send *node) Q_DECL_OVERRIDE
     {
-        auto instr = new ExecutableContent::Send;
+        auto instr = m_instructions.add<ExecutableContent::Send>(ExecutableContent::Send::calculateExtraSize(node->params.size(), node->namelist.size()));
         instr->instructionLocation = createContext(QStringLiteral("send"));
-        instr->event = node->event.toUtf8();
+        instr->event = m_byteArrayTable.add(node->event.toUtf8());
         instr->eventexpr = createEvaluatorString(QStringLiteral("send"), QStringLiteral("eventexpr"), node->eventexpr);
-        instr->type = node->type;
+        instr->type = m_stringTable.add(node->type);
         instr->typeexpr = createEvaluatorString(QStringLiteral("send"), QStringLiteral("typeexpr"), node->typeexpr);
-        instr->target = node->target;
+        instr->target = m_stringTable.add(node->target);
         instr->targetexpr = createEvaluatorString(QStringLiteral("send"), QStringLiteral("targetexpr"), node->targetexpr);
-        instr->id = node->id;
-        instr->idLocation = node->idLocation;
-        instr->delay = node->delay;
+        instr->id = m_byteArrayTable.add(node->id.toUtf8());
+        instr->idLocation = m_stringTable.add(node->idLocation);
+        instr->delay = m_stringTable.add(node->delay);
         instr->delayexpr = createEvaluatorString(QStringLiteral("send"), QStringLiteral("delayexpr"), node->delayexpr);
-        instr->namelist = node->namelist;
-        instr->params = create(node->params);
-        instr->content = node->content;
-        add(instr);
+        instr->content = m_stringTable.add(node->content);
+        generate(&instr->namelist, node->namelist);
+        generate(instr->params(), node->params);
         return false;
     }
 
     void visit(DocumentModel::Raise *node) Q_DECL_OVERRIDE
     {
-        add(new ExecutableContent::Raise(node->event.toUtf8()));
+        auto instr = m_instructions.add<ExecutableContent::Raise>();
+        instr->event = m_byteArrayTable.add(node->event.toUtf8());
     }
 
     void visit(DocumentModel::Log *node) Q_DECL_OVERRIDE
     {
-        auto expr = createEvaluatorString(QStringLiteral("log"), QStringLiteral("expr"), node->expr);
-        auto instr = new ExecutableContent::Log(node->label, expr);
-        add(instr);
+        auto instr = m_instructions.add<ExecutableContent::Log>();
+        instr->label = m_stringTable.add(node->label);
+        instr->expr = createEvaluatorString(QStringLiteral("log"), QStringLiteral("expr"), node->expr);
     }
 
     void visit(DocumentModel::DataElement *data) Q_DECL_OVERRIDE
@@ -528,51 +542,52 @@ private:
 
     void visit(DocumentModel::Script *node) Q_DECL_OVERRIDE
     {
+        auto instr = m_instructions.add<ExecutableContent::JavaScript>();
         auto ctxt = createContext(QStringLiteral("script"), QStringLiteral("source"), node->content);
-        auto func = m_table->dataModel()->createScriptEvaluator(node->content, ctxt);
-        add(new ExecutableContent::JavaScript(func));
+        instr->go = m_table->dataModel()->createScriptEvaluator(node->content, ctxt);
     }
 
     void visit(DocumentModel::Assign *node) Q_DECL_OVERRIDE
     {
+        auto instr = m_instructions.add<ExecutableContent::Assign>();
+        qDebug()<<"...:" <<node->location<<"="<<node->expr;
         auto ctxt = createContext(QStringLiteral("assign"), QStringLiteral("expr"), node->expr);
-        auto expr = m_table->dataModel()->createAssignmentEvaluator(node->location, node->expr, ctxt);
-        add(new ExecutableContent::AssignExpression(expr));
+        instr->expression = m_table->dataModel()->createAssignmentEvaluator(node->location, node->expr, ctxt);
     }
 
     bool visit(DocumentModel::If *node) Q_DECL_OVERRIDE
     {
-        QVector<DataModel::EvaluatorId> conditions(node->conditions.size());
+        auto instr = m_instructions.add<ExecutableContent::If>(node->conditions.size());
+        instr->conditions.count = node->conditions.size();
+        auto it = instr->conditions.data();
         QString tag = QStringLiteral("if");
         for (int i = 0, ei = node->conditions.size(); i != ei; ++i) {
-            conditions[i] = createEvaluatorBool(tag, QStringLiteral("cond"), node->conditions.at(i));
+            *it++ = createEvaluatorBool(tag, QStringLiteral("cond"), node->conditions.at(i));
             if (i == 0) {
                 tag = QStringLiteral("elif");
             }
         }
-        ExecutableContent::InstructionSequences *blocks = new ExecutableContent::InstructionSequences;
-        generate(blocks, node->blocks);
-        add(new ExecutableContent::If(conditions, blocks));
+        auto outSequences = m_instructions.add<ExecutableContent::InstructionSequences>();
+        generate(outSequences, node->blocks);
         return false;
     }
 
     bool visit(DocumentModel::Foreach *node) Q_DECL_OVERRIDE
     {
-        auto ctxt = createContext(QStringLiteral("foreach"));
-        auto it = m_table->dataModel()->createForeachEvaluator(node->array, node->item, node->index, ctxt);
-        ExecutableContent::InstructionSequence *previous = m_currentInstructionSequence;
-        ExecutableContent::InstructionSequence seq;
-        m_currentInstructionSequence = &seq;
+        auto instr = m_instructions.add<ExecutableContent::Foreach>();
+        auto ctxt = createContextString(QStringLiteral("foreach"));
+        instr->doIt = m_table->dataModel()->createForeachEvaluator(node->array, node->item, node->index, ctxt);
+        startSequence(&instr->block);
         visit(&node->block);
-        m_currentInstructionSequence = previous;
-        add(new ExecutableContent::Foreach(it, seq));
+        endSequence();
         return false;
     }
 
     void visit(DocumentModel::Cancel *node) Q_DECL_OVERRIDE
     {
-        auto sendidexpr = createEvaluatorString(QStringLiteral("cancel"), QStringLiteral("sendidexpr"), node->sendidexpr);
-        add(new ExecutableContent::Cancel(node->sendid.toUtf8(), sendidexpr));
+        auto instr = m_instructions.add<ExecutableContent::Cancel>();
+        instr->sendid = m_byteArrayTable.add(node->sendid.toUtf8());
+        instr->sendidexpr = createEvaluatorString(QStringLiteral("cancel"), QStringLiteral("sendidexpr"), node->sendidexpr);
     }
 
     bool visit(DocumentModel::Invoke *) Q_DECL_OVERRIDE
@@ -583,12 +598,14 @@ private:
 
     bool visit(DocumentModel::DoneData *node) Q_DECL_OVERRIDE
     {
+        auto id = m_instructions.newContainerId();
         auto finalState = qobject_cast<ScxmlFinalState *>(m_parents.last());
         Q_ASSERT(finalState);
-        ExecutableContent::DoneData dd(node->contents,
-                                       createEvaluatorString(QStringLiteral("donedata"), QStringLiteral("expr"), node->expr),
-                                       create(node->params));
-        finalState->setDoneData(dd);
+        auto doneData = m_instructions.add<ExecutableContent::DoneData>(node->params.size() * ExecutableContent::Param::calculateSize());
+        doneData->contents = m_stringTable.add(node->contents);
+        doneData->expr = createEvaluatorString(QStringLiteral("donedata"), QStringLiteral("expr"), node->expr);
+        generate(&doneData->params, node->params);
+        finalState->setDoneData(id);
         return false;
     }
 
@@ -635,37 +652,94 @@ private: // Utility methods
         }
     }
 
-    void add(ExecutableContent::Instruction *instr) const
+    void generate(ExecutableContent::Array<ExecutableContent::Param> *out, const QVector<DocumentModel::Param *> &in)
     {
-        Q_ASSERT(m_currentInstructionSequence);
-        m_currentInstructionSequence->statements.append(ExecutableContent::Instruction::Ptr(instr));
+        out->count = in.size();
+        ExecutableContent::Param *it = out->data();
+        foreach (DocumentModel::Param *f, in) {
+            it->name = m_stringTable.add(f->name);
+            it->expr = createEvaluatorVariant(QStringLiteral("param"), QStringLiteral("expr"), f->expr);
+            it->location = m_stringTable.add(f->location);
+            ++it;
+        }
     }
 
-    QVector<ExecutableContent::Param> create(const QVector<DocumentModel::Param *> &from) const
+    void generate(ExecutableContent::ContainerId *id, const DocumentModel::InstructionSequences &inSequences)
     {
-        QVector<ExecutableContent::Param> to;
-        to.reserve(from.size());
-        foreach (DocumentModel::Param *f, from) {
-            ExecutableContent::Param param(
-                        f->name,
-                        createEvaluatorVariant(QStringLiteral("param"), QStringLiteral("expr"), f->expr),
-                        f->location);
-            to.append(param);
-        }
-        return to;
+        if (inSequences.isEmpty())
+            return;
+
+        *id = m_instructions.newContainerId();
+        auto outSequences = m_instructions.add<ExecutableContent::InstructionSequences>();
+        generate(outSequences, inSequences);
     }
 
     void generate(ExecutableContent::InstructionSequences *outSequences, const DocumentModel::InstructionSequences &inSequences)
     {
-        ExecutableContent::InstructionSequence *previous = m_currentInstructionSequence;
+        int sequencesOffset = m_instructions.offset(outSequences);
+        int sequenceCount = 0;
+        int entryCount = 0;
         foreach (DocumentModel::InstructionSequence *sequence, inSequences) {
-            m_currentInstructionSequence = outSequences->newInstructions();
+            ++sequenceCount;
+            startNewSequence();
             visit(sequence);
+            entryCount += endSequence()->size();
         }
-        m_currentInstructionSequence = previous;
+        outSequences = m_instructions.at<ExecutableContent::InstructionSequences>(sequencesOffset);
+        outSequences->sequenceCount = sequenceCount;
+        outSequences->entryCount = entryCount;
     }
 
-    QString createContext(const QString &instrName) const
+    void generate(ExecutableContent::Array<ExecutableContent::StringId> *out, const QStringList &in)
+    {
+        out->count = in.size();
+        ExecutableContent::StringId *it = out->data();
+        foreach (const QString &str, in) {
+            *it++ = m_stringTable.add(str);
+        }
+    }
+
+    ExecutableContent::ContainerId startNewSequence()
+    {
+        auto id = m_instructions.newContainerId();
+        auto sequence = m_instructions.add<ExecutableContent::InstructionSequence>();
+        startSequence(sequence);
+        return id;
+    }
+
+    void startSequence(ExecutableContent::InstructionSequence *sequence)
+    {
+        SequenceInfo info;
+        info.location = m_instructions.offset(sequence);
+        info.entryCount = 0;
+        m_activeSequences.push_back(info);
+        m_instructions.setSequenceInfo(&m_activeSequences.last());
+        sequence->instructionType = ExecutableContent::Instruction::Sequence;
+        sequence->entryCount = -1; // checked in endSequence
+        qDebug()<<"starting sequence with depth"<<m_activeSequences.size();
+    }
+
+    ExecutableContent::InstructionSequence *endSequence()
+    {
+        SequenceInfo info = m_activeSequences.back();
+        m_activeSequences.pop_back();
+        m_instructions.setSequenceInfo(m_activeSequences.isEmpty() ? nullptr : &m_activeSequences.last());
+
+        auto sequence = m_instructions.at<ExecutableContent::InstructionSequence>(info.location);
+        Q_ASSERT(sequence->entryCount == -1); // set in startSequence
+        sequence->entryCount = info.entryCount;
+        if (!m_activeSequences.isEmpty())
+            m_activeSequences.last().entryCount += info.entryCount;
+        qDebug()<<"finished sequence with"<<info.entryCount<<"bytes, depth" << (m_activeSequences.size()+1);
+        return sequence;
+    }
+
+    ExecutableContent::StringId createContext(const QString &instrName)
+    {
+        return m_stringTable.add(createContextString(instrName));
+    }
+
+    QString createContextString(const QString &instrName) const
     {
         if (m_currentTransition) {
             QString state;
@@ -680,7 +754,7 @@ private: // Utility methods
 
     QString createContext(const QString &instrName, const QString &attrName, const QString &attrValue) const
     {
-        QString location = createContext(instrName);
+        QString location = createContextString(instrName);
         return QStringLiteral("%1 with %2=\"%3\"").arg(location, attrName, attrValue);
     }
 
@@ -719,8 +793,74 @@ private:
     QHash<QAbstractTransition *, DocumentModel::Transition*> m_allTransitions;
     QHash<DocumentModel::AbstractState *, QAbstractState *> m_docStatesToQStates;
     QAbstractTransition *m_currentTransition = nullptr;
-    ExecutableContent::InstructionSequence *m_currentInstructionSequence = nullptr;
+    struct SequenceInfo {
+        int location;
+        qint32 entryCount; // the amount of qint32's that the instructions take up
+    };
+    QVector<SequenceInfo> m_activeSequences;
     QVector<QPair<QState *, DocumentModel::AbstractState *>> m_initialStates;
+
+    template <typename T, typename U>
+    class Table: public QVector<T> {
+    public:
+        U add(const T &s) {
+            int pos = this->indexOf(s);
+            if (pos == -1) {
+                pos = this->size();
+                this->append(s);
+            }
+            return pos;
+        }
+    };
+    Table<QString, ExecutableContent::StringId> m_stringTable;
+    Table<QByteArray, ExecutableContent::ByteArrayId> m_byteArrayTable;
+
+    class {
+    public:
+        ExecutableContent::ContainerId newContainerId() const { return m_instr.size(); }
+
+        template <typename T>
+        T *add(int extra = 0)
+        {
+            int pos = m_instr.size();
+            int size = sizeof(T) / sizeof(qint32) + extra;
+            if (m_info)
+                m_info->entryCount += size;
+            m_instr.resize(pos + size);
+            T *instr = at<T>(pos);
+            Q_ASSERT(instr->instructionType == 0);
+            instr->instructionType = T::kind();
+            qDebug()<<"adding instruction"<<typeid(*instr).name()<<"size"<<size;
+            return instr;
+        }
+
+        int offset(ExecutableContent::Instruction *instr) const
+        {
+            return reinterpret_cast<qint32 *>(instr) - m_instr.data();
+        }
+
+        template <typename T>
+        T *at(int offset)
+        {
+            return reinterpret_cast<T *>(&m_instr[offset]);
+        }
+
+        ExecutableContent::Instructions copy() const
+        {
+            qint32 *data = new qint32[m_instr.size()];
+            memcpy(data, m_instr.data(), m_instr.size() * sizeof(qint32));
+            return data;
+        }
+
+        void setSequenceInfo(SequenceInfo *info)
+        {
+            m_info = info;
+        }
+
+    private:
+        QVector<qint32> m_instr;
+        SequenceInfo *m_info = nullptr;
+    } m_instructions;
 };
 
 ScxmlParser::ScxmlParser(QXmlStreamReader *reader, LoaderFunction loader)
