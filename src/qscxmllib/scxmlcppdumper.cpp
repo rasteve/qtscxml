@@ -326,11 +326,19 @@ protected:
             parentName = parentStateMemberName();
         }
         Q_ASSERT(!parentName.isEmpty());
-        QString initializer = tName + QStringLiteral("(&") + parentName + QStringLiteral(", QList<QByteArray>()");
-        foreach (const QString &event, node->events) {
-            initializer += QStringLiteral(" << ") + qba(event);
+        QString initializer = tName + QStringLiteral("(&") + parentName + QStringLiteral(", {");
+        for (int i = 0, ei = node->events.size(); i != ei; ++i) {
+            if (i == 0) {
+                initializer += QLatin1Char(' ');
+            } else {
+                initializer += QStringLiteral(", ");
+            }
+            initializer += qba(node->events.at(i));
+            if (i + 1 == ei) {
+                initializer += QLatin1Char(' ');
+            }
         }
-        initializer += QLatin1Char(')');
+        initializer += QStringLiteral("})");
         clazz.constructor.initializer << initializer;
 
         // init:
@@ -346,11 +354,19 @@ protected:
         if (node->type == Transition::Internal) {
             clazz.init.impl << tName + QStringLiteral(".setTransitionType(QAbstractTransition::InternalTransition);");
         }
-        QString targets = tName + QStringLiteral(".setTargetStates(QList<QAbstractState *>()");
-        foreach (AbstractState *target, node->targetStates) {
-            targets += QStringLiteral(" << &state_") + mangledName(target);
+        QString targets = tName + QStringLiteral(".setTargetStates({");
+        for (int i = 0, ei = node->targetStates.size(); i != ei; ++i) {
+            if (i == 0) {
+                targets += QLatin1Char(' ');
+            } else {
+                targets += QStringLiteral(", ");
+            }
+            targets += QStringLiteral("&state_") + mangledName(node->targetStates.at(i));
+            if (i + 1 == ei) {
+                targets += QLatin1Char(' ');
+            }
         }
-        clazz.init.impl << targets + QStringLiteral(");");
+        clazz.init.impl << targets + QStringLiteral("});");
 
         // visit the kids:
         m_parents.append(node);
