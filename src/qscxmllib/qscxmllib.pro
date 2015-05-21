@@ -17,7 +17,11 @@ HEADERS += \
     scxmlcppdumper.h \
     nulldatamodel.h \
     ecmascriptdatamodel.h \
-    ecmascriptplatformproperties.h
+    ecmascriptplatformproperties.h \
+    executablecontent.h \
+    executablecontent_p.h \
+    scxmlevent.h \
+    scxmlevent_p.h
 
 SOURCES += \
     scxmlparser.cpp \
@@ -25,4 +29,6 @@ SOURCES += \
     scxmlcppdumper.cpp \
     nulldatamodel.cpp \
     ecmascriptdatamodel.cpp \
-    ecmascriptplatformproperties.cpp
+    ecmascriptplatformproperties.cpp \
+    executablecontent.cpp \
+    scxmlevent.cpp
