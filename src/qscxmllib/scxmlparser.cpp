@@ -321,11 +321,46 @@ private:
     using NodeVisitor::visit;
     using ExecutableContent::Builder::createContext;
 
-    bool visit(DocumentModel::Scxml *scxml) Q_DECL_OVERRIDE
+    bool visit(DocumentModel::Scxml *node) Q_DECL_OVERRIDE
     {
         m_table = new StateTable;
 
-        switch (scxml->dataModel) {
+        switch (node->binding) {
+        case DocumentModel::Scxml::EarlyBinding:
+            m_table->setDataBinding(StateTable::EarlyBinding);
+            break;
+        case DocumentModel::Scxml::LateBinding:
+            m_table->setDataBinding(StateTable::LateBinding);
+            m_bindLate = true;
+            break;
+        default:
+            Q_UNREACHABLE();
+        }
+
+        m_table->_name = node->name;
+
+        m_parents.append(m_table);
+        visit(node->children);
+
+        m_dataElements.append(node->dataElements);
+        if (node->script || !m_dataElements.isEmpty() || !node->initialSetup.isEmpty()) {
+            m_table->setInitialSetup(startNewSequence());
+            generate(m_dataElements);
+            if (node->script) {
+                node->script->accept(this);
+            }
+            visit(&node->initialSetup);
+            endSequence();
+        }
+
+        m_parents.removeLast();
+
+        foreach (auto initialState, node->initialStates) {
+            Q_ASSERT(initialState);
+            m_initialStates.append(qMakePair(m_table, initialState));
+        }
+
+        switch (node->dataModel) {
         case DocumentModel::Scxml::NullDataModel:
             m_table->setDataModel(new NullDataModel(m_table));
             break;
@@ -336,57 +371,29 @@ private:
             Q_UNREACHABLE();
         }
 
-        switch (scxml->binding) {
-        case DocumentModel::Scxml::EarlyBinding:
-            m_table->setDataBinding(StateTable::EarlyBinding);
-            break;
-        case DocumentModel::Scxml::LateBinding:
-            m_table->setDataBinding(StateTable::LateBinding);
-            break;
-        default:
-            Q_UNREACHABLE();
-        }
-
-        m_table->_name = scxml->name;
-
-        m_parents.append(m_table);
-        visit(scxml->children);
-        visit(scxml->dataElements);
-
-        if (scxml->script || !scxml->initialSetup.isEmpty()) {
-            m_table->setInitialSetup(startNewSequence());
-            if (scxml->script) {
-                scxml->script->accept(this);
-            }
-            visit(&scxml->initialSetup);
-            endSequence();
-        }
-
-        m_parents.removeLast();
-
-        foreach (auto initialState, scxml->initialStates) {
-            Q_ASSERT(initialState);
-            m_initialStates.append(qMakePair(m_table, initialState));
-        }
+        m_table->dataModel()->setEvaluators(evaluators(), assignments(), foreaches());
+        m_table->dataItemNames = dataIds();
 
         return false;
     }
 
-    bool visit(DocumentModel::State *state) Q_DECL_OVERRIDE
+    bool visit(DocumentModel::State *node) Q_DECL_OVERRIDE
     {
         QAbstractState *newState = nullptr;
-        ExecutableContent::ContainerId *onEntry = nullptr, *onExit = nullptr;
-        switch (state->type) {
+        ExecutableContent::ContainerId *init = nullptr, *onEntry = nullptr, *onExit = nullptr;
+        switch (node->type) {
         case DocumentModel::State::Normal: {
             auto s = new ScxmlState(currentParent());
+            init = &s->initInstructions;
             onEntry = &s->onEntryInstructions;
             onExit = &s->onExitInstructions;
             newState = s;
-            if (state->initialState)
-                m_initialStates.append(qMakePair(s, state->initialState));
+            if (node->initialState)
+                m_initialStates.append(qMakePair(s, node->initialState));
         } break;
         case DocumentModel::State::Parallel: {
             auto s = new ScxmlState(currentParent());
+            init = &s->initInstructions;
             onEntry = &s->onEntryInstructions;
             onExit = &s->onExitInstructions;
             s->setChildMode(QState::ParallelStates);
@@ -394,6 +401,7 @@ private:
         } break;
         case DocumentModel::State::Initial: {
             auto s = new ScxmlState(currentParent());
+            init = &s->initInstructions;
             onEntry = &s->onEntryInstructions;
             onExit = &s->onExitInstructions;
             currentParent()->setInitialState(s);
@@ -401,34 +409,41 @@ private:
         } break;
         case DocumentModel::State::Final: {
             auto s = new ScxmlFinalState(currentParent());
-            s->location = createContext(QStringLiteral("<final>"));
             onEntry = &s->onEntryInstructions;
             onExit = &s->onExitInstructions;
             newState = s;
+            s->setDoneData(generate(node->doneData));
         } break;
         default:
             Q_UNREACHABLE();
         }
 
-        newState->setObjectName(state->id);
+        newState->setObjectName(node->id);
 
-        m_docStatesToQStates.insert(state, newState);
+        m_docStatesToQStates.insert(node, newState);
         m_parents.append(newState);
 
-        visit(state->dataElements);
-        visit(state->children);
+        if (!node->dataElements.isEmpty()) {
+            if (init && m_bindLate) {
+                *init = startNewSequence();
+                generate(node->dataElements);
+                endSequence();
+            } else {
+                m_dataElements.append(node->dataElements);
+            }
+        }
+
+        visit(node->children);
         if (onEntry)
-            generate(onEntry, state->onEntry);
+            *onEntry = generate(node->onEntry);
         if (onExit)
-            generate(onExit, state->onExit);
-        if (state->doneData)
-            state->doneData->accept(this);
+            *onExit = generate(node->onExit);
 
         m_parents.removeLast();
         return false;
     }
 
-    bool visit(DocumentModel::Transition *transition) Q_DECL_OVERRIDE
+    bool visit(DocumentModel::Transition *node) Q_DECL_OVERRIDE
     {
         QState *parentState = 0;
         if (QHistoryState *parent = qobject_cast<QHistoryState*>(m_parents.last())) {
@@ -440,14 +455,14 @@ private:
             parentState = currentParent();
         }
         DataModel::EvaluatorId cond = DataModel::NoEvaluator;
-        if (transition->condition) {
-            cond = createEvaluatorBool(QStringLiteral("transition"), QStringLiteral("cond"), *transition->condition.data());
+        if (node->condition) {
+            cond = createEvaluatorBool(QStringLiteral("transition"), QStringLiteral("cond"), *node->condition.data());
         }
         auto newTransition = new ScxmlTransition(parentState,
-                                                 toUtf8(transition->events),
+                                                 toUtf8(node->events),
                                                  cond);
         parentState->addTransition(newTransition);
-        switch (transition->type) {
+        switch (node->type) {
         case DocumentModel::Transition::External:
             newTransition->setTransitionType(QAbstractTransition::ExternalTransition);
             break;
@@ -458,11 +473,11 @@ private:
             Q_UNREACHABLE();
         }
 
-        m_allTransitions.insert(newTransition, transition);
-        if (!transition->instructionsOnTransition.isEmpty()) {
+        m_allTransitions.insert(newTransition, node);
+        if (!node->instructionsOnTransition.isEmpty()) {
             m_currentTransition = newTransition;
             newTransition->instructionsOnTransition = startNewSequence();
-            visit(&transition->instructionsOnTransition);
+            visit(&node->instructionsOnTransition);
             endSequence();
             m_currentTransition = 0;
         }
@@ -493,22 +508,6 @@ private:
     void endVisit(DocumentModel::HistoryState *) Q_DECL_OVERRIDE
     {
         m_parents.removeLast();
-    }
-
-    void visit(DocumentModel::DataElement *data) Q_DECL_OVERRIDE
-    {
-        QState *parent = currentParent();
-        if (!parent)
-            parent = m_table;
-        dataModel()->addData(DataModel::Data(data->id, data->src, data->expr, parent));
-    }
-
-    bool visit(DocumentModel::DoneData *node) Q_DECL_OVERRIDE
-    {
-        auto finalState = qobject_cast<ScxmlFinalState *>(m_parents.last());
-        Q_ASSERT(finalState);
-        finalState->setDoneData(generate(node));
-        return false;
     }
 
 private: // Utility methods
@@ -573,7 +572,7 @@ private: // Utility methods
         return QStringLiteral("%1 with %2=\"%3\"").arg(location, attrName, attrValue);
     }
 
-    DataModel *dataModel() const Q_DECL_OVERRIDE
+    DataModel *dataModel() const
     { return m_table->dataModel(); }
 
 private:
@@ -582,6 +581,8 @@ private:
     QHash<DocumentModel::AbstractState *, QAbstractState *> m_docStatesToQStates;
     QAbstractTransition *m_currentTransition = nullptr;
     QVector<QPair<QState *, DocumentModel::AbstractState *>> m_initialStates;
+    bool m_bindLate = false;
+    QVector<DocumentModel::DataElement *> m_dataElements;
 };
 
 ScxmlParser::ScxmlParser(QXmlStreamReader *reader, LoaderFunction loader)

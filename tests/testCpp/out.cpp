@@ -1,6 +1,7 @@
 #include "out.h"
 
 #include <QScxmlLib/nulldatamodel.h>
+#include <QScxmlLib/executablecontent.h>
 
 struct StateMachine::Data {
     Data(Scxml::StateTable &table)
@@ -67,7 +68,12 @@ struct StateMachine::Data {
 
     void init() {
         table.setDataModel(new Scxml::NullDataModel(&table));
+        table.dataModel()->setEvaluators(evaluators, assignments, foreaches);
+        table.dataItemNames = dataIds;
         table.setDataBinding(Scxml::StateTable::EarlyBinding);
+        table.executionEngine()->setInstructions(instructions);
+        table.executionEngine()->setStringTable(strings);
+        table.executionEngine()->setByteArrayTable(byteArrays);
         table.setInitialState(&state_s__1);
         state_s__1.setObjectName(QStringLiteral("s_1"));
         state_s__1.addTransition(&transition_s__1_0);
@@ -241,6 +247,14 @@ struct StateMachine::Data {
     Scxml::ScxmlTransition transition_s__2_1;
     Scxml::ScxmlTransition transition_s__2_2;
     Scxml::ScxmlTransition transition_s__2_3;
+    
+    static QVector<qint32> instructions;
+    static QVector<QString> strings;
+    static QVector<QByteArray> byteArrays;
+    static QVector<Scxml::ExecutableContent::StringId> dataIds;
+    static Scxml::DataModel::EvaluatorInfos evaluators;
+    static Scxml::DataModel::AssignmentInfos assignments;
+    static Scxml::DataModel::ForeachInfos foreaches;
 };
 
 StateMachine::StateMachine(QObject *parent)
@@ -365,4 +379,25 @@ void StateMachine::event_E97()
 
 void StateMachine::event_E99()
 { submitEvent(QByteArray::fromRawData("E99", 3)); }
+
+QVector<qint32> StateMachine::Data::instructions({
+});
+
+QVector<QString> StateMachine::Data::strings({
+});
+
+QVector<QByteArray> StateMachine::Data::byteArrays({
+});
+
+QVector<Scxml::ExecutableContent::StringId> StateMachine::Data::dataIds({
+});
+
+Scxml::DataModel::EvaluatorInfos StateMachine::Data::evaluators({
+});
+
+Scxml::DataModel::AssignmentInfos StateMachine::Data::assignments({
+});
+
+Scxml::DataModel::ForeachInfos StateMachine::Data::foreaches({
+});
 

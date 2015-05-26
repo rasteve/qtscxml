@@ -16,7 +16,9 @@
  ** from Digia Plc.
  ****************************************************************************/
 
+#include "executablecontent_p.h"
 #include "scxmlcppdumper.h"
+
 #include <algorithm>
 
 namespace Scxml {
@@ -70,7 +72,9 @@ struct MainClass {
     StringListDumper implIncludes;
     QString className;
     StringListDumper classFields;
+    StringListDumper tables;
     Method init;
+    Method initDataModel;
     Method constructor;
     Method destructor;
     StringListDumper signalMethods;
@@ -153,7 +157,13 @@ enum class Evaluator
 
 class DataModelWriter
 {
+    Method &initDataModel;
+
 public:
+    DataModelWriter(Method &init)
+        : initDataModel(init)
+    {}
+
     virtual ~DataModelWriter()
     {}
 
@@ -181,7 +191,7 @@ public:
     }
 };
 
-class DumperVisitor: public DocumentModel::NodeVisitor
+class DumperVisitor: public ExecutableContent::Builder
 {
     Q_DISABLE_COPY(DumperVisitor)
 
@@ -198,6 +208,8 @@ public:
         doc->root->accept(this);
 
         addEvents();
+
+        generateTables();
     }
 
     ~DumperVisitor()
@@ -230,6 +242,8 @@ protected:
             Q_UNREACHABLE();
         }
         clazz.init.impl << QStringLiteral("table.setDataModel(new Scxml::") + dmName + QStringLiteral("DataModel(&table));");
+        clazz.init.impl << QStringLiteral("table.dataModel()->setEvaluators(evaluators, assignments, foreaches);");
+        clazz.init.impl << QStringLiteral("table.dataItemNames = dataIds;");
 
         QString binding;
         switch (node->binding) {
@@ -238,11 +252,17 @@ protected:
             break;
         case DocumentModel::Scxml::LateBinding:
             binding = QStringLiteral("Late");
+            m_bindLate = true;
             break;
         default:
             Q_UNREACHABLE();
         }
         clazz.init.impl << QStringLiteral("table.setDataBinding(Scxml::StateTable::%1Binding);").arg(binding);
+
+        clazz.implIncludes << QStringLiteral("QScxmlLib/executablecontent.h");
+        clazz.init.impl << QStringLiteral("table.executionEngine()->setInstructions(instructions);");
+        clazz.init.impl << QStringLiteral("table.executionEngine()->setStringTable(strings);");
+        clazz.init.impl << QStringLiteral("table.executionEngine()->setByteArrayTable(byteArrays);");
 
         foreach (AbstractState *s, node->initialStates) {
             clazz.init.impl << QStringLiteral("table.setInitialState(&state_") + mangledName(s) + QStringLiteral(");");
@@ -253,22 +273,17 @@ protected:
         visit(node->children);
         visit(node->dataElements);
 
-        int iCnt = node->initialSetup.size();
-        if (node->script)
-            ++iCnt;
-#if 0
-        if (iCnt > 0) {
-            clazz.init.impl << QStringLiteral("{ Scxml::ExecutableContent::InstructionSequence seq;");
-            clazz.init.impl << QStringLiteral("  seq.statements.reserve(%1);").arg(iCnt);
-            m_currentInstructionSequence = QStringLiteral("  seq");
-            if (node->script)
+        m_dataElements.append(node->dataElements);
+        if (node->script || !m_dataElements.isEmpty() || !node->initialSetup.isEmpty()) {
+            clazz.init.impl << QStringLiteral("table.setInitialSetup(%1);").arg(startNewSequence());
+            generate(m_dataElements);
+            if (node->script) {
                 node->script->accept(this);
+            }
             visit(&node->initialSetup);
-            clazz.init.impl << QStringLiteral("  table.setInitialSetup(seq);");
-            clazz.init.impl << QStringLiteral("}");
-            m_currentInstructionSequence.clear();
+            endSequence();
         }
-#endif
+
         m_parents.removeLast();
         return false;
     }
@@ -299,12 +314,27 @@ protected:
 
         // visit the kids:
         m_parents.append(node);
-        visit(node->dataElements);
+        if (!node->dataElements.isEmpty()) {
+            if (m_bindLate) {
+                clazz.init.impl << stateName + QStringLiteral(".initInstructions = %1;").arg(startNewSequence());
+                generate(node->dataElements);
+                endSequence();
+            } else {
+                m_dataElements.append(node->dataElements);
+            }
+        }
+
         visit(node->children);
-        generate(stateName + QStringLiteral(".onEntryInstructions"), node->onEntry);
-        generate(stateName + QStringLiteral(".onExitInstructions"), node->onExit);
-        if (node->doneData)
-            node->doneData->accept(this);
+        if (!node->onEntry.isEmpty())
+            clazz.init.impl << stateName + QStringLiteral(".onEntryInstructions = %1;").arg(generate(node->onEntry));
+        if (!node->onExit.isEmpty())
+            clazz.init.impl << stateName + QStringLiteral(".onExitInstructions = %1;").arg(generate(node->onExit));
+
+        if (node->type == State::Final) {
+            auto id = generate(node->doneData);
+            clazz.init.impl << stateName + QStringLiteral(".setDoneData(%1);").arg(id);
+        }
+
         m_parents.removeLast();
         return false;
     }
@@ -342,14 +372,11 @@ protected:
         clazz.constructor.initializer << initializer;
 
         // init:
-#if 0
         if (node->condition) {
             QString condExpr = *node->condition.data();
-            QString ctxt = createContext(QStringLiteral("transition"), QStringLiteral("cond"), condExpr);
-            QString cond = createEvaluator(Evaluator::ToBool, 1, { condExpr, ctxt });
+            auto cond = createEvaluatorBool(QStringLiteral("transition"), QStringLiteral("cond"), condExpr);
             clazz.init.impl << tName + QStringLiteral(".conditionalExp = %1;").arg(cond);
         }
-#endif
         clazz.init.impl << parentName + QStringLiteral(".addTransition(&") + tName + QStringLiteral(");");
         if (node->type == Transition::Internal) {
             clazz.init.impl << tName + QStringLiteral(".setTransitionType(QAbstractTransition::InternalTransition);");
@@ -369,21 +396,16 @@ protected:
         clazz.init.impl << targets + QStringLiteral("});");
 
         // visit the kids:
-        m_parents.append(node);
-        m_currentTransitionName = tName;
-        m_currentInstructionSequence = tName + QStringLiteral(".instructionsOnTransition");
-#if 0
-        if (!node->instructionsOnTransition.isEmpty())
-            clazz.init.impl << m_currentInstructionSequence + QStringLiteral(".statements.reserve(%1);").arg(node->instructionsOnTransition.size());
-#endif
-        return true;
-    }
-
-    void endVisit(Transition *) Q_DECL_OVERRIDE
-    {
-        m_currentInstructionSequence.clear();
-        m_parents.removeLast();
-        m_currentTransitionName.clear();
+        if (!node->instructionsOnTransition.isEmpty()) {
+            m_parents.append(node);
+            m_currentTransitionName = tName;
+            clazz.init.impl << tName + QStringLiteral(".instructionsOnTransition = %1;").arg(startNewSequence());
+            visit(&node->instructionsOnTransition);
+            endSequence();
+            m_parents.removeLast();
+            m_currentTransitionName.clear();
+        }
+        return false;
     }
 
     bool visit(DocumentModel::HistoryState *node) Q_DECL_OVERRIDE
@@ -439,158 +461,7 @@ protected:
         return false;
     }
 
-#if 0
-    bool visit(DocumentModel::Send *node) Q_DECL_OVERRIDE
-    {
-        QString eventexpr = createEvaluator(Evaluator::ToString, 1, { node->eventexpr, createContext(QStringLiteral("send"), QStringLiteral("eventexpr"), node->eventexpr) });
-        QString typeexpr = createEvaluator(Evaluator::ToString, 1, { node->typeexpr, createContext(QStringLiteral("send"), QStringLiteral("typeexpr"), node->typeexpr) });
-        QString targetexpr = createEvaluator(Evaluator::ToString, 1, { node->targetexpr, createContext(QStringLiteral("send"), QStringLiteral("targetexpr"), node->targetexpr) });
-        QString delayexpr = createEvaluator(Evaluator::ToString, 1, { node->delayexpr, createContext(QStringLiteral("send"), QStringLiteral("delayexpr"), node->delayexpr) });
-        generateParams(node->params);
-        QString namelist = QStringLiteral("QStringList()");
-        foreach (const QString &name, node->namelist)
-            namelist += QStringLiteral(" << ") + strLit(name);
-        addInstruction(QStringLiteral("Send"), {
-                           strLit(createContext(QStringLiteral("send"))),
-                           qba(node->event),
-                           eventexpr,
-                           strLit(node->type),
-                           typeexpr,
-                           strLit(node->target),
-                           targetexpr,
-                           strLit(node->id),
-                           strLit(node->idLocation),
-                           strLit(node->delay),
-                           delayexpr,
-                           namelist,
-                           QStringLiteral("params"),
-                           strLit(node->content)
-                       });
-        clazz.init.impl << QStringLiteral("}");
-        return false;
-    }
-
-    void visit(Raise *node) Q_DECL_OVERRIDE
-    {
-        addInstruction(QStringLiteral("Raise"), { qba(node->event) });
-    }
-
-    void visit(Log *node) Q_DECL_OVERRIDE
-    {
-        QString context = createContext(QStringLiteral("log"), QStringLiteral("expr"), node->expr);
-        QString expr = createEvaluator(Evaluator::ToString, 1, { node->expr, context });
-        addInstruction(QStringLiteral("Log"), { strLit(node->label), expr });
-    }
-
-    void visit(DataElement *data) Q_DECL_OVERRIDE
-    {
-        QString code = QStringLiteral("table.dataModel()->addData(Scxml::DataModel::Data(%1, %2, %3, %4));");
-        QString parent = QStringLiteral("&") + parentStateMemberName();
-        clazz.init.impl << code.arg(strLit(data->id), strLit(data->src), strLit(data->expr), parent);
-    }
-
-    void visit(Script *node) Q_DECL_OVERRIDE
-    {
-        QString context = createContext(QStringLiteral("script"), QStringLiteral("source"), node->content);
-        auto func = createEvaluator(Evaluator::Script, 1, { node->content, context });
-        addInstruction(QStringLiteral("JavaScript"), { func });
-    }
-
-    void visit(Assign *node) Q_DECL_OVERRIDE
-    {
-        QString context = createContext(QStringLiteral("assign"), QStringLiteral("expr"), node->expr);
-        QString expr = createEvaluator(Evaluator::Assignment, 2, { node->location, node->expr, context });
-        addInstruction(QStringLiteral("AssignExpression"), { expr });
-    }
-
-    bool visit(If *node) Q_DECL_OVERRIDE
-    {
-        clazz.init.impl << QStringLiteral("{ QVector<Scxml::DataModel::EvaluatorId> conditions;");
-        clazz.init.impl << QStringLiteral("  conditions.reserve(%1);").arg(node->conditions.size());
-        QString tag = QStringLiteral("if");
-        for (int i = 0, ei = node->conditions.size(); i != ei; ++i) {
-            QString condExpr = node->conditions.at(i);
-            QString ctxt = createContext(tag, QStringLiteral("cond"), condExpr);
-            QString cond = createEvaluator(Evaluator::ToBool, 1, { condExpr, ctxt });
-            clazz.init.impl << QStringLiteral("  conditions.append(%1);").arg(cond);
-            if (i == 0) {
-                tag = QStringLiteral("elif");
-            }
-        }
-        clazz.init.impl << QStringLiteral("  Scxml::ExecutableContent::InstructionSequences *blocks = new Scxml::ExecutableContent::InstructionSequences;");
-        generate(QStringLiteral("(*blocks)"), node->blocks);
-        addInstruction(QStringLiteral("If"), { QStringLiteral("conditions"), QStringLiteral("blocks") });
-        clazz.init.impl << QStringLiteral("}");
-        return false;
-    }
-
-    bool visit(Foreach *node) Q_DECL_OVERRIDE
-    {
-        QString ctxt = createContext(QStringLiteral("foreach"));
-        QString it = createEvaluator(Evaluator::Foreach, 0, { node->array, node->item, node->index, ctxt });
-        QString previous = m_currentInstructionSequence;
-//        ExecutableContent::InstructionSequence seq;
-        ++m_sequenceDepth;
-        clazz.init.impl << QStringLiteral("{ Scxml::ExecutableContent::InstructionSequence seq%1;").arg(m_sequenceDepth);
-        clazz.init.impl << QStringLiteral("  seq%1.statements.reserve(%2);").arg(m_sequenceDepth).arg(node->block.size());
-        m_currentInstructionSequence = QStringLiteral("  seq%1").arg(m_sequenceDepth);
-        visit(&node->block);
-        m_currentInstructionSequence = previous;
-        addInstruction(QStringLiteral("Foreach"), { it, QStringLiteral("seq%1").arg(m_sequenceDepth) });
-        clazz.init.impl << QStringLiteral("}");
-        --m_sequenceDepth;
-        return false;
-
-    }
-
-    void visit(Cancel *node) Q_DECL_OVERRIDE
-    {
-        QString context = createContext(QStringLiteral("cancel"), QStringLiteral("sendidexpr"), node->sendidexpr);
-        QString sendidexpr = createEvaluator(Evaluator::ToString, 1, { node->sendidexpr, context });
-        addInstruction(QStringLiteral("Cancel"), { qba(node->sendid), sendidexpr });
-    }
-
-    bool visit(Invoke *) Q_DECL_OVERRIDE
-    {
-        Q_UNIMPLEMENTED();
-        return false;
-    }
-
-    bool visit(DocumentModel::DoneData *node) Q_DECL_OVERRIDE
-    {
-        QString context = createContext(QStringLiteral("donedata"), QStringLiteral("expr"), node->expr);
-        QString expr = createEvaluator(Evaluator::ToString, 1, { node->expr, context });
-        generateParams(node->params);
-        clazz.init.impl << QStringLiteral("  %1.setDoneData(Scxml::ExecutableContent::DoneData(%2, %3, %4));").arg(parentStateMemberName(), strLit(node->contents), expr, QStringLiteral("params"));
-        clazz.init.impl << QStringLiteral("}");
-        return false;
-    }
-#endif
-
 private:
-    void generateParams(const QVector<Param *> &params)
-    {
-        clazz.init.impl << QStringLiteral("{ QVector<Scxml::ExecutableContent::Param> params;");
-        if (!params.isEmpty())
-            clazz.init.impl << QStringLiteral("  params.reserve(%1);").arg(params.size());
-        foreach (DocumentModel::Param *p, params) {
-            QString context = createContext(QStringLiteral("param"), QStringLiteral("expr"), p->expr);
-            QString eval = createEvaluator(Evaluator::ToVariant, 1, { p->expr, context });
-            clazz.init.impl << QStringLiteral("  params.append(Scxml::ExecutableContent::Param(%1, %2, %3));").arg(strLit(p->name), eval, strLit(p->location));
-        }
-    }
-
-    void addInstruction(const QString &instr, const QStringList &args)
-    {
-        static QString callTemplate = QStringLiteral("%1.statements.append(Scxml::ExecutableContent::Instruction::Ptr(new Scxml::ExecutableContent::%2(%3)));");
-        clazz.init.impl << callTemplate.arg(m_currentInstructionSequence, instr, args.join(QStringLiteral(", ")));
-    }
-
-    QString createEvaluator(Evaluator kind, ushort argToCheckForEmpty, const QStringList &args) const
-    {
-        return m_dataModelWriter->createEvaluator(kind, argToCheckForEmpty, args);
-    }
-
     QString mangledName(AbstractState *state)
     {
         Q_ASSERT(state);
@@ -675,31 +546,7 @@ private:
         }
     }
 
-    void generate(const QString &outSequences, const InstructionSequences &inSequences)
-    {
-#if 0
-        QString previous = m_currentInstructionSequence;
-        if (!inSequences.isEmpty())
-            clazz.init.impl << outSequences + QStringLiteral(".sequences.reserve(%1);").arg(inSequences.size());
-        foreach (DocumentModel::InstructionSequence *sequence, inSequences) {
-            ++m_sequenceDepth;
-            clazz.init.impl << QStringLiteral("{ Scxml::ExecutableContent::InstructionSequence &seq%1 = *%2.newInstructions();")
-                               .arg(QString::number(m_sequenceDepth), outSequences);
-            if (sequence->isEmpty()) {
-                clazz.init.impl << QStringLiteral("  Q_UNUSED(seq%1);").arg(m_sequenceDepth);
-            } else {
-                clazz.init.impl << QStringLiteral("  seq%1.statements.reserve(%2);").arg(m_sequenceDepth).arg(sequence->size());
-            }
-            m_currentInstructionSequence = QStringLiteral("  seq%1").arg(m_sequenceDepth);
-            visit(sequence);
-            clazz.init.impl << QStringLiteral("}");
-            --m_sequenceDepth;
-        }
-        m_currentInstructionSequence = previous;
-#endif
-    }
-
-    QString createContext(const QString &instrName) const
+    QString createContextString(const QString &instrName) const Q_DECL_OVERRIDE
     {
         if (!m_currentTransitionName.isEmpty()) {
             QString state = parentStateName();
@@ -709,9 +556,9 @@ private:
         }
     }
 
-    QString createContext(const QString &instrName, const QString &attrName, const QString &attrValue) const
+    QString createContext(const QString &instrName, const QString &attrName, const QString &attrValue) const Q_DECL_OVERRIDE
     {
-        QString location = createContext(instrName);
+        QString location = createContextString(instrName);
         return QStringLiteral("%1 with %2=\"%3\"").arg(location, attrName, attrValue);
     }
 
@@ -744,6 +591,130 @@ private:
         return QString();
     }
 
+    static void generateList(StringListDumper &t, std::function<QString(int)> next)
+    {
+        const int maxLineLength = 80;
+        QString line;
+        for (int i = 0; ; ++i) {
+            QString nr = next(i);
+            if (nr.isNull())
+                break;
+
+            if (i != 0)
+                line += QLatin1Char(',');
+
+            if (line.length() + nr.length() + 1 > maxLineLength) {
+                t << line;
+                line.clear();
+            } else if (i != 0) {
+                line += QLatin1Char(' ');
+            }
+            line += nr;
+        }
+        if (!line.isEmpty())
+            t << line;
+    }
+
+    void generateTables()
+    {
+        StringListDumper &t = clazz.tables;
+        clazz.classFields << QString();
+
+        { // instructions
+            clazz.classFields << QStringLiteral("static QVector<qint32> instructions;");
+            t << QStringLiteral("QVector<qint32> %1::Data::instructions({").arg(m_mainClassName);
+            auto instr = instructions();
+            generateList(t, [&instr](int idx) -> QString {
+                if (idx < instr.size())
+                    return QString::number(instr.at(idx));
+                else
+                    return QString();
+            });
+            t << QStringLiteral("});") << QStringLiteral("");
+        }
+
+        { // strings
+            clazz.classFields << QStringLiteral("static QVector<QString> strings;");
+            t << QStringLiteral("QVector<QString> %1::Data::strings({").arg(m_mainClassName);
+            auto strings = stringTable();
+            for (int i = 0, ei = strings.size(); i != ei; ++i) {
+                QString s = QStringLiteral("    ") + strLit(strings.at(i));
+                if (i + 1 != ei)
+                    s += QLatin1Char(',');
+                t << s;
+            }
+            t << QStringLiteral("});") << QStringLiteral("");
+        }
+
+        { // byte arrays
+            clazz.classFields << QStringLiteral("static QVector<QByteArray> byteArrays;");
+            t << QStringLiteral("QVector<QByteArray> %1::Data::byteArrays({").arg(m_mainClassName);
+            auto byteArrays = byteArrayTable();
+            for (int i = 0, ei = byteArrays.size(); i != ei; ++i) {
+                QString s = QStringLiteral("    ") + qba(QString::fromUtf8(byteArrays.at(i)));
+                if (i + 1 != ei)
+                    s += QLatin1Char(',');
+                t << s;
+            }
+            t << QStringLiteral("});") << QStringLiteral("");
+        }
+
+        { // dataIds
+            auto dataIds = this->dataIds();
+            clazz.classFields << QStringLiteral("static QVector<Scxml::ExecutableContent::StringId> dataIds;");
+            t << QStringLiteral("QVector<Scxml::ExecutableContent::StringId> %1::Data::dataIds({").arg(m_mainClassName);
+            generateList(t, [&dataIds](int idx) -> QString {
+                if (idx < dataIds.size())
+                    return QString::number(dataIds.at(idx));
+                else
+                    return QString();
+            });
+            t << QStringLiteral("});") << QStringLiteral("");
+        }
+
+        { // evaluators
+            auto evaluators = this->evaluators();
+            clazz.classFields << QStringLiteral("static Scxml::DataModel::EvaluatorInfos evaluators;");
+            t << QStringLiteral("Scxml::DataModel::EvaluatorInfos %1::Data::evaluators({").arg(m_mainClassName);
+            generateList(t, [&evaluators](int idx) -> QString {
+                if (idx >= evaluators.size())
+                    return QString();
+
+                auto eval = evaluators.at(idx);
+                return QStringLiteral("{ %1, %2 }").arg(eval.expr).arg(eval.context);
+            });
+            t << QStringLiteral("});") << QStringLiteral("");
+        }
+
+        { // assignments
+            auto assignments = this->assignments();
+            clazz.classFields << QStringLiteral("static Scxml::DataModel::AssignmentInfos assignments;");
+            t << QStringLiteral("Scxml::DataModel::AssignmentInfos %1::Data::assignments({").arg(m_mainClassName);
+            generateList(t, [&assignments](int idx) -> QString {
+                if (idx >= assignments.size())
+                    return QString();
+
+                auto ass = assignments.at(idx);
+                return QStringLiteral("{ %1, %2, %3 }").arg(ass.dest).arg(ass.expr).arg(ass.context);
+            });
+            t << QStringLiteral("});") << QStringLiteral("");
+        }
+
+        { // foreaches
+            auto foreaches = this->foreaches();
+            clazz.classFields << QStringLiteral("static Scxml::DataModel::ForeachInfos foreaches;");
+            t << QStringLiteral("Scxml::DataModel::ForeachInfos %1::Data::foreaches({").arg(m_mainClassName);
+            generateList(t, [&foreaches](int idx) -> QString {
+                if (idx >= foreaches.size())
+                    return QString();
+
+                auto foreach = foreaches.at(idx);
+                return QStringLiteral("{ %1, %2, %3, %4 }").arg(foreach.array).arg(foreach.item).arg(foreach.index).arg(foreach.context);
+            });
+            t << QStringLiteral("});") << QStringLiteral("");
+        }
+    }
+
 private:
     MainClass &clazz;
     const QString &m_mainClassName;
@@ -751,10 +722,10 @@ private:
     DataModelWriter *m_dataModelWriter;
     QHash<DocumentModel::AbstractState *, QString> m_mangledNames;
     QVector<Node *> m_parents;
-    QString m_currentInstructionSequence;
     QSet<QString> m_knownEvents;
     QString m_currentTransitionName;
-    int m_sequenceDepth = 0;
+    bool m_bindLate = false;
+    QVector<DocumentModel::DataElement *> m_dataElements;
 };
 } // anonymous namespace
 
@@ -774,7 +745,7 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     switch (doc->root->dataModel) {
     case Scxml::NullDataModel:
     case Scxml::JSDataModel:
-        dataModelWriter.reset(new DataModelWriter);
+        dataModelWriter.reset(new DataModelWriter(clazz.initDataModel));
         break;
     default:
         Q_UNREACHABLE();
@@ -822,7 +793,7 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
         cpp << endl;
     }
     if (!options.namespaceName.isEmpty())
-        cpp << l("namespace ") << options.namespaceName << l(" {") << endl;
+        cpp << l("namespace ") << options.namespaceName << l(" {") << endl << endl;
 
     cpp << l("struct ") << mainClassName << l("::Data {") << endl;
 
@@ -831,7 +802,7 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     cpp << l("    {}") << endl;
 
     cpp << endl;
-    cpp << l("    void init() {\n");
+    cpp << l("    void init() {\n");    
     clazz.init.impl.write(cpp, QStringLiteral("        "), QStringLiteral("\n"));
     cpp << l("    }") << endl;
 
@@ -855,6 +826,8 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     cpp << endl;
     clazz.publicSlotDefinitions.write(cpp, QStringLiteral("\n"), QStringLiteral("\n"));
     cpp << endl;
+
+    clazz.tables.write(cpp, QStringLiteral(""), QStringLiteral("\n"));
 
     if (!options.namespaceName.isEmpty())
         cpp << l("} // namespace ") << options.namespaceName << endl;

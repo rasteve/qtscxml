@@ -46,50 +46,19 @@ QByteArray objectId(QObject *obj, bool strict = false)
 
 } // anonymous namespace
 
-DataModel::Data::Data()
-{}
-
-DataModel::Data::Data(const QString &id, const QString &src, const QString &expr, QState *context)
-    : id(id)
-    , src(src)
-    , expr(expr)
-    , context(context)
-{
-    Q_ASSERT(context);
-}
-
-class DataModelPrivate
-{
-public:
-    StateTable *table;
-    QVector<DataModel::Data> data;
-};
-
 DataModel::DataModel(StateTable *table)
-    : d(new DataModelPrivate)
+    : m_table(table)
 {
     Q_ASSERT(table);
-    d->table = table;
 }
 
 DataModel::~DataModel()
 {
-    delete d;
 }
 
 StateTable *DataModel::table() const
 {
-    return d->table;
-}
-
-QVector<DataModel::Data> DataModel::data() const
-{
-    return d->data;
-}
-
-void DataModel::addData(const DataModel::Data &data)
-{
-    d->data.append(data);
+    return m_table;
 }
 
 QAtomicInt StateTable::m_sessionIdCounter = QAtomicInt(0);
@@ -289,13 +258,7 @@ void StateTablePrivate::emitStateFinished(QState *forState, QFinalState *guiltyS
     if (ScxmlFinalState *finalState = qobject_cast<ScxmlFinalState *>(guiltyState)) {
         if (!q->isRunning())
             return;
-        const ExecutableContent::DoneData *doneData = q->executionEngine()->doneData(finalState->doneData());
-
-        QByteArray eventName = forState->objectName().toUtf8();
-        eventName.prepend("done.state.");
-        EventBuilder event(q, finalState->location, eventName, doneData);
-        qCDebug(scxmlLog) << q->_name << ": submitting event" << eventName;
-        q->submitEvent(event());
+        q->executionEngine()->execute(finalState->doneData(), forState->objectName());
     }
 
     QStateMachinePrivate::emitStateFinished(forState, guiltyState);
@@ -397,7 +360,7 @@ bool loopOnSubStates(QState *startState,
 
 bool StateTable::init()
 {
-    dataModel()->setup();
+    dataModel()->setup(dataItemNames);
     executeInitialSetup();
 
     bool res = true;
@@ -793,7 +756,6 @@ StateTable *ScxmlState::table() const {
 
 bool ScxmlState::init()
 {
-    m_dataInitialized = (table()->dataBinding() == StateTable::EarlyBinding);
     return true;
 }
 
@@ -803,10 +765,9 @@ QString ScxmlState::stateLocation() const
 }
 
 void ScxmlState::onEntry(QEvent *event) {
-    if (!m_dataInitialized) {
-        m_dataInitialized = true;
-        // this might actually be a bit too late (parallel states might already have been entered)
-        table()->dataModel()->initializeDataFor(this);
+    if (initInstructions != ExecutableContent::NoInstruction) {
+        table()->executionEngine()->execute(initInstructions);
+        initInstructions = ExecutableContent::NoInstruction;
     }
     QState::onEntry(event);
     table()->executionEngine()->execute(onEntryInstructions);

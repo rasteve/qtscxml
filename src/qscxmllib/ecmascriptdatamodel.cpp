@@ -18,6 +18,7 @@
 
 #include "ecmascriptdatamodel.h"
 #include "ecmascriptplatformproperties.h"
+#include "executablecontent_p.h"
 
 #include <QJsonDocument>
 #include <QtQml/private/qjsvalue_p.h>
@@ -30,20 +31,6 @@ typedef std::function<bool (bool *)> ToBoolEvaluator;
 typedef std::function<QVariant (bool *)> ToVariantEvaluator;
 typedef std::function<void (bool *)> ToVoidEvaluator;
 typedef std::function<bool (bool *, std::function<bool ()>)> ForeachEvaluator;
-
-namespace {
-template <typename T>
-class MyVector: public QVector<T>
-{
-public:
-    quint32 add(const T &t)
-    {
-        quint32 pos = this->size();
-        this->append(t);
-        return pos;
-    }
-};
-} // anonymous namespace
 
 class Scxml::EcmaScriptDataModelPrivate
 {
@@ -101,29 +88,6 @@ public:
         }
     }
 
-    void initializeDataFor(QState *s)
-    {
-        Q_ASSERT(!dataModel.isUndefined());
-
-        foreach (const DataModel::Data &data, q->data()) {
-            QJSValue v(QJSValue::UndefinedValue); // See B.2.1, and test456.
-            Q_ASSERT(data.context);
-            const QString context = QStringLiteral("initializeDataFor with data for %1 defined in state '%2'")
-                    .arg(data.id, data.context->objectName());
-            bool ok = true;
-
-            if ((dataBinding() == StateTable::EarlyBinding || data.context == table() || data.context == s)
-                    && !data.expr.isEmpty()) {
-                v = evalJSValue(data.expr, context, &ok);
-            }
-
-            qCDebug(scxmlLog) << "setting datamodel property" << data.id << "to" << v.toVariant();
-            setProperty(data.id, v, context, &ok);
-            Q_ASSERT(dataModel.hasProperty(data.id));
-        }
-    }
-
-
     void setupDataModel()
     {
         Q_ASSERT(engine());
@@ -131,7 +95,6 @@ public:
 
         qCDebug(scxmlLog) << "initializing the datamodel";
         setupSystemVariables();
-        initializeDataFor(table());
     }
 
     void setupSystemVariables()
@@ -215,6 +178,9 @@ public:
     QJSEngine *engine() const
     { return q->engine(); }
 
+    QString string(ExecutableContent::StringId id) const
+    { return table()->executionEngine()->string(id); }
+
     StateTable::BindingMethod dataBinding() const
     { return table()->dataBinding(); }
 
@@ -251,11 +217,9 @@ public:
         table()->submitError(QByteArray("error.execution"), msg.arg(name, context), sendid);
     }
 
-    MyVector<ToStringEvaluator> toStringEvaluators;
-    MyVector<ToBoolEvaluator> toBoolEvaluators;
-    MyVector<ToVariantEvaluator> toVariantEvaluators;
-    MyVector<ToVoidEvaluator> toVoidEvaluators;
-    MyVector<ForeachEvaluator> foreachEvaluators;
+    DataModel::EvaluatorInfos evaluators;
+    DataModel::AssignmentInfos assignments;
+    DataModel::ForeachInfos foreaches;
 
 private: // Uses private API
     static void setReadonlyProperty(QJSValue *object, const QString& name, const QJSValue& value)
@@ -345,160 +309,114 @@ EcmaScriptDataModel::~EcmaScriptDataModel()
     delete d;
 }
 
-void EcmaScriptDataModel::setup()
+void EcmaScriptDataModel::setEvaluators(const DataModel::EvaluatorInfos &evals, const DataModel::AssignmentInfos &assignments, const DataModel::ForeachInfos &foreaches)
+{
+    d->evaluators = evals;
+    d->assignments = assignments;
+    d->foreaches = foreaches;
+}
+
+void EcmaScriptDataModel::setup(const QVector<ExecutableContent::StringId> &dataItemNames)
 {
     d->setupDataModel();
-}
 
-void EcmaScriptDataModel::initializeDataFor(QState *state)
-{
-    d->initializeDataFor(state);
-}
+    bool ok;
+    QJSValue v(QJSValue::UndefinedValue); // See B.2.1, and test456.
+    foreach (ExecutableContent::StringId dataItemName, dataItemNames)
+        d->setProperty(d->string(dataItemName), v, QStringLiteral("<data>"), &ok);
 
-DataModel::EvaluatorId EcmaScriptDataModel::createToStringEvaluator(const QString &expr, const QString &context)
-{
-    const QString e = expr;
-    const QString c = context;
-    return d->toStringEvaluators.add([this, e, c](bool *ok) -> QString {
-        return d->evalStr(e, c, ok);
-    });
-}
-
-DataModel::EvaluatorId EcmaScriptDataModel::createToBoolEvaluator(const QString &expr, const QString &context)
-{
-    const QString e = expr;
-    const QString c = context;
-    return d->toBoolEvaluators.add([this, e, c](bool *ok) -> bool {
-        qDebug()<<"evaluating"<<e;
-        bool res = d->evalBool(e, c, ok);
-        qDebug()<<"result:"<<res<<"ok:"<<*ok;
-        return res;
-    });
-}
-
-DataModel::EvaluatorId EcmaScriptDataModel::createToVariantEvaluator(const QString &expr, const QString &context)
-{
-    const QString e = expr;
-    const QString c = context;
-    return d->toVariantEvaluators.add([this, e, c](bool *ok) -> QVariant {
-        return d->evalJSValue(e, c, ok).toVariant();
-    });
-}
-
-DataModel::EvaluatorId EcmaScriptDataModel::createScriptEvaluator(const QString &expr, const QString &context)
-{
-    const QString e = expr, c = context;
-    return d->toVoidEvaluators.add([this, e, c](bool *ok) {
-        Q_ASSERT(ok);
-        d->eval(e, c, ok);
-    });
-}
-
-DataModel::EvaluatorId EcmaScriptDataModel::createAssignmentEvaluator(const QString &dest,
-                                                                      const QString &expr,
-                                                                      const QString &context)
-{
-    const QString t = dest, e = expr, c = context;
-    return d->toVoidEvaluators.add([this, t, e, c](bool *ok) {
-        qDebug()<<"executing"<<t<<"="<<e;
-        Q_ASSERT(ok);
-        static QByteArray sendid;
-        if (hasProperty(t)) {
-            QJSValue v = d->evalJSValue(e, c, ok);
-            if (*ok)
-                d->setProperty(t, v, c, ok);
-        } else {
-            *ok = false;
-            table()->submitError(QByteArray("error.execution"),
-                                 QStringLiteral("%1 in %2 does not exist").arg(t, c),
-                                 sendid);
-        }
-    });
-}
-
-DataModel::EvaluatorId EcmaScriptDataModel::createForeachEvaluator(const QString &array,
-                                                                   const QString &item,
-                                                                   const QString &index,
-                                                                   const QString &context)
-{
-    const QString a = array, it = item, in = index, c = context;
-    return d->foreachEvaluators.add([this, a, it, in, c](bool *ok, std::function<bool ()> body) -> bool {
-        Q_ASSERT(ok);
-        static QByteArray sendid;
-
-        QJSValue jsArray = d->property(a);
-        if (!jsArray.isArray()) {
-            table()->submitError("error.execution", QStringLiteral("invalid array '%1' in %2").arg(a, c), sendid);
-            *ok = false;
-            return false;
-        }
-
-        if (table()->engine()->evaluate(QStringLiteral("(function(){var %1 = 0})()").arg(it)).isError()) {
-            table()->submitError("error.execution", QStringLiteral("invalid item '%1' in %2")
-                                 .arg(it, c), sendid);
-            *ok = false;
-            return false;
-        }
-
-        const int length = jsArray.property(QStringLiteral("length")).toInt();
-        const bool hasIndex = !in.isEmpty();
-
-        for (int currentIndex = 0; currentIndex < length; ++currentIndex) {
-            QJSValue currentItem = jsArray.property(static_cast<quint32>(currentIndex));
-            d->setProperty(it, currentItem, c, ok);
-            if (!*ok)
-                return false;
-            if (hasIndex) {
-                d->setProperty(in, currentIndex, c, ok);
-                if (!*ok)
-                    return false;
-            }
-            if (!body())
-                return false;
-        }
-
-        return true;
-    });
 }
 
 QString EcmaScriptDataModel::evaluateToString(DataModel::EvaluatorId id, bool *ok)
 {
-    Q_ASSERT(id >= 0);
-    Q_ASSERT(id < d->toStringEvaluators.size());
+    const DataModel::EvaluatorInfo &info = d->evaluators.at(id);
 
-    return d->toStringEvaluators.at(id)(ok);
+    return d->evalStr(d->string(info.expr), d->string(info.context), ok);
 }
 
 bool EcmaScriptDataModel::evaluateToBool(DataModel::EvaluatorId id, bool *ok)
 {
-    Q_ASSERT(id >= 0);
-    Q_ASSERT(id < d->toBoolEvaluators.size());
+    const DataModel::EvaluatorInfo &info = d->evaluators.at(id);
 
-    return d->toBoolEvaluators.at(id)(ok);
+    return d->evalBool(d->string(info.expr), d->string(info.context), ok);
 }
 
 QVariant EcmaScriptDataModel::evaluateToVariant(DataModel::EvaluatorId id, bool *ok)
 {
-    Q_ASSERT(id >= 0);
-    Q_ASSERT(id < d->toVariantEvaluators.size());
+    const DataModel::EvaluatorInfo &info = d->evaluators.at(id);
 
-    return d->toVariantEvaluators.at(id)(ok);
+    return d->evalJSValue(d->string(info.expr), d->string(info.context), ok).toVariant();
 }
 
 void EcmaScriptDataModel::evaluateToVoid(DataModel::EvaluatorId id, bool *ok)
 {
-    Q_ASSERT(id >= 0);
-    Q_ASSERT(id < d->toVoidEvaluators.size());
+    const DataModel::EvaluatorInfo &info = d->evaluators.at(id);
 
-    return d->toVoidEvaluators.at(id)(ok);
+    d->eval(d->string(info.expr), d->string(info.context), ok);
+}
+
+void EcmaScriptDataModel::evaluateAssignment(DataModel::EvaluatorId id, bool *ok)
+{
+    Q_ASSERT(ok);
+
+    const DataModel::AssignmentInfo &info = d->assignments.at(id);
+    static QByteArray sendid;
+
+    QString dest = d->string(info.dest);
+
+    if (hasProperty(dest)) {
+        QJSValue v = d->evalJSValue(d->string(info.expr), d->string(info.context), ok);
+        if (*ok)
+            d->setProperty(dest, v, d->string(info.context), ok);
+    } else {
+        *ok = false;
+        table()->submitError(QByteArray("error.execution"),
+                             QStringLiteral("%1 in %2 does not exist").arg(dest, d->string(info.context)),
+                             sendid);
+    }
 }
 
 bool EcmaScriptDataModel::evaluateForeach(DataModel::EvaluatorId id, bool *ok, std::function<bool ()> body)
 {
-    Q_ASSERT(id >= 0);
-    Q_ASSERT(id < d->foreachEvaluators.size());
+    Q_ASSERT(ok);
+    static QByteArray sendid;
+    const DataModel::ForeachInfo &info = d->foreaches.at(id);
 
-    return d->foreachEvaluators.at(id)(ok, body);
+    QJSValue jsArray = d->property(d->string(info.array));
+    if (!jsArray.isArray()) {
+        table()->submitError("error.execution", QStringLiteral("invalid array '%1' in %2").arg(d->string(info.array), d->string(info.context)), sendid);
+        *ok = false;
+        return false;
+    }
+
+    QString item = d->string(info.item);
+    if (table()->engine()->evaluate(QStringLiteral("(function(){var %1 = 0})()").arg(item)).isError()) {
+        table()->submitError("error.execution", QStringLiteral("invalid item '%1' in %2")
+                             .arg(d->string(info.item), d->string(info.context)), sendid);
+        *ok = false;
+        return false;
+    }
+
+    const int length = jsArray.property(QStringLiteral("length")).toInt();
+    QString idx = d->string(info.index);
+    QString context = d->string(info.context);
+    const bool hasIndex = !idx.isEmpty();
+
+    for (int currentIndex = 0; currentIndex < length; ++currentIndex) {
+        QJSValue currentItem = jsArray.property(static_cast<quint32>(currentIndex));
+        d->setProperty(item, currentItem, context, ok);
+        if (!*ok)
+            return false;
+        if (hasIndex) {
+            d->setProperty(idx, currentIndex, context, ok);
+            if (!*ok)
+                return false;
+        }
+        if (!body())
+            return false;
+    }
+
+    return true;
 }
 
 void EcmaScriptDataModel::setEvent(const ScxmlEvent &event)

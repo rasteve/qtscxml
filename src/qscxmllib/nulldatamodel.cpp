@@ -24,63 +24,14 @@ NullDataModel::NullDataModel(StateTable *table)
     : DataModel(table)
 {}
 
-void NullDataModel::setup()
-{}
-
-void NullDataModel::initializeDataFor(QState *state)
+void NullDataModel::setEvaluators(const DataModel::EvaluatorInfos &evals, const DataModel::AssignmentInfos &assignments, const DataModel::ForeachInfos &foreaches)
 {
-    Q_UNUSED(state);
+    // FIXME: bool evaluators need to be stored.
 }
 
-DataModel::EvaluatorId NullDataModel::createToStringEvaluator(const QString &expr, const QString &context)
+void NullDataModel::setup(const QVector<ExecutableContent::StringId> &dataItemNames)
 {
-    Q_UNUSED(expr);
-    Q_UNUSED(context);
-    Q_UNREACHABLE();
-    return DataModel::NoEvaluator;
-}
-
-DataModel::EvaluatorId NullDataModel::createToBoolEvaluator(const QString &expr, const QString &context)
-{
-    Q_UNUSED(expr);
-    Q_UNUSED(context);
-    Q_UNREACHABLE();
-    return DataModel::NoEvaluator;
-}
-
-DataModel::EvaluatorId NullDataModel::createToVariantEvaluator(const QString &expr, const QString &context)
-{
-    Q_UNUSED(expr);
-    Q_UNUSED(context);
-    Q_UNREACHABLE();
-    return DataModel::NoEvaluator;
-}
-
-DataModel::EvaluatorId NullDataModel::createScriptEvaluator(const QString &expr, const QString &context)
-{
-    Q_UNUSED(expr);
-    Q_UNUSED(context);
-    Q_UNREACHABLE();
-    return DataModel::NoEvaluator;
-}
-
-DataModel::EvaluatorId NullDataModel::createAssignmentEvaluator(const QString &dest, const QString &expr, const QString &context)
-{
-    Q_UNUSED(dest);
-    Q_UNUSED(expr);
-    Q_UNUSED(context);
-    Q_UNREACHABLE();
-    return DataModel::NoEvaluator;
-}
-
-DataModel::EvaluatorId NullDataModel::createForeachEvaluator(const QString &array, const QString &item, const QString &index, const QString &context)
-{
-    Q_UNUSED(array);
-    Q_UNUSED(item);
-    Q_UNUSED(index);
-    Q_UNUSED(context);
-    Q_UNREACHABLE();
-    return DataModel::NoEvaluator;
+    Q_UNUSED(dataItemNames);
 }
 
 QString NullDataModel::evaluateToString(DataModel::EvaluatorId id, bool *ok)
@@ -108,6 +59,13 @@ QVariant NullDataModel::evaluateToVariant(DataModel::EvaluatorId id, bool *ok)
 }
 
 void NullDataModel::evaluateToVoid(DataModel::EvaluatorId id, bool *ok)
+{
+    Q_UNUSED(id);
+    Q_UNUSED(ok);
+    Q_UNREACHABLE();
+}
+
+void NullDataModel::evaluateAssignment(DataModel::EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
     Q_UNUSED(ok);

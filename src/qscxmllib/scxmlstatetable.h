@@ -65,21 +65,39 @@ bool loopOnSubStates(QState *startState,
                   std::function<void(QAbstractState *)> inAbstractState = Q_NULLPTR);
 class StateTable;
 
-class DataModelPrivate;
 class SCXML_EXPORT DataModel
 {
     Q_DISABLE_COPY(DataModel)
 
 public:
-    struct Data {
-        Data();
-        Data(const QString &id, const QString &src, const QString &expr, QState *context);
 
-        QString id;
-        QString src;
-        QString expr;
-        QState *context = nullptr;
+#if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
+#pragma pack(push, 4) // 4 == sizeof(qint32)
+#endif
+    struct EvaluatorInfo { // TODO: move to _p.h
+        ExecutableContent::StringId expr;
+        ExecutableContent::StringId context;
     };
+
+    struct AssignmentInfo { // TODO: move to _p.h
+        ExecutableContent::StringId dest;
+        ExecutableContent::StringId expr;
+        ExecutableContent::StringId context;
+    };
+
+    struct ForeachInfo { // TODO: move to _p.h
+        ExecutableContent::StringId array;
+        ExecutableContent::StringId item;
+        ExecutableContent::StringId index;
+        ExecutableContent::StringId context;
+    };
+#if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
+#pragma pack(pop)
+#endif
+
+    typedef QVector<EvaluatorInfo> EvaluatorInfos;
+    typedef QVector<AssignmentInfo> AssignmentInfos;
+    typedef QVector<ForeachInfo> ForeachInfos;
 
     typedef qint32 EvaluatorId;
     enum { NoEvaluator = -1 };
@@ -89,25 +107,17 @@ public:
     virtual ~DataModel();
 
     StateTable *table() const;
-    QVector<Data> data() const;
-    void addData(const Data &data);
 
-    virtual void setup() = 0;
-    virtual void initializeDataFor(QState *state) = 0;
+    virtual void setup(const QVector<ExecutableContent::StringId> &dataItemNames) = 0;
 
-    virtual EvaluatorId createToStringEvaluator(const QString &expr, const QString &context) = 0;
-    virtual EvaluatorId createToBoolEvaluator(const QString &expr, const QString &context) = 0;
-    virtual EvaluatorId createToVariantEvaluator(const QString &expr, const QString &context) = 0;
-    virtual EvaluatorId createScriptEvaluator(const QString &script, const QString &context) = 0;
-    virtual EvaluatorId createAssignmentEvaluator(const QString &dest, const QString &expr,
-                                                  const QString &context) = 0;
-    virtual EvaluatorId createForeachEvaluator(const QString &array, const QString &item,
-                                               const QString &index, const QString &context) = 0;
+    virtual void setEvaluators(const EvaluatorInfos &evals, const AssignmentInfos &assignments,
+                               const ForeachInfos &foreaches) = 0;
 
     virtual QString evaluateToString(EvaluatorId id, bool *ok) = 0;
     virtual bool evaluateToBool(EvaluatorId id, bool *ok) = 0;
     virtual QVariant evaluateToVariant(EvaluatorId id, bool *ok) = 0;
     virtual void evaluateToVoid(EvaluatorId id, bool *ok) = 0;
+    virtual void evaluateAssignment(EvaluatorId id, bool *ok) = 0;
     virtual bool evaluateForeach(EvaluatorId id, bool *ok, std::function<bool()> body) = 0;
 
     virtual void setEvent(const ScxmlEvent &event) = 0;
@@ -118,7 +128,7 @@ public:
                                    bool *ok) = 0;
 
 private:
-    DataModelPrivate *d;
+    StateTable *m_table;
 };
 
 namespace ExecutableContent {
@@ -205,6 +215,7 @@ public:
     QString _name;
     typedef QHash<QString, QString> Dict;
     QStringList currentStates(bool compress = true);
+    QVector<ExecutableContent::StringId> dataItemNames;
     void setInitialSetup(ExecutableContent::ContainerId sequence);
 
 private:
@@ -297,23 +308,21 @@ class SCXML_EXPORT ScxmlState: public QState
 public:
     ScxmlState(QState *parent = 0)
         : QState(parent)
-        , m_dataInitialized(false)
     {}
     ScxmlState(QStatePrivate &dd, QState *parent = 0)
         : QState(dd, parent)
-        , m_dataInitialized(false)
     {}
     StateTable *table() const;
     virtual bool init();
     QString stateLocation() const;
 
+    ExecutableContent::ContainerId initInstructions = ExecutableContent::NoInstruction;
     ExecutableContent::ContainerId onEntryInstructions = ExecutableContent::NoInstruction;
     ExecutableContent::ContainerId onExitInstructions = ExecutableContent::NoInstruction;
 
 protected:
     void onEntry(QEvent * event) Q_DECL_OVERRIDE;
     void onExit(QEvent * event) Q_DECL_OVERRIDE;
-    bool m_dataInitialized;
 };
 
 class SCXML_EXPORT ScxmlInitialState: public ScxmlState
@@ -335,7 +344,6 @@ public:
     ExecutableContent::ContainerId doneData() const;
     void setDoneData(ExecutableContent::ContainerId doneData);
 
-    ExecutableContent::StringId location = ExecutableContent::NoString;
     ExecutableContent::ContainerId onEntryInstructions = ExecutableContent::NoInstruction;
     ExecutableContent::ContainerId onExitInstructions = ExecutableContent::NoInstruction;
 

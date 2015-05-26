@@ -21,6 +21,7 @@
 
 #include "scxmlevent.h"
 #include "scxmlstatetable.h"
+#include "executablecontent_p.h"
 
 #include <QAtomicInt>
 
@@ -56,16 +57,15 @@ class EventBuilder
     {}
 
 public:
-    EventBuilder(StateTable *table, ExecutableContent::StringId instructionLocation, const QByteArray &event, const ExecutableContent::DoneData *doneData)
+    EventBuilder(StateTable *table, const QString &eventName, const ExecutableContent::DoneData *doneData)
         : table(table)
-        , instructionLocation(instructionLocation)
-        , event(event)
     {
-        if (doneData) {
-            contents = table->executionEngine()->string(doneData->contents);
-            contentExpr = doneData->expr;
-            params = &doneData->params;
-        }
+        Q_ASSERT(doneData);
+        instructionLocation = doneData->location;
+        event = eventName.toUtf8();
+        contents = table->executionEngine()->string(doneData->contents);
+        contentExpr = doneData->expr;
+        params = &doneData->params;
     }
 
     EventBuilder(StateTable *table, ExecutableContent::Send &send)

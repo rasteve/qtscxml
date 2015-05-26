@@ -27,9 +27,6 @@ namespace Scxml {
 
 namespace ExecutableContent {
 
-typedef qint32 ByteArrayId;
-typedef qint32 *Instructions;
-
 #if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
 #pragma pack(push, 4) // 4 == sizeof(qint32)
 #endif
@@ -45,13 +42,6 @@ struct Array
     const T &at(int pos) { return *(data() + pos); }
     int dataSize() const { return count * sizeof(T) / sizeof(qint32); }
     int size() const { return sizeof(Array<T>) / sizeof(qint32) + dataSize(); }
-};
-
-struct SCXML_EXPORT ByteArray: Array<char>
-{
-//    static int calculateSize(const QByteArray &str) {
-//        return (sizeof(ByteArray) + str.length() * sizeof(char) + 7) & ~0x7;
-//    }
 };
 
 struct SCXML_EXPORT Param
@@ -77,12 +67,13 @@ struct SCXML_EXPORT Instruction
         Foreach,
         Cancel,
         Invoke,
-        DoneData = 42 // see below
+        DoneData
     } instructionType;
 };
 
-struct SCXML_EXPORT DoneData: Instruction // ok, this is not an instruction, but it gets allocated there.
+struct SCXML_EXPORT DoneData: Instruction
 {
+    StringId location;
     StringId contents;
     DataModel::EvaluatorId expr;
     Array<Param> params;
@@ -233,32 +224,6 @@ struct SCXML_EXPORT Invoke: Instruction
 #pragma pack(pop)
 #endif
 
-class SCXML_EXPORT ExecutionEngine
-{
-public:
-    ExecutionEngine(StateTable *table);
-
-    void setStringTable(const QVector<QString> &strings);
-    QString string(StringId id) const;
-
-    void setByteArrayTable(const QVector<QByteArray> &byteArrays);
-    QByteArray byteArray(ByteArrayId id) const;
-
-    void setInstructions(const QVector<qint32> &instructions);
-    bool execute(ContainerId ip);
-
-    const DoneData *doneData(ContainerId id) const;
-
-private:
-    bool step(Instructions &ip);
-
-private:
-    StateTable *table;
-    QVector<QString> strings;
-    QVector<QByteArray> byteArrays;
-    QVector<qint32> instructions;
-};
-
 class Builder: public DocumentModel::NodeVisitor
 {
 public:
@@ -282,34 +247,48 @@ protected:
     QVector<QString> stringTable();
     QVector<QByteArray> byteArrayTable();
 
-    ContainerId generate(DocumentModel::DoneData *node);
+    ContainerId generate(const DocumentModel::DoneData *node);
     StringId createContext(const QString &instrName);
-    void generate(ContainerId *id, const DocumentModel::InstructionSequences &inSequences);
+    void generate(const QVector<DocumentModel::DataElement *> &dataElements);
+    ContainerId generate(const DocumentModel::InstructionSequences &inSequences);
     void generate(Array<Param> *out, const QVector<DocumentModel::Param *> &in);
     void generate(InstructionSequences *outSequences, const DocumentModel::InstructionSequences &inSequences);
     void generate(Array<StringId> *out, const QStringList &in);
     ContainerId startNewSequence();
     void startSequence(InstructionSequence *sequence);
     InstructionSequence *endSequence();
-    DataModel::EvaluatorId createEvaluatorString(const QString &instrName, const QString &attrName, const QString &expr) const;
-    DataModel::EvaluatorId createEvaluatorBool(const QString &instrName, const QString &attrName, const QString &cond) const;
-    DataModel::EvaluatorId createEvaluatorVariant(const QString &instrName, const QString &attrName, const QString &cond) const;
+    DataModel::EvaluatorId createEvaluatorString(const QString &instrName, const QString &attrName, const QString &expr);
+    DataModel::EvaluatorId createEvaluatorBool(const QString &instrName, const QString &attrName, const QString &cond);
+    DataModel::EvaluatorId createEvaluatorVariant(const QString &instrName, const QString &attrName, const QString &cond);
 
     virtual QString createContextString(const QString &instrName) const = 0;
     virtual QString createContext(const QString &instrName, const QString &attrName, const QString &attrValue) const = 0;
-    virtual DataModel *dataModel() const = 0;
+
+    const DataModel::EvaluatorInfos &evaluators() const { return m_evaluators; }
+    const DataModel::AssignmentInfos &assignments() const { return m_assignments; }
+    const DataModel::ForeachInfos &foreaches() const { return m_foreaches; }
+    const QVector<ExecutableContent::StringId> &dataIds() const { return m_dataIds; }
 
 private:
     template <typename T, typename U>
-    class Table: public QVector<T> {
+    class Table {
+        QVector<T> elements;
+        QMap<T, int> indexForElement;
+
     public:
         U add(const T &s) {
-            int pos = this->indexOf(s);
+            int pos = indexForElement.value(s, -1);
             if (pos == -1) {
-                pos = this->size();
-                this->append(s);
+                pos = elements.size();
+                elements.append(s);
+                indexForElement.insert(s, pos);
             }
             return pos;
+        }
+
+        QVector<T> data() {
+            elements.squeeze();
+            return elements;
         }
     };
     Table<QString, StringId> m_stringTable;
@@ -336,7 +315,7 @@ private:
             T *instr = at<T>(pos);
             Q_ASSERT(instr->instructionType == 0);
             instr->instructionType = T::kind();
-            qDebug()<<"adding instruction"<<typeid(*instr).name()<<"size"<<size;
+//            qDebug()<<"adding instruction"<<typeid(*instr).name()<<"size"<<size;
             return instr;
         }
 
@@ -366,6 +345,53 @@ private:
         QVector<qint32> m_instr;
         SequenceInfo *m_info = nullptr;
     } m_instructions;
+
+
+    DataModel::EvaluatorId addEvaluator(const QString &expr, const QString &context)
+    {
+        DataModel::EvaluatorInfo ei;
+        ei.expr = m_stringTable.add(expr);
+        ei.context = m_stringTable.add(context);
+        m_evaluators.append(ei);
+        return m_evaluators.size() - 1;
+    }
+
+    DataModel::EvaluatorId addAssignment(const QString &dest, const QString &expr, const QString &context)
+    {
+        DataModel::AssignmentInfo ai;
+        ai.dest = m_stringTable.add(dest);
+        ai.expr = m_stringTable.add(expr);
+        ai.context = m_stringTable.add(context);
+        m_assignments.append(ai);
+        return m_assignments.size() - 1;
+    }
+
+    DataModel::EvaluatorId addForeach(const QString &array, const QString &item, const QString &index, const QString &context)
+    {
+        DataModel::ForeachInfo fi;
+        fi.array = m_stringTable.add(array);
+        fi.item = m_stringTable.add(item);
+        fi.index = m_stringTable.add(index);
+        fi.context = m_stringTable.add(context);
+        m_foreaches.append(fi);
+        return m_foreaches.size() - 1;
+    }
+
+    DataModel::EvaluatorId addDataElement(const QString &id, const QString &expr, const QString &context)
+    {
+        auto str = m_stringTable.add(id);
+        if (!m_dataIds.contains(str))
+            m_dataIds.append(str);
+        if (expr.isEmpty())
+            return DataModel::NoEvaluator;
+
+        return addAssignment(id, expr, context);
+    }
+
+    DataModel::EvaluatorInfos m_evaluators;
+    DataModel::AssignmentInfos m_assignments;
+    DataModel::ForeachInfos m_foreaches;
+    QVector<ExecutableContent::StringId> m_dataIds;
 };
 
 } // ExecutableContent namespace
