@@ -102,7 +102,7 @@ public:
         setReadonlyProperty(&dataModel, QStringLiteral("_sessionid"),
                             QStringLiteral("session%1").arg(table()->sessionId()));
 
-        setReadonlyProperty(&dataModel, QStringLiteral("_name"), table()->_name);
+        setReadonlyProperty(&dataModel, QStringLiteral("_name"), table()->name());
 
         auto scxml = engine()->newObject();
         scxml.setProperty(QStringLiteral("location"), QStringLiteral("#_scxml_%1").arg(table()->sessionId()));

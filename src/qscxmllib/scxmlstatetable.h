@@ -141,8 +141,6 @@ class SCXML_EXPORT StateTable: public QStateMachine
     Q_OBJECT
     Q_ENUMS(BindingMethod)
 
-    static QAtomicInt m_sessionIdCounter;
-
 public:
     enum BindingMethod {
         EarlyBinding,
@@ -151,7 +149,7 @@ public:
 
     StateTable(QObject *parent = 0);
     StateTable(StateTablePrivate &dd, QObject *parent);
-    ~StateTable();
+    StateTablePrivate *privateData();
 
     int sessionId() const;
 
@@ -168,6 +166,9 @@ public:
     virtual bool init();
     QJSEngine *engine() const;
     void setEngine(QJSEngine *engine);
+
+    QString name() const;
+    QStringList currentStates(bool compress = true);
 
     Q_INVOKABLE void submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid);
 
@@ -209,28 +210,14 @@ protected:
     void endMicrostep(QEvent *event) Q_DECL_OVERRIDE;
     void executeInitialSetup();
 
-public:
-    // use q_property for these?
-    ScxmlEvent _event;
-    QString _name;
-    typedef QHash<QString, QString> Dict;
-    QStringList currentStates(bool compress = true);
-    QVector<ExecutableContent::StringId> dataItemNames;
+protected: // friend interface
+    friend class StateTableBuilder;
+    void setName(const QString &name);
     void setInitialSetup(ExecutableContent::ContainerId sequence);
+    void setDataItemNames(const QVector<ExecutableContent::StringId> &dataItemNames);
 
 private:
     Q_DECLARE_PRIVATE(StateTable)
-    DataModel *m_dataModel;
-    const int m_sessionId;
-    ExecutableContent::ContainerId m_initialSetup = ExecutableContent::NoInstruction;
-    QJSEngine *m_engine;
-    BindingMethod m_dataBinding;
-    ExecutableContent::ExecutionEngine *m_executionEngine;
-    bool m_warnIndirectIdClashes;
-    friend class StateTableBuilder;
-
-    struct QueuedEvent { QEvent *event; EventPriority priority; };
-    QVector<QueuedEvent> *m_queuedEvents;
 };
 
 // this transition is used only to ensure that the signal is forwarded to the state machine
@@ -250,79 +237,80 @@ protected:
     }
 };
 
-/*class EventTransition : public QKeyEventTransition { };
-Qt::NoModifier      0x00000000 No modifier key is pressed.
-Qt::ShiftModifier   0x02000000 A Shift key on the keyboard is pressed.
-Qt::ControlModifier 0x04000000 A Ctrl key on the keyboard is pressed.
-Qt::AltModifier     0x08000000 An Alt key on the keyboard is pressed.
-Qt::MetaModifier    0x10000000 A Meta key on the keyboard is pressed.
-Qt::KeypadModifier  0x20000000 A keypad button is pressed.
-Qt::GroupSwitchModifier
-
-QMouseEventTransition // no, add?
-*/
-
-class SCXML_EXPORT ScxmlBaseTransition : public QAbstractTransition {
+class SCXML_EXPORT ScxmlBaseTransition : public QAbstractTransition
+{
     Q_OBJECT
+    class Data;
+
 public:
     typedef QSharedPointer<ConcreteSignalTransition> TransitionPtr;
+
     ScxmlBaseTransition(QState * sourceState = 0, const QList<QByteArray> &eventSelector = QList<QByteArray>());
     ScxmlBaseTransition(QAbstractTransitionPrivate &dd, QState *parent,
                         const QList<QByteArray> &eventSelector = QList<QByteArray>());
-    StateTable *table() const;
+    ~ScxmlBaseTransition();
 
+    StateTable *table() const;
     QString transitionLocation() const;
 
     bool eventTest(QEvent *event) Q_DECL_OVERRIDE;
     virtual bool clear();
     virtual bool init();
 
-    QList<QByteArray> eventSelector;
 protected:
     void onTransition(QEvent *event) Q_DECL_OVERRIDE;
+
 private:
-    QList<TransitionPtr> m_concreteTransitions;
+    Data *d;
 };
 
-class SCXML_EXPORT ScxmlTransition : public ScxmlBaseTransition {
+class SCXML_EXPORT ScxmlTransition : public ScxmlBaseTransition
+{
     Q_OBJECT
+    class Data;
+
 public:
-    typedef QSharedPointer<ConcreteSignalTransition> TransitionPtr;
-    ScxmlTransition(QState * sourceState = 0, const QList<QByteArray> &eventSelector = QList<QByteArray>(),
-                    DataModel::EvaluatorId conditionalExp = DataModel::NoEvaluator);
+    ScxmlTransition(QState * sourceState = 0, const QList<QByteArray> &eventSelector = QList<QByteArray>());
+    ~ScxmlTransition();
 
     bool eventTest(QEvent *event) Q_DECL_OVERRIDE;
     StateTable *table() const;
 
-    DataModel::EvaluatorId conditionalExp = DataModel::NoEvaluator;
-    ScxmlEvent::EventType type;
-    ExecutableContent::ContainerId instructionsOnTransition = ExecutableContent::NoInstruction;
+    void setInstructionsOnTransition(ExecutableContent::ContainerId instructions);
+    void setConditionalExpression(DataModel::EvaluatorId evaluator);
 
 protected:
     void onTransition(QEvent *event) Q_DECL_OVERRIDE;
+
+private:
+    Data *d;
 };
 
 class SCXML_EXPORT ScxmlState: public QState
 {
     Q_OBJECT
+    class Data;
+
 public:
-    ScxmlState(QState *parent = 0)
-        : QState(parent)
-    {}
-    ScxmlState(QStatePrivate &dd, QState *parent = 0)
-        : QState(dd, parent)
-    {}
+    ScxmlState(QState *parent = 0);
+    ~ScxmlState();
+
     StateTable *table() const;
     virtual bool init();
     QString stateLocation() const;
 
-    ExecutableContent::ContainerId initInstructions = ExecutableContent::NoInstruction;
-    ExecutableContent::ContainerId onEntryInstructions = ExecutableContent::NoInstruction;
-    ExecutableContent::ContainerId onExitInstructions = ExecutableContent::NoInstruction;
+    void setInitInstructions(ExecutableContent::ContainerId instructions);
+    void setOnEntryInstructions(ExecutableContent::ContainerId instructions);
+    void setOnExitInstructions(ExecutableContent::ContainerId instructions);
 
 protected:
+    ScxmlState(QStatePrivate &dd, QState *parent = 0);
+
     void onEntry(QEvent * event) Q_DECL_OVERRIDE;
     void onExit(QEvent * event) Q_DECL_OVERRIDE;
+
+private:
+    Data *d;
 };
 
 class SCXML_EXPORT ScxmlInitialState: public ScxmlState
@@ -332,27 +320,29 @@ public:
     ScxmlInitialState(QState *parent): ScxmlState(parent) { }
 };
 
-
 class SCXML_EXPORT ScxmlFinalState: public QFinalState
 {
     Q_OBJECT
+    class Data;
 public:
     ScxmlFinalState(QState *parent = 0);
+    ~ScxmlFinalState();
+
     StateTable *table() const;
     virtual bool init();
 
     ExecutableContent::ContainerId doneData() const;
     void setDoneData(ExecutableContent::ContainerId doneData);
 
-    ExecutableContent::ContainerId onEntryInstructions = ExecutableContent::NoInstruction;
-    ExecutableContent::ContainerId onExitInstructions = ExecutableContent::NoInstruction;
+    void setOnEntryInstructions(ExecutableContent::ContainerId instructions);
+    void setOnExitInstructions(ExecutableContent::ContainerId instructions);
 
 protected:
     void onEntry(QEvent * event) Q_DECL_OVERRIDE;
     void onExit(QEvent * event) Q_DECL_OVERRIDE;
 
 private:
-    ExecutableContent::ContainerId m_doneData = ExecutableContent::NoInstruction;
+    Data *d;
 };
 
 // Simple basic Xml "dom" to support the scxml xpath data model without qtxml dependency

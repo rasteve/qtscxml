@@ -61,68 +61,82 @@ StateTable *DataModel::table() const
     return m_table;
 }
 
-QAtomicInt StateTable::m_sessionIdCounter = QAtomicInt(0);
+QAtomicInt StateTablePrivate::m_sessionIdCounter = QAtomicInt(0);
+
+StateTablePrivate::StateTablePrivate()
+    : QStateMachinePrivate()
+    , m_sessionId(m_sessionIdCounter++)
+{
+    Q_Q(StateTable);
+
+    m_executionEngine = new ExecutableContent::ExecutionEngine(q);
+}
+
+StateTablePrivate::~StateTablePrivate()
+{
+    delete m_executionEngine;
+    delete m_queuedEvents;
+}
 
 StateTable::StateTable(QObject *parent)
     : QStateMachine(*new StateTablePrivate, parent)
-    , m_dataModel(nullptr)
-    , m_sessionId(m_sessionIdCounter++)
-    , m_engine(nullptr)
-    , m_dataBinding(EarlyBinding)
-    , m_executionEngine(new ExecutableContent::ExecutionEngine(this))
-    , m_warnIndirectIdClashes(true)
-    , m_queuedEvents(nullptr)
 {
     connect(this, &QStateMachine::finished, this, &StateTable::onFinished);
 }
 
 StateTable::StateTable(StateTablePrivate &dd, QObject *parent)
     : QStateMachine(dd, parent)
-    , m_dataModel(nullptr)
-    , m_sessionId(m_sessionIdCounter++)
-    , m_engine(nullptr)
-    , m_dataBinding(EarlyBinding)
-    , m_executionEngine(new ExecutableContent::ExecutionEngine(this))
-    , m_warnIndirectIdClashes(true)
-    , m_queuedEvents(nullptr)
 {
     connect(this, &QStateMachine::finished, this, &StateTable::onFinished);
 }
 
-StateTable::~StateTable()
+StateTablePrivate *StateTable::privateData()
 {
-    delete m_executionEngine;
-    delete m_queuedEvents;
+    Q_D(StateTable);
+
+    return d;
 }
 
 int StateTable::sessionId() const
 {
-    return m_sessionId;
+    Q_D(const StateTable);
+
+    return d->m_sessionId;
 }
 
 DataModel *StateTable::dataModel() const
 {
-    return m_dataModel;
+    Q_D(const StateTable);
+
+    return d->m_dataModel;
 }
 
 void StateTable::setDataModel(DataModel *dataModel)
 {
-    m_dataModel = dataModel;
+    Q_D(StateTable);
+
+    d->m_dataModel = dataModel;
 }
 
 void StateTable::setDataBinding(StateTable::BindingMethod b)
 {
-    m_dataBinding = b;
+    Q_D(StateTable);
+
+    d->m_dataBinding = b;
 }
 
 StateTable::BindingMethod StateTable::dataBinding() const
 {
-    return m_dataBinding;
+    Q_D(const StateTable);
+
+    return d->m_dataBinding;
 }
 
 ExecutableContent::ExecutionEngine *StateTable::executionEngine() const
 {
-    return m_executionEngine;
+    Q_D(const StateTable);
+
+    return d->m_executionEngine;
 }
 
 void StateTable::doLog(const QString &label, const QString &msg)
@@ -133,6 +147,8 @@ void StateTable::doLog(const QString &label, const QString &msg)
 
 void StateTable::beginSelectTransitions(QEvent *event)
 {
+    Q_D(StateTable);
+
     if (event && event->type() != QEvent::None) {
         switch (event->type()) {
         case QEvent::StateMachineSignal: {
@@ -146,11 +162,11 @@ void StateTable::beginSelectTransitions(QEvent *event)
             QObject *s = e->sender();
             if (s == this) {
                 if (signalName.startsWith(QByteArray("event_"))){
-                    _event.reset(signalName.mid(6), eventType, e->arguments());
+                    d->_event.reset(signalName.mid(6), eventType, e->arguments());
                     break;
                 } else {
                     qCWarning(scxmlLog) << "Unexpected signal event sent to StateMachine "
-                                        << _name << ":" << signalName;
+                                        << d->_name << ":" << signalName;
                 }
             }
             QByteArray senderName = QByteArray("@0");
@@ -162,7 +178,7 @@ void StateTable::beginSelectTransitions(QEvent *event)
             QList<QByteArray> namePieces;
             namePieces << QByteArray("qsignal") << senderName << signalName;
             QByteArray eventName = namePieces.join('.');
-            _event.reset(eventName, eventType, e->arguments());
+            d->_event.reset(eventName, eventType, e->arguments());
         } break;
         case QEvent::StateMachineWrapped: {
             QStateMachine::WrappedEvent * e = (QStateMachine::WrappedEvent *)event;
@@ -191,37 +207,41 @@ void StateTable::beginSelectTransitions(QEvent *event)
             QByteArray name = namePieces.join('.');
             ScxmlEvent::EventType eventType = ScxmlEvent::External;
             // use e->spontaneous(); to choose internal/external?
-            _event.reset(name, eventType); // put something more in data for some elements like keyEvents and mouseEvents?
+            d->_event.reset(name, eventType); // put something more in data for some elements like keyEvents and mouseEvents?
         } break;
         default:
             if (event->type() == ScxmlEvent::scxmlEventType) {
-                _event = *static_cast<ScxmlEvent *>(event);
+                d->_event = *static_cast<ScxmlEvent *>(event);
             } else {
                 QEvent::Type qeventType = event->type();
                 QByteArray eventName = QStringLiteral("qdirectevent.E%1").arg((int)qeventType).toUtf8();
-                _event.reset(eventName);
+                d->_event.reset(eventName);
                 qCWarning(scxmlLog) << "Unexpected event directly sent to StateMachine "
-                                    << _name << ":" << event->type();
+                                    << d->_name << ":" << event->type();
             }
             break;
         }
     } else {
-        _event.clear();
+        d->_event.clear();
     }
 
-    dataModel()->setEvent(_event);
+    dataModel()->setEvent(d->_event);
 }
 
 void StateTable::beginMicrostep(QEvent *event)
 {
-    qCDebug(scxmlLog) << _name << " started microstep from state" << currentStates()
-                      << "with event" << _event.name() << "from event type" << event->type();
+    Q_D(StateTable);
+
+    qCDebug(scxmlLog) << d->_name << " started microstep from state" << currentStates()
+                      << "with event" << d->_event.name() << "from event type" << event->type();
 }
 
 void StateTable::endMicrostep(QEvent *event)
 {
+    Q_D(StateTable);
     Q_UNUSED(event);
-    qCDebug(scxmlLog) << _name << " finished microstep in state (" << currentStates() << ")";
+
+    qCDebug(scxmlLog) << d->_name << " finished microstep in state (" << currentStates() << ")";
 }
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
@@ -229,13 +249,15 @@ void StateTable::endMicrostep(QEvent *event)
 void StateTablePrivate::noMicrostep()
 {
     Q_Q(StateTable);
-    qCDebug(scxmlLog) << q->_name << " had no transition, stays in state (" << q->currentStates() << ")";
+
+    qCDebug(scxmlLog) << _name << " had no transition, stays in state (" << q->currentStates() << ")";
 }
 
 void StateTablePrivate::processedPendingEvents(bool didChange)
 {
     Q_Q(StateTable);
-    qCDebug(scxmlLog) << q->_name << " finishedPendingEvents " << didChange << " in state ("
+
+    qCDebug(scxmlLog) << _name << " finishedPendingEvents " << didChange << " in state ("
                       << q->currentStates() << ")";
     emit q->reachedStableState(didChange);
 }
@@ -247,7 +269,7 @@ void StateTablePrivate::beginMacrostep()
 void StateTablePrivate::endMacrostep(bool didChange)
 {
     Q_Q(StateTable);
-    qCDebug(scxmlLog) << q->_name << " endMacrostep " << didChange << " in state ("
+    qCDebug(scxmlLog) << _name << " endMacrostep " << didChange << " in state ("
                       << q->currentStates() << ")";
 }
 
@@ -306,14 +328,32 @@ QStringList StateTable::currentStates(bool compress)
     return res;
 }
 
+void StateTable::setName(const QString &name)
+{
+    Q_D(StateTable);
+
+    d->_name = name;
+}
+
 void StateTable::setInitialSetup(ExecutableContent::ContainerId sequence)
 {
-    m_initialSetup = sequence;
+    Q_D(StateTable);
+
+    d->m_initialSetup = sequence;
+}
+
+void StateTable::setDataItemNames(const QVector<ExecutableContent::StringId> &dataItemNames)
+{
+    Q_D(StateTable);
+
+    d->dataItemNames = dataItemNames;
 }
 
 void StateTable::executeInitialSetup()
 {
-    executionEngine()->execute(m_initialSetup);
+    Q_D(StateTable);
+
+    executionEngine()->execute(d->m_initialSetup);
 }
 
 bool loopOnSubStates(QState *startState,
@@ -360,7 +400,8 @@ bool loopOnSubStates(QState *startState,
 
 bool StateTable::init()
 {
-    dataModel()->setup(dataItemNames);
+    Q_D(StateTable);
+    dataModel()->setup(d->dataItemNames);
     executeInitialSetup();
 
     bool res = true;
@@ -387,17 +428,30 @@ bool StateTable::init()
 
 QJSEngine *StateTable::engine() const
 {
-    return m_engine;
+    Q_D(const StateTable);
+
+    return d->m_engine;
 }
 
 void StateTable::setEngine(QJSEngine *engine)
 {
-    m_engine = engine;
+    Q_D(StateTable);
+
+    d->m_engine = engine;
+}
+
+QString StateTable::name() const
+{
+    Q_D(const StateTable);
+
+    return d->_name;
 }
 
 void StateTable::submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid)
 {
-    qCDebug(scxmlLog) << "machine" << _name << "had error" << type << ":" << msg;
+    Q_D(StateTable);
+
+    qCDebug(scxmlLog) << "machine" << d->_name << "had error" << type << ":" << msg;
     submitEvent(EventBuilder::errorEvent(type, sendid));
 }
 
@@ -420,7 +474,9 @@ void StateTable::submitEvent(const QByteArray &event, const QVariantList &dataVa
                              const QByteArray &sendid, const QString &origin,
                              const QString &origintype, const QByteArray &invokeid)
 {
-    qCDebug(scxmlLog) << _name << ": submitting event" << event;
+    Q_D(StateTable);
+
+    qCDebug(scxmlLog) << d->_name << ": submitting event" << event;
 
     ScxmlEvent *e = new ScxmlEvent(event, type, dataValues, dataNames, sendid, origin, origintype, invokeid);
     submitEvent(e);
@@ -429,16 +485,17 @@ void StateTable::submitEvent(const QByteArray &event, const QVariantList &dataVa
 void StateTable::submitDelayedEvent(int delayInMiliSecs, ScxmlEvent *e)
 {
     Q_ASSERT(delayInMiliSecs > 0);
+    Q_D(StateTable);
 
     if (!e)
         return;
 
-    qCDebug(scxmlLog) << _name << ": submitting event" << e->name() << "with delay" << delayInMiliSecs << "ms" << "and sendid" << e->sendid();
+    qCDebug(scxmlLog) << d->_name << ": submitting event" << e->name() << "with delay" << delayInMiliSecs << "ms" << "and sendid" << e->sendid();
 
     Q_ASSERT(e->eventType() == ScxmlEvent::External);
     int id = postDelayedEvent(e, delayInMiliSecs);
 
-    qCDebug(scxmlLog) << _name << ": delayed event" << e->name() << "(" << e << ") got id:" << id;
+    qCDebug(scxmlLog) << d->_name << ": delayed event" << e->name() << "(" << e << ") got id:" << id;
 }
 
 void StateTable::cancelDelayedEvent(const QByteArray &sendid)
@@ -447,7 +504,7 @@ void StateTable::cancelDelayedEvent(const QByteArray &sendid)
 
     int id = d->eventIdForDelayedEvent(sendid);
 
-    qCDebug(scxmlLog) << _name << ": canceling event" << sendid << "with id" << id;
+    qCDebug(scxmlLog) << name() << ": canceling event" << sendid << "with id" << id;
 
     if (id != -1)
         QStateMachine::cancelDelayedEvent(id);
@@ -455,22 +512,26 @@ void StateTable::cancelDelayedEvent(const QByteArray &sendid)
 
 void StateTable::queueEvent(ScxmlEvent *event, EventPriority priority)
 {
-    qCDebug(scxmlLog) << _name << ": queueing event" << event->name();
+    Q_D(StateTable);
 
-    if (!m_queuedEvents)
-        m_queuedEvents = new QVector<QueuedEvent>();
-    m_queuedEvents->append({event, priority});
+    qCDebug(scxmlLog) << name() << ": queueing event" << event->name();
+
+    if (!d->m_queuedEvents)
+        d->m_queuedEvents = new QVector<StateTablePrivate::QueuedEvent>();
+    d->m_queuedEvents->append({event, priority});
 }
 
 void StateTable::submitQueuedEvents()
 {
-    qCDebug(scxmlLog) << _name << ": submitting queued events";
+    Q_D(StateTable);
 
-    if (m_queuedEvents) {
-        foreach (const QueuedEvent &e, *m_queuedEvents)
+    qCDebug(scxmlLog) << name() << ": submitting queued events";
+
+    if (d->m_queuedEvents) {
+        foreach (const StateTablePrivate::QueuedEvent &e, *d->m_queuedEvents)
             postEvent(e.event, e.priority);
-        delete m_queuedEvents;
-        m_queuedEvents = 0;
+        delete d->m_queuedEvents;
+        d->m_queuedEvents = nullptr;
     }
 }
 
@@ -533,14 +594,31 @@ void ScxmlEvent::clear() {
     m_dataValues = QVariantList();
 }
 
-/////////////
-ScxmlBaseTransition::ScxmlBaseTransition(QState *sourceState, const QList<QByteArray> &eventSelector) :
-    QAbstractTransition(sourceState), eventSelector(eventSelector) { }
+class ScxmlBaseTransition::Data
+{
+public:
+    QList<QByteArray> eventSelector;
+    QList<TransitionPtr> m_concreteTransitions;
+};
+
+ScxmlBaseTransition::ScxmlBaseTransition(QState *sourceState, const QList<QByteArray> &eventSelector)
+    : QAbstractTransition(sourceState)
+{
+    d->eventSelector = eventSelector;
+}
 
 ScxmlBaseTransition::ScxmlBaseTransition(QAbstractTransitionPrivate &dd, QState *parent,
                                          const QList<QByteArray> &eventSelector)
-    : QAbstractTransition(dd, parent), eventSelector(eventSelector)
-{ }
+    : QAbstractTransition(dd, parent)
+    , d(new Data)
+{
+    d->eventSelector = eventSelector;
+}
+
+ScxmlBaseTransition::~ScxmlBaseTransition()
+{
+    delete d;
+}
 
 StateTable *ScxmlBaseTransition::table() const {
     if (StateTable *t = qobject_cast<StateTable *>(parent()))
@@ -560,16 +638,17 @@ QString ScxmlBaseTransition::transitionLocation() const {
     return QStringLiteral("unbound transition @%1").arg((size_t)(void*)this);
 }
 
-bool ScxmlBaseTransition::eventTest(QEvent *event) {
-    if (eventSelector.isEmpty())
+bool ScxmlBaseTransition::eventTest(QEvent *event)
+{
+    if (d->eventSelector.isEmpty())
         return true;
     if (event->type() == QEvent::None)
         return false;
     StateTable *stateTable = table();
     Q_ASSERT(stateTable);
-    QByteArray eventName = stateTable->_event.name();
+    QByteArray eventName = stateTable->privateData()->_event.name();
     bool selected = false;
-    foreach (QByteArray eventStr, eventSelector) {
+    foreach (QByteArray eventStr, d->eventSelector) {
         if (eventStr == "*") {
             selected = true;
             break;
@@ -592,17 +671,17 @@ bool ScxmlBaseTransition::eventTest(QEvent *event) {
         }
     }
 #ifdef SCXML_DEBUG
-    if (!m_concreteTransitions.isEmpty() && event->type() == QEvent::StateMachineSignal
+    if (!d->m_concreteTransitions.isEmpty() && event->type() == QEvent::StateMachineSignal
             && static_cast<QStateMachine::SignalEvent *>(event)->sender() != stateTable) {
         bool selected2 = false;
-        foreach (TransitionPtr t, m_concreteTransitions) {
+        foreach (TransitionPtr t, d->m_concreteTransitions) {
             if (t->subEventTest(event))
                 selected2 = true;
         }
         if (selected != selected2) {
             qCWarning(scxmlLog) << "text based triggering and signal based triggering differs for event"
                                 << eventName << " text based comparison with '"
-                                << eventSelector.join(' ')
+                                << d->eventSelector.join(' ')
                                 << "' gives value " << selected
                                 << " while the underlying concrete transitions give "
                                 << selected2 << " in " << transitionLocation();
@@ -612,19 +691,21 @@ bool ScxmlBaseTransition::eventTest(QEvent *event) {
     return selected;
 }
 
-bool ScxmlBaseTransition::clear() {
-    foreach (TransitionPtr t, m_concreteTransitions)
+bool ScxmlBaseTransition::clear()
+{
+    foreach (TransitionPtr t, d->m_concreteTransitions)
         sourceState()->removeTransition(t.data());
-    m_concreteTransitions.clear();
+    d->m_concreteTransitions.clear();
     return true;
 }
 
-bool ScxmlBaseTransition::init() {
-    Q_ASSERT(m_concreteTransitions.isEmpty());
-    if (eventSelector.isEmpty())
+bool ScxmlBaseTransition::init()
+{
+    Q_ASSERT(d->m_concreteTransitions.isEmpty());
+    if (d->eventSelector.isEmpty())
         return true;
     bool failure = false;
-    foreach (const QByteArray &eventStr, eventSelector) {
+    foreach (const QByteArray &eventStr, d->eventSelector) {
         QList<QByteArray> selector = eventStr.split('.');
         if (selector.isEmpty())
             continue;
@@ -665,10 +746,10 @@ bool ScxmlBaseTransition::init() {
                 {
                     ConcreteSignalTransition *newT = new ConcreteSignalTransition(sender, mName.data(), sourceState());
                     newT->setTargetState(targetState()); // avoid?
-                    m_concreteTransitions << TransitionPtr(newT);
+                    d->m_concreteTransitions << TransitionPtr(newT);
                 }
             }
-            if (m_concreteTransitions.isEmpty()) {
+            if (d->m_concreteTransitions.isEmpty()) {
                 QList<QByteArray> knownSignals;
                 for (int imethod = 0; imethod < maxImethod; ++imethod){
                     QMetaMethod m = metaObject->method(imethod);
@@ -678,7 +759,7 @@ bool ScxmlBaseTransition::init() {
                 }
                 qCWarning(scxmlLog) << "eventSelector failed to match anything in "
                                     << transitionLocation() << ", selector is: "
-                                    << eventSelector.join(' ') << " and known signals are:\n  "
+                                    << d->eventSelector.join(' ') << " and known signals are:\n  "
                                     << knownSignals.join(' ');
                 failure = true; // ignore instead??
             }
@@ -716,13 +797,25 @@ static QList<QByteArray> filterEmpty(const QList<QByteArray> &events) {
     return events;
 }
 
-ScxmlTransition::ScxmlTransition(QState *sourceState, const QList<QByteArray> &eventSelector,
-                                 DataModel::EvaluatorId conditionalExp)
+class ScxmlTransition::Data
+{
+public:
+    DataModel::EvaluatorId conditionalExp = DataModel::NoEvaluator;
+    ScxmlEvent::EventType type;
+    ExecutableContent::ContainerId instructionsOnTransition = ExecutableContent::NoInstruction;
+};
+
+ScxmlTransition::ScxmlTransition(QState *sourceState, const QList<QByteArray> &eventSelector)
     : ScxmlBaseTransition(sourceState, filterEmpty(eventSelector))
-    , conditionalExp(conditionalExp)
-    , type(ScxmlEvent::External)
+    , d(new Data)
 {
     Q_ASSERT(sourceState);
+    d->type = ScxmlEvent::External;
+}
+
+ScxmlTransition::~ScxmlTransition()
+{
+    delete d;
 }
 
 bool ScxmlTransition::eventTest(QEvent *event)
@@ -730,8 +823,8 @@ bool ScxmlTransition::eventTest(QEvent *event)
         qCDebug(scxmlLog) << qPrintable(table()->engine()->evaluate(QLatin1String("JSON.stringify(_event)")).toString());
     if (ScxmlBaseTransition::eventTest(event)) {
         bool ok = true;
-        if (conditionalExp != DataModel::NoEvaluator)
-            return table()->dataModel()->evaluateToBool(conditionalExp, &ok) && ok;
+        if (d->conditionalExp != DataModel::NoEvaluator)
+            return table()->dataModel()->evaluateToBool(d->conditionalExp, &ok) && ok;
         return true;
     }
 
@@ -740,7 +833,7 @@ bool ScxmlTransition::eventTest(QEvent *event)
 
 void ScxmlTransition::onTransition(QEvent *)
 {
-    table()->executionEngine()->execute(instructionsOnTransition);
+    table()->executionEngine()->execute(d->instructionsOnTransition);
 }
 
 StateTable *ScxmlTransition::table() const {
@@ -748,6 +841,34 @@ StateTable *ScxmlTransition::table() const {
     if (StateTable *t = qobject_cast<StateTable *>(sourceState()))
         return t;
     return qobject_cast<StateTable *>(machine());
+}
+
+void ScxmlTransition::setInstructionsOnTransition(ExecutableContent::ContainerId instructions)
+{
+    d->instructionsOnTransition = instructions;
+}
+
+void ScxmlTransition::setConditionalExpression(DataModel::EvaluatorId evaluator)
+{
+    d->conditionalExp = evaluator;
+}
+
+class ScxmlState::Data
+{
+public:
+    ExecutableContent::ContainerId initInstructions = ExecutableContent::NoInstruction;
+    ExecutableContent::ContainerId onEntryInstructions = ExecutableContent::NoInstruction;
+    ExecutableContent::ContainerId onExitInstructions = ExecutableContent::NoInstruction;
+};
+
+ScxmlState::ScxmlState(QState *parent)
+    : QState(parent)
+    , d(new Data)
+{}
+
+ScxmlState::~ScxmlState()
+{
+    delete d;
 }
 
 StateTable *ScxmlState::table() const {
@@ -764,23 +885,58 @@ QString ScxmlState::stateLocation() const
     return QStringLiteral("State %1").arg(objectName());
 }
 
-void ScxmlState::onEntry(QEvent *event) {
-    if (initInstructions != ExecutableContent::NoInstruction) {
-        table()->executionEngine()->execute(initInstructions);
-        initInstructions = ExecutableContent::NoInstruction;
-    }
-    QState::onEntry(event);
-    table()->executionEngine()->execute(onEntryInstructions);
+void ScxmlState::setInitInstructions(ExecutableContent::ContainerId instructions)
+{
+    d->initInstructions = instructions;
 }
 
-void ScxmlState::onExit(QEvent *event) {
-    QState::onExit(event);
-    table()->executionEngine()->execute(onExitInstructions);
+void ScxmlState::setOnEntryInstructions(ExecutableContent::ContainerId instructions)
+{
+    d->onEntryInstructions = instructions;
 }
+
+void ScxmlState::setOnExitInstructions(ExecutableContent::ContainerId instructions)
+{
+    d->onExitInstructions = instructions;
+}
+
+ScxmlState::ScxmlState(QStatePrivate &dd, QState *parent)
+    : QState(dd, parent)
+{}
+
+void ScxmlState::onEntry(QEvent *event)
+{
+    if (d->initInstructions != ExecutableContent::NoInstruction) {
+        table()->executionEngine()->execute(d->initInstructions);
+        d->initInstructions = ExecutableContent::NoInstruction;
+    }
+    QState::onEntry(event);
+    table()->executionEngine()->execute(d->onEntryInstructions);
+}
+
+void ScxmlState::onExit(QEvent *event)
+{
+    QState::onExit(event);
+    table()->executionEngine()->execute(d->onExitInstructions);
+}
+
+class ScxmlFinalState::Data
+{
+public:
+    ExecutableContent::ContainerId doneData = ExecutableContent::NoInstruction;
+    ExecutableContent::ContainerId onEntryInstructions = ExecutableContent::NoInstruction;
+    ExecutableContent::ContainerId onExitInstructions = ExecutableContent::NoInstruction;
+};
 
 ScxmlFinalState::ScxmlFinalState(QState *parent)
     : QFinalState(parent)
+    , d(new Data)
 {}
+
+ScxmlFinalState::~ScxmlFinalState()
+{
+    delete d;
+}
 
 StateTable *ScxmlFinalState::table() const {
     return qobject_cast<StateTable *>(machine());
@@ -793,22 +949,34 @@ bool ScxmlFinalState::init()
 
 Scxml::ExecutableContent::ContainerId ScxmlFinalState::doneData() const
 {
-    return m_doneData;
+    return d->doneData;
 }
 
 void ScxmlFinalState::setDoneData(Scxml::ExecutableContent::ContainerId doneData)
 {
-    m_doneData = doneData;
+    d->doneData = doneData;
 }
 
-void ScxmlFinalState::onEntry(QEvent *event) {
+void ScxmlFinalState::setOnEntryInstructions(ExecutableContent::ContainerId instructions)
+{
+    d->onEntryInstructions = instructions;
+}
+
+void ScxmlFinalState::setOnExitInstructions(ExecutableContent::ContainerId instructions)
+{
+    d->onExitInstructions = instructions;
+}
+
+void ScxmlFinalState::onEntry(QEvent *event)
+{
     QFinalState::onEntry(event);
-    table()->executionEngine()->execute(onEntryInstructions);
+    table()->executionEngine()->execute(d->onEntryInstructions);
 }
 
-void ScxmlFinalState::onExit(QEvent *event) {
+void ScxmlFinalState::onExit(QEvent *event)
+{
     QFinalState::onExit(event);
-    table()->executionEngine()->execute(onExitInstructions);
+    table()->executionEngine()->execute(d->onExitInstructions);
 }
 
 bool XmlNode::isText() const {

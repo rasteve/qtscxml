@@ -24,8 +24,17 @@
 
 namespace Scxml {
 
-class StateTablePrivate: public QStateMachinePrivate {
+class StateTablePrivate: public QStateMachinePrivate
+{
     Q_DECLARE_PUBLIC(StateTable)
+
+    static QAtomicInt m_sessionIdCounter;
+
+public:
+    StateTablePrivate();
+    ~StateTablePrivate();
+
+protected: // overrides for QStateMachinePrivate:
 #if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
     void noMicrostep() Q_DECL_OVERRIDE;
     void processedPendingEvents(bool didChange) Q_DECL_OVERRIDE;
@@ -37,8 +46,23 @@ class StateTablePrivate: public QStateMachinePrivate {
 #endif
 
     int eventIdForDelayedEvent(const QByteArray &scxmlEventId);
+
+public: // StateTable data fields:
+    DataModel *m_dataModel = nullptr;
+    const int m_sessionId;
+    ExecutableContent::ContainerId m_initialSetup = ExecutableContent::NoInstruction;
+    QJSEngine *m_engine = nullptr;
+    StateTable::BindingMethod m_dataBinding = StateTable::EarlyBinding;
+    ExecutableContent::ExecutionEngine *m_executionEngine = nullptr;
+    ScxmlEvent _event;
+    QString _name;
+    QVector<ExecutableContent::StringId> dataItemNames;
+
+    struct QueuedEvent { QEvent *event; StateTable::EventPriority priority; };
+    QVector<QueuedEvent> *m_queuedEvents = nullptr;
 };
 
-}
+} // Scxml namespace
+
 #endif // SCXMLSTATETABLE_P_H
 

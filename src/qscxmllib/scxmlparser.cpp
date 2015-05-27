@@ -337,7 +337,7 @@ private:
             Q_UNREACHABLE();
         }
 
-        m_table->_name = node->name;
+        m_table->setName(node->name);
 
         m_parents.append(m_table);
         visit(node->children);
@@ -372,7 +372,7 @@ private:
         }
 
         m_table->dataModel()->setEvaluators(evaluators(), assignments(), foreaches());
-        m_table->dataItemNames = dataIds();
+        m_table->setDataItemNames(dataIds());
 
         return false;
     }
@@ -380,37 +380,25 @@ private:
     bool visit(DocumentModel::State *node) Q_DECL_OVERRIDE
     {
         QAbstractState *newState = nullptr;
-        ExecutableContent::ContainerId *init = nullptr, *onEntry = nullptr, *onExit = nullptr;
         switch (node->type) {
         case DocumentModel::State::Normal: {
             auto s = new ScxmlState(currentParent());
-            init = &s->initInstructions;
-            onEntry = &s->onEntryInstructions;
-            onExit = &s->onExitInstructions;
             newState = s;
             if (node->initialState)
                 m_initialStates.append(qMakePair(s, node->initialState));
         } break;
         case DocumentModel::State::Parallel: {
             auto s = new ScxmlState(currentParent());
-            init = &s->initInstructions;
-            onEntry = &s->onEntryInstructions;
-            onExit = &s->onExitInstructions;
             s->setChildMode(QState::ParallelStates);
             newState = s;
         } break;
         case DocumentModel::State::Initial: {
             auto s = new ScxmlState(currentParent());
-            init = &s->initInstructions;
-            onEntry = &s->onEntryInstructions;
-            onExit = &s->onExitInstructions;
             currentParent()->setInitialState(s);
             newState = s;
         } break;
         case DocumentModel::State::Final: {
             auto s = new ScxmlFinalState(currentParent());
-            onEntry = &s->onEntryInstructions;
-            onExit = &s->onExitInstructions;
             newState = s;
             s->setDoneData(generate(node->doneData));
         } break;
@@ -424,8 +412,8 @@ private:
         m_parents.append(newState);
 
         if (!node->dataElements.isEmpty()) {
-            if (init && m_bindLate) {
-                *init = startNewSequence();
+            if (m_bindLate) {
+                qobject_cast<ScxmlState *>(newState)->setInitInstructions(startNewSequence());
                 generate(node->dataElements);
                 endSequence();
             } else {
@@ -433,11 +421,19 @@ private:
             }
         }
 
+        ExecutableContent::ContainerId onEntry = generate(node->onEntry);
+        ExecutableContent::ContainerId onExit = generate(node->onExit);
+        if (ScxmlState *s = qobject_cast<ScxmlState *>(newState)) {
+            s->setOnEntryInstructions(onEntry);
+            s->setOnExitInstructions(onExit);
+        } else if (ScxmlFinalState *f = qobject_cast<ScxmlFinalState *>(newState)) {
+            f->setOnEntryInstructions(onEntry);
+            f->setOnExitInstructions(onExit);
+        } else {
+            Q_UNREACHABLE();
+        }
+
         visit(node->children);
-        if (onEntry)
-            *onEntry = generate(node->onEntry);
-        if (onExit)
-            *onExit = generate(node->onExit);
 
         m_parents.removeLast();
         return false;
@@ -454,13 +450,13 @@ private:
         } else {
             parentState = currentParent();
         }
-        DataModel::EvaluatorId cond = DataModel::NoEvaluator;
+
+        auto newTransition = new ScxmlTransition(parentState, toUtf8(node->events));
         if (node->condition) {
-            cond = createEvaluatorBool(QStringLiteral("transition"), QStringLiteral("cond"), *node->condition.data());
+            auto cond = createEvaluatorBool(QStringLiteral("transition"), QStringLiteral("cond"), *node->condition.data());
+            newTransition->setConditionalExpression(cond);
         }
-        auto newTransition = new ScxmlTransition(parentState,
-                                                 toUtf8(node->events),
-                                                 cond);
+
         parentState->addTransition(newTransition);
         switch (node->type) {
         case DocumentModel::Transition::External:
@@ -476,7 +472,7 @@ private:
         m_allTransitions.insert(newTransition, node);
         if (!node->instructionsOnTransition.isEmpty()) {
             m_currentTransition = newTransition;
-            newTransition->instructionsOnTransition = startNewSequence();
+            newTransition->setInstructionsOnTransition(startNewSequence());
             visit(&node->instructionsOnTransition);
             endSequence();
             m_currentTransition = 0;

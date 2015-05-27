@@ -224,7 +224,7 @@ protected:
     {
         // init:
         if (!node->name.isEmpty()) {
-            clazz.init.impl << QStringLiteral("table._name = QStringLiteral(\"") + cEscape(node->name) + QStringLiteral("\");");
+            clazz.init.impl << QStringLiteral("table.setName(QStringLiteral(\"") + cEscape(node->name) + QStringLiteral("\"));");
             if (m_options.nameQObjects)
                 clazz.init.impl << QStringLiteral("table.setObjectName(QStringLiteral(\"") + cEscape(node->name) + QStringLiteral("\"));");
         }
@@ -243,7 +243,7 @@ protected:
         }
         clazz.init.impl << QStringLiteral("table.setDataModel(new Scxml::") + dmName + QStringLiteral("DataModel(&table));");
         clazz.init.impl << QStringLiteral("table.dataModel()->setEvaluators(evaluators, assignments, foreaches);");
-        clazz.init.impl << QStringLiteral("table.dataItemNames = dataIds;");
+        clazz.init.impl << QStringLiteral("table.setDataItemNames(dataIds);");
 
         QString binding;
         switch (node->binding) {
@@ -316,7 +316,7 @@ protected:
         m_parents.append(node);
         if (!node->dataElements.isEmpty()) {
             if (m_bindLate) {
-                clazz.init.impl << stateName + QStringLiteral(".initInstructions = %1;").arg(startNewSequence());
+                clazz.init.impl << stateName + QStringLiteral(".setInitInstructions(%1);").arg(startNewSequence());
                 generate(node->dataElements);
                 endSequence();
             } else {
@@ -326,9 +326,9 @@ protected:
 
         visit(node->children);
         if (!node->onEntry.isEmpty())
-            clazz.init.impl << stateName + QStringLiteral(".onEntryInstructions = %1;").arg(generate(node->onEntry));
+            clazz.init.impl << stateName + QStringLiteral(".setOnEntryInstructions(%1);").arg(generate(node->onEntry));
         if (!node->onExit.isEmpty())
-            clazz.init.impl << stateName + QStringLiteral(".onExitInstructions = %1;").arg(generate(node->onExit));
+            clazz.init.impl << stateName + QStringLiteral(".setOnExitInstructions(%1);").arg(generate(node->onExit));
 
         if (node->type == State::Final) {
             auto id = generate(node->doneData);
@@ -375,7 +375,7 @@ protected:
         if (node->condition) {
             QString condExpr = *node->condition.data();
             auto cond = createEvaluatorBool(QStringLiteral("transition"), QStringLiteral("cond"), condExpr);
-            clazz.init.impl << tName + QStringLiteral(".conditionalExp = %1;").arg(cond);
+            clazz.init.impl << tName + QStringLiteral(".setConditionalExpression(%1);").arg(cond);
         }
         clazz.init.impl << parentName + QStringLiteral(".addTransition(&") + tName + QStringLiteral(");");
         if (node->type == Transition::Internal) {
@@ -399,7 +399,7 @@ protected:
         if (!node->instructionsOnTransition.isEmpty()) {
             m_parents.append(node);
             m_currentTransitionName = tName;
-            clazz.init.impl << tName + QStringLiteral(".instructionsOnTransition = %1;").arg(startNewSequence());
+            clazz.init.impl << tName + QStringLiteral(".setInstructionsOnTransition(%1);").arg(startNewSequence());
             visit(&node->instructionsOnTransition);
             endSequence();
             m_parents.removeLast();
@@ -777,6 +777,7 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     h << endl
       << l("private:") << endl
       << l("    struct Data;") << endl
+      << l("    friend Data;") << endl
       << l("    struct Data *data;") << endl
       << l("};") << endl;
 
@@ -797,7 +798,7 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
 
     cpp << l("struct ") << mainClassName << l("::Data {") << endl;
 
-    cpp << l("    Data(Scxml::StateTable &table)\n        : table(table)") << endl;
+    cpp << QStringLiteral("    Data(%1 &table)\n        : table(table)").arg(mainClassName) << endl;
     clazz.constructor.initializer.write(cpp, QStringLiteral("        , "), QStringLiteral("\n"));
     cpp << l("    {}") << endl;
 
@@ -808,7 +809,7 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
 
 
     cpp << endl
-        << l("    Scxml::StateTable &table;") << endl;
+        << QStringLiteral("    %1 &table;").arg(mainClassName) << endl;
     clazz.classFields.write(cpp, QStringLiteral("    "), QStringLiteral("\n"));
 
     cpp << l("};") << endl
