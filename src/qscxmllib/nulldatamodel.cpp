@@ -24,17 +24,17 @@ NullDataModel::NullDataModel(StateTable *table)
     : DataModel(table)
 {}
 
-void NullDataModel::setEvaluators(const DataModel::EvaluatorInfos &evals, const DataModel::AssignmentInfos &assignments, const DataModel::ForeachInfos &foreaches)
+void NullDataModel::setEvaluators(const EvaluatorInfos &evals, const AssignmentInfos &assignments, const ForeachInfos &foreaches)
 {
     // FIXME: bool evaluators need to be stored.
 }
 
-void NullDataModel::setup(const QVector<ExecutableContent::StringId> &dataItemNames)
+void NullDataModel::setup(const ExecutableContent::StringIds &dataItemNames)
 {
     Q_UNUSED(dataItemNames);
 }
 
-QString NullDataModel::evaluateToString(DataModel::EvaluatorId id, bool *ok)
+QString NullDataModel::evaluateToString(EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
     Q_UNUSED(ok);
@@ -42,7 +42,7 @@ QString NullDataModel::evaluateToString(DataModel::EvaluatorId id, bool *ok)
     return QString();
 }
 
-bool NullDataModel::evaluateToBool(DataModel::EvaluatorId id, bool *ok)
+bool NullDataModel::evaluateToBool(EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
     Q_UNUSED(ok);
@@ -50,7 +50,7 @@ bool NullDataModel::evaluateToBool(DataModel::EvaluatorId id, bool *ok)
     return false;
 }
 
-QVariant NullDataModel::evaluateToVariant(DataModel::EvaluatorId id, bool *ok)
+QVariant NullDataModel::evaluateToVariant(EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
     Q_UNUSED(ok);
@@ -58,21 +58,21 @@ QVariant NullDataModel::evaluateToVariant(DataModel::EvaluatorId id, bool *ok)
     return QVariant();
 }
 
-void NullDataModel::evaluateToVoid(DataModel::EvaluatorId id, bool *ok)
+void NullDataModel::evaluateToVoid(EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
     Q_UNUSED(ok);
     Q_UNREACHABLE();
 }
 
-void NullDataModel::evaluateAssignment(DataModel::EvaluatorId id, bool *ok)
+void NullDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
     Q_UNUSED(ok);
     Q_UNREACHABLE();
 }
 
-bool NullDataModel::evaluateForeach(DataModel::EvaluatorId id, bool *ok, std::function<bool ()> body)
+bool NullDataModel::evaluateForeach(EvaluatorId id, bool *ok, std::function<bool ()> body)
 {
     Q_UNUSED(id);
     Q_UNUSED(ok);

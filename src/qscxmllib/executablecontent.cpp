@@ -106,7 +106,7 @@ public:
             ip += send->size();
 
             QString delay = executionEngine->string(send->delay);
-            if (send->delayexpr != DataModel::NoEvaluator) {
+            if (send->delayexpr != NoEvaluator) {
                 bool ok = false;
                 delay = table->dataModel()->evaluateToString(send->delayexpr, &ok);
                 if (!ok)
@@ -203,7 +203,7 @@ public:
             ip += cancel->size();
             QByteArray e = executionEngine->byteArray(cancel->sendid);
             bool ok = true;
-            if (cancel->sendidexpr != DataModel::NoEvaluator)
+            if (cancel->sendidexpr != NoEvaluator)
                 e = dataModel->evaluateToString(cancel->sendidexpr, &ok).toUtf8();
             if (ok && !e.isEmpty())
                 table->cancelDelayedEvent(e);
@@ -412,7 +412,7 @@ ContainerId Builder::generate(const DocumentModel::DoneData *node)
     } else {
         doneData = m_instructions.add<DoneData>();
         doneData->contents = NoString;
-        doneData->expr = DataModel::NoEvaluator;
+        doneData->expr = NoEvaluator;
         doneData->params.count = 0;
     }
     doneData->location = createContext(QStringLiteral("final"));
@@ -429,7 +429,7 @@ void Builder::generate(const QVector<DocumentModel::DataElement *> &dataElements
     foreach (DocumentModel::DataElement *el, dataElements) {
         auto ctxt = createContext(QStringLiteral("data"), QStringLiteral("expr"), el->expr);
         auto evaluator = addDataElement(el->id, el->expr, ctxt);
-        if (evaluator != DataModel::NoEvaluator) {
+        if (evaluator != NoEvaluator) {
             auto instr = m_instructions.add<ExecutableContent::Assign>();
             instr->expression = evaluator;
         }
@@ -519,32 +519,32 @@ InstructionSequence *Builder::endSequence()
     return sequence;
 }
 
-DataModel::EvaluatorId Builder::createEvaluatorString(const QString &instrName, const QString &attrName, const QString &expr)
+EvaluatorId Builder::createEvaluatorString(const QString &instrName, const QString &attrName, const QString &expr)
 {
     if (!expr.isEmpty()) {
         QString loc = createContext(instrName, attrName, expr);
         return addEvaluator(expr, loc);
     }
 
-    return DataModel::NoEvaluator;
+    return NoEvaluator;
 }
 
-DataModel::EvaluatorId Builder::createEvaluatorBool(const QString &instrName, const QString &attrName, const QString &cond)
+EvaluatorId Builder::createEvaluatorBool(const QString &instrName, const QString &attrName, const QString &cond)
 {
     if (!cond.isEmpty()) {
         QString loc = createContext(instrName, attrName, cond);
         return addEvaluator(cond, loc);
     }
 
-    return DataModel::NoEvaluator;
+    return NoEvaluator;
 }
 
-DataModel::EvaluatorId Builder::createEvaluatorVariant(const QString &instrName, const QString &attrName, const QString &cond)
+EvaluatorId Builder::createEvaluatorVariant(const QString &instrName, const QString &attrName, const QString &cond)
 {
     if (!cond.isEmpty()) {
         QString loc = createContext(instrName, attrName, cond);
         return addEvaluator(cond, loc);
     }
 
-    return DataModel::NoEvaluator;
+    return NoEvaluator;
 }

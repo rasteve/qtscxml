@@ -19,7 +19,9 @@
 #ifndef SCXMLSTATETABLE_P_H
 #define SCXMLSTATETABLE_P_H
 
+#include "executablecontent_p.h"
 #include "scxmlstatetable.h"
+
 #include <QtCore/private/qstatemachine_p.h>
 
 namespace Scxml {
@@ -56,7 +58,7 @@ public: // StateTable data fields:
     ExecutableContent::ExecutionEngine *m_executionEngine = nullptr;
     ScxmlEvent _event;
     QString _name;
-    QVector<ExecutableContent::StringId> dataItemNames;
+    ExecutableContent::StringIds dataItemNames;
 
     struct QueuedEvent { QEvent *event; StateTable::EventPriority priority; };
     QVector<QueuedEvent> *m_queuedEvents = nullptr;

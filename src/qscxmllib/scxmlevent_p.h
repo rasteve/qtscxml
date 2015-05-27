@@ -32,17 +32,17 @@ class EventBuilder
     StateTable* table = nullptr;
     ExecutableContent::StringId instructionLocation;
     QByteArray event;
-    DataModel::EvaluatorId eventexpr = DataModel::NoEvaluator;
+    EvaluatorId eventexpr = NoEvaluator;
     QString contents;
-    DataModel::EvaluatorId contentExpr = DataModel::NoEvaluator;
+    EvaluatorId contentExpr = NoEvaluator;
     const ExecutableContent::Array<ExecutableContent::Param> *params = nullptr;
     ScxmlEvent::EventType eventType = ScxmlEvent::External;
     QByteArray id;
     QString idLocation;
     QString target;
-    DataModel::EvaluatorId targetexpr = DataModel::NoEvaluator;
+    EvaluatorId targetexpr = NoEvaluator;
     QString type;
-    DataModel::EvaluatorId typeexpr = DataModel::NoEvaluator;
+    EvaluatorId typeexpr = NoEvaluator;
     const ExecutableContent::Array<ExecutableContent::StringId> *namelist = nullptr;
 
     static QAtomicInt idCounter;

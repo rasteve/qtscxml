@@ -19,6 +19,7 @@
 #ifndef SCXMLSTATETABLE_H
 #define SCXMLSTATETABLE_H
 
+#include "datamodel.h"
 #include "executablecontent.h"
 #include "scxmlevent.h"
 
@@ -63,73 +64,6 @@ bool loopOnSubStates(QState *startState,
                   std::function<bool(QState *)> enteringState = Q_NULLPTR,
                   std::function<void(QState *)> exitingState = Q_NULLPTR,
                   std::function<void(QAbstractState *)> inAbstractState = Q_NULLPTR);
-class StateTable;
-
-class SCXML_EXPORT DataModel
-{
-    Q_DISABLE_COPY(DataModel)
-
-public:
-
-#if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
-#pragma pack(push, 4) // 4 == sizeof(qint32)
-#endif
-    struct EvaluatorInfo { // TODO: move to _p.h
-        ExecutableContent::StringId expr;
-        ExecutableContent::StringId context;
-    };
-
-    struct AssignmentInfo { // TODO: move to _p.h
-        ExecutableContent::StringId dest;
-        ExecutableContent::StringId expr;
-        ExecutableContent::StringId context;
-    };
-
-    struct ForeachInfo { // TODO: move to _p.h
-        ExecutableContent::StringId array;
-        ExecutableContent::StringId item;
-        ExecutableContent::StringId index;
-        ExecutableContent::StringId context;
-    };
-#if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
-#pragma pack(pop)
-#endif
-
-    typedef QVector<EvaluatorInfo> EvaluatorInfos;
-    typedef QVector<AssignmentInfo> AssignmentInfos;
-    typedef QVector<ForeachInfo> ForeachInfos;
-
-    typedef qint32 EvaluatorId;
-    enum { NoEvaluator = -1 };
-
-public:
-    DataModel(StateTable *table);
-    virtual ~DataModel();
-
-    StateTable *table() const;
-
-    virtual void setup(const QVector<ExecutableContent::StringId> &dataItemNames) = 0;
-
-    virtual void setEvaluators(const EvaluatorInfos &evals, const AssignmentInfos &assignments,
-                               const ForeachInfos &foreaches) = 0;
-
-    virtual QString evaluateToString(EvaluatorId id, bool *ok) = 0;
-    virtual bool evaluateToBool(EvaluatorId id, bool *ok) = 0;
-    virtual QVariant evaluateToVariant(EvaluatorId id, bool *ok) = 0;
-    virtual void evaluateToVoid(EvaluatorId id, bool *ok) = 0;
-    virtual void evaluateAssignment(EvaluatorId id, bool *ok) = 0;
-    virtual bool evaluateForeach(EvaluatorId id, bool *ok, std::function<bool()> body) = 0;
-
-    virtual void setEvent(const ScxmlEvent &event) = 0;
-
-    virtual QVariant property(const QString &name) const = 0;
-    virtual bool hasProperty(const QString &name) const = 0;
-    virtual void setStringProperty(const QString &name, const QString &value, const QString &context,
-                                   bool *ok) = 0;
-
-private:
-    StateTable *m_table;
-};
 
 namespace ExecutableContent {
 class ExecutionEngine;
@@ -214,7 +148,7 @@ protected: // friend interface
     friend class StateTableBuilder;
     void setName(const QString &name);
     void setInitialSetup(ExecutableContent::ContainerId sequence);
-    void setDataItemNames(const QVector<ExecutableContent::StringId> &dataItemNames);
+    void setDataItemNames(const ExecutableContent::StringIds &dataItemNames);
 
 private:
     Q_DECLARE_PRIVATE(StateTable)
@@ -277,7 +211,7 @@ public:
     StateTable *table() const;
 
     void setInstructionsOnTransition(ExecutableContent::ContainerId instructions);
-    void setConditionalExpression(DataModel::EvaluatorId evaluator);
+    void setConditionalExpression(EvaluatorId evaluator);
 
 protected:
     void onTransition(QEvent *event) Q_DECL_OVERRIDE;

@@ -46,21 +46,6 @@ QByteArray objectId(QObject *obj, bool strict = false)
 
 } // anonymous namespace
 
-DataModel::DataModel(StateTable *table)
-    : m_table(table)
-{
-    Q_ASSERT(table);
-}
-
-DataModel::~DataModel()
-{
-}
-
-StateTable *DataModel::table() const
-{
-    return m_table;
-}
-
 QAtomicInt StateTablePrivate::m_sessionIdCounter = QAtomicInt(0);
 
 StateTablePrivate::StateTablePrivate()
@@ -342,7 +327,7 @@ void StateTable::setInitialSetup(ExecutableContent::ContainerId sequence)
     d->m_initialSetup = sequence;
 }
 
-void StateTable::setDataItemNames(const QVector<ExecutableContent::StringId> &dataItemNames)
+void StateTable::setDataItemNames(const ExecutableContent::StringIds &dataItemNames)
 {
     Q_D(StateTable);
 
@@ -800,7 +785,7 @@ static QList<QByteArray> filterEmpty(const QList<QByteArray> &events) {
 class ScxmlTransition::Data
 {
 public:
-    DataModel::EvaluatorId conditionalExp = DataModel::NoEvaluator;
+    EvaluatorId conditionalExp = NoEvaluator;
     ScxmlEvent::EventType type;
     ExecutableContent::ContainerId instructionsOnTransition = ExecutableContent::NoInstruction;
 };
@@ -823,7 +808,7 @@ bool ScxmlTransition::eventTest(QEvent *event)
         qCDebug(scxmlLog) << qPrintable(table()->engine()->evaluate(QLatin1String("JSON.stringify(_event)")).toString());
     if (ScxmlBaseTransition::eventTest(event)) {
         bool ok = true;
-        if (d->conditionalExp != DataModel::NoEvaluator)
+        if (d->conditionalExp != NoEvaluator)
             return table()->dataModel()->evaluateToBool(d->conditionalExp, &ok) && ok;
         return true;
     }
@@ -848,7 +833,7 @@ void ScxmlTransition::setInstructionsOnTransition(ExecutableContent::ContainerId
     d->instructionsOnTransition = instructions;
 }
 
-void ScxmlTransition::setConditionalExpression(DataModel::EvaluatorId evaluator)
+void ScxmlTransition::setConditionalExpression(EvaluatorId evaluator)
 {
     d->conditionalExp = evaluator;
 }

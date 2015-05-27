@@ -34,6 +34,7 @@ namespace ExecutableContent {
 typedef int ContainerId;
 enum { NoInstruction = -1 };
 typedef qint32 StringId;
+typedef QVector<StringId> StringIds;
 enum { NoString = -1 };
 typedef qint32 ByteArrayId;
 typedef qint32 *Instructions;

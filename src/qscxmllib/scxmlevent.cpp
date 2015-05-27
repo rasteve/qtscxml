@@ -25,7 +25,7 @@ static bool evaluate(const ExecutableContent::Param &param, StateTable *table, Q
 {
     auto dataModel = table->dataModel();
     auto ee = table->executionEngine();
-    if (param.expr != DataModel::NoEvaluator) {
+    if (param.expr != NoEvaluator) {
         bool success = false;
         auto v = dataModel->evaluateToVariant(param.expr, &success);
         dataValues.append(v);
@@ -78,7 +78,7 @@ ScxmlEvent *EventBuilder::buildEvent()
 
     QByteArray eventName = event;
     bool ok = true;
-    if (eventexpr != DataModel::NoEvaluator) {
+    if (eventexpr != NoEvaluator) {
         eventName = dataModel->evaluateToString(eventexpr, &ok).toUtf8();
         ok = true; // ignore failure.
     }
@@ -87,7 +87,7 @@ ScxmlEvent *EventBuilder::buildEvent()
     QStringList dataNames;
     if ((!params || params->count == 0) && (!namelist || namelist->count == 0)) {
         QVariant data;
-        if (contentExpr != DataModel::NoEvaluator) {
+        if (contentExpr != NoEvaluator) {
             data = dataModel->evaluateToString(contentExpr, &ok);
         } else {
             data = contents;
@@ -124,7 +124,7 @@ ScxmlEvent *EventBuilder::buildEvent()
     }
 
     QString origin = target;
-    if (targetexpr != DataModel::NoEvaluator) {
+    if (targetexpr != NoEvaluator) {
         origin = dataModel->evaluateToString(targetexpr, &ok);
         if (!ok)
             return nullptr;
@@ -154,7 +154,7 @@ ScxmlEvent *EventBuilder::buildEvent()
         // [6.2.5] and test198
         origintype = QStringLiteral("http://www.w3.org/TR/scxml/#SCXMLEventProcessor");
     }
-    if (typeexpr != DataModel::NoEvaluator) {
+    if (typeexpr != NoEvaluator) {
         origintype = dataModel->evaluateToString(typeexpr, &ok);
         if (!ok)
             return nullptr;

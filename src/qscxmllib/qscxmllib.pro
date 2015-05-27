@@ -21,7 +21,8 @@ HEADERS += \
     executablecontent.h \
     executablecontent_p.h \
     scxmlevent.h \
-    scxmlevent_p.h
+    scxmlevent_p.h \
+    datamodel.h
 
 SOURCES += \
     scxmlparser.cpp \
@@ -31,4 +32,5 @@ SOURCES += \
     ecmascriptdatamodel.cpp \
     ecmascriptplatformproperties.cpp \
     executablecontent.cpp \
-    scxmlevent.cpp
+    scxmlevent.cpp \
+    datamodel.cpp

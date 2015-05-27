@@ -146,7 +146,6 @@ struct Invoke: public Instruction
     QStringList namelist;
     bool autoforward;
     QVector<Param *> params;
-    XmlNode *content;
     InstructionSequence finalize;
 
     Invoke(const XmlLocation &xmlLocation): Instruction(xmlLocation) {}

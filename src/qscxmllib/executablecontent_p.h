@@ -19,6 +19,7 @@
 #ifndef EXECUTABLECONTENT_P_H
 #define EXECUTABLECONTENT_P_H
 
+#include "datamodel.h"
 #include "executablecontent.h"
 #include "scxmlparser.h"
 #include "scxmlstatetable.h"
@@ -47,7 +48,7 @@ struct Array
 struct SCXML_EXPORT Param
 {
     StringId name;
-    DataModel::EvaluatorId expr;
+    EvaluatorId expr;
     StringId location;
 
     static int calculateSize() { return sizeof(Param) / sizeof(qint32); }
@@ -75,7 +76,7 @@ struct SCXML_EXPORT DoneData: Instruction
 {
     StringId location;
     StringId contents;
-    DataModel::EvaluatorId expr;
+    EvaluatorId expr;
     Array<Param> params;
 
     static InstructionType kind() { return Instruction::DoneData; }
@@ -115,15 +116,15 @@ struct SCXML_EXPORT Send: Instruction
 {
     StringId instructionLocation;
     ByteArrayId event;
-    DataModel::EvaluatorId eventexpr;
+    EvaluatorId eventexpr;
     StringId type;
-    DataModel::EvaluatorId typeexpr;
+    EvaluatorId typeexpr;
     StringId target;
-    DataModel::EvaluatorId targetexpr;
+    EvaluatorId targetexpr;
     ByteArrayId id;
     StringId idLocation;
     StringId delay;
-    DataModel::EvaluatorId delayexpr;
+    EvaluatorId delayexpr;
     StringId content;
     Array<StringId> namelist;
 //    Array<Param> params;
@@ -150,7 +151,7 @@ struct SCXML_EXPORT Raise: Instruction
 struct SCXML_EXPORT Log: Instruction
 {
     StringId label;
-    DataModel::EvaluatorId expr;
+    EvaluatorId expr;
 
     static InstructionType kind() { return Instruction::Log; }
     int size() const { return sizeof(Log) / sizeof(qint32); }
@@ -158,7 +159,7 @@ struct SCXML_EXPORT Log: Instruction
 
 struct SCXML_EXPORT JavaScript: Instruction
 {
-    DataModel::EvaluatorId go;
+    EvaluatorId go;
 
     static InstructionType kind() { return Instruction::JavaScript; }
     int size() const { return sizeof(JavaScript) / sizeof(qint32); }
@@ -166,7 +167,7 @@ struct SCXML_EXPORT JavaScript: Instruction
 
 struct SCXML_EXPORT Assign: Instruction
 {
-    DataModel::EvaluatorId expression;
+    EvaluatorId expression;
 
     static InstructionType kind() { return Instruction::Assign; }
     int size() const { return sizeof(Assign) / sizeof(qint32); }
@@ -174,7 +175,7 @@ struct SCXML_EXPORT Assign: Instruction
 
 struct SCXML_EXPORT If: Instruction
 {
-    Array<DataModel::EvaluatorId> conditions;
+    Array<EvaluatorId> conditions;
     // InstructionSequences blocks;
     InstructionSequences *blocks() {
         return reinterpret_cast<InstructionSequences *>(
@@ -187,7 +188,7 @@ struct SCXML_EXPORT If: Instruction
 
 struct SCXML_EXPORT Foreach: Instruction
 {
-    DataModel::EvaluatorId doIt;
+    EvaluatorId doIt;
     InstructionSequence block;
 
     static InstructionType kind() { return Instruction::Foreach; }
@@ -198,7 +199,7 @@ struct SCXML_EXPORT Foreach: Instruction
 struct SCXML_EXPORT Cancel: Instruction
 {
     ByteArrayId sendid;
-    DataModel::EvaluatorId sendidexpr;
+    EvaluatorId sendidexpr;
 
     static InstructionType kind() { return Instruction::Cancel; }
     int size() const { return sizeof(Cancel) / sizeof(qint32); }
@@ -257,17 +258,17 @@ protected:
     ContainerId startNewSequence();
     void startSequence(InstructionSequence *sequence);
     InstructionSequence *endSequence();
-    DataModel::EvaluatorId createEvaluatorString(const QString &instrName, const QString &attrName, const QString &expr);
-    DataModel::EvaluatorId createEvaluatorBool(const QString &instrName, const QString &attrName, const QString &cond);
-    DataModel::EvaluatorId createEvaluatorVariant(const QString &instrName, const QString &attrName, const QString &cond);
+    EvaluatorId createEvaluatorString(const QString &instrName, const QString &attrName, const QString &expr);
+    EvaluatorId createEvaluatorBool(const QString &instrName, const QString &attrName, const QString &cond);
+    EvaluatorId createEvaluatorVariant(const QString &instrName, const QString &attrName, const QString &cond);
 
     virtual QString createContextString(const QString &instrName) const = 0;
     virtual QString createContext(const QString &instrName, const QString &attrName, const QString &attrValue) const = 0;
 
-    const DataModel::EvaluatorInfos &evaluators() const { return m_evaluators; }
-    const DataModel::AssignmentInfos &assignments() const { return m_assignments; }
-    const DataModel::ForeachInfos &foreaches() const { return m_foreaches; }
-    const QVector<ExecutableContent::StringId> &dataIds() const { return m_dataIds; }
+    const EvaluatorInfos &evaluators() const { return m_evaluators; }
+    const AssignmentInfos &assignments() const { return m_assignments; }
+    const ForeachInfos &foreaches() const { return m_foreaches; }
+    const StringIds &dataIds() const { return m_dataIds; }
 
 private:
     template <typename T, typename U>
@@ -347,18 +348,18 @@ private:
     } m_instructions;
 
 
-    DataModel::EvaluatorId addEvaluator(const QString &expr, const QString &context)
+    EvaluatorId addEvaluator(const QString &expr, const QString &context)
     {
-        DataModel::EvaluatorInfo ei;
+        EvaluatorInfo ei;
         ei.expr = m_stringTable.add(expr);
         ei.context = m_stringTable.add(context);
         m_evaluators.append(ei);
         return m_evaluators.size() - 1;
     }
 
-    DataModel::EvaluatorId addAssignment(const QString &dest, const QString &expr, const QString &context)
+    EvaluatorId addAssignment(const QString &dest, const QString &expr, const QString &context)
     {
-        DataModel::AssignmentInfo ai;
+        AssignmentInfo ai;
         ai.dest = m_stringTable.add(dest);
         ai.expr = m_stringTable.add(expr);
         ai.context = m_stringTable.add(context);
@@ -366,9 +367,9 @@ private:
         return m_assignments.size() - 1;
     }
 
-    DataModel::EvaluatorId addForeach(const QString &array, const QString &item, const QString &index, const QString &context)
+    EvaluatorId addForeach(const QString &array, const QString &item, const QString &index, const QString &context)
     {
-        DataModel::ForeachInfo fi;
+        ForeachInfo fi;
         fi.array = m_stringTable.add(array);
         fi.item = m_stringTable.add(item);
         fi.index = m_stringTable.add(index);
@@ -377,21 +378,21 @@ private:
         return m_foreaches.size() - 1;
     }
 
-    DataModel::EvaluatorId addDataElement(const QString &id, const QString &expr, const QString &context)
+    EvaluatorId addDataElement(const QString &id, const QString &expr, const QString &context)
     {
         auto str = m_stringTable.add(id);
         if (!m_dataIds.contains(str))
             m_dataIds.append(str);
         if (expr.isEmpty())
-            return DataModel::NoEvaluator;
+            return NoEvaluator;
 
         return addAssignment(id, expr, context);
     }
 
-    DataModel::EvaluatorInfos m_evaluators;
-    DataModel::AssignmentInfos m_assignments;
-    DataModel::ForeachInfos m_foreaches;
-    QVector<ExecutableContent::StringId> m_dataIds;
+    EvaluatorInfos m_evaluators;
+    AssignmentInfos m_assignments;
+    ForeachInfos m_foreaches;
+    ExecutableContent::StringIds m_dataIds;
 };
 
 } // ExecutableContent namespace

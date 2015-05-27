@@ -4,7 +4,7 @@
 #include <QScxmlLib/executablecontent.h>
 
 struct StateMachine::Data {
-    Data(Scxml::StateTable &table)
+    Data(StateMachine &table)
         : table(table)
         , state_s__1(&table)
         , transition_s__1_0(&state_s__1, { QByteArray::fromRawData("E19", 3) })
@@ -69,7 +69,7 @@ struct StateMachine::Data {
     void init() {
         table.setDataModel(new Scxml::NullDataModel(&table));
         table.dataModel()->setEvaluators(evaluators, assignments, foreaches);
-        table.dataItemNames = dataIds;
+        table.setDataItemNames(dataIds);
         table.setDataBinding(Scxml::StateTable::EarlyBinding);
         table.executionEngine()->setInstructions(instructions);
         table.executionEngine()->setStringTable(strings);
@@ -188,7 +188,7 @@ struct StateMachine::Data {
         transition_s__2_3.setTargetStates({ &state_s__2__1__2__1 });
     }
 
-    Scxml::StateTable &table;
+    StateMachine &table;
     Scxml::ScxmlState state_s__1;
     Scxml::ScxmlTransition transition_s__1_0;
     Scxml::ScxmlTransition transition_s__1_1;
@@ -251,10 +251,10 @@ struct StateMachine::Data {
     static QVector<qint32> instructions;
     static QVector<QString> strings;
     static QVector<QByteArray> byteArrays;
-    static QVector<Scxml::ExecutableContent::StringId> dataIds;
-    static Scxml::DataModel::EvaluatorInfos evaluators;
-    static Scxml::DataModel::AssignmentInfos assignments;
-    static Scxml::DataModel::ForeachInfos foreaches;
+    static Scxml::ExecutableContent::StringIds dataIds;
+    static Scxml::EvaluatorInfos evaluators;
+    static Scxml::AssignmentInfos assignments;
+    static Scxml::ForeachInfos foreaches;
 };
 
 StateMachine::StateMachine(QObject *parent)
@@ -389,15 +389,15 @@ QVector<QString> StateMachine::Data::strings({
 QVector<QByteArray> StateMachine::Data::byteArrays({
 });
 
-QVector<Scxml::ExecutableContent::StringId> StateMachine::Data::dataIds({
+Scxml::ExecutableContent::StringIds StateMachine::Data::dataIds({
 });
 
-Scxml::DataModel::EvaluatorInfos StateMachine::Data::evaluators({
+Scxml::EvaluatorInfos StateMachine::Data::evaluators({
 });
 
-Scxml::DataModel::AssignmentInfos StateMachine::Data::assignments({
+Scxml::AssignmentInfos StateMachine::Data::assignments({
 });
 
-Scxml::DataModel::ForeachInfos StateMachine::Data::foreaches({
+Scxml::ForeachInfos StateMachine::Data::foreaches({
 });
 

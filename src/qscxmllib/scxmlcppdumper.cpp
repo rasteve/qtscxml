@@ -155,52 +155,15 @@ enum class Evaluator
     Script
 };
 
-class DataModelWriter
-{
-    Method &initDataModel;
-
-public:
-    DataModelWriter(Method &init)
-        : initDataModel(init)
-    {}
-
-    virtual ~DataModelWriter()
-    {}
-
-    virtual QString createEvaluator(Evaluator kind, ushort argToCheckForEmpty, const QStringList &args) const
-    {
-        if (argToCheckForEmpty > 0 && args.at(argToCheckForEmpty - 1).isEmpty())
-            return QStringLiteral("Scxml::DataModel::NoEvaluator");
-
-        QString kindString;
-        switch (kind) {
-        case Evaluator::ToVariant: kindString = QStringLiteral("ToVariant"); break;
-        case Evaluator::ToString: kindString = QStringLiteral("ToString"); break;
-        case Evaluator::ToBool: kindString = QStringLiteral("ToBool"); break;
-        case Evaluator::Assignment: kindString = QStringLiteral("Assignment"); break;
-        case Evaluator::Foreach: kindString = QStringLiteral("Foreach"); break;
-        case Evaluator::Script: kindString = QStringLiteral("Script"); break;
-        default: Q_UNREACHABLE();
-        }
-
-        static QString callTemplate = QStringLiteral("table.dataModel()->create%1Evaluator(%2)");
-        QStringList strArgs;
-        foreach (const QString &arg, args)
-            strArgs.append(strLit(arg));
-        return callTemplate.arg(kindString, strArgs.join(QStringLiteral(", ")));
-    }
-};
-
 class DumperVisitor: public ExecutableContent::Builder
 {
     Q_DISABLE_COPY(DumperVisitor)
 
 public:
-    DumperVisitor(MainClass &clazz, const QString &mainClassName, const CppDumpOptions &options, DataModelWriter *dataModelWriter)
+    DumperVisitor(MainClass &clazz, const QString &mainClassName, const CppDumpOptions &options)
         : clazz(clazz)
         , m_mainClassName(mainClassName)
         , m_options(options)
-        , m_dataModelWriter(dataModelWriter)
     {}
 
     void process(ScxmlDocument *doc)
@@ -661,8 +624,8 @@ private:
 
         { // dataIds
             auto dataIds = this->dataIds();
-            clazz.classFields << QStringLiteral("static QVector<Scxml::ExecutableContent::StringId> dataIds;");
-            t << QStringLiteral("QVector<Scxml::ExecutableContent::StringId> %1::Data::dataIds({").arg(m_mainClassName);
+            clazz.classFields << QStringLiteral("static Scxml::ExecutableContent::StringIds dataIds;");
+            t << QStringLiteral("Scxml::ExecutableContent::StringIds %1::Data::dataIds({").arg(m_mainClassName);
             generateList(t, [&dataIds](int idx) -> QString {
                 if (idx < dataIds.size())
                     return QString::number(dataIds.at(idx));
@@ -674,8 +637,8 @@ private:
 
         { // evaluators
             auto evaluators = this->evaluators();
-            clazz.classFields << QStringLiteral("static Scxml::DataModel::EvaluatorInfos evaluators;");
-            t << QStringLiteral("Scxml::DataModel::EvaluatorInfos %1::Data::evaluators({").arg(m_mainClassName);
+            clazz.classFields << QStringLiteral("static Scxml::EvaluatorInfos evaluators;");
+            t << QStringLiteral("Scxml::EvaluatorInfos %1::Data::evaluators({").arg(m_mainClassName);
             generateList(t, [&evaluators](int idx) -> QString {
                 if (idx >= evaluators.size())
                     return QString();
@@ -688,8 +651,8 @@ private:
 
         { // assignments
             auto assignments = this->assignments();
-            clazz.classFields << QStringLiteral("static Scxml::DataModel::AssignmentInfos assignments;");
-            t << QStringLiteral("Scxml::DataModel::AssignmentInfos %1::Data::assignments({").arg(m_mainClassName);
+            clazz.classFields << QStringLiteral("static Scxml::AssignmentInfos assignments;");
+            t << QStringLiteral("Scxml::AssignmentInfos %1::Data::assignments({").arg(m_mainClassName);
             generateList(t, [&assignments](int idx) -> QString {
                 if (idx >= assignments.size())
                     return QString();
@@ -702,8 +665,8 @@ private:
 
         { // foreaches
             auto foreaches = this->foreaches();
-            clazz.classFields << QStringLiteral("static Scxml::DataModel::ForeachInfos foreaches;");
-            t << QStringLiteral("Scxml::DataModel::ForeachInfos %1::Data::foreaches({").arg(m_mainClassName);
+            clazz.classFields << QStringLiteral("static Scxml::ForeachInfos foreaches;");
+            t << QStringLiteral("Scxml::ForeachInfos %1::Data::foreaches({").arg(m_mainClassName);
             generateList(t, [&foreaches](int idx) -> QString {
                 if (idx >= foreaches.size())
                     return QString();
@@ -719,7 +682,6 @@ private:
     MainClass &clazz;
     const QString &m_mainClassName;
     const CppDumpOptions &m_options;
-    DataModelWriter *m_dataModelWriter;
     QHash<DocumentModel::AbstractState *, QString> m_mangledNames;
     QVector<Node *> m_parents;
     QSet<QString> m_knownEvents;
@@ -741,17 +703,7 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     }
 
     MainClass clazz;
-    QScopedPointer<DataModelWriter> dataModelWriter;
-    switch (doc->root->dataModel) {
-    case Scxml::NullDataModel:
-    case Scxml::JSDataModel:
-        dataModelWriter.reset(new DataModelWriter(clazz.initDataModel));
-        break;
-    default:
-        Q_UNREACHABLE();
-    }
-
-    DumperVisitor(clazz, mainClassName, options, dataModelWriter.data()).process(doc);
+    DumperVisitor(clazz, mainClassName, options).process(doc);
 
     // Generate the .h file:
     const QString headerGuard = headerName.toUpper().replace(QLatin1Char('.'), QLatin1Char('_'));

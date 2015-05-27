@@ -54,6 +54,7 @@ public slots:
 
 private:
     struct Data;
+    friend Data;
     struct Data *data;
 };
 
