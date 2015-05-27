@@ -279,36 +279,6 @@ private:
     Data *d;
 };
 
-// Simple basic Xml "dom" to support the scxml xpath data model without qtxml dependency
-// add dep?
-struct SCXML_EXPORT XmlNode {
-    bool isText() const;
-    QStringList texts() const;
-    QString text() const;
-    void addText(const QString &value);
-
-    void addTag(const QString &name, const QString &xmlns, const QXmlStreamAttributes &attributes,
-                QVector<XmlNode> childs);
-
-    XmlNode() { }
-    XmlNode(const QString &value) : m_name(QStringLiteral("$") + value) { }
-    XmlNode(const QString &name, const QString &xmlns, const QXmlStreamAttributes &attributes,
-            const QVector<XmlNode> &childs)
-        : m_name(name), m_namespace(xmlns), m_attributes(attributes), m_childs(childs) { }
-    QString name() const;
-    QXmlStreamAttributes attributes() const;
-    bool loopOnAttributes(std::function<bool(const QXmlStreamAttribute &)> l);
-    bool loopOnText(std::function<bool(const QString &)> l) const;
-    bool loopOnChilds(std::function<bool(const XmlNode &)> l) const;
-    bool loopOnTags(std::function<bool(const XmlNode &)> l) const;
-    void dump(QXmlStreamWriter &s) const;
-protected:
-    QString m_name;
-    QString m_namespace;
-    QXmlStreamAttributes m_attributes;
-    QVector<XmlNode> m_childs;
-};
-
 } // namespace Scxml
 
 #endif // SCXMLSTATETABLE_H
