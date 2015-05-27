@@ -660,7 +660,7 @@ void ScxmlParser::parse()
                 case StateTable::Xml:
                 {
                     ParserState pNew = ParserState(ParserState::DataElement);
-                    Q_ASSERT(0); // to do, use Scxml::XmlNode
+                    Q_ASSERT(0);
                 }
                 }*/
                 break;
@@ -1235,6 +1235,11 @@ void ScxmlParser::addError(const DocumentModel::XmlLocation &location, const QSt
                                  ErrorMessage::Error,
                                  msg));
     m_state = ParsingError;
+}
+
+std::function<bool (const QString &)> ScxmlParser::errorDumper()
+{
+    return [this](const QString &msg) -> bool { this->addError(msg); return true; };
 }
 
 bool ScxmlParser::maybeId(const QXmlStreamAttributes &attributes, QString *id)

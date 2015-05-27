@@ -571,10 +571,6 @@ struct ErrorMessage
     }
 };
 
-struct ParsingOptions {
-    ParsingOptions() { }
-};
-
 class SCXML_EXPORT ScxmlParser
 {
 public:
@@ -625,7 +621,6 @@ private: // fields
     QVector<ParserState> m_stack;
     State m_state;
     QList<ErrorMessage> m_errors;
-    ParsingOptions m_options;
 };
 
 } // namespace Scxml

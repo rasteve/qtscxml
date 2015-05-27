@@ -341,10 +341,10 @@ void StateTable::executeInitialSetup()
     executionEngine()->execute(d->m_initialSetup);
 }
 
-bool loopOnSubStates(QState *startState,
-                     std::function<bool(QState *)> enteringState,
-                     std::function<void(QState *)> exitingState,
-                     std::function<void(QAbstractState *)> inAbstractState)
+static bool loopOnSubStates(QState *startState,
+                            std::function<bool(QState *)> enteringState = nullptr,
+                            std::function<void(QState *)> exitingState = nullptr,
+                            std::function<void(QAbstractState *)> inAbstractState = nullptr)
 {
     QList<int> pos;
     QState *parentAtt = startState;
@@ -438,6 +438,19 @@ void StateTable::submitError(const QByteArray &type, const QString &msg, const Q
 
     qCDebug(scxmlLog) << "machine" << d->_name << "had error" << type << ":" << msg;
     submitEvent(EventBuilder::errorEvent(type, sendid));
+}
+
+void StateTable::submitEvent1(const QString &event)
+{
+    submitEvent(event.toUtf8(), QVariantList());
+}
+
+void StateTable::submitEvent2(const QString &event, QVariant data)
+{
+    QVariantList dataValues;
+    if (data.isValid())
+        dataValues << data;
+    submitEvent(event.toUtf8(), dataValues);
 }
 
 void StateTable::submitEvent(ScxmlEvent *e)

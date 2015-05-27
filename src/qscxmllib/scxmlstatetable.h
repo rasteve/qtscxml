@@ -54,16 +54,8 @@ QT_END_NAMESPACE
 
 namespace Scxml {
 SCXML_EXPORT Q_DECLARE_LOGGING_CATEGORY(scxmlLog)
-struct XmlNode;
-
-typedef std::function<bool(const QString &)> ErrorDumper;
 
 class ScxmlParser;
-
-bool loopOnSubStates(QState *startState,
-                  std::function<bool(QState *)> enteringState = Q_NULLPTR,
-                  std::function<void(QState *)> exitingState = Q_NULLPTR,
-                  std::function<void(QAbstractState *)> inAbstractState = Q_NULLPTR);
 
 namespace ExecutableContent {
 class ExecutionEngine;
@@ -96,7 +88,6 @@ public:
     ExecutableContent::ExecutionEngine *executionEngine() const;
 
     void doLog(const QString &label, const QString &msg);
-    ErrorDumper errorDumper();
     virtual bool init();
     QJSEngine *engine() const;
     void setEngine(QJSEngine *engine);
@@ -105,17 +96,9 @@ public:
     QStringList currentStates(bool compress = true);
 
     Q_INVOKABLE void submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid);
+    Q_INVOKABLE void submitEvent1(const QString &event);
+    Q_INVOKABLE void submitEvent2(const QString &event,  QVariant data);
 
-    Q_INVOKABLE void submitEvent1(const QString &event) {
-        submitEvent(event.toUtf8(), QVariantList());
-    }
-
-    Q_INVOKABLE void submitEvent2(const QString &event,  QVariant data) {
-        QVariantList dataValues;
-        if (data.isValid())
-            dataValues << data;
-        submitEvent(event.toUtf8(), dataValues);
-    }
     void submitEvent(ScxmlEvent *e);
     void submitEvent(const QByteArray &event, const QVariantList &dataValues = QVariantList(),
                      const QStringList &dataNames = QStringList(),
