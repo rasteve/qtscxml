@@ -56,6 +56,7 @@ public: // StateTable data fields:
     QJSEngine *m_engine = nullptr;
     StateTable::BindingMethod m_dataBinding = StateTable::EarlyBinding;
     ExecutableContent::ExecutionEngine *m_executionEngine = nullptr;
+    TableData *tableData = nullptr;
     ScxmlEvent _event;
     QString _name;
     ExecutableContent::StringIds dataItemNames;

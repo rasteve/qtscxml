@@ -61,6 +61,16 @@ namespace ExecutableContent {
 class ExecutionEngine;
 }
 
+class SCXML_EXPORT TableData
+{
+public:
+    virtual ~TableData();
+
+    virtual QString string(ExecutableContent::StringId id) const = 0;
+    virtual QByteArray byteArray(ExecutableContent::ByteArrayId id) const = 0;
+    virtual ExecutableContent::Instructions instructions() const = 0;
+};
+
 class StateTablePrivate;
 class SCXML_EXPORT StateTable: public QStateMachine
 {
@@ -86,6 +96,8 @@ public:
     BindingMethod dataBinding() const;
 
     ExecutableContent::ExecutionEngine *executionEngine() const;
+    TableData *tableData() const;
+    void setTableData(TableData *tableData);
 
     void doLog(const QString &label, const QString &msg);
     virtual bool init();

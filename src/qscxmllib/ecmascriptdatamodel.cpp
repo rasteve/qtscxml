@@ -179,7 +179,7 @@ public:
     { return q->engine(); }
 
     QString string(ExecutableContent::StringId id) const
-    { return table()->executionEngine()->string(id); }
+    { return table()->tableData()->string(id); }
 
     StateTable::BindingMethod dataBinding() const
     { return table()->dataBinding(); }

@@ -305,9 +305,9 @@ public:
         wireTransitions();
         applyInitialStates();
 
-        m_table->executionEngine()->setInstructions(instructions());
-        m_table->executionEngine()->setStringTable(stringTable());
-        m_table->executionEngine()->setByteArrayTable(byteArrayTable());
+        ExecutableContent::DynamicTableData *td = tableData();
+        td->setParent(m_table);
+        m_table->setTableData(td);
 
         m_parents.clear();
         m_allTransitions.clear();
@@ -1235,11 +1235,6 @@ void ScxmlParser::addError(const DocumentModel::XmlLocation &location, const QSt
                                  ErrorMessage::Error,
                                  msg));
     m_state = ParsingError;
-}
-
-std::function<bool (const QString &)> ScxmlParser::errorDumper()
-{
-    return [this](const QString &msg) -> bool { this->addError(msg); return true; };
 }
 
 bool ScxmlParser::maybeId(const QXmlStreamAttributes &attributes, QString *id)

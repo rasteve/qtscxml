@@ -68,7 +68,7 @@ public:
     bool step(Instructions &ip)
     {
         auto dataModel = table->dataModel();
-        auto executionEngine = table->executionEngine();
+        auto tableData = table->tableData();
 
         auto instr = reinterpret_cast<Instruction *>(ip);
         switch (instr->instructionType) {
@@ -105,7 +105,7 @@ public:
             Send *send = reinterpret_cast<Send *>(instr);
             ip += send->size();
 
-            QString delay = executionEngine->string(send->delay);
+            QString delay = tableData->string(send->delay);
             if (send->delayexpr != NoEvaluator) {
                 bool ok = false;
                 delay = table->dataModel()->evaluateToString(send->delayexpr, &ok);
@@ -181,7 +181,7 @@ public:
             qDebug() << "Executing raise step";
             Raise *raise = reinterpret_cast<Raise *>(instr);
             ip += raise->size();
-            auto event = executionEngine->byteArray(raise->event);
+            auto event = tableData->byteArray(raise->event);
             table->submitEvent(event, QVariantList(), QStringList(), ScxmlEvent::Internal);
             return true;
         }
@@ -193,7 +193,7 @@ public:
             bool ok = true;
             QString str = dataModel->evaluateToString(log->expr, &ok);
             if (ok)
-                table->doLog(executionEngine->string(log->label), str);
+                table->doLog(tableData->string(log->label), str);
             return ok;
         }
 
@@ -201,7 +201,7 @@ public:
             qDebug() << "Executing cancel step";
             Cancel *cancel = reinterpret_cast<Cancel *>(instr);
             ip += cancel->size();
-            QByteArray e = executionEngine->byteArray(cancel->sendid);
+            QByteArray e = tableData->byteArray(cancel->sendid);
             bool ok = true;
             if (cancel->sendidexpr != NoEvaluator)
                 e = dataModel->evaluateToString(cancel->sendidexpr, &ok).toUtf8();
@@ -242,54 +242,28 @@ public:
     }
 
     StateTable *table;
-    QVector<QString> strings;
-    QVector<QByteArray> byteArrays;
-    QVector<qint32> instructions;
     QVariant extraData;
 };
 
 ExecutionEngine::ExecutionEngine(StateTable *table)
     : data(new Data(table))
-{}
+{
+    Q_ASSERT(table);
+}
 
 ExecutionEngine::~ExecutionEngine()
 {
     delete data;
 }
 
-void ExecutionEngine::setStringTable(const QVector<QString> &strings)
-{
-    data->strings = strings;
-}
-
-QString ExecutionEngine::string(StringId id) const
-{
-    if (id == NoString)
-        return QString();
-    return data->strings.at(id);
-}
-
-void ExecutionEngine::setByteArrayTable(const QVector<QByteArray> &byteArrays)
-{
-    data->byteArrays = byteArrays;
-}
-
-QByteArray ExecutionEngine::byteArray(ByteArrayId id) const
-{
-    return data->byteArrays.at(id);
-}
-
-void ExecutionEngine::setInstructions(const QVector<qint32> &instructions)
-{
-    data->instructions = instructions;
-}
-
 bool ExecutionEngine::execute(ContainerId id, const QVariant &extraData)
 {
+    Q_ASSERT(data->table);
+
     if (id == NoInstruction)
         return true;
 
-    qint32 *ip = &data->instructions[id];
+    qint32 *ip = data->table->tableData()->instructions() + id;
     data->extraData = extraData;
     bool result = data->step(ip);
     data->extraData = QVariant();
@@ -388,16 +362,6 @@ bool Builder::visit(DocumentModel::Invoke *)
 {
     Q_UNIMPLEMENTED();
     return false;
-}
-
-QVector<QString> Builder::stringTable()
-{
-    return m_stringTable.data();
-}
-
-QVector<QByteArray> Builder::byteArrayTable()
-{
-    return m_byteArrayTable.data();
 }
 
 ContainerId Builder::generate(const DocumentModel::DoneData *node)
@@ -547,4 +511,44 @@ EvaluatorId Builder::createEvaluatorVariant(const QString &instrName, const QStr
     }
 
     return NoEvaluator;
+}
+
+DynamicTableData *Builder::tableData()
+{
+    auto td = new DynamicTableData;
+    td->strings = m_stringTable.data();
+    td->byteArrays = m_byteArrayTable.data();
+    td->theInstructions = m_instructions.data();
+    return td;
+}
+
+
+QString DynamicTableData::string(StringId id) const
+{
+    return id == NoString ? QString() : strings.at(id);
+}
+
+QByteArray DynamicTableData::byteArray(ByteArrayId id) const
+{
+    return byteArrays.at(id);
+}
+
+Instructions DynamicTableData::instructions() const
+{
+    return const_cast<Instructions>(theInstructions.data());
+}
+
+QVector<qint32> DynamicTableData::instructionTable() const
+{
+    return theInstructions;
+}
+
+QVector<QString> DynamicTableData::stringTable() const
+{
+    return strings;
+}
+
+QVector<QByteArray> DynamicTableData::byteArrayTable() const
+{
+    return byteArrays;
 }

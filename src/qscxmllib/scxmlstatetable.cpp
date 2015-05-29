@@ -46,15 +46,15 @@ QByteArray objectId(QObject *obj, bool strict = false)
 
 } // anonymous namespace
 
+TableData::~TableData()
+{}
+
 QAtomicInt StateTablePrivate::m_sessionIdCounter = QAtomicInt(0);
 
 StateTablePrivate::StateTablePrivate()
     : QStateMachinePrivate()
     , m_sessionId(m_sessionIdCounter++)
 {
-    Q_Q(StateTable);
-
-    m_executionEngine = new ExecutableContent::ExecutionEngine(q);
 }
 
 StateTablePrivate::~StateTablePrivate()
@@ -66,12 +66,16 @@ StateTablePrivate::~StateTablePrivate()
 StateTable::StateTable(QObject *parent)
     : QStateMachine(*new StateTablePrivate, parent)
 {
+    Q_D(StateTable);
+    d->m_executionEngine = new ExecutableContent::ExecutionEngine(this);
     connect(this, &QStateMachine::finished, this, &StateTable::onFinished);
 }
 
 StateTable::StateTable(StateTablePrivate &dd, QObject *parent)
     : QStateMachine(dd, parent)
 {
+    Q_D(StateTable);
+    d->m_executionEngine = new ExecutableContent::ExecutionEngine(this);
     connect(this, &QStateMachine::finished, this, &StateTable::onFinished);
 }
 
@@ -122,6 +126,20 @@ ExecutableContent::ExecutionEngine *StateTable::executionEngine() const
     Q_D(const StateTable);
 
     return d->m_executionEngine;
+}
+
+TableData *StateTable::tableData() const
+{
+    Q_D(const StateTable);
+
+    return d->tableData;
+}
+
+void StateTable::setTableData(TableData *tableData)
+{
+    Q_D(StateTable);
+
+    d->tableData = tableData;
 }
 
 void StateTable::doLog(const QString &label, const QString &msg)
@@ -601,6 +619,7 @@ public:
 
 ScxmlBaseTransition::ScxmlBaseTransition(QState *sourceState, const QList<QByteArray> &eventSelector)
     : QAbstractTransition(sourceState)
+    , d(new Data)
 {
     d->eventSelector = eventSelector;
 }
@@ -621,8 +640,8 @@ ScxmlBaseTransition::~ScxmlBaseTransition()
 StateTable *ScxmlBaseTransition::table() const {
     if (StateTable *t = qobject_cast<StateTable *>(parent()))
         return t;
-    if (sourceState())
-        return qobject_cast<StateTable *>(sourceState()->machine());
+    if (QState *s = sourceState())
+        return qobject_cast<StateTable *>(s->machine());
     qCWarning(scxmlLog) << "could not resolve StateTable in " << transitionLocation();
     return 0;
 }

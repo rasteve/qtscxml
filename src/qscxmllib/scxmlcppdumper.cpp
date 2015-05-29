@@ -223,9 +223,7 @@ protected:
         clazz.init.impl << QStringLiteral("table.setDataBinding(Scxml::StateTable::%1Binding);").arg(binding);
 
         clazz.implIncludes << QStringLiteral("QScxmlLib/executablecontent.h");
-        clazz.init.impl << QStringLiteral("table.executionEngine()->setInstructions(instructions);");
-        clazz.init.impl << QStringLiteral("table.executionEngine()->setStringTable(strings);");
-        clazz.init.impl << QStringLiteral("table.executionEngine()->setByteArrayTable(byteArrays);");
+        clazz.init.impl << QStringLiteral("table.setTableData(this);");
 
         foreach (AbstractState *s, node->initialStates) {
             clazz.init.impl << QStringLiteral("table.setInitialState(&state_") + mangledName(s) + QStringLiteral(");");
@@ -582,24 +580,25 @@ private:
     {
         StringListDumper &t = clazz.tables;
         clazz.classFields << QString();
+        QScopedPointer<ExecutableContent::DynamicTableData> td(tableData());
 
         { // instructions
-            clazz.classFields << QStringLiteral("static QVector<qint32> instructions;");
-            t << QStringLiteral("QVector<qint32> %1::Data::instructions({").arg(m_mainClassName);
-            auto instr = instructions();
+            clazz.classFields << QStringLiteral("static qint32 theInstructions[];");
+            t << QStringLiteral("qint32 %1::Data::theInstructions[] = {").arg(m_mainClassName);
+            auto instr = td->instructionTable();
             generateList(t, [&instr](int idx) -> QString {
                 if (idx < instr.size())
                     return QString::number(instr.at(idx));
                 else
                     return QString();
             });
-            t << QStringLiteral("});") << QStringLiteral("");
+            t << QStringLiteral("};") << QStringLiteral("");
         }
 
         { // strings
             clazz.classFields << QStringLiteral("static QVector<QString> strings;");
             t << QStringLiteral("QVector<QString> %1::Data::strings({").arg(m_mainClassName);
-            auto strings = stringTable();
+            auto strings = td->stringTable();
             for (int i = 0, ei = strings.size(); i != ei; ++i) {
                 QString s = QStringLiteral("    ") + strLit(strings.at(i));
                 if (i + 1 != ei)
@@ -612,7 +611,7 @@ private:
         { // byte arrays
             clazz.classFields << QStringLiteral("static QVector<QByteArray> byteArrays;");
             t << QStringLiteral("QVector<QByteArray> %1::Data::byteArrays({").arg(m_mainClassName);
-            auto byteArrays = byteArrayTable();
+            auto byteArrays = td->byteArrayTable();
             for (int i = 0, ei = byteArrays.size(); i != ei; ++i) {
                 QString s = QStringLiteral("    ") + qba(QString::fromUtf8(byteArrays.at(i)));
                 if (i + 1 != ei)
@@ -691,6 +690,17 @@ private:
 };
 } // anonymous namespace
 
+static QString tableDataImpl = QLatin1String(
+            "    QString string(Scxml::ExecutableContent::StringId id) const Q_DECL_OVERRIDE\n"
+            "    { return id == Scxml::ExecutableContent::NoString ? QString() : strings.at(id); }\n"
+            "\n"
+            "    QByteArray byteArray(Scxml::ExecutableContent::ByteArrayId id) const Q_DECL_OVERRIDE\n"
+            "    { return byteArrays.at(id); }\n"
+            "\n"
+            "    Scxml::ExecutableContent::Instructions instructions() const Q_DECL_OVERRIDE\n"
+            "    { return theInstructions; }\n"
+            );
+
 void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
 {
     m_doc = doc;
@@ -748,7 +758,7 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     if (!options.namespaceName.isEmpty())
         cpp << l("namespace ") << options.namespaceName << l(" {") << endl << endl;
 
-    cpp << l("struct ") << mainClassName << l("::Data {") << endl;
+    cpp << l("struct ") << mainClassName << l("::Data: private Scxml::TableData {") << endl;
 
     cpp << QStringLiteral("    Data(%1 &table)\n        : table(table)").arg(mainClassName) << endl;
     clazz.constructor.initializer.write(cpp, QStringLiteral("        , "), QStringLiteral("\n"));
@@ -758,7 +768,8 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     cpp << l("    void init() {\n");    
     clazz.init.impl.write(cpp, QStringLiteral("        "), QStringLiteral("\n"));
     cpp << l("    }") << endl;
-
+    cpp << endl
+        << tableDataImpl;
 
     cpp << endl
         << QStringLiteral("    %1 &table;").arg(mainClassName) << endl;

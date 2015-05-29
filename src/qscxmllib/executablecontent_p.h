@@ -225,6 +225,26 @@ struct SCXML_EXPORT Invoke: Instruction
 #pragma pack(pop)
 #endif
 
+class DynamicTableData: public QObject, public TableData
+{
+    Q_OBJECT
+
+public:
+    QString string(ExecutableContent::StringId id) const Q_DECL_OVERRIDE;
+    QByteArray byteArray(ExecutableContent::ByteArrayId id) const Q_DECL_OVERRIDE;
+    ExecutableContent::Instructions instructions() const Q_DECL_OVERRIDE;
+
+    QVector<qint32> instructionTable() const;
+    QVector<QString> stringTable() const;
+    QVector<QByteArray> byteArrayTable() const;
+
+private:
+    friend class Builder;
+    QVector<QString> strings;
+    QVector<QByteArray> byteArrays;
+    QVector<qint32> theInstructions;
+};
+
 class Builder: public DocumentModel::NodeVisitor
 {
 public:
@@ -244,10 +264,6 @@ protected: // visitor
     bool visit(DocumentModel::Invoke *) Q_DECL_OVERRIDE;
 
 protected:
-    QVector<qint32> instructions() { return m_instructions.data(); }
-    QVector<QString> stringTable();
-    QVector<QByteArray> byteArrayTable();
-
     ContainerId generate(const DocumentModel::DoneData *node);
     StringId createContext(const QString &instrName);
     void generate(const QVector<DocumentModel::DataElement *> &dataElements);
@@ -269,6 +285,7 @@ protected:
     const AssignmentInfos &assignments() const { return m_assignments; }
     const ForeachInfos &foreaches() const { return m_foreaches; }
     const StringIds &dataIds() const { return m_dataIds; }
+    DynamicTableData *tableData();
 
 private:
     template <typename T, typename U>

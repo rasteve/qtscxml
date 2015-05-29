@@ -63,7 +63,7 @@ public:
         Q_ASSERT(doneData);
         instructionLocation = doneData->location;
         event = eventName.toUtf8();
-        contents = table->executionEngine()->string(doneData->contents);
+        contents = table->tableData()->string(doneData->contents);
         contentExpr = doneData->expr;
         params = &doneData->params;
     }
@@ -71,15 +71,15 @@ public:
     EventBuilder(StateTable *table, ExecutableContent::Send &send)
         : table(table)
         , instructionLocation(send.instructionLocation)
-        , event(table->executionEngine()->byteArray(send.event))
+        , event(table->tableData()->byteArray(send.event))
         , eventexpr(send.eventexpr)
-        , contents(table->executionEngine()->string(send.content))
+        , contents(table->tableData()->string(send.content))
         , params(send.params())
-        , id(table->executionEngine()->byteArray(send.id))
-        , idLocation(table->executionEngine()->string(send.idLocation))
-        , target(table->executionEngine()->string(send.target))
+        , id(table->tableData()->byteArray(send.id))
+        , idLocation(table->tableData()->string(send.idLocation))
+        , target(table->tableData()->string(send.target))
         , targetexpr(send.targetexpr)
-        , type(table->executionEngine()->string(send.type))
+        , type(table->tableData()->string(send.type))
         , typeexpr(send.typeexpr)
         , namelist(&send.namelist)
     {}

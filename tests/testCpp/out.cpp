@@ -3,7 +3,7 @@
 #include <QScxmlLib/nulldatamodel.h>
 #include <QScxmlLib/executablecontent.h>
 
-struct StateMachine::Data {
+struct StateMachine::Data: private Scxml::TableData {
     Data(StateMachine &table)
         : table(table)
         , state_s__1(&table)
@@ -71,9 +71,7 @@ struct StateMachine::Data {
         table.dataModel()->setEvaluators(evaluators, assignments, foreaches);
         table.setDataItemNames(dataIds);
         table.setDataBinding(Scxml::StateTable::EarlyBinding);
-        table.executionEngine()->setInstructions(instructions);
-        table.executionEngine()->setStringTable(strings);
-        table.executionEngine()->setByteArrayTable(byteArrays);
+        table.setTableData(this);
         table.setInitialState(&state_s__1);
         state_s__1.setObjectName(QStringLiteral("s_1"));
         state_s__1.addTransition(&transition_s__1_0);
@@ -188,6 +186,15 @@ struct StateMachine::Data {
         transition_s__2_3.setTargetStates({ &state_s__2__1__2__1 });
     }
 
+    QString string(Scxml::ExecutableContent::StringId id) const Q_DECL_OVERRIDE
+    { return id == Scxml::ExecutableContent::NoString ? QString() : strings.at(id); }
+
+    QByteArray byteArray(Scxml::ExecutableContent::ByteArrayId id) const Q_DECL_OVERRIDE
+    { return byteArrays.at(id); }
+
+    Scxml::ExecutableContent::Instructions instructions() const Q_DECL_OVERRIDE
+    { return theInstructions; }
+
     StateMachine &table;
     Scxml::ScxmlState state_s__1;
     Scxml::ScxmlTransition transition_s__1_0;
@@ -248,7 +255,7 @@ struct StateMachine::Data {
     Scxml::ScxmlTransition transition_s__2_2;
     Scxml::ScxmlTransition transition_s__2_3;
     
-    static QVector<qint32> instructions;
+    static qint32 theInstructions[];
     static QVector<QString> strings;
     static QVector<QByteArray> byteArrays;
     static Scxml::ExecutableContent::StringIds dataIds;
@@ -380,8 +387,8 @@ void StateMachine::event_E97()
 void StateMachine::event_E99()
 { submitEvent(QByteArray::fromRawData("E99", 3)); }
 
-QVector<qint32> StateMachine::Data::instructions({
-});
+qint32 StateMachine::Data::theInstructions[] = {
+};
 
 QVector<QString> StateMachine::Data::strings({
 });

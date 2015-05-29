@@ -24,18 +24,18 @@ using namespace Scxml;
 static bool evaluate(const ExecutableContent::Param &param, StateTable *table, QVariantList &dataValues, QStringList &dataNames)
 {
     auto dataModel = table->dataModel();
-    auto ee = table->executionEngine();
+    auto tableData = table->tableData();
     if (param.expr != NoEvaluator) {
         bool success = false;
         auto v = dataModel->evaluateToVariant(param.expr, &success);
         dataValues.append(v);
-        dataNames.append(ee->string(param.name));
+        dataNames.append(tableData->string(param.name));
         return success;
     }
 
     QString loc;
     if (param.location != ExecutableContent::NoString) {
-        loc = ee->string(param.location);
+        loc = tableData->string(param.location);
     }
 
     if (loc.isEmpty()) {
@@ -44,7 +44,7 @@ static bool evaluate(const ExecutableContent::Param &param, StateTable *table, Q
 
     if (dataModel->hasProperty(loc)) {
         dataValues.append(dataModel->property(loc));
-        dataNames.append(ee->string(param.name));
+        dataNames.append(tableData->string(param.name));
         return true;
     } else {
         table->submitError(QByteArray("error.execution"),
@@ -74,7 +74,7 @@ QAtomicInt EventBuilder::idCounter = QAtomicInt(0);
 ScxmlEvent *EventBuilder::buildEvent()
 {
     auto dataModel = table ? table->dataModel() : nullptr;
-    auto engine = table ? table->executionEngine() : nullptr;
+    auto tableData = table ? table->tableData() : nullptr;
 
     QByteArray eventName = event;
     bool ok = true;
@@ -102,7 +102,7 @@ ScxmlEvent *EventBuilder::buildEvent()
         if (evaluate(params, table, dataValues, dataNames)) {
             if (namelist) {
                 for (qint32 i = 0; i < namelist->count; ++i) {
-                    QString name = engine->string(namelist->const_data()[i]);
+                    QString name = tableData->string(namelist->const_data()[i]);
                     dataNames << name;
                     dataValues << dataModel->property(name);
                 }
@@ -118,7 +118,7 @@ ScxmlEvent *EventBuilder::buildEvent()
     QByteArray sendid = id;
     if (!idLocation.isEmpty()) {
         sendid = generateId();
-        table->dataModel()->setStringProperty(idLocation, QString::fromUtf8(sendid), engine->string(instructionLocation), &ok);
+        table->dataModel()->setStringProperty(idLocation, QString::fromUtf8(sendid), tableData->string(instructionLocation), &ok);
         if (!ok)
             return nullptr;
     }
@@ -137,14 +137,14 @@ ScxmlEvent *EventBuilder::buildEvent()
         // [6.2.4] and test194.
         table->submitError(QByteArray("error.execution"),
                            QStringLiteral("Error in %1: %2 is not a legal target")
-                           .arg(engine->string(instructionLocation), origin),
+                           .arg(tableData->string(instructionLocation), origin),
                            sendid);
         return nullptr;
     } else if (!table->isDispatchableTarget(origin)) {
         // [6.2.4] and test521.
         table->submitError(QByteArray("error.communication"),
                            QStringLiteral("Error in %1: cannot dispatch to target '%2'")
-                           .arg(engine->string(instructionLocation), origin),
+                           .arg(tableData->string(instructionLocation), origin),
                            sendid);
         return nullptr;
     }
@@ -163,7 +163,7 @@ ScxmlEvent *EventBuilder::buildEvent()
         // [6.2.5] and test199
         table->submitError(QByteArray("error.execution"),
                            QStringLiteral("Error in %1: %2 is not a valid type")
-                           .arg(engine->string(instructionLocation), origintype),
+                           .arg(tableData->string(instructionLocation), origintype),
                            sendid);
         return nullptr;
     }

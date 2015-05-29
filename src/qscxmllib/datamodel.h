@@ -32,18 +32,18 @@ class StateTable;
 #if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
 #pragma pack(push, 4) // 4 == sizeof(qint32)
 #endif
-struct EvaluatorInfo { // TODO: move to _p.h
+struct EvaluatorInfo {
     ExecutableContent::StringId expr;
     ExecutableContent::StringId context;
 };
 
-struct AssignmentInfo { // TODO: move to _p.h
+struct AssignmentInfo {
     ExecutableContent::StringId dest;
     ExecutableContent::StringId expr;
     ExecutableContent::StringId context;
 };
 
-struct ForeachInfo { // TODO: move to _p.h
+struct ForeachInfo {
     ExecutableContent::StringId array;
     ExecutableContent::StringId item;
     ExecutableContent::StringId index;
@@ -72,7 +72,7 @@ public:
 
     virtual void setup(const ExecutableContent::StringIds &dataItemNames) = 0;
 
-    virtual void setEvaluators(const EvaluatorInfos &evals, const AssignmentInfos &assignments,
+    virtual void setEvaluators(const EvaluatorInfos &evals, const AssignmentInfos &assignments, // TODO: move to TableData
                                const ForeachInfos &foreaches) = 0;
 
     virtual QString evaluateToString(EvaluatorId id, bool *ok) = 0;

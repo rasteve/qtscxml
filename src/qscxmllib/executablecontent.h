@@ -45,13 +45,6 @@ public:
     ExecutionEngine(StateTable *table);
     ~ExecutionEngine();
 
-    void setStringTable(const QVector<QString> &strings);
-    QString string(StringId id) const;
-
-    void setByteArrayTable(const QVector<QByteArray> &byteArrays);
-    QByteArray byteArray(ByteArrayId id) const;
-
-    void setInstructions(const QVector<qint32> &instructions);
     bool execute(ContainerId ip, const QVariant &extraData = QVariant());
 
 private:

@@ -593,9 +593,6 @@ public:
     StateTable *table();
     void addError(const QString &msg, ErrorMessage::Severity severity = ErrorMessage::Error);
     void addError(const DocumentModel::XmlLocation &location, const QString &msg);
-    std::function<bool(const QString &)> errorDumper() {
-        return [this](const QString &msg) -> bool { this->addError(msg); return true; };
-    }
 
     State state() const { return m_state; }
     QList<ErrorMessage> errors() const { return m_errors; }

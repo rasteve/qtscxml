@@ -16,7 +16,7 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include "datamodel_p.h"
+#include "datamodel.h"
 
 using namespace Scxml;
 
