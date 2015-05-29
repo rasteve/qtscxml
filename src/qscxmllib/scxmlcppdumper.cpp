@@ -609,16 +609,34 @@ private:
         }
 
         { // byte arrays
-            clazz.classFields << QStringLiteral("static QVector<QByteArray> byteArrays;");
-            t << QStringLiteral("QVector<QByteArray> %1::Data::byteArrays({").arg(m_mainClassName);
+            t << QStringLiteral("#define BA_LIT(idx, ofs, len) \\")
+              << QStringLiteral("    Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \\")
+              << QStringLiteral("    qptrdiff(offsetof(ByteArrays, stringdata) + ofs - idx * sizeof(QByteArrayData)) \\")
+              << QStringLiteral("    )");
+
+            t << QStringLiteral("%1::Data::ByteArrays %1::Data::byteArrays = {{").arg(m_mainClassName);
             auto byteArrays = td->byteArrayTable();
-            for (int i = 0, ei = byteArrays.size(); i != ei; ++i) {
-                QString s = QStringLiteral("    ") + qba(QString::fromUtf8(byteArrays.at(i)));
-                if (i + 1 != ei)
-                    s += QLatin1Char(',');
-                t << s;
-            }
-            t << QStringLiteral("});") << QStringLiteral("");
+            int charCount = 0;
+            QString charData;
+            generateList(t, [&charCount, &charData, &byteArrays](int idx) -> QString {
+                if (idx >= byteArrays.size())
+                    return QString();
+
+                auto ba = cEscape(QString::fromUtf8(byteArrays.at(idx)));
+                QString str = QStringLiteral("BA_LIT(%1, %2, %3)").arg(QString::number(idx),
+                                                                       QString::number(charCount),
+                                                                       QString::number(ba.size()));
+                charData += ba + QStringLiteral("\\0");
+                charCount += ba.size() + 1;
+                return str;
+            });
+            t << QStringLiteral("}, \"%1\"").arg(charData);
+            t << QStringLiteral("};") << QStringLiteral("");
+
+            clazz.classFields << QStringLiteral("static struct ByteArrays {")
+                              << QStringLiteral("    QByteArrayData data[%1];").arg(byteArrays.size())
+                              << QStringLiteral("    char stringdata[%1];").arg(charCount + 1)
+                              << QStringLiteral("} byteArrays;");
         }
 
         { // dataIds
@@ -695,7 +713,7 @@ static QString tableDataImpl = QLatin1String(
             "    { return id == Scxml::ExecutableContent::NoString ? QString() : strings.at(id); }\n"
             "\n"
             "    QByteArray byteArray(Scxml::ExecutableContent::ByteArrayId id) const Q_DECL_OVERRIDE\n"
-            "    { return byteArrays.at(id); }\n"
+            "    { return QByteArray({&byteArrays.data[id]}); }\n"
             "\n"
             "    Scxml::ExecutableContent::Instructions instructions() const Q_DECL_OVERRIDE\n"
             "    { return theInstructions; }\n"

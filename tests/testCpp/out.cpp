@@ -190,7 +190,7 @@ struct StateMachine::Data: private Scxml::TableData {
     { return id == Scxml::ExecutableContent::NoString ? QString() : strings.at(id); }
 
     QByteArray byteArray(Scxml::ExecutableContent::ByteArrayId id) const Q_DECL_OVERRIDE
-    { return byteArrays.at(id); }
+    { return QByteArray({&byteArrays.data[id]}); }
 
     Scxml::ExecutableContent::Instructions instructions() const Q_DECL_OVERRIDE
     { return theInstructions; }
@@ -257,7 +257,10 @@ struct StateMachine::Data: private Scxml::TableData {
     
     static qint32 theInstructions[];
     static QVector<QString> strings;
-    static QVector<QByteArray> byteArrays;
+    static struct ByteArrays {
+        QByteArrayData data[0];
+        char stringdata[1];
+    } byteArrays;
     static Scxml::ExecutableContent::StringIds dataIds;
     static Scxml::EvaluatorInfos evaluators;
     static Scxml::AssignmentInfos assignments;
@@ -393,8 +396,13 @@ qint32 StateMachine::Data::theInstructions[] = {
 QVector<QString> StateMachine::Data::strings({
 });
 
-QVector<QByteArray> StateMachine::Data::byteArrays({
-});
+#define BA_LIT(idx, ofs, len) \
+    Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
+    qptrdiff(offsetof(ByteArrays, stringdata) + ofs - idx * sizeof(QByteArrayData)) \
+    )
+StateMachine::Data::ByteArrays StateMachine::Data::byteArrays = {{
+}, ""
+};
 
 Scxml::ExecutableContent::StringIds StateMachine::Data::dataIds({
 });
