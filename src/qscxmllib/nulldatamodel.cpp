@@ -24,14 +24,8 @@ NullDataModel::NullDataModel(StateTable *table)
     : DataModel(table)
 {}
 
-void NullDataModel::setEvaluators(const EvaluatorInfos &evals, const AssignmentInfos &assignments, const ForeachInfos &foreaches)
+void NullDataModel::setup()
 {
-    // FIXME: bool evaluators need to be stored.
-}
-
-void NullDataModel::setup(const ExecutableContent::StringIds &dataItemNames)
-{
-    Q_UNUSED(dataItemNames);
 }
 
 QString NullDataModel::evaluateToString(EvaluatorId id, bool *ok)

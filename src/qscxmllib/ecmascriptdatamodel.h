@@ -34,10 +34,7 @@ public:
     EcmaScriptDataModel(StateTable *table);
     ~EcmaScriptDataModel() Q_DECL_OVERRIDE;
 
-    void setEvaluators(const EvaluatorInfos &evals, const AssignmentInfos &assignments,
-                       const ForeachInfos &foreaches) Q_DECL_OVERRIDE;
-
-    void setup(const ExecutableContent::StringIds &dataItemNames) Q_DECL_OVERRIDE;
+    void setup() Q_DECL_OVERRIDE;
 
     QString evaluateToString(EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
     bool evaluateToBool(EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;

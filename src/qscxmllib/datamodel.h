@@ -53,10 +53,6 @@ struct ForeachInfo {
 #pragma pack(pop)
 #endif
 
-typedef QVector<EvaluatorInfo> EvaluatorInfos;
-typedef QVector<AssignmentInfo> AssignmentInfos;
-typedef QVector<ForeachInfo> ForeachInfos;
-
 typedef qint32 EvaluatorId;
 enum { NoEvaluator = -1 };
 
@@ -70,10 +66,7 @@ public:
 
     StateTable *table() const;
 
-    virtual void setup(const ExecutableContent::StringIds &dataItemNames) = 0;
-
-    virtual void setEvaluators(const EvaluatorInfos &evals, const AssignmentInfos &assignments, // TODO: move to TableData
-                               const ForeachInfos &foreaches) = 0;
+    virtual void setup() = 0;
 
     virtual QString evaluateToString(EvaluatorId id, bool *ok) = 0;
     virtual bool evaluateToBool(EvaluatorId id, bool *ok) = 0;

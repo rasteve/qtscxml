@@ -69,6 +69,10 @@ public:
     virtual QString string(ExecutableContent::StringId id) const = 0;
     virtual QByteArray byteArray(ExecutableContent::ByteArrayId id) const = 0;
     virtual ExecutableContent::Instructions instructions() const = 0;
+    virtual EvaluatorInfo evaluatorInfo(EvaluatorId evaluatorId) const = 0;
+    virtual AssignmentInfo assignmentInfo(EvaluatorId assignmentId) const = 0;
+    virtual ForeachInfo foreachInfo(EvaluatorId foreachId) const = 0;
+    virtual ExecutableContent::StringId *dataNames(int *count) const = 0;
 };
 
 class StateTablePrivate;
@@ -143,7 +147,6 @@ protected: // friend interface
     friend class StateTableBuilder;
     void setName(const QString &name);
     void setInitialSetup(ExecutableContent::ContainerId sequence);
-    void setDataItemNames(const ExecutableContent::StringIds &dataItemNames);
 
 private:
     Q_DECLARE_PRIVATE(StateTable)

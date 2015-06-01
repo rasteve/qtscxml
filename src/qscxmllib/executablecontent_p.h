@@ -26,6 +26,32 @@
 
 namespace Scxml {
 
+static inline bool operator<(const EvaluatorInfo &ei1, const EvaluatorInfo &ei2)
+{
+    if (ei1.expr != ei2.expr)
+        return ei1.expr < ei2.expr;
+    else
+        return ei1.context < ei2.context;
+}
+
+static inline bool operator<(const AssignmentInfo &ai1, const AssignmentInfo &ai2)
+{
+    if (ai1.dest != ai2.dest)
+        return ai1.dest < ai2.dest;
+    else if (ai1.expr != ai2.expr)
+        return ai1.expr < ai2.expr;
+    else
+        return ai1.context < ai2.context;
+}
+
+static inline bool operator<(const ForeachInfo &fi1, const ForeachInfo &fi2)
+{
+    if (fi1.array != fi2.array) return fi1.array < fi2.array;
+    if (fi1.item != fi2.item) return fi1.item < fi2.item;
+    if (fi1.index != fi2.index) return fi1.index < fi2.index;
+    return fi1.context < fi2.context;
+}
+
 namespace ExecutableContent {
 
 #if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
@@ -233,16 +259,28 @@ public:
     QString string(ExecutableContent::StringId id) const Q_DECL_OVERRIDE;
     QByteArray byteArray(ExecutableContent::ByteArrayId id) const Q_DECL_OVERRIDE;
     ExecutableContent::Instructions instructions() const Q_DECL_OVERRIDE;
+    EvaluatorInfo evaluatorInfo(EvaluatorId evaluatorId) const Q_DECL_OVERRIDE;
+    AssignmentInfo assignmentInfo(EvaluatorId assignmentId) const Q_DECL_OVERRIDE;
+    ForeachInfo foreachInfo(EvaluatorId foreachId) const Q_DECL_OVERRIDE;
+    ExecutableContent::StringId *dataNames(int *count) const;
 
     QVector<qint32> instructionTable() const;
     QVector<QString> stringTable() const;
     QVector<QByteArray> byteArrayTable() const;
+    QVector<EvaluatorInfo> evaluators() const;
+    QVector<AssignmentInfo> assignments() const;
+    QVector<ForeachInfo> foreaches() const;
+    ExecutableContent::StringIds allDataNameIds() const;
 
 private:
     friend class Builder;
     QVector<QString> strings;
     QVector<QByteArray> byteArrays;
     QVector<qint32> theInstructions;
+    QVector<EvaluatorInfo> theEvaluators;
+    QVector<AssignmentInfo> theAssignments;
+    QVector<ForeachInfo> theForeaches;
+    ExecutableContent::StringIds theDataNameIds;
 };
 
 class Builder: public DocumentModel::NodeVisitor
@@ -281,10 +319,6 @@ protected:
     virtual QString createContextString(const QString &instrName) const = 0;
     virtual QString createContext(const QString &instrName, const QString &attrName, const QString &attrValue) const = 0;
 
-    const EvaluatorInfos &evaluators() const { return m_evaluators; }
-    const AssignmentInfos &assignments() const { return m_assignments; }
-    const ForeachInfos &foreaches() const { return m_foreaches; }
-    const StringIds &dataIds() const { return m_dataIds; }
     DynamicTableData *tableData();
 
 private:
@@ -370,8 +404,7 @@ private:
         EvaluatorInfo ei;
         ei.expr = m_stringTable.add(expr);
         ei.context = m_stringTable.add(context);
-        m_evaluators.append(ei);
-        return m_evaluators.size() - 1;
+        return m_evaluators.add(ei);
     }
 
     EvaluatorId addAssignment(const QString &dest, const QString &expr, const QString &context)
@@ -380,8 +413,7 @@ private:
         ai.dest = m_stringTable.add(dest);
         ai.expr = m_stringTable.add(expr);
         ai.context = m_stringTable.add(context);
-        m_assignments.append(ai);
-        return m_assignments.size() - 1;
+        return m_assignments.add(ai);
     }
 
     EvaluatorId addForeach(const QString &array, const QString &item, const QString &index, const QString &context)
@@ -391,8 +423,7 @@ private:
         fi.item = m_stringTable.add(item);
         fi.index = m_stringTable.add(index);
         fi.context = m_stringTable.add(context);
-        m_foreaches.append(fi);
-        return m_foreaches.size() - 1;
+        return m_foreaches.add(fi);
     }
 
     EvaluatorId addDataElement(const QString &id, const QString &expr, const QString &context)
@@ -406,9 +437,9 @@ private:
         return addAssignment(id, expr, context);
     }
 
-    EvaluatorInfos m_evaluators;
-    AssignmentInfos m_assignments;
-    ForeachInfos m_foreaches;
+    Table<EvaluatorInfo, EvaluatorId> m_evaluators;
+    Table<AssignmentInfo, EvaluatorId> m_assignments;
+    Table<ForeachInfo, EvaluatorId> m_foreaches;
     ExecutableContent::StringIds m_dataIds;
 };
 

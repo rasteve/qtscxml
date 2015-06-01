@@ -68,8 +68,6 @@ struct StateMachine::Data: private Scxml::TableData {
 
     void init() {
         table.setDataModel(new Scxml::NullDataModel(&table));
-        table.dataModel()->setEvaluators(evaluators, assignments, foreaches);
-        table.setDataItemNames(dataIds);
         table.setDataBinding(Scxml::StateTable::EarlyBinding);
         table.setTableData(this);
         table.setInitialState(&state_s__1);
@@ -186,14 +184,26 @@ struct StateMachine::Data: private Scxml::TableData {
         transition_s__2_3.setTargetStates({ &state_s__2__1__2__1 });
     }
 
-    QString string(Scxml::ExecutableContent::StringId id) const Q_DECL_OVERRIDE
-    { return id == Scxml::ExecutableContent::NoString ? QString() : strings.at(id); }
-
-    QByteArray byteArray(Scxml::ExecutableContent::ByteArrayId id) const Q_DECL_OVERRIDE
-    { return QByteArray({&byteArrays.data[id]}); }
-
     Scxml::ExecutableContent::Instructions instructions() const Q_DECL_OVERRIDE
     { return theInstructions; }
+    
+    QString string(Scxml::ExecutableContent::StringId id) const Q_DECL_OVERRIDE
+    { return id == Scxml::ExecutableContent::NoString ? QString() : strings.at(id); }
+    
+    QByteArray byteArray(Scxml::ExecutableContent::ByteArrayId id) const Q_DECL_OVERRIDE
+    { return QByteArray({&byteArrays.data[id]}); }
+    
+    Scxml::ExecutableContent::StringId *dataNames(int *count) const Q_DECL_OVERRIDE
+    { *count = 0; return dataIds; }
+    
+    Scxml::EvaluatorInfo evaluatorInfo(Scxml::EvaluatorId evaluatorId) const Q_DECL_OVERRIDE
+    { return evaluators[evaluatorId]; }
+    
+    Scxml::AssignmentInfo assignmentInfo(Scxml::EvaluatorId assignmentId) const Q_DECL_OVERRIDE
+    { return assignments[assignmentId]; }
+    
+    Scxml::ForeachInfo foreachInfo(Scxml::EvaluatorId foreachId) const Q_DECL_OVERRIDE
+    { return foreaches[foreachId]; }
 
     StateMachine &table;
     Scxml::ScxmlState state_s__1;
@@ -261,10 +271,10 @@ struct StateMachine::Data: private Scxml::TableData {
         QByteArrayData data[0];
         char stringdata[1];
     } byteArrays;
-    static Scxml::ExecutableContent::StringIds dataIds;
-    static Scxml::EvaluatorInfos evaluators;
-    static Scxml::AssignmentInfos assignments;
-    static Scxml::ForeachInfos foreaches;
+    static Scxml::ExecutableContent::StringId dataIds [];
+    static Scxml::EvaluatorInfo evaluators[];
+    static Scxml::AssignmentInfo assignments[];
+    static Scxml::ForeachInfo foreaches[];
 };
 
 StateMachine::StateMachine(QObject *parent)
@@ -404,15 +414,15 @@ StateMachine::Data::ByteArrays StateMachine::Data::byteArrays = {{
 }, ""
 };
 
-Scxml::ExecutableContent::StringIds StateMachine::Data::dataIds({
-});
+Scxml::ExecutableContent::StringId StateMachine::Data::dataIds[] = {
+};
 
-Scxml::EvaluatorInfos StateMachine::Data::evaluators({
-});
+Scxml::EvaluatorInfo StateMachine::Data::evaluators[] = {
+};
 
-Scxml::AssignmentInfos StateMachine::Data::assignments({
-});
+Scxml::AssignmentInfo StateMachine::Data::assignments[] = {
+};
 
-Scxml::ForeachInfos StateMachine::Data::foreaches({
-});
+Scxml::ForeachInfo StateMachine::Data::foreaches[] = {
+};
 

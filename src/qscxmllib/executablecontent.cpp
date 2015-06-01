@@ -519,6 +519,10 @@ DynamicTableData *Builder::tableData()
     td->strings = m_stringTable.data();
     td->byteArrays = m_byteArrayTable.data();
     td->theInstructions = m_instructions.data();
+    td->theEvaluators = m_evaluators.data();
+    td->theAssignments = m_assignments.data();
+    td->theForeaches = m_foreaches.data();
+    td->theDataNameIds = m_dataIds;
     return td;
 }
 
@@ -538,6 +542,28 @@ Instructions DynamicTableData::instructions() const
     return const_cast<Instructions>(theInstructions.data());
 }
 
+EvaluatorInfo DynamicTableData::evaluatorInfo(EvaluatorId evaluatorId) const
+{
+    return theEvaluators[evaluatorId];
+}
+
+AssignmentInfo DynamicTableData::assignmentInfo(EvaluatorId assignmentId) const
+{
+    return theAssignments[assignmentId];
+}
+
+ForeachInfo DynamicTableData::foreachInfo(EvaluatorId foreachId) const
+{
+    return theForeaches[foreachId];
+}
+
+StringId *DynamicTableData::dataNames(int *count) const
+{
+    Q_ASSERT(count);
+    *count = theDataNameIds.size();
+    return const_cast<StringId *>(theDataNameIds.data());
+}
+
 QVector<qint32> DynamicTableData::instructionTable() const
 {
     return theInstructions;
@@ -551,4 +577,24 @@ QVector<QString> DynamicTableData::stringTable() const
 QVector<QByteArray> DynamicTableData::byteArrayTable() const
 {
     return byteArrays;
+}
+
+QVector<EvaluatorInfo> DynamicTableData::evaluators() const
+{
+    return theEvaluators;
+}
+
+QVector<AssignmentInfo> DynamicTableData::assignments() const
+{
+    return theAssignments;
+}
+
+QVector<ForeachInfo> DynamicTableData::foreaches() const
+{
+    return theForeaches;
+}
+
+StringIds DynamicTableData::allDataNameIds() const
+{
+    return theDataNameIds;
 }

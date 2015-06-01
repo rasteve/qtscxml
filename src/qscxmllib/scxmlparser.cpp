@@ -371,9 +371,6 @@ private:
             Q_UNREACHABLE();
         }
 
-        m_table->dataModel()->setEvaluators(evaluators(), assignments(), foreaches());
-        m_table->setDataItemNames(dataIds());
-
         return false;
     }
 

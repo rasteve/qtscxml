@@ -217,10 +217,6 @@ public:
         table()->submitError(QByteArray("error.execution"), msg.arg(name, context), sendid);
     }
 
-    EvaluatorInfos evaluators;
-    AssignmentInfos assignments;
-    ForeachInfos foreaches;
-
 private: // Uses private API
     static void setReadonlyProperty(QJSValue *object, const QString& name, const QJSValue& value)
     {
@@ -309,48 +305,43 @@ EcmaScriptDataModel::~EcmaScriptDataModel()
     delete d;
 }
 
-void EcmaScriptDataModel::setEvaluators(const EvaluatorInfos &evals, const AssignmentInfos &assignments, const ForeachInfos &foreaches)
-{
-    d->evaluators = evals;
-    d->assignments = assignments;
-    d->foreaches = foreaches;
-}
-
-void EcmaScriptDataModel::setup(const ExecutableContent::StringIds &dataItemNames)
+void EcmaScriptDataModel::setup()
 {
     d->setupDataModel();
 
     bool ok;
     QJSValue v(QJSValue::UndefinedValue); // See B.2.1, and test456.
-    foreach (ExecutableContent::StringId dataItemName, dataItemNames)
-        d->setProperty(d->string(dataItemName), v, QStringLiteral("<data>"), &ok);
+    int count;
+    ExecutableContent::StringId *names = table()->tableData()->dataNames(&count);
+    for (int i = 0; i < count; ++i)
+        d->setProperty(d->string(names[i]), v, QStringLiteral("<data>"), &ok);
 
 }
 
 QString EcmaScriptDataModel::evaluateToString(EvaluatorId id, bool *ok)
 {
-    const EvaluatorInfo &info = d->evaluators.at(id);
+    const EvaluatorInfo &info = table()->tableData()->evaluatorInfo(id);
 
     return d->evalStr(d->string(info.expr), d->string(info.context), ok);
 }
 
 bool EcmaScriptDataModel::evaluateToBool(EvaluatorId id, bool *ok)
 {
-    const EvaluatorInfo &info = d->evaluators.at(id);
+    const EvaluatorInfo &info = table()->tableData()->evaluatorInfo(id);
 
     return d->evalBool(d->string(info.expr), d->string(info.context), ok);
 }
 
 QVariant EcmaScriptDataModel::evaluateToVariant(EvaluatorId id, bool *ok)
 {
-    const EvaluatorInfo &info = d->evaluators.at(id);
+    const EvaluatorInfo &info = table()->tableData()->evaluatorInfo(id);
 
     return d->evalJSValue(d->string(info.expr), d->string(info.context), ok).toVariant();
 }
 
 void EcmaScriptDataModel::evaluateToVoid(EvaluatorId id, bool *ok)
 {
-    const EvaluatorInfo &info = d->evaluators.at(id);
+    const EvaluatorInfo &info = table()->tableData()->evaluatorInfo(id);
 
     d->eval(d->string(info.expr), d->string(info.context), ok);
 }
@@ -359,7 +350,7 @@ void EcmaScriptDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
 {
     Q_ASSERT(ok);
 
-    const AssignmentInfo &info = d->assignments.at(id);
+    const AssignmentInfo &info = table()->tableData()->assignmentInfo(id);
     static QByteArray sendid;
 
     QString dest = d->string(info.dest);
@@ -380,7 +371,7 @@ bool EcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, std::functio
 {
     Q_ASSERT(ok);
     static QByteArray sendid;
-    const ForeachInfo &info = d->foreaches.at(id);
+    const ForeachInfo &info = table()->tableData()->foreachInfo(id);
 
     QJSValue jsArray = d->property(d->string(info.array));
     if (!jsArray.isArray()) {

@@ -59,7 +59,6 @@ public: // StateTable data fields:
     TableData *tableData = nullptr;
     ScxmlEvent _event;
     QString _name;
-    ExecutableContent::StringIds dataItemNames;
 
     struct QueuedEvent { QEvent *event; StateTable::EventPriority priority; };
     QVector<QueuedEvent> *m_queuedEvents = nullptr;

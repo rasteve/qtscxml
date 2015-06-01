@@ -345,13 +345,6 @@ void StateTable::setInitialSetup(ExecutableContent::ContainerId sequence)
     d->m_initialSetup = sequence;
 }
 
-void StateTable::setDataItemNames(const ExecutableContent::StringIds &dataItemNames)
-{
-    Q_D(StateTable);
-
-    d->dataItemNames = dataItemNames;
-}
-
 void StateTable::executeInitialSetup()
 {
     Q_D(StateTable);
@@ -403,8 +396,7 @@ static bool loopOnSubStates(QState *startState,
 
 bool StateTable::init()
 {
-    Q_D(StateTable);
-    dataModel()->setup(d->dataItemNames);
+    dataModel()->setup();
     executeInitialSetup();
 
     bool res = true;
