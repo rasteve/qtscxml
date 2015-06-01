@@ -188,10 +188,17 @@ struct StateMachine::Data: private Scxml::TableData {
     { return theInstructions; }
     
     QString string(Scxml::ExecutableContent::StringId id) const Q_DECL_OVERRIDE
-    { return id == Scxml::ExecutableContent::NoString ? QString() : strings.at(id); }
+    {
+        Q_ASSERT(id >= Scxml::ExecutableContent::NoString); Q_ASSERT(id < 0);
+        if (id == Scxml::ExecutableContent::NoString) return QString();
+        return QString({static_cast<QStringData*>(strings.data + id)});
+    }
     
     QByteArray byteArray(Scxml::ExecutableContent::ByteArrayId id) const Q_DECL_OVERRIDE
-    { return QByteArray({&byteArrays.data[id]}); }
+    {
+        Q_ASSERT(id >= Scxml::ExecutableContent::NoString); Q_ASSERT(id < 0);
+        return QByteArray({byteArrays.data + id});
+    }
     
     Scxml::ExecutableContent::StringId *dataNames(int *count) const Q_DECL_OVERRIDE
     { *count = 0; return dataIds; }
@@ -266,7 +273,10 @@ struct StateMachine::Data: private Scxml::TableData {
     Scxml::ScxmlTransition transition_s__2_3;
     
     static qint32 theInstructions[];
-    static QVector<QString> strings;
+    static struct Strings {
+        QArrayData data[0];
+        qunicodechar stringdata[1];
+    } strings;
     static struct ByteArrays {
         QByteArrayData data[0];
         char stringdata[1];
@@ -403,8 +413,13 @@ void StateMachine::event_E99()
 qint32 StateMachine::Data::theInstructions[] = {
 };
 
-QVector<QString> StateMachine::Data::strings({
-});
+#define STR_LIT(idx, ofs, len) \
+    Q_STATIC_STRING_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \
+    qptrdiff(offsetof(Strings, stringdata) + ofs * sizeof(qunicodechar) - idx * sizeof(QArrayData)) \
+    )
+StateMachine::Data::Strings StateMachine::Data::strings = {{
+}, QT_UNICODE_LITERAL_II("")
+};
 
 #define BA_LIT(idx, ofs, len) \
     Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \

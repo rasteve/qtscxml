@@ -125,19 +125,20 @@ QString cEscape(const QString &str)
     return str;
 }
 
+static QString toHex(const QString &str)
+{
+    QString res;
+    for (int i = 0, ei = str.length(); i != ei; ++i)
+        res += QStringLiteral("\\x%1").arg(int(str.at(i).unicode()), 4, 16, QLatin1Char('0'));
+    return res;
+}
+
 QString qba(const QString &bytes)
 {
     QString str = QString::fromLatin1("QByteArray::fromRawData(\"");
     auto esc = cEscape(bytes);
     str += esc + QLatin1String("\", ") + QString::number(esc.length()) + QLatin1String(")");
     return str;
-}
-
-QString strLit(const QString &str)
-{
-    if (str.isNull())
-        return QStringLiteral("QString()");
-    return QStringLiteral("QStringLiteral(\"%1\")").arg(cEscape(str));
 }
 
 const char *headerStart =
@@ -598,18 +599,41 @@ private:
         }
 
         { // strings
-            clazz.classFields << QStringLiteral("static QVector<QString> strings;");
-            t << QStringLiteral("QVector<QString> %1::Data::strings({").arg(m_mainClassName);
+            t << QStringLiteral("#define STR_LIT(idx, ofs, len) \\")
+              << QStringLiteral("    Q_STATIC_STRING_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \\")
+              << QStringLiteral("    qptrdiff(offsetof(Strings, stringdata) + ofs * sizeof(qunicodechar) - idx * sizeof(QArrayData)) \\")
+              << QStringLiteral("    )");
+
+            t << QStringLiteral("%1::Data::Strings %1::Data::strings = {{").arg(m_mainClassName);
             auto strings = td->stringTable();
-            for (int i = 0, ei = strings.size(); i != ei; ++i) {
-                QString s = QStringLiteral("    ") + strLit(strings.at(i));
-                if (i + 1 != ei)
-                    s += QLatin1Char(',');
-                t << s;
-            }
-            t << QStringLiteral("});") << QStringLiteral("");
-            clazz.dataMethods << QStringLiteral("QString string(Scxml::ExecutableContent::StringId id) const Q_DECL_OVERRIDE");
-            clazz.dataMethods << QStringLiteral("{ return id == Scxml::ExecutableContent::NoString ? QString() : strings.at(id); }");
+            int ucharCount = 0;
+            QString ucharData;
+            generateList(t, [&ucharCount, &ucharData, &strings](int idx) -> QString {
+                if (idx >= strings.size())
+                    return QString();
+
+                auto s = strings.at(idx);
+                QString str = QStringLiteral("STR_LIT(%1, %2, %3)").arg(QString::number(idx),
+                                                                       QString::number(ucharCount),
+                                                                       QString::number(s.size()));
+                ucharData += toHex(s) + QStringLiteral("\\x0000");
+                ucharCount += s.size() + 1;
+                return str;
+            });
+            t << QStringLiteral("}, QT_UNICODE_LITERAL_II(\"%1\")").arg(ucharData);
+            t << QStringLiteral("};") << QStringLiteral("");
+
+            clazz.classFields << QStringLiteral("static struct Strings {")
+                              << QStringLiteral("    QArrayData data[%1];").arg(strings.size())
+                              << QStringLiteral("    qunicodechar stringdata[%1];").arg(ucharCount + 1)
+                              << QStringLiteral("} strings;");
+
+            clazz.dataMethods << QStringLiteral("QString string(Scxml::ExecutableContent::StringId id) const Q_DECL_OVERRIDE Q_DECL_FINAL");
+            clazz.dataMethods << QStringLiteral("{");
+            clazz.dataMethods << QStringLiteral("    Q_ASSERT(id >= Scxml::ExecutableContent::NoString); Q_ASSERT(id < %1);").arg(strings.size());
+            clazz.dataMethods << QStringLiteral("    if (id == Scxml::ExecutableContent::NoString) return QString();");
+            clazz.dataMethods << QStringLiteral("    return QString({static_cast<QStringData*>(strings.data + id)});");
+            clazz.dataMethods << QStringLiteral("}");
             clazz.dataMethods << QString();
         }
 
@@ -627,11 +651,11 @@ private:
                 if (idx >= byteArrays.size())
                     return QString();
 
-                auto ba = cEscape(QString::fromUtf8(byteArrays.at(idx)));
+                auto ba = byteArrays.at(idx);
                 QString str = QStringLiteral("BA_LIT(%1, %2, %3)").arg(QString::number(idx),
                                                                        QString::number(charCount),
                                                                        QString::number(ba.size()));
-                charData += ba + QStringLiteral("\\0");
+                charData += cEscape(QString::fromUtf8(ba)) + QStringLiteral("\\x00");
                 charCount += ba.size() + 1;
                 return str;
             });
@@ -642,8 +666,13 @@ private:
                               << QStringLiteral("    QByteArrayData data[%1];").arg(byteArrays.size())
                               << QStringLiteral("    char stringdata[%1];").arg(charCount + 1)
                               << QStringLiteral("} byteArrays;");
-            clazz.dataMethods << QStringLiteral("QByteArray byteArray(Scxml::ExecutableContent::ByteArrayId id) const Q_DECL_OVERRIDE");
-            clazz.dataMethods << QStringLiteral("{ return QByteArray({&byteArrays.data[id]}); }");
+
+            clazz.dataMethods << QStringLiteral("QByteArray byteArray(Scxml::ExecutableContent::ByteArrayId id) const Q_DECL_OVERRIDE Q_DECL_FINAL");
+            clazz.dataMethods << QStringLiteral("{");
+            clazz.dataMethods << QStringLiteral("    Q_ASSERT(id >= Scxml::ExecutableContent::NoString); Q_ASSERT(id < %1);").arg(byteArrays.size());
+            clazz.dataMethods << QStringLiteral("    if (id == Scxml::ExecutableContent::NoString) return QByteArray();");
+            clazz.dataMethods << QStringLiteral("    return QByteArray({byteArrays.data + id});");
+            clazz.dataMethods << QStringLiteral("}");
             clazz.dataMethods << QString();
         }
 
