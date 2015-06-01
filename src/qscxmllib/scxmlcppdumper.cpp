@@ -128,17 +128,15 @@ QString cEscape(const QString &str)
 static QString toHex(const QString &str)
 {
     QString res;
-    for (int i = 0, ei = str.length(); i != ei; ++i)
-        res += QStringLiteral("\\x%1").arg(int(str.at(i).unicode()), 4, 16, QLatin1Char('0'));
+    for (int i = 0, ei = str.length(); i != ei; ++i) {
+        int ch = str.at(i).unicode();
+        if (ch < 256) {
+            res += QStringLiteral("\\x%1").arg(ch, 2, 16, QLatin1Char('0'));
+        } else {
+            res += QStringLiteral("\\x%1").arg(ch, 4, 16, QLatin1Char('0'));
+        }
+    }
     return res;
-}
-
-QString qba(const QString &bytes)
-{
-    QString str = QString::fromLatin1("QByteArray::fromRawData(\"");
-    auto esc = cEscape(bytes);
-    str += esc + QLatin1String("\", ") + QString::number(esc.length()) + QLatin1String(")");
-    return str;
 }
 
 const char *headerStart =
@@ -189,9 +187,9 @@ protected:
     {
         // init:
         if (!node->name.isEmpty()) {
-            clazz.init.impl << QStringLiteral("table.setName(QStringLiteral(\"") + cEscape(node->name) + QStringLiteral("\"));");
+            clazz.init.impl << QStringLiteral("table.setName(string(%1));").arg(addString(node->name));
             if (m_options.nameQObjects)
-                clazz.init.impl << QStringLiteral("table.setObjectName(QStringLiteral(\"") + cEscape(node->name) + QStringLiteral("\"));");
+                clazz.init.impl << QStringLiteral("table.setObjectName(string(%1));").arg(addString(node->name));
         }
         QString dmName;
         switch (node->dataModel) {
@@ -264,7 +262,7 @@ protected:
 
         // init:
         if (!node->id.isEmpty() && m_options.nameQObjects) {
-            clazz.init.impl << stateName + QStringLiteral(".setObjectName(QStringLiteral(\"") + cEscape(node->id) + QStringLiteral("\"));");
+            clazz.init.impl << stateName + QStringLiteral(".setObjectName(string(%1));").arg(addString(node->id));
         }
         if (node->initialState) {
             clazz.init.impl << stateName + QStringLiteral(".setInitialState(&state_") + mangledName(node->initialState) + QStringLiteral(");");
@@ -383,7 +381,7 @@ protected:
 
         // init:
         if (!node->id.isEmpty() && m_options.nameQObjects) {
-            clazz.init.impl << stateName + QStringLiteral(".setObjectName(QStringLiteral(\"") + cEscape(node->id) + QStringLiteral("\"));");
+            clazz.init.impl << stateName + QStringLiteral(".setObjectName(string(%1));").arg(addString(node->id));
         }
         QString depth;
         switch (node->type) {
@@ -502,7 +500,7 @@ private:
             clazz.publicSlotDefinitions << QStringLiteral("void ") + m_mainClassName
                                            + QStringLiteral("::event_")
                                            + CppDumper::mangleId(event)
-                                           + QStringLiteral("()\n{ submitEvent(") + qba(event)
+                                           + QStringLiteral("()\n{ submitEvent(data->") + qba(event)
                                            + QStringLiteral("); }");
         }
     }
@@ -607,20 +605,25 @@ private:
             t << QStringLiteral("%1::Data::Strings %1::Data::strings = {{").arg(m_mainClassName);
             auto strings = td->stringTable();
             int ucharCount = 0;
-            QString ucharData;
-            generateList(t, [&ucharCount, &ucharData, &strings](int idx) -> QString {
+            generateList(t, [&ucharCount, &strings](int idx) -> QString {
                 if (idx >= strings.size())
                     return QString();
 
                 auto s = strings.at(idx);
                 QString str = QStringLiteral("STR_LIT(%1, %2, %3)").arg(QString::number(idx),
-                                                                       QString::number(ucharCount),
-                                                                       QString::number(s.size()));
-                ucharData += toHex(s) + QStringLiteral("\\x0000");
+                                                                        QString::number(ucharCount),
+                                                                        QString::number(s.size()));
                 ucharCount += s.size() + 1;
                 return str;
             });
-            t << QStringLiteral("}, QT_UNICODE_LITERAL_II(\"%1\")").arg(ucharData);
+            t << QStringLiteral("},");
+            if (strings.isEmpty()) {
+                t << QStringLiteral("QT_UNICODE_LITERAL_II(\"\")");
+            } else {
+                foreach (const QString &s, strings) {
+                    t << QStringLiteral("QT_UNICODE_LITERAL_II(\"%1\") // %2").arg(toHex(s) + QStringLiteral("\\x00"), cEscape(s));
+                }
+            }
             t << QStringLiteral("};") << QStringLiteral("");
 
             clazz.classFields << QStringLiteral("static struct Strings {")
@@ -655,11 +658,19 @@ private:
                 QString str = QStringLiteral("BA_LIT(%1, %2, %3)").arg(QString::number(idx),
                                                                        QString::number(charCount),
                                                                        QString::number(ba.size()));
-                charData += cEscape(QString::fromUtf8(ba)) + QStringLiteral("\\x00");
+                charData += toHex(QString::fromUtf8(ba)) + QStringLiteral("\\x00");
                 charCount += ba.size() + 1;
                 return str;
             });
-            t << QStringLiteral("}, \"%1\"").arg(charData);
+            t << QStringLiteral("},");
+            if (byteArrays.isEmpty()) {
+                t << QStringLiteral("\"\"");
+            } else {
+                foreach (const QByteArray &ba, byteArrays) {
+                    auto s = QString::fromUtf8(ba);
+                    t << QStringLiteral("\"%1\" // %2").arg(toHex(s) + QStringLiteral("\\x00"), cEscape(s));
+                }
+            }
             t << QStringLiteral("};") << QStringLiteral("");
 
             clazz.classFields << QStringLiteral("static struct ByteArrays {")
@@ -706,7 +717,7 @@ private:
             });
             t << QStringLiteral("};") << QStringLiteral("");
             clazz.dataMethods << QStringLiteral("Scxml::EvaluatorInfo evaluatorInfo(Scxml::EvaluatorId evaluatorId) const Q_DECL_OVERRIDE");
-            clazz.dataMethods << QStringLiteral("{ return evaluators[evaluatorId]; }");
+            clazz.dataMethods << QStringLiteral("{ Q_ASSERT(evaluatorId >= 0); Q_ASSERT(evaluatorId < %1); return evaluators[evaluatorId]; }").arg(evaluators.size());
             clazz.dataMethods << QString();
         }
 
@@ -723,7 +734,7 @@ private:
             });
             t << QStringLiteral("};") << QStringLiteral("");
             clazz.dataMethods << QStringLiteral("Scxml::AssignmentInfo assignmentInfo(Scxml::EvaluatorId assignmentId) const Q_DECL_OVERRIDE");
-            clazz.dataMethods << QStringLiteral("{ return assignments[assignmentId]; }");
+            clazz.dataMethods << QStringLiteral("{ Q_ASSERT(assignmentId >= 0); Q_ASSERT(assignmentId < %1); return assignments[assignmentId]; }").arg(assignments.size());
             clazz.dataMethods << QString();
         }
 
@@ -740,8 +751,17 @@ private:
             });
             t << QStringLiteral("};") << QStringLiteral("");
             clazz.dataMethods << QStringLiteral("Scxml::ForeachInfo foreachInfo(Scxml::EvaluatorId foreachId) const Q_DECL_OVERRIDE");
-            clazz.dataMethods << QStringLiteral("{ return foreaches[foreachId]; }");
+            clazz.dataMethods << QStringLiteral("{ Q_ASSERT(foreachId >= 0); Q_ASSERT(foreachId < %1); return foreaches[foreachId]; }").arg(foreaches.size());
         }
+    }
+
+    QString qba(const QString &bytes)
+    {
+//        QString str = QString::fromLatin1("QByteArray::fromRawData(\"");
+//        auto esc = cEscape(bytes);
+//        str += esc + QLatin1String("\", ") + QString::number(esc.length()) + QLatin1String(")");
+//        return str;
+        return QStringLiteral("byteArray(%1)").arg(addByteArray(bytes.toUtf8()));
     }
 
 private:

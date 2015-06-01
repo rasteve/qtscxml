@@ -321,6 +321,12 @@ protected:
 
     DynamicTableData *tableData();
 
+    StringId addString(const QString &str)
+    { return m_stringTable.add(str); }
+
+    ByteArrayId addByteArray(const QByteArray &ba)
+    { return m_byteArrayTable.add(ba); }
+
 private:
     template <typename T, typename U>
     class Table {
@@ -402,33 +408,33 @@ private:
     EvaluatorId addEvaluator(const QString &expr, const QString &context)
     {
         EvaluatorInfo ei;
-        ei.expr = m_stringTable.add(expr);
-        ei.context = m_stringTable.add(context);
+        ei.expr = addString(expr);
+        ei.context = addString(context);
         return m_evaluators.add(ei);
     }
 
     EvaluatorId addAssignment(const QString &dest, const QString &expr, const QString &context)
     {
         AssignmentInfo ai;
-        ai.dest = m_stringTable.add(dest);
-        ai.expr = m_stringTable.add(expr);
-        ai.context = m_stringTable.add(context);
+        ai.dest = addString(dest);
+        ai.expr = addString(expr);
+        ai.context = addString(context);
         return m_assignments.add(ai);
     }
 
     EvaluatorId addForeach(const QString &array, const QString &item, const QString &index, const QString &context)
     {
         ForeachInfo fi;
-        fi.array = m_stringTable.add(array);
-        fi.item = m_stringTable.add(item);
-        fi.index = m_stringTable.add(index);
-        fi.context = m_stringTable.add(context);
+        fi.array = addString(array);
+        fi.item = addString(item);
+        fi.index = addString(index);
+        fi.context = addString(context);
         return m_foreaches.add(fi);
     }
 
     EvaluatorId addDataElement(const QString &id, const QString &expr, const QString &context)
     {
-        auto str = m_stringTable.add(id);
+        auto str = addString(id);
         if (!m_dataIds.contains(str))
             m_dataIds.append(str);
         if (expr.isEmpty())

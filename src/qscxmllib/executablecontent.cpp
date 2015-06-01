@@ -279,17 +279,17 @@ bool Builder::visit(DocumentModel::Send *node)
 {
     auto instr = m_instructions.add<Send>(Send::calculateExtraSize(node->params.size(), node->namelist.size()));
     instr->instructionLocation = createContext(QStringLiteral("send"));
-    instr->event = m_byteArrayTable.add(node->event.toUtf8());
+    instr->event = addByteArray(node->event.toUtf8());
     instr->eventexpr = createEvaluatorString(QStringLiteral("send"), QStringLiteral("eventexpr"), node->eventexpr);
-    instr->type = m_stringTable.add(node->type);
+    instr->type = addString(node->type);
     instr->typeexpr = createEvaluatorString(QStringLiteral("send"), QStringLiteral("typeexpr"), node->typeexpr);
-    instr->target = m_stringTable.add(node->target);
+    instr->target = addString(node->target);
     instr->targetexpr = createEvaluatorString(QStringLiteral("send"), QStringLiteral("targetexpr"), node->targetexpr);
-    instr->id = m_byteArrayTable.add(node->id.toUtf8());
-    instr->idLocation = m_stringTable.add(node->idLocation);
-    instr->delay = m_stringTable.add(node->delay);
+    instr->id = addByteArray(node->id.toUtf8());
+    instr->idLocation = addString(node->idLocation);
+    instr->delay = addString(node->delay);
     instr->delayexpr = createEvaluatorString(QStringLiteral("send"), QStringLiteral("delayexpr"), node->delayexpr);
-    instr->content = m_stringTable.add(node->content);
+    instr->content = addString(node->content);
     generate(&instr->namelist, node->namelist);
     generate(instr->params(), node->params);
     return false;
@@ -298,13 +298,13 @@ bool Builder::visit(DocumentModel::Send *node)
 void Builder::visit(DocumentModel::Raise *node)
 {
     auto instr = m_instructions.add<Raise>();
-    instr->event = m_byteArrayTable.add(node->event.toUtf8());
+    instr->event = addByteArray(node->event.toUtf8());
 }
 
 void Builder::visit(DocumentModel::Log *node)
 {
     auto instr = m_instructions.add<Log>();
-    instr->label = m_stringTable.add(node->label);
+    instr->label = addString(node->label);
     instr->expr = createEvaluatorString(QStringLiteral("log"), QStringLiteral("expr"), node->expr);
 }
 
@@ -354,7 +354,7 @@ bool Builder::visit(DocumentModel::Foreach *node)
 void Builder::visit(DocumentModel::Cancel *node)
 {
     auto instr = m_instructions.add<Cancel>();
-    instr->sendid = m_byteArrayTable.add(node->sendid.toUtf8());
+    instr->sendid = addByteArray(node->sendid.toUtf8());
     instr->sendidexpr = createEvaluatorString(QStringLiteral("cancel"), QStringLiteral("sendidexpr"), node->sendidexpr);
 }
 
@@ -370,7 +370,7 @@ ContainerId Builder::generate(const DocumentModel::DoneData *node)
     DoneData *doneData;
     if (node) {
         doneData = m_instructions.add<DoneData>(node->params.size() * Param::calculateSize());
-        doneData->contents = m_stringTable.add(node->contents);
+        doneData->contents = addString(node->contents);
         doneData->expr = createEvaluatorString(QStringLiteral("donedata"), QStringLiteral("expr"), node->expr);
         generate(&doneData->params, node->params);
     } else {
@@ -385,7 +385,7 @@ ContainerId Builder::generate(const DocumentModel::DoneData *node)
 
 StringId Builder::createContext(const QString &instrName)
 {
-    return m_stringTable.add(createContextString(instrName));
+    return addString(createContextString(instrName));
 }
 
 void Builder::generate(const QVector<DocumentModel::DataElement *> &dataElements)
@@ -416,9 +416,9 @@ void Builder::generate(Array<Param> *out, const QVector<DocumentModel::Param *> 
     out->count = in.size();
     Param *it = out->data();
     foreach (DocumentModel::Param *f, in) {
-        it->name = m_stringTable.add(f->name);
+        it->name = addString(f->name);
         it->expr = createEvaluatorVariant(QStringLiteral("param"), QStringLiteral("expr"), f->expr);
-        it->location = m_stringTable.add(f->location);
+        it->location = addString(f->location);
         ++it;
     }
 }
@@ -444,7 +444,7 @@ void Builder::generate(Array<StringId> *out, const QStringList &in)
     out->count = in.size();
     StringId *it = out->data();
     foreach (const QString &str, in) {
-        *it++ = m_stringTable.add(str);
+        *it++ = addString(str);
     }
 }
 
