@@ -1,0 +1,7 @@
+- document qt:classname property
+- go over the TODOs/FIXMEs
+- probably rename ScxmlParser to Scxml::Parser
+- rename StateTable to something like Scxml::StateMachine
+- check if the use of namespaces is according to Qt standards
+- code review
+- qmake review
