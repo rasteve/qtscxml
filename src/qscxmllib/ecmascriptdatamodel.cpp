@@ -176,7 +176,10 @@ public:
     { return q->table(); }
 
     QJSEngine *engine() const
-    { return q->engine(); }
+    { return jsEngine; }
+
+    void setEngine(QJSEngine *engine)
+    { jsEngine = engine; }
 
     QString string(ExecutableContent::StringId id) const
     { return table()->tableData()->string(id); }
@@ -292,6 +295,7 @@ private: // Uses private API
 
 private:
     EcmaScriptDataModel *q;
+    QJSEngine *jsEngine;
     QJSValue dataModel;
 };
 
@@ -381,7 +385,7 @@ bool EcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, std::functio
     }
 
     QString item = d->string(info.item);
-    if (table()->engine()->evaluate(QStringLiteral("(function(){var %1 = 0})()").arg(item)).isError()) {
+    if (engine()->evaluate(QStringLiteral("(function(){var %1 = 0})()").arg(item)).isError()) {
         table()->submitError("error.execution", QStringLiteral("invalid item '%1' in %2")
                              .arg(d->string(info.item), d->string(info.context)), sendid);
         *ok = false;
@@ -431,7 +435,17 @@ void EcmaScriptDataModel::setStringProperty(const QString &name, const QString &
     d->setProperty(name, QJSValue(value), context, ok);
 }
 
+EcmaScriptDataModel *EcmaScriptDataModel::asEcmaScriptDataModel()
+{
+    return this;
+}
+
 QJSEngine *EcmaScriptDataModel::engine() const
 {
-    return table()->engine();
+    return d->engine();
+}
+
+void EcmaScriptDataModel::setEngine(QJSEngine *engine)
+{
+    d->setEngine(engine);
 }

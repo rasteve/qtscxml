@@ -56,6 +56,8 @@ struct ForeachInfo {
 typedef qint32 EvaluatorId;
 enum { NoEvaluator = -1 };
 
+class NullDataModel;
+class EcmaScriptDataModel;
 class SCXML_EXPORT DataModel
 {
     Q_DISABLE_COPY(DataModel)
@@ -81,6 +83,9 @@ public:
     virtual bool hasProperty(const QString &name) const = 0;
     virtual void setStringProperty(const QString &name, const QString &value, const QString &context,
                                    bool *ok) = 0;
+
+    virtual NullDataModel *asNullDataModel();
+    virtual EcmaScriptDataModel *asEcmaScriptDataModel();
 
 private:
     StateTable *m_table;

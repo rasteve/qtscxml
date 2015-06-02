@@ -1,0 +1,4 @@
+module Scxml
+plugin scxmlstatemachine
+classname ScxmlStateMachinePlugin
+

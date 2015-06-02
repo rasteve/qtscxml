@@ -53,7 +53,6 @@ public: // StateTable data fields:
     DataModel *m_dataModel = nullptr;
     const int m_sessionId;
     ExecutableContent::ContainerId m_initialSetup = ExecutableContent::NoInstruction;
-    QJSEngine *m_engine = nullptr;
     StateTable::BindingMethod m_dataBinding = StateTable::EarlyBinding;
     ExecutableContent::ExecutionEngine *m_executionEngine = nullptr;
     TableData *tableData = nullptr;

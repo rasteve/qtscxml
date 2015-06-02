@@ -49,7 +49,10 @@ public:
     bool hasProperty(const QString &name) const Q_DECL_OVERRIDE;
     void setStringProperty(const QString &name, const QString &value, const QString &context, bool *ok) Q_DECL_OVERRIDE;
 
+    virtual EcmaScriptDataModel *asEcmaScriptDataModel() Q_DECL_OVERRIDE;
+
     QJSEngine *engine() const;
+    void setEngine(QJSEngine *engine);
 
 private:
     EcmaScriptDataModelPrivate *d;

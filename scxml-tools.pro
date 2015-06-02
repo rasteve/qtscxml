@@ -11,4 +11,5 @@ OTHER_FILES += \
     $$FEATURES \
     .qmake.conf \
     sync.profile \
-    .gitignore
+    .gitignore \
+    TODO.txt

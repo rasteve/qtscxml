@@ -34,3 +34,13 @@ StateTable *DataModel::table() const
 {
     return m_table;
 }
+
+NullDataModel *DataModel::asNullDataModel()
+{
+    return nullptr;
+}
+
+EcmaScriptDataModel *DataModel::asEcmaScriptDataModel()
+{
+    return nullptr;
+}

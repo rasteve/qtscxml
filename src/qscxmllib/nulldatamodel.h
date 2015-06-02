@@ -42,6 +42,8 @@ public:
     QVariant property(const QString &name) const Q_DECL_OVERRIDE;
     bool hasProperty(const QString &name) const Q_DECL_OVERRIDE;
     void setStringProperty(const QString &name, const QString &value, const QString &context, bool *ok) Q_DECL_OVERRIDE;
+
+    virtual NullDataModel *asNullDataModel() Q_DECL_OVERRIDE;
 };
 
 } // Scxml namespace

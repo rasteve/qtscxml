@@ -100,3 +100,8 @@ void NullDataModel::setStringProperty(const QString &name, const QString &value,
     Q_UNUSED(ok);
     Q_UNREACHABLE();
 }
+
+NullDataModel *NullDataModel::asNullDataModel()
+{
+    return this;
+}

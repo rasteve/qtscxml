@@ -106,8 +106,6 @@ public:
 
     void doLog(const QString &label, const QString &msg);
     virtual bool init();
-    QJSEngine *engine() const;
-    void setEngine(QJSEngine *engine);
 
     QString name() const;
     QStringList currentStates(bool compress = true);
@@ -236,6 +234,10 @@ public:
     void setInitInstructions(ExecutableContent::ContainerId instructions);
     void setOnEntryInstructions(ExecutableContent::ContainerId instructions);
     void setOnExitInstructions(ExecutableContent::ContainerId instructions);
+
+Q_SIGNALS:
+    void didEnter();
+    void willExit();
 
 protected:
     ScxmlState(QStatePrivate &dd, QState *parent = 0);

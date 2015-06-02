@@ -438,20 +438,6 @@ bool StateTable::init()
     return res;
 }
 
-QJSEngine *StateTable::engine() const
-{
-    Q_D(const StateTable);
-
-    return d->m_engine;
-}
-
-void StateTable::setEngine(QJSEngine *engine)
-{
-    Q_D(StateTable);
-
-    d->m_engine = engine;
-}
-
 QString StateTable::name() const
 {
     Q_D(const StateTable);
@@ -938,10 +924,12 @@ void ScxmlState::onEntry(QEvent *event)
     }
     QState::onEntry(event);
     table()->executionEngine()->execute(d->onEntryInstructions);
+    emit didEnter();
 }
 
 void ScxmlState::onExit(QEvent *event)
 {
+    emit willExit();
     QState::onExit(event);
     table()->executionEngine()->execute(d->onExitInstructions);
 }
