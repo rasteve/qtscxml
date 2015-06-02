@@ -331,6 +331,23 @@ QStringList StateTable::currentStates(bool compress)
     return res;
 }
 
+ScxmlState *StateTable::findState(const QString &scxmlName) const
+{
+    QVector<QObject *> worklist;
+    worklist.append(const_cast<StateTable *>(this));
+
+    while (!worklist.isEmpty()) {
+        QObject *obj = worklist.takeLast();
+        if (ScxmlState *state = qobject_cast<ScxmlState *>(obj)) {
+            if (state->objectName() == scxmlName)
+                return state;
+        }
+        worklist.append(obj->children().toVector());
+    }
+
+    return nullptr;
+}
+
 void StateTable::setName(const QString &name)
 {
     Q_D(StateTable);
@@ -829,7 +846,7 @@ ScxmlTransition::~ScxmlTransition()
 
 bool ScxmlTransition::eventTest(QEvent *event)
 {
-        qCDebug(scxmlLog) << qPrintable(table()->engine()->evaluate(QLatin1String("JSON.stringify(_event)")).toString());
+//    if (table()->engine()) qCDebug(scxmlLog) << qPrintable(table()->engine()->evaluate(QLatin1String("JSON.stringify(_event)")).toString());
     if (ScxmlBaseTransition::eventTest(event)) {
         bool ok = true;
         if (d->conditionalExp != NoEvaluator)

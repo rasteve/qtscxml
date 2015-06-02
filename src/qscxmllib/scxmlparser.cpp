@@ -38,6 +38,9 @@
 
 namespace Scxml {
 
+static QString scxmlNamespace = QStringLiteral("http://www.w3.org/2005/07/scxml");
+static QString qtScxmlNamespace = QStringLiteral("http://theqtcompany.com/scxml/2015/06/");
+
 class ScxmlVerifier: public DocumentModel::NodeVisitor
 {
 public:
@@ -672,7 +675,7 @@ void ScxmlParser::parse()
                 } else {
                     m_state = ParsingScxml;
                 }
-                if (!checkAttributes(attributes, "version|initial,datamodel,binding,name")) return;
+                if (!checkAttributes(attributes, "version|initial,datamodel,binding,name,classname")) return;
                 if (m_reader->namespaceUri() != QLatin1String("http://www.w3.org/2005/07/scxml")) {
                     addError(QStringLiteral("default namespace must be set with xmlns=\"http://www.w3.org/2005/07/scxml\" in the scxml tag"));
                     return;
@@ -705,6 +708,10 @@ void ScxmlParser::parse()
                 QStringRef name = attributes.value(QLatin1String("name"));
                 if (!name.isEmpty()) {
                     scxml->name = name.toString();
+                }
+                QStringRef qtClassname = attributes.value(qtScxmlNamespace, QStringLiteral("classname"));
+                if (!qtClassname.isEmpty()) {
+                    scxml->qtClassname = qtClassname.toString();
                 }
                 m_currentState = m_currentParent = m_doc->root;
                 pNew.instructionContainer = &m_doc->root->initialSetup;
@@ -1273,7 +1280,7 @@ bool ScxmlParser::checkAttributes(const QXmlStreamAttributes &attributes, QStrin
 {
     foreach (const QXmlStreamAttribute &attribute, attributes) {
         QStringRef ns = attribute.namespaceUri();
-        if (!ns.isEmpty() && ns != QLatin1String("http://www.w3.org/2005/07/scxml")) {
+        if (!ns.isEmpty() && ns != scxmlNamespace && ns != qtScxmlNamespace) {
             foreach (const QString &nsToIgnore, m_namespacesToIgnore) {
                 if (ns == nsToIgnore)
                     continue;

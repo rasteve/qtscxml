@@ -75,6 +75,7 @@ public:
     virtual ExecutableContent::StringId *dataNames(int *count) const = 0;
 };
 
+class ScxmlState;
 class StateTablePrivate;
 class SCXML_EXPORT StateTable: public QStateMachine
 {
@@ -110,6 +111,7 @@ public:
 
     QString name() const;
     QStringList currentStates(bool compress = true);
+    ScxmlState *findState(const QString &scxmlName) const;
 
     Q_INVOKABLE void submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid);
     Q_INVOKABLE void submitEvent1(const QString &event);

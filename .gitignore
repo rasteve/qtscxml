@@ -20,3 +20,7 @@ tst_scion
 tests/scion/compiled_tests.h
 tests/scion/scxml
 tests/scion/scion.h
+
+examples/trafficlight-widgets/statemachine.cpp
+examples/trafficlight-widgets/statemachine.h
+examples/trafficlight-widgets/Makefile.*

@@ -321,6 +321,7 @@ struct Scxml: public StateContainer, public Node
 
     QStringList initial;
     QString name;
+    QString qtClassname;
     DataModelType dataModel = NullDataModel;
     BindingMethod binding = EarlyBinding;
     QVector<StateOrTransition *> children;

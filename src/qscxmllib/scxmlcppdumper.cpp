@@ -783,6 +783,9 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     m_doc = doc;
     mainClassName = options.classname;
     if (mainClassName.isEmpty()) {
+        mainClassName = doc->root->qtClassname;
+    }
+    if (mainClassName.isEmpty()) {
         mainClassName = mangleId(doc->root->name);
         if (!mainClassName.isEmpty())
             mainClassName.append(QLatin1Char('_'));
