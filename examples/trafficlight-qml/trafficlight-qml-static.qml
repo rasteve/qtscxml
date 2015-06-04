@@ -45,35 +45,74 @@ import Scxml 1.0 as Scxml
 Window {
     visible: true
     width: 100
-    height: 300
+    height: 350
     color: "black"
 
-    MouseArea {
-        anchors.fill: parent
-        onClicked: {
-            Qt.quit();
+    Item {
+        id: lights
+        width: parent.width
+        height: 300
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {
+                Qt.quit();
+            }
+        }
+
+        Light {
+            id: redLight
+            anchors.top: parent.top
+            color: "red"
+            visible: red.active || redGoingGreen.active
+        }
+
+        Light {
+            id: yellowLight
+            anchors.top: redLight.bottom
+            color: "yellow"
+            visible: yellow.active || blinking.active
+        }
+
+        Light {
+            id: greenLight
+            anchors.top: yellowLight.bottom
+            color: "green"
+            visible: green.active
         }
     }
 
-    Light {
-        id: redLight
-        anchors.top: parent.top
-        color: "red"
-        visible: red.active || redGoingGreen.active
-    }
+    Item {
+        width: parent.width
+        anchors.top: lights.bottom
+        anchors.bottom: parent.bottom
 
-    Light {
-        id: yellowLight
-        anchors.top: redLight.bottom
-        color: "yellow"
-        visible: yellow.active
-    }
+        Rectangle {
+            x: 5
+            y: 5
+            width: parent.width - 10
+            height: parent.height - 10
+            radius: 5
+            color: "blue"
 
-    Light {
-        id: greenLight
-        anchors.top: yellowLight.bottom
-        color: "green"
-        visible: green.active
+            Text {
+                anchors.fill: parent
+                color: "white"
+                text: {
+                    if (working.active)
+                        "Pause"
+                    else
+                        "Unpause"
+                }
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            MouseArea {
+                id: button
+                anchors.fill: parent
+            }
+        }
     }
 
     Scxml.StateMachine {
@@ -97,6 +136,26 @@ Window {
         Scxml.State {
             id: green
             scxmlName: "green"
+        }
+
+        Scxml.State {
+            id: blinking
+            scxmlName: "blinking"
+        }
+
+        Scxml.State {
+            id: working
+            scxmlName: "working"
+        }
+
+        Scxml.SignalEvent {
+            signal: button.clicked
+            eventName: {
+                if (working.active)
+                    "smash"
+                else
+                    "repair"
+            }
         }
     }
 }

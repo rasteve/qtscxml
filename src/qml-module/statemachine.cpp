@@ -16,6 +16,7 @@
  ** from Digia Plc.
  ****************************************************************************/
 
+#include "signalevent.h"
 #include "state.h"
 #include "statemachine.h"
 
@@ -34,26 +35,28 @@ static void append(QQmlListProperty<QObject> *prop, QObject *o)
 
     if (State *state = qobject_cast<State *>(o)) {
         state->setParent(prop->object);
-        static_cast<StateMachine::States *>(prop->data)->append(state);
+        static_cast<StateMachine::Kids *>(prop->data)->append(state);
         emit static_cast<StateMachine *>(prop->object)->statesChanged();
-    } else {
-        qmlInfo(prop->object) << "StateMachine can only contain State items";
+    } else if (SignalEvent *event = qobject_cast<SignalEvent *>(o)) {
+        event->setParent(prop->object);
+        static_cast<StateMachine::Kids *>(prop->data)->append(event);
+        emit static_cast<StateMachine *>(prop->object)->statesChanged();
     }
 }
 
 static int count(QQmlListProperty<QObject> *prop)
 {
-    return static_cast<StateMachine::States *>(prop->data)->count();
+    return static_cast<StateMachine::Kids *>(prop->data)->count();
 }
 
 static QObject *at(QQmlListProperty<QObject> *prop, int index)
 {
-    return static_cast<StateMachine::States *>(prop->data)->at(index);
+    return static_cast<StateMachine::Kids *>(prop->data)->at(index);
 }
 
 static void clear(QQmlListProperty<QObject> *prop)
 {
-    static_cast<StateMachine::States *>(prop->data)->clear();
+    static_cast<StateMachine::Kids *>(prop->data)->clear();
     emit static_cast<StateMachine *>(prop->object)->statesChanged();
 }
 
@@ -69,12 +72,13 @@ void StateMachine::componentComplete()
          return;
     }
 
+    m_table->init();
     m_table->start();
 }
 
 QQmlListProperty<QObject> StateMachine::states()
 {
-    return QQmlListProperty<QObject>(this, &m_states, append, count, at, clear);
+    return QQmlListProperty<QObject>(this, &m_children, append, count, at, clear);
 }
 
 Scxml::StateTable *StateMachine::stateMachine() const
@@ -87,10 +91,6 @@ void StateMachine::setStateMachine(Scxml::StateTable *table)
     qDebug()<<"setting state machine to"<<table;
     if (m_table == nullptr && table != nullptr) {
         m_table = table;
-        m_table->init();
-        QQmlContext *context = QQmlEngine::contextForObject(parent());
-        if (Scxml::EcmaScriptDataModel *dataModel = m_table->dataModel()->asEcmaScriptDataModel())
-            dataModel->setEngine(context->engine());
     } else if (m_table) {
         qmlInfo(this) << "Can set the table only once";
     }

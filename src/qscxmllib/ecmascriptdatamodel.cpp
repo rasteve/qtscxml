@@ -176,7 +176,13 @@ public:
     { return q->table(); }
 
     QJSEngine *engine() const
-    { return jsEngine; }
+    {
+        if (jsEngine == nullptr) {
+            jsEngine = new QJSEngine(table());
+        }
+
+        return jsEngine;
+    }
 
     void setEngine(QJSEngine *engine)
     { jsEngine = engine; }
@@ -295,7 +301,7 @@ private: // Uses private API
 
 private:
     EcmaScriptDataModel *q;
-    QJSEngine *jsEngine;
+    mutable QJSEngine *jsEngine = nullptr;
     QJSValue dataModel;
 };
 

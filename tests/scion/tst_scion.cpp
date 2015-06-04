@@ -384,10 +384,6 @@ bool TestScion::runTest(StateTable *stateMachine, const QJsonObject &testDescrip
     MySignalSpy stableStateSpy(stateMachine, SIGNAL(reachedStableState(bool)));
     MySignalSpy finishedSpy(stateMachine, SIGNAL(finished()));
 
-    if (EcmaScriptDataModel *dataModel = stateMachine->dataModel()->asEcmaScriptDataModel()) {
-        QJSEngine *jsEngine = new QJSEngine(stateMachine);
-        dataModel->setEngine(jsEngine);
-    }
     if (!stateMachine->init()) {
         qWarning() << "init failed";
         return false;

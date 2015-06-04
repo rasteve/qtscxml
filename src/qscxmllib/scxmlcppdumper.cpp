@@ -808,8 +808,6 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     h << QLatin1String("public:\n");
     h << l("    ") << mainClassName << l("(QObject *parent = 0);") << endl;
     h << l("    ~") << mainClassName << "();" << endl;
-    h << endl
-      << l("    bool init() Q_DECL_OVERRIDE;") << endl;
 
     if (!clazz.publicSlotDeclarations.isEmpty()) {
         h << "\npublic slots:\n";
@@ -842,7 +840,7 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
 
     cpp << QStringLiteral("    Data(%1 &table)\n        : table(table)").arg(mainClassName) << endl;
     clazz.constructor.initializer.write(cpp, QStringLiteral("        , "), QStringLiteral("\n"));
-    cpp << l("    {}") << endl;
+    cpp << l("    { init(); }") << endl;
 
     cpp << endl;
     cpp << l("    void init() {\n");    
@@ -865,9 +863,6 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     cpp << mainClassName << l("::~") << mainClassName << l("()") << endl
         << l("{ delete data; }") << endl
         << endl;
-    cpp << l("bool ") << mainClassName << l("::init()") << endl
-        << l("{ data->init(); return StateTable::init(); }") << endl;
-    cpp << endl;
     clazz.publicSlotDefinitions.write(cpp, QStringLiteral("\n"), QStringLiteral("\n"));
     cpp << endl;
 

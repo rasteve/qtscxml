@@ -16,30 +16,47 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include "statemachine.h"
-#include "state.h"
-#include "signalevent.h"
+#ifndef SIGNALEVENT_H
+#define SIGNALEVENT_H
 
-#include <QQmlExtensionPlugin>
-#include <qqml.h>
+#include <QJSValue>
+#include <QObject>
+
+namespace Scxml {
+class ScxmlState;
+}
 
 QT_BEGIN_NAMESPACE
 
-class ScxmlStateMachinePlugin : public QQmlExtensionPlugin
+class StateMachine;
+class SignalEvent: public QObject
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.Scxml/1.0")
+    Q_PROPERTY(QJSValue signal READ signal WRITE setSignal NOTIFY signalChanged)
+    Q_PROPERTY(QString eventName READ eventName WRITE setEventName NOTIFY eventNameChanged)
 
 public:
-    void registerTypes(const char *uri)
-    {
-        qmlRegisterType<StateMachine>(uri, 1, 0, "StateMachine");
-        qmlRegisterType<State>(uri, 1, 0, "State");
-        qmlRegisterType<SignalEvent>(uri, 1, 0, "SignalEvent");
-        qmlProtectModule(uri, 1);
-    }
+    explicit SignalEvent(StateMachine *parent = 0);
+
+    QString eventName() const;
+    void setEventName(const QString &eventName);
+
+    const QJSValue &signal();
+    void setSignal(const QJSValue &signal);
+
+Q_SIGNALS:
+    void signalChanged();
+    void eventNameChanged();
+
+public Q_SLOTS:
+    void invoke();
+
+private:
+    QJSValue m_signal;
+    QByteArray m_eventName;
+    QMetaObject::Connection m_signalConnection;
 };
 
 QT_END_NAMESPACE
 
-#include "plugin.moc"
+#endif // SIGNALEVENT_H

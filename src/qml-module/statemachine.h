@@ -39,7 +39,7 @@ class StateMachine: public QObject, public QQmlParserStatus
     Q_CLASSINFO("DefaultProperty", "states")
 
 public:
-    typedef QVector<State *> States;
+    typedef QVector<QObject *> Kids;
     explicit StateMachine(QObject *parent = 0);
 
     void classBegin() {}
@@ -61,7 +61,7 @@ private:
 
 private:
     QString m_filename;
-    States m_states;
+    Kids m_children;
     Scxml::StateTable *m_table = nullptr;
 };
 

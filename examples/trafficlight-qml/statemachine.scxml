@@ -5,35 +5,61 @@
     version="1.0"
     name="trafficlight"
     qt:classname="TrafficLightStateMachine"
-    initial="red"
+    initial="working"
+    datamodel="ecmascript"
 >
-    <state id="red">
-        <onentry>
-            <send event="start-going-green" delay="3s"/>
-        </onentry>
-        <transition event="start-going-green" target="red-going-green"/>
-    </state>
+<datamodel><data id="Var1">[1,2,3]</data>
+</datamodel>
 
-    <state id="yellow">
-        <state id="red-going-green">
+    <state id="working" initial="green-going-red">
+        <state id="red">
             <onentry>
-                <send event="go-green" delay="1s"/>
+                <send event="start-going-green" delay="3s"/>
             </onentry>
-            <transition event="go-green" target="green"/>
+            <transition event="start-going-green" target="red-going-green"/>
         </state>
 
-        <state id="green-going-red">
-            <onentry>
-                <send event="go-red" delay="1s"/>
-            </onentry>
-            <transition event="go-red" target="red"/>
+        <state id="yellow">
+            <state id="red-going-green">
+                <onentry>
+                    <send event="go-green" delay="1s"/>
+                </onentry>
+                <transition event="go-green" target="green"/>
+            </state>
+
+            <state id="green-going-red">
+                <onentry>
+                    <send event="go-red" delay="1s"/>
+                </onentry>
+                <transition event="go-red" target="red"/>
+            </state>
         </state>
+
+        <state id="green">
+            <onentry>
+                <send event="start-going-red" delay="3s"/>
+            </onentry>
+            <transition event="start-going-red" target="green-going-red"/>
+        </state>
+
+        <transition event="smash" target="broken"/>
     </state>
 
-    <state id="green">
-        <onentry>
-            <send event="start-going-red" delay="3s"/>
-        </onentry>
-        <transition event="start-going-red" target="green-going-red"/>
+    <state id="broken" initial="blinking">
+        <state id="blinking">
+            <onentry>
+                <send event="unblink" delay="1s"/>
+            </onentry>
+            <transition event="unblink" target="not-blinking"/>
+        </state>
+
+        <state id="not-blinking">
+            <onentry>
+                <send event="blink" delay="1s"/>
+            </onentry>
+            <transition event="blink" target="blinking"/>
+        </state>
+
+        <transition event="repair" target="working"/>
     </state>
 </scxml>
