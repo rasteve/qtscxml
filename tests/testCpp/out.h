@@ -11,8 +11,6 @@ public:
     StateMachine(QObject *parent = 0);
     ~StateMachine();
 
-    bool init() Q_DECL_OVERRIDE;
-
 public slots:
     void event_E10();
     void event_E100();

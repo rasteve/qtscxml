@@ -5,3 +5,4 @@
 - check if the use of namespaces is according to Qt standards
 - code review
 - qmake review
+- QML: move the parsing & instantiation of the state machine to a separate thread (if it wasn't created in C++ of course)

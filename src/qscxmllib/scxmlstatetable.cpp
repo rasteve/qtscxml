@@ -331,10 +331,11 @@ QStringList StateTable::currentStates(bool compress)
     return res;
 }
 
-ScxmlState *StateTable::findState(const QString &scxmlName) const
+static ScxmlState *findState(const QString &scxmlName, StateTable *parent)
 {
-    QVector<QObject *> worklist;
-    worklist.append(const_cast<StateTable *>(this));
+    QList<QObject *> worklist;
+    worklist.reserve(parent->children().size() + parent->configuration().size());
+    worklist.append(parent);
 
     while (!worklist.isEmpty()) {
         QObject *obj = worklist.takeLast();
@@ -342,10 +343,23 @@ ScxmlState *StateTable::findState(const QString &scxmlName) const
             if (state->objectName() == scxmlName)
                 return state;
         }
-        worklist.append(obj->children().toVector());
+        worklist.append(obj->children());
     }
 
     return nullptr;
+}
+
+bool StateTable::hasState(const QString &scxmlStateName) const
+{
+    return findState(scxmlStateName, const_cast<StateTable *>(this)) != nullptr;
+}
+
+QMetaObject::Connection StateTable::connect(const QString &scxmlStateName, const char *signal,
+                                            const QObject *receiver, const char *method,
+                                            Qt::ConnectionType type)
+{
+    ScxmlState *state = findState(scxmlStateName, this);
+    return QObject::connect(state, signal, receiver, method, type);
 }
 
 void StateTable::setName(const QString &name)

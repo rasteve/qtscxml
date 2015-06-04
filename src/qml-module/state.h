@@ -53,9 +53,20 @@ Q_SIGNALS:
     void didEnter();
     void willExit();
 
+private Q_SLOTS:
+    void setActive(bool active);
+
+private:
+    void breakConnections();
+    void establishConnections();
+
 private:
     QString m_scxmlName;
-    Scxml::ScxmlState *m_state = nullptr;
+    QMetaObject::Connection activeConnection;
+    QMetaObject::Connection didEnterConnection;
+    QMetaObject::Connection willExitConnection;
+    bool completed;
+    bool active;
 };
 
 QT_END_NAMESPACE

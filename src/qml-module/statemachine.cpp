@@ -72,8 +72,13 @@ void StateMachine::componentComplete()
          return;
     }
 
-    m_table->init();
-    m_table->start();
+    bool ok = false;
+    bool moreOk = QMetaObject::invokeMethod(m_table, "init", Qt::DirectConnection, Q_RETURN_ARG(bool, ok));
+    if (ok && moreOk) {
+        QMetaObject::invokeMethod(m_table, "start");
+    } else {
+        qmlInfo(this) << "Failed to initialize the state machine.";
+    }
 }
 
 QQmlListProperty<QObject> StateMachine::states()

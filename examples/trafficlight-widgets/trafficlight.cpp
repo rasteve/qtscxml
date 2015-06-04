@@ -121,14 +121,14 @@ TrafficLight::TrafficLight(Scxml::StateTable *machine, QWidget *parent)
 
     Q_ASSERT(machine->init());
 
-    connect(machine->findState(QStringLiteral("red")), SIGNAL(activeChanged(bool)),
-            widget->redLight(), SLOT(switchLight(bool)));
-    connect(machine->findState(QStringLiteral("red-going-green")), SIGNAL(activeChanged(bool)),
-            widget->redLight(), SLOT(switchLight(bool)));
-    connect(machine->findState(QStringLiteral("yellow")), SIGNAL(activeChanged(bool)),
-            widget->yellowLight(), SLOT(switchLight(bool)));
-    connect(machine->findState(QStringLiteral("green")), SIGNAL(activeChanged(bool)),
-            widget->greenLight(), SLOT(switchLight(bool)));
+    machine->connect(QStringLiteral("red"), SIGNAL(activeChanged(bool)),
+                     widget->redLight(), SLOT(switchLight(bool)));
+    machine->connect(QStringLiteral("red-going-green"), SIGNAL(activeChanged(bool)),
+                     widget->redLight(), SLOT(switchLight(bool)));
+    machine->connect(QStringLiteral("yellow"), SIGNAL(activeChanged(bool)),
+                     widget->yellowLight(), SLOT(switchLight(bool)));
+    machine->connect(QStringLiteral("green"), SIGNAL(activeChanged(bool)),
+                     widget->greenLight(), SLOT(switchLight(bool)));
 
     machine->start();
 }

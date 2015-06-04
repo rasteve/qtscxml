@@ -6,12 +6,8 @@
     name="trafficlight"
     qt:classname="TrafficLightStateMachine"
     initial="working"
-    datamodel="ecmascript"
 >
-<datamodel><data id="Var1">[1,2,3]</data>
-</datamodel>
-
-    <state id="working" initial="green-going-red">
+    <state id="working" initial="yellow">
         <state id="red">
             <onentry>
                 <send event="start-going-green" delay="3s"/>
@@ -19,7 +15,7 @@
             <transition event="start-going-green" target="red-going-green"/>
         </state>
 
-        <state id="yellow">
+        <state id="yellow" initial="green-going-red">
             <state id="red-going-green">
                 <onentry>
                     <send event="go-green" delay="1s"/>

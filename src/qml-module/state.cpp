@@ -24,28 +24,24 @@
 
 State::State(StateMachine *parent)
     : QObject(parent)
+    , completed(false)
+    , active(false)
 {}
 
 void State::componentComplete()
 {
-    if (Scxml::StateTable *table = qobject_cast<StateMachine *>(parent())->stateMachine()) {
-        if (Scxml::ScxmlState *state = table->findState(m_scxmlName)) {
-            if (state != m_state) {
-                m_state = state;
-                connect(m_state, SIGNAL(activeChanged(bool)), this, SIGNAL(activeChanged(bool)));
-                connect(m_state, SIGNAL(didEnter()), this, SIGNAL(didEnter()));
-                connect(m_state, SIGNAL(willExit()), this, SIGNAL(willExit()));
-            }
-        }
-    }
+    completed = true;
+    establishConnections();
 
-    if (m_state == nullptr)
-        qmlInfo(this) << QStringLiteral("No state '%1' found.").arg(m_scxmlName);
+    if (Scxml::StateTable *table = qobject_cast<StateMachine *>(parent())->stateMachine())
+        active = table->currentStates().contains(m_scxmlName);
+    if (active)
+        emit activeChanged(active);
 }
 
 bool State::isActive() const
 {
-    return m_state && m_state->active();
+    return active;
 }
 
 QString State::scxmlName() const
@@ -57,6 +53,42 @@ void State::setScxmlName(const QString &scxmlName)
 {
     if (m_scxmlName != scxmlName) {
         m_scxmlName = scxmlName;
+        breakConnections();
+        establishConnections();
         emit scxmlNameChanged();
     }
+}
+
+void State::setActive(bool active)
+{
+    this->active = active;
+    emit activeChanged(active);
+}
+
+void State::breakConnections()
+{
+    disconnect(activeConnection);
+    disconnect(didEnterConnection);
+    disconnect(willExitConnection);
+}
+
+void State::establishConnections()
+{
+    if (!completed)
+        return;
+
+    Scxml::StateTable *table = qobject_cast<StateMachine *>(parent())->stateMachine();
+    if (table == nullptr) {
+        qmlInfo(this) << QStringLiteral("State is not part of a StateTable.");
+        return;
+    }
+
+    if (!table->hasState(m_scxmlName)) {
+        qmlInfo(this) << QStringLiteral("No state '%1' found.").arg(m_scxmlName);
+        return;
+    }
+
+    activeConnection = table->connect(m_scxmlName, SIGNAL(activeChanged(bool)), this, SLOT(setActive(bool)));
+    didEnterConnection = table->connect(m_scxmlName, SIGNAL(didEnter()), this, SIGNAL(didEnter()));
+    willExitConnection = table->connect(m_scxmlName, SIGNAL(willExit()), this, SIGNAL(willExit()));
 }

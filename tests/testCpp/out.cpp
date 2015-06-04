@@ -64,7 +64,7 @@ struct StateMachine::Data: private Scxml::TableData {
         , transition_s__2_1(&state_s__2, { byteArray(36) })
         , transition_s__2_2(&state_s__2, { byteArray(25) })
         , transition_s__2_3(&state_s__2, { byteArray(13) })
-    {}
+    { init(); }
 
     void init() {
         table.setDataModel(new Scxml::NullDataModel(&table));
@@ -295,9 +295,6 @@ StateMachine::StateMachine(QObject *parent)
 
 StateMachine::~StateMachine()
 { delete data; }
-
-bool StateMachine::init()
-{ data->init(); return StateTable::init(); }
 
 
 void StateMachine::event_E10()

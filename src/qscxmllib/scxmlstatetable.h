@@ -105,22 +105,31 @@ public:
     void setTableData(TableData *tableData);
 
     void doLog(const QString &label, const QString &msg);
-    virtual bool init();
+
+    Q_INVOKABLE bool init();
 
     QString name() const;
     QStringList currentStates(bool compress = true);
-    ScxmlState *findState(const QString &scxmlName) const;
+    bool hasState(const QString &scxmlStateName) const;
+
+    using QObject::connect;
+    QMetaObject::Connection connect(const QString &scxmlStateName, const char *signal,
+                                    const QObject *receiver, const char *method,
+                                    Qt::ConnectionType type = Qt::AutoConnection);
 
     Q_INVOKABLE void submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid);
     Q_INVOKABLE void submitEvent1(const QString &event);
     Q_INVOKABLE void submitEvent2(const QString &event,  QVariant data);
 
     void submitEvent(ScxmlEvent *e);
-    void submitEvent(const QByteArray &event, const QVariantList &dataValues = QVariantList(),
-                     const QStringList &dataNames = QStringList(),
-                     ScxmlEvent::EventType type = ScxmlEvent::External,
-                     const QByteArray &sendid = QByteArray(), const QString &origin = QString(),
-                     const QString &origintype = QString(), const QByteArray &invokeid = QByteArray());
+    Q_INVOKABLE void submitEvent(const QByteArray &event,
+                                 const QVariantList &dataValues = QVariantList(),
+                                 const QStringList &dataNames = QStringList(),
+                                 ScxmlEvent::EventType type = ScxmlEvent::External,
+                                 const QByteArray &sendid = QByteArray(),
+                                 const QString &origin = QString(),
+                                 const QString &origintype = QString(),
+                                 const QByteArray &invokeid = QByteArray());
     void submitDelayedEvent(int delayInMiliSecs,
                             ScxmlEvent *e);
     void cancelDelayedEvent(const QByteArray &event);
