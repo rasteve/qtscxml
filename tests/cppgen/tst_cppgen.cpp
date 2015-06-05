@@ -18,7 +18,7 @@
 
 #include <QtTest/QtTest>
 
-#include <QScxmlLib/scxmlcppdumper.h>
+#include <QScxml/scxmlcppdumper.h>
 
 using namespace Scxml;
 

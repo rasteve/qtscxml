@@ -1,6 +1,6 @@
 TEMPLATE = app
 
-QT += qml qscxmllib
+QT += qml qscxml
 
 SOURCES += trafficlight-qml-static.cpp
 

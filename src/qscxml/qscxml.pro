@@ -1,5 +1,5 @@
-TARGET = QScxmlLib
-MODULE = qscxmllib
+TARGET = QScxml
+MODULE = qscxml
 
 QT       += core core-private qml qml-private
 

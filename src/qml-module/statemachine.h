@@ -22,7 +22,7 @@
 #include <QVector>
 #include <QQmlParserStatus>
 #include <QQmlListProperty>
-#include <QScxmlLib/scxmlstatetable.h>
+#include <QScxml/scxmlstatetable.h>
 
 QT_BEGIN_NAMESPACE
 

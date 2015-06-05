@@ -1,7 +1,7 @@
 #ifndef OUT_H
 #define OUT_H
 
-#include <QScxmlLib/scxmlstatetable.h>
+#include <QScxml/scxmlstatetable.h>
 
 class StateMachine : public Scxml::StateTable
 {

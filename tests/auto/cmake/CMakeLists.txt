@@ -12,5 +12,5 @@ find_package(Qt5Quick REQUIRED)
 include("${_Qt5CTestMacros}")
 
 test_module_includes(
-  QScxmlLib
+  QScxml
 )

@@ -41,7 +41,7 @@
 #ifndef TRAFFICLIGHT_H
 #define TRAFFICLIGHT_H
 
-#include <QScxmlLib/scxmlstatetable.h>
+#include <QScxml/scxmlstatetable.h>
 
 #include <QWidget>
 

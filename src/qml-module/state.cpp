@@ -19,7 +19,7 @@
 #include "state.h"
 #include "statemachine.h"
 
-#include <QScxmlLib/scxmlstatetable.h>
+#include <QScxml/scxmlstatetable.h>
 #include <QQmlInfo>
 
 State::State(StateMachine *parent)

@@ -1,5 +1,5 @@
 %modules = ( # path to module name map
-    "QScxmlLib" => "$basedir/src/qscxmllib",
+    "QScxml" => "$basedir/src/qscxml",
 );
 %moduleheaders = ( # restrict the module headers to those found in relative path
 );

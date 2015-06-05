@@ -40,7 +40,7 @@
 
 #include "trafficlight.h"
 
-#include <QScxmlLib/scxmlparser.h>
+#include <QScxml/scxmlparser.h>
 
 #include <QApplication>
 #include <QFile>

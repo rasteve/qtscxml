@@ -1,6 +1,6 @@
 option(host_build)
 
-QT += testlib qscxmllib
+QT += testlib qscxml
 CONFIG += testcase
 
 QT += core qml

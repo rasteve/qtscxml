@@ -3,7 +3,7 @@ TARGET = scxmlstatemachine
 TARGETPATH = Scxml
 IMPORT_VERSION = 1.0
 
-QT = qscxmllib qml-private core-private
+QT = qscxml qml-private core-private
 
 SOURCES = \
     $$PWD/plugin.cpp \

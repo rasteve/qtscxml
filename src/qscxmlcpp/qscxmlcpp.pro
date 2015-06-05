@@ -1,5 +1,5 @@
 option(host_build)
-QT       += core qml qscxmllib
+QT       += core qml qscxml
 
 TARGET = qscxmlcpp
 CONFIG   += console c++11

@@ -1,4 +1,4 @@
-QT += widgets qscxmllib
+QT += widgets qscxml
 
 SOURCES = trafficlight.cpp trafficlight.h trafficlight-static.cpp
 

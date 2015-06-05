@@ -140,7 +140,7 @@ static QString toHex(const QString &str)
 }
 
 const char *headerStart =
-        "#include <QScxmlLib/scxmlstatetable.h>\n"
+        "#include <QScxml/scxmlstatetable.h>\n"
         "\n";
 
 using namespace DocumentModel;
@@ -195,11 +195,11 @@ protected:
         switch (node->dataModel) {
         case Scxml::NullDataModel:
             dmName = QStringLiteral("Null");
-            clazz.implIncludes << QStringLiteral("QScxmlLib/nulldatamodel.h");
+            clazz.implIncludes << QStringLiteral("QScxml/nulldatamodel.h");
             break;
         case Scxml::JSDataModel:
             dmName = QStringLiteral("EcmaScript");
-            clazz.implIncludes << QStringLiteral("QScxmlLib/ecmascriptdatamodel.h");
+            clazz.implIncludes << QStringLiteral("QScxml/ecmascriptdatamodel.h");
             break;
         default:
             Q_UNREACHABLE();
@@ -220,7 +220,7 @@ protected:
         }
         clazz.init.impl << QStringLiteral("table.setDataBinding(Scxml::StateTable::%1Binding);").arg(binding);
 
-        clazz.implIncludes << QStringLiteral("QScxmlLib/executablecontent.h");
+        clazz.implIncludes << QStringLiteral("QScxml/executablecontent.h");
         clazz.init.impl << QStringLiteral("table.setTableData(this);");
 
         foreach (AbstractState *s, node->initialStates) {

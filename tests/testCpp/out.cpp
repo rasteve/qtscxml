@@ -1,7 +1,7 @@
 #include "out.h"
 
-#include <QScxmlLib/nulldatamodel.h>
-#include <QScxmlLib/executablecontent.h>
+#include <QScxml/nulldatamodel.h>
+#include <QScxml/executablecontent.h>
 
 struct StateMachine::Data: private Scxml::TableData {
     Data(StateMachine &table)
