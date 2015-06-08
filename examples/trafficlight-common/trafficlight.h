@@ -38,19 +38,39 @@
 **
 ****************************************************************************/
 
-#include "statemachine.h"
-#include "trafficlight.h"
+#ifndef TRAFFICLIGHT_H
+#define TRAFFICLIGHT_H
 
-#include <QApplication>
+#include <QScxml/scxmlstatetable.h>
 
-int main(int argc, char **argv)
+#include <QWidget>
+
+class TrafficLight : public QWidget
 {
-    QApplication app(argc, argv);
+public:
+    TrafficLight(Scxml::StateTable *machine, QWidget *parent = 0);
+};
 
-    TrafficLightStateMachine machine;
-    TrafficLight widget(&machine);
-    widget.resize(110, 300);
-    widget.show();
+class LightWidget: public QWidget
+{
+    Q_OBJECT
+    Q_PROPERTY(bool on READ isOn WRITE setOn)
 
-    return app.exec();
-}
+public:
+    LightWidget(const QColor &color, QWidget *parent = 0);
+
+    bool isOn() const;
+    void setOn(bool on);
+
+public slots:
+    void switchLight(bool onoff);
+
+protected:
+    virtual void paintEvent(QPaintEvent *) Q_DECL_OVERRIDE;
+
+private:
+    QColor m_color;
+    bool m_on;
+};
+
+#endif // TRAFFICLIGHT_H

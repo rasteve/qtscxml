@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>trafficlight-qml-static.qml</file>
-        <file>Light.qml</file>
+        <file alias="Light.qml">../trafficlight-common/Light.qml</file>
     </qresource>
 </RCC>

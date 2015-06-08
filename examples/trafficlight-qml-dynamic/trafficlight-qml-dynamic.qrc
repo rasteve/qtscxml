@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="Light.qml">../trafficlight-common/Light.qml</file>
+        <file>trafficlight-qml-dynamic.qml</file>
+        <file alias="statemachine.scxml">../trafficlight-common/statemachine.scxml</file>
+    </qresource>
+</RCC>

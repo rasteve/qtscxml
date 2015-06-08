@@ -26,7 +26,8 @@
 #include <QQmlContext>
 #include <QQmlEngine>
 #include <QQmlInfo>
-#include <QFile>
+#include <QQmlFile>
+#include <QBuffer>
 
 static void append(QQmlListProperty<QObject> *prop, QObject *o)
 {
@@ -101,14 +102,14 @@ void StateMachine::setStateMachine(Scxml::StateTable *table)
     }
 }
 
-QString StateMachine::filename()
+QUrl StateMachine::filename()
 {
     return m_filename;
 }
 
-void StateMachine::setFilename(const QString filename)
+void StateMachine::setFilename(const QUrl &filename)
 {
-    QString oldFilename = m_filename;
+    QUrl oldFilename = m_filename;
     if (m_table) {
         delete m_table;
         m_table = nullptr;
@@ -125,22 +126,29 @@ void StateMachine::setFilename(const QString filename)
     }
 }
 
-bool StateMachine::parse(const QString &filename)
+bool StateMachine::parse(const QUrl &filename)
 {
-    QFile scxmlFile(filename);
-    if (!scxmlFile.open(QIODevice::ReadOnly)) {
-        qmlInfo(this) << QStringLiteral("ERROR: cannot open '%1' for reading!").arg(filename);
+    if (!QQmlFile::isSynchronous(filename)) {
+        qmlInfo(this) << QStringLiteral("ERROR: cannot open '%1' for reading: only synchronous file access is supported.").arg(filename.fileName());
+        return false;
+    }
+    QQmlFile scxmlFile(QQmlEngine::contextForObject(this)->engine(), filename);
+    if (scxmlFile.isError()) {
+        // the synchronous case can only fail when the file is not found (or not readable).
+        qmlInfo(this) << QStringLiteral("ERROR: cannot open '%1' for reading.").arg(filename.fileName());
         return false;
     }
 
-    QXmlStreamReader xmlReader(&scxmlFile);
+    QByteArray data(scxmlFile.dataByteArray());
+    QBuffer buf(&data);
+    Q_ASSERT(buf.open(QIODevice::ReadOnly));
+    QXmlStreamReader xmlReader(&buf);
     Scxml::ScxmlParser parser(&xmlReader);
     parser.parse();
-    scxmlFile.close();
     setStateMachine(parser.table());
 
     if (parser.state() != Scxml::ScxmlParser::FinishedParsing || m_table == nullptr) {
-        qmlInfo(this) << QStringLiteral("Something went wrong while parsing '%1':").arg(filename) << endl;
+        qmlInfo(this) << QStringLiteral("Something went wrong while parsing '%1':").arg(filename.fileName()) << endl;
         foreach (const Scxml::ErrorMessage &msg, parser.errors()) {
             qmlInfo(this) << msg.fileName << QStringLiteral(":") << msg.line
                           << QStringLiteral(":") << msg.column

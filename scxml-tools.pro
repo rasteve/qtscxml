@@ -1,7 +1,6 @@
 CONFIG += tests_need_tools examples_need_tools
 
-FEATURES += \
-    mkspecs/features/qscxmlcpp.prf
+FEATURES += mkspecs/features/qscxmlc.prf
 
 features.files = $$FEATURES
 features.path = $$[QT_HOST_DATA]/mkspecs/features/

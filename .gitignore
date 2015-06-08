@@ -10,7 +10,7 @@ Makefile
 moc_*.cpp
 *.dylib
 *.moc
-/src/qscxmlcpp/qscxmlcpp
+/tools/qscxmlc/qscxmlc
 /tests/testCpp/testCpp
 
 tst_cppgen

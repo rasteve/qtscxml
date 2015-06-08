@@ -19,6 +19,7 @@
 #ifndef STATEMACHINE_H
 #define STATEMACHINE_H
 
+#include <QUrl>
 #include <QVector>
 #include <QQmlParserStatus>
 #include <QQmlListProperty>
@@ -33,7 +34,7 @@ class StateMachine: public QObject, public QQmlParserStatus
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(QQmlListProperty<QObject> states READ states NOTIFY statesChanged DESIGNABLE false)
-    Q_PROPERTY(QString filename READ filename WRITE setFilename NOTIFY filenameChanged)
+    Q_PROPERTY(QUrl filename READ filename WRITE setFilename NOTIFY filenameChanged)
     Q_PROPERTY(Scxml::StateTable* stateMachine READ stateMachine WRITE setStateMachine)
 
     Q_CLASSINFO("DefaultProperty", "states")
@@ -49,18 +50,18 @@ public:
     Scxml::StateTable *stateMachine() const;
     void setStateMachine(Scxml::StateTable *stateMachine);
 
-    QString filename();
-    void setFilename(const QString filename);
+    QUrl filename();
+    void setFilename(const QUrl &filename);
 
 Q_SIGNALS:
     void statesChanged();
     void filenameChanged();
 
 private:
-    bool parse(const QString &filename);
+    bool parse(const QUrl &filename);
 
 private:
-    QString m_filename;
+    QUrl m_filename;
     Kids m_children;
     Scxml::StateTable *m_table = nullptr;
 };

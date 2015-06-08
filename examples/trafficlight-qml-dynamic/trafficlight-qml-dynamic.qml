@@ -38,17 +38,66 @@
 **
 ****************************************************************************/
 
-#ifndef TRAFFICLIGHT_H
-#define TRAFFICLIGHT_H
+import QtQuick 2.5
+import QtQuick.Window 2.2
+import Scxml 1.0 as Scxml
 
-#include <QScxml/scxmlstatetable.h>
+Window {
+    visible: true
+    width: 100
+    height: 300
+    color: "black"
 
-#include <QWidget>
+    MouseArea {
+        anchors.fill: parent
+        onClicked: {
+            Qt.quit();
+        }
+    }
 
-class TrafficLight : public QWidget
-{
-public:
-    TrafficLight(Scxml::StateTable *machine, QWidget *parent = 0);
-};
+    Light {
+        id: redLight
+        anchors.top: parent.top
+        color: "red"
+        visible: red.active || redGoingGreen.active
+    }
 
-#endif // TRAFFICLIGHT_H
+    Light {
+        id: yellowLight
+        anchors.top: redLight.bottom
+        color: "yellow"
+        visible: yellow.active
+    }
+
+    Light {
+        id: greenLight
+        anchors.top: yellowLight.bottom
+        color: "green"
+        visible: green.active
+    }
+
+    Scxml.StateMachine {
+        filename: "qrc:///statemachine.scxml"
+
+        Scxml.State {
+            id: red
+            scxmlName: "red"
+        }
+
+        Scxml.State {
+            id: yellow
+            scxmlName: "yellow"
+        }
+
+        Scxml.State {
+            id: redGoingGreen
+            scxmlName: "red-going-green"
+        }
+
+        Scxml.State {
+            id: green
+            scxmlName: "green"
+        }
+    }
+}
+

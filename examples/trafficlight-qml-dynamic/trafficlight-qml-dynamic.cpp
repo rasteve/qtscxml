@@ -38,53 +38,17 @@
 **
 ****************************************************************************/
 
-#include "trafficlight.h"
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
 
-#include <QScxml/scxmlparser.h>
-
-#include <QApplication>
-#include <QFile>
-
-static Scxml::StateTable *create()
+int main(int argc, char *argv[])
 {
-    QFile scxmlFile(WORKING_DIR "/statemachine.scxml");
-    if (!scxmlFile.open(QIODevice::ReadOnly)) {
-        QTextStream errs(stderr, QIODevice::WriteOnly);
-        errs << QStringLiteral("ERROR: cannot open '%1' for reading!").arg(scxmlFile.fileName());
-        return nullptr;
-    }
+    QGuiApplication app(argc, argv);
 
-    QXmlStreamReader xmlReader(&scxmlFile);
-    Scxml::ScxmlParser parser(&xmlReader);
-    parser.parse();
-    scxmlFile.close();
-    auto table = parser.table();
-
-    if (parser.state() != Scxml::ScxmlParser::FinishedParsing || table == nullptr) {
-        QTextStream errs(stderr, QIODevice::WriteOnly);
-        errs << QStringLiteral("Something went wrong:") << endl;
-        foreach (const Scxml::ErrorMessage &msg, parser.errors()) {
-            errs << msg.fileName << QStringLiteral(":") << msg.line
-                 << QStringLiteral(":") << msg.column
-                 << QStringLiteral(": ") << msg.severityString()
-                 << QStringLiteral(": ") << msg.msg;
-        }
-    }
-
-    return table;
-}
-
-int main(int argc, char **argv)
-{
-    QApplication app(argc, argv);
-
-    auto machine = create();
-    if (machine == nullptr)
-        return -1;
-
-    TrafficLight widget(machine);
-    widget.resize(110, 300);
-    widget.show();
+    QQmlApplicationEngine engine;
+    engine.load(QUrl(QStringLiteral("qrc:///trafficlight-qml-dynamic.qml")));
 
     return app.exec();
 }
+

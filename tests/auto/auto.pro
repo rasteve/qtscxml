@@ -1,3 +1,2 @@
 TEMPLATE = subdirs
-SUBDIRS += cmake scion
-
+SUBDIRS = cmake scion

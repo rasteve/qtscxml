@@ -42,43 +42,6 @@
 
 #include <QtWidgets>
 
-class LightWidget : public QWidget
-{
-    Q_OBJECT
-    Q_PROPERTY(bool on READ isOn WRITE setOn)
-public:
-    LightWidget(const QColor &color, QWidget *parent = 0)
-        : QWidget(parent), m_color(color), m_on(false) {}
-
-    bool isOn() const
-        { return m_on; }
-    void setOn(bool on)
-    {
-        if (on == m_on)
-            return;
-        m_on = on;
-        update();
-    }
-
-public slots:
-    void switchLight(bool onoff) { setOn(onoff); }
-
-protected:
-    virtual void paintEvent(QPaintEvent *) Q_DECL_OVERRIDE
-    {
-        if (!m_on)
-            return;
-        QPainter painter(this);
-        painter.setRenderHint(QPainter::Antialiasing);
-        painter.setBrush(m_color);
-        painter.drawEllipse(0, 0, width(), height());
-    }
-
-private:
-    QColor m_color;
-    bool m_on;
-};
-
 class TrafficLightWidget : public QWidget
 {
 public:
@@ -99,11 +62,11 @@ public:
     }
 
     LightWidget *redLight() const
-        { return m_red; }
+    { return m_red; }
     LightWidget *yellowLight() const
-        { return m_yellow; }
+    { return m_yellow; }
     LightWidget *greenLight() const
-        { return m_green; }
+    { return m_green; }
 
 private:
     LightWidget *m_red;
@@ -133,4 +96,32 @@ TrafficLight::TrafficLight(Scxml::StateTable *machine, QWidget *parent)
     machine->start();
 }
 
-#include "trafficlight.moc"
+LightWidget::LightWidget(const QColor &color, QWidget *parent)
+    : QWidget(parent)
+    , m_color(color)
+    , m_on(false)
+{}
+
+bool LightWidget::isOn() const
+{ return m_on; }
+
+void LightWidget::setOn(bool on)
+{
+    if (on == m_on)
+        return;
+    m_on = on;
+    update();
+}
+
+void LightWidget::switchLight(bool onoff)
+{ setOn(onoff); }
+
+void LightWidget::paintEvent(QPaintEvent *)
+{
+    if (!m_on)
+        return;
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setBrush(m_color);
+    painter.drawEllipse(0, 0, width(), height());
+}
