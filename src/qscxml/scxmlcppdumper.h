@@ -41,8 +41,8 @@ struct SCXML_EXPORT CppDumpOptions
 class SCXML_EXPORT CppDumper
 {
 public:
-    CppDumper(QTextStream &headerStream, QTextStream &cppStream, const QString &headerName, const CppDumpOptions &options)
-        : h(headerStream), cpp(cppStream), headerName(headerName), options(options)
+    CppDumper(QTextStream &headerStream, QTextStream &cppStream, const QString &theHeaderName, const CppDumpOptions &theOptions)
+        : h(headerStream), cpp(cppStream), headerName(theHeaderName), options(theOptions)
     {}
 
     void dump(DocumentModel::ScxmlDocument *doc);

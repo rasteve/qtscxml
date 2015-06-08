@@ -1,4 +1,5 @@
-load(qt_parts)
+CONFIG += tests_need_tools examples_need_tools
+
 FEATURES += \
     mkspecs/features/qscxmlcpp.prf
 
@@ -13,3 +14,5 @@ OTHER_FILES += \
     sync.profile \
     .gitignore \
     TODO.txt
+
+load(qt_parts)

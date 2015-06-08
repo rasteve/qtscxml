@@ -1,13 +1,9 @@
 TEMPLATE = subdirs
 
-SUBDIRS += \
-    qscxml \
-    qscxmlcpp
-
+SUBDIRS += qscxml
 qscxmlparse.depends = qscxml
-qscxmlcpp.depends = qscxml
-imports.depends = qscxml
 
 qtHaveModule(qml) {
-    SUBDIRS +=  qml-module
+    SUBDIRS += imports
+    imports.depends = qscxml
 }

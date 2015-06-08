@@ -10,7 +10,7 @@ CONFIG -= app_bundle
 
 TEMPLATE = app
 
-RESOURCES = ../3rdparty/scion.qrc
+RESOURCES = ../../3rdparty/scion.qrc
 
 SOURCES += \
     tst_scion.cpp
@@ -29,8 +29,8 @@ defineReplace(nameTheClass) {
     return ($$cn)
 }
 
-myscxml.commands = $$[QT_HOST_BINS]/qscxmlcpp -name-qobjects -oh scxml/${QMAKE_FUNC_nameTheNamespace}_${QMAKE_FILE_IN_BASE}.h -ocpp ${QMAKE_FILE_OUT} -namespace ${QMAKE_FUNC_nameTheNamespace} -classname ${QMAKE_FUNC_nameTheClass} ${QMAKE_FILE_IN}
-myscxml.depends += $$[QT_HOST_BINS]/qscxmlcpp
+myscxml.commands = $$[QT_HOST_BINS]/qscxmlc -name-qobjects -oh scxml/${QMAKE_FUNC_nameTheNamespace}_${QMAKE_FILE_IN_BASE}.h -ocpp ${QMAKE_FILE_OUT} -namespace ${QMAKE_FUNC_nameTheNamespace} -classname ${QMAKE_FUNC_nameTheClass} ${QMAKE_FILE_IN}
+myscxml.depends += $$[QT_HOST_BINS]/qscxmlc
 myscxml.output = scxml/${QMAKE_FUNC_nameTheNamespace}_${QMAKE_FILE_IN_BASE}.cpp
 myscxml.input = SCXMLS
 myscxml.variable_out = SOURCES
@@ -54,7 +54,7 @@ scxml_moc_source.variable_out = SOURCES
 silent:scxml_moc_source.commands = @echo moc ${QMAKE_FILE_IN} && $$scxml_moc_source.commands
 QMAKE_EXTRA_COMPILERS += scxml_moc_source
 
-SCXMLS_DIR += $$absolute_path($$PWD/../3rdparty/scion-tests/scxml-test-framework/test)
+SCXMLS_DIR += $$absolute_path($$PWD/../../3rdparty/scion-tests/scxml-test-framework/test)
 ALLSCXMLS = $$files($$SCXMLS_DIR/*.scxml, true)
 
 # <invoke>
@@ -136,4 +136,4 @@ testBases_cont = \
 write_file("scxml/scion.h", testBases_cont)|error("Aborting.")
 
 load(qt_tool)
-load(qscxmlcpp)
+load(qscxmlc)

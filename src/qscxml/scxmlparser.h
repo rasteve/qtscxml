@@ -41,7 +41,7 @@ struct XmlLocation
     int line;
     int column;
 
-    XmlLocation(int line, int column): line(line), column(column) {}
+    XmlLocation(int theLine, int theColumn): line(theLine), column(theColumn) {}
 };
 
 struct If;
@@ -57,7 +57,7 @@ class NodeVisitor;
 struct Node {
     XmlLocation xmlLocation;
 
-    Node(const XmlLocation &xmlLocation): xmlLocation(xmlLocation) {}
+    Node(const XmlLocation &theLocation): xmlLocation(theLocation) {}
     virtual ~Node();
     virtual void accept(NodeVisitor *visitor) = 0;
 
@@ -521,8 +521,8 @@ struct ParserState {
 
     bool collectChars();
 
-    ParserState(Kind kind=None)
-        : kind(kind)
+    ParserState(Kind someKind = None)
+        : kind(someKind)
         , instruction(0)
         , instructionContainer(0)
     {}
@@ -546,16 +546,17 @@ struct ErrorMessage
     int column = 0;
     Severity severity = Debug;
     QString msg;
-    ErrorMessage(const QString &fileName,
-                 int line,
-                 int column,
-                 Severity severity,
-                 const QString &msg)
-        : fileName(fileName)
-        , line(line)
-        , column(column)
-        , severity(severity)
-        , msg(msg)
+
+    ErrorMessage(const QString &theFileName,
+                 int theLine,
+                 int theColumn,
+                 Severity theSeverity,
+                 const QString &message)
+        : fileName(theFileName)
+        , line(theLine)
+        , column(theColumn)
+        , severity(theSeverity)
+        , msg(message)
     {}
 
     QString severityString() const
