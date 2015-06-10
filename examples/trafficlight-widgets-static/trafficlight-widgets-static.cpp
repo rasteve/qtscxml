@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 
     TrafficLightStateMachine machine;
     TrafficLight widget(&machine);
-    widget.resize(110, 300);
+    widget.resize(110, 350);
     widget.show();
 
     return app.exec();

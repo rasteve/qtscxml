@@ -47,7 +47,7 @@
 
 static Scxml::StateTable *create()
 {
-    QFile scxmlFile(WORKING_DIR "/statemachine.scxml");
+    QFile scxmlFile(QStringLiteral(":statemachine.scxml"));
     if (!scxmlFile.open(QIODevice::ReadOnly)) {
         QTextStream errs(stderr, QIODevice::WriteOnly);
         errs << QStringLiteral("ERROR: cannot open '%1' for reading!").arg(scxmlFile.fileName());

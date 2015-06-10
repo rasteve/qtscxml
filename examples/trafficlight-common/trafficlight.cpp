@@ -76,11 +76,18 @@ private:
 
 TrafficLight::TrafficLight(Scxml::StateTable *machine, QWidget *parent)
     : QWidget(parent)
+    , m_machine(machine)
 {
     QVBoxLayout *vbox = new QVBoxLayout(this);
     TrafficLightWidget *widget = new TrafficLightWidget();
     vbox->addWidget(widget);
     vbox->setMargin(0);
+
+    QPushButton *button = new QPushButton;
+    vbox->addWidget(button);
+    button->setCheckable(true);
+    button->setText(QStringLiteral("Pause"));
+    connect(button, SIGNAL(toggled(bool)), this, SLOT(toggleWorking(bool)));
 
     Q_ASSERT(machine->init());
 
@@ -90,10 +97,17 @@ TrafficLight::TrafficLight(Scxml::StateTable *machine, QWidget *parent)
                      widget->redLight(), SLOT(switchLight(bool)));
     machine->connect(QStringLiteral("yellow"), SIGNAL(activeChanged(bool)),
                      widget->yellowLight(), SLOT(switchLight(bool)));
+    machine->connect(QStringLiteral("blinking"), SIGNAL(activeChanged(bool)),
+                     widget->yellowLight(), SLOT(switchLight(bool)));
     machine->connect(QStringLiteral("green"), SIGNAL(activeChanged(bool)),
                      widget->greenLight(), SLOT(switchLight(bool)));
 
     machine->start();
+}
+
+void TrafficLight::toggleWorking(bool pause)
+{
+    m_machine->submitEvent(pause ? "smash" : "repair");
 }
 
 LightWidget::LightWidget(const QColor &color, QWidget *parent)
