@@ -55,6 +55,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void setActive(bool active);
+    void onFilenameChanged();
 
 private:
     void breakConnections();

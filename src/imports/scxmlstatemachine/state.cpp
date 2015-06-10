@@ -33,8 +33,11 @@ void State::componentComplete()
     completed = true;
     establishConnections();
 
-    if (Scxml::StateTable *table = qobject_cast<StateMachine *>(parent())->stateMachine())
+    StateMachine *stateMachine = qobject_cast<StateMachine *>(parent());
+    if (Scxml::StateTable *table = stateMachine->stateMachine()) {
         active = table->currentStates().contains(m_scxmlName);
+        connect(stateMachine, SIGNAL(filenameChanged()), this, SLOT(onFilenameChanged()));
+    }
     if (active)
         emit activeChanged(active);
 }
@@ -65,6 +68,12 @@ void State::setActive(bool active)
     emit activeChanged(active);
 }
 
+void State::onFilenameChanged()
+{
+    breakConnections();
+    establishConnections();
+}
+
 void State::breakConnections()
 {
     disconnect(activeConnection);
@@ -79,7 +88,6 @@ void State::establishConnections()
 
     Scxml::StateTable *table = qobject_cast<StateMachine *>(parent())->stateMachine();
     if (table == nullptr) {
-        qmlInfo(this) << QStringLiteral("State is not part of a StateTable.");
         return;
     }
 

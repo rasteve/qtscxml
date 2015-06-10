@@ -39,65 +39,32 @@
 ****************************************************************************/
 
 import QtQuick 2.5
-import QtQuick.Window 2.2
-import Scxml 1.0 as Scxml
 
-Window {
-    visible: true
-    width: 100
-    height: 300
-    color: "black"
+Item {
+    id: button
+    signal clicked
+    property string text: "hello"
 
-    MouseArea {
-        anchors.fill: parent
-        onClicked: {
-            Qt.quit();
-        }
-    }
+    Rectangle {
+        x: 5
+        y: 5
+        width: parent.width - 10
+        height: parent.height - 10
+        radius: 5
+        color: "blue"
 
-    Light {
-        id: redLight
-        anchors.top: parent.top
-        color: "red"
-        visible: red.active || redGoingGreen.active
-    }
-
-    Light {
-        id: yellowLight
-        anchors.top: redLight.bottom
-        color: "yellow"
-        visible: yellow.active
-    }
-
-    Light {
-        id: greenLight
-        anchors.top: yellowLight.bottom
-        color: "green"
-        visible: green.active
-    }
-
-    Scxml.StateMachine {
-        filename: "statemachine.scxml"
-
-        Scxml.State {
-            id: red
-            scxmlName: "red"
+        Text {
+            anchors.fill: parent
+            color: "white"
+            text: button.text
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
         }
 
-        Scxml.State {
-            id: yellow
-            scxmlName: "yellow"
-        }
-
-        Scxml.State {
-            id: redGoingGreen
-            scxmlName: "red-going-green"
-        }
-
-        Scxml.State {
-            id: green
-            scxmlName: "green"
+        MouseArea {
+            id: mouse
+            anchors.fill: parent
+            onClicked: button.clicked()
         }
     }
 }
-

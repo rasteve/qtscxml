@@ -38,66 +38,6 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.5
-import QtQuick.Window 2.2
-import Scxml 1.0 as Scxml
-
-Window {
-    visible: true
-    width: 100
-    height: 300
-    color: "black"
-
-    MouseArea {
-        anchors.fill: parent
-        onClicked: {
-            Qt.quit();
-        }
-    }
-
-    Light {
-        id: redLight
-        anchors.top: parent.top
-        color: "red"
-        visible: red.active || redGoingGreen.active
-    }
-
-    Light {
-        id: yellowLight
-        anchors.top: redLight.bottom
-        color: "yellow"
-        visible: yellow.active
-    }
-
-    Light {
-        id: greenLight
-        anchors.top: yellowLight.bottom
-        color: "green"
-        visible: green.active
-    }
-
-    Scxml.StateMachine {
-        filename: "qrc:///statemachine.scxml"
-
-        Scxml.State {
-            id: red
-            scxmlName: "red"
-        }
-
-        Scxml.State {
-            id: yellow
-            scxmlName: "yellow"
-        }
-
-        Scxml.State {
-            id: redGoingGreen
-            scxmlName: "red-going-green"
-        }
-
-        Scxml.State {
-            id: green
-            scxmlName: "green"
-        }
-    }
+TrafficLight {
+    filename: "qrc:///statemachine.scxml"
 }
-
