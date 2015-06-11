@@ -145,11 +145,11 @@ bool StateMachine::parse(const QUrl &filename)
     QXmlStreamReader xmlReader(&buf);
     Scxml::ScxmlParser parser(&xmlReader);
     parser.parse();
-    setStateMachine(parser.table());
+    setStateMachine(parser.instantiateStateMachine());
 
     if (parser.state() != Scxml::ScxmlParser::FinishedParsing || m_table == nullptr) {
         qmlInfo(this) << QStringLiteral("Something went wrong while parsing '%1':").arg(filename.fileName()) << endl;
-        foreach (const Scxml::ErrorMessage &msg, parser.errors()) {
+        foreach (const Scxml::ScxmlParser::ErrorMessage &msg, parser.errors()) {
             qmlInfo(this) << msg.fileName << QStringLiteral(":") << msg.line
                           << QStringLiteral(":") << msg.column
                           << QStringLiteral(": ") << msg.severityString()

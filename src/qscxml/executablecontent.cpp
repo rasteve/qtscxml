@@ -17,6 +17,7 @@
  ****************************************************************************/
 
 #include "executablecontent_p.h"
+#include "scxmlparser_p.h"
 #include "scxmlevent_p.h"
 
 using namespace Scxml;

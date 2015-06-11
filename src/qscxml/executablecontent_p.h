@@ -21,7 +21,7 @@
 
 #include "datamodel.h"
 #include "executablecontent.h"
-#include "scxmlparser.h"
+#include "scxmlparser_p.h"
 #include "scxmlstatetable.h"
 
 namespace Scxml {

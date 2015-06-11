@@ -58,12 +58,12 @@ static Scxml::StateTable *create()
     Scxml::ScxmlParser parser(&xmlReader);
     parser.parse();
     scxmlFile.close();
-    auto table = parser.table();
+    auto table = parser.instantiateStateMachine();
 
     if (parser.state() != Scxml::ScxmlParser::FinishedParsing || table == nullptr) {
         QTextStream errs(stderr, QIODevice::WriteOnly);
         errs << QStringLiteral("Something went wrong:") << endl;
-        foreach (const Scxml::ErrorMessage &msg, parser.errors()) {
+        foreach (const Scxml::ScxmlParser::ErrorMessage &msg, parser.errors()) {
             errs << msg.fileName << QStringLiteral(":") << msg.line
                  << QStringLiteral(":") << msg.column
                  << QStringLiteral(": ") << msg.severityString()

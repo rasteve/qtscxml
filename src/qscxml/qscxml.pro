@@ -11,6 +11,7 @@ DEFINES  += SCXML_LIBRARY \
 
 HEADERS += \
     scxmlparser.h \
+    scxmlparser_p.h \
     scxmlstatetable.h \
     scxmlglobals.h \
     scxmlstatetable_p.h \

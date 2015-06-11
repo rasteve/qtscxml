@@ -226,7 +226,7 @@ void TestScion::dynamic()
     QVERIFY(parser.errors().isEmpty());
     scxmlFile.close();
 
-    auto table = parser.table();
+    auto table = parser.instantiateStateMachine();
     if (table == nullptr && testStatus == TestFails) {
         QEXPECT_FAIL("", "This is expected to fail", Abort);
     }

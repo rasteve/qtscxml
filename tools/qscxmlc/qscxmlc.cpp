@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
     parser.setFileName(file.fileName());
     parser.parse();
     if (!parser.errors().isEmpty()) {
-        foreach (const Scxml::ErrorMessage &error, parser.errors()) {
+        foreach (const Scxml::ScxmlParser::ErrorMessage &error, parser.errors()) {
             errs << error.fileName
                  << QLatin1Char(':')
                  << error.line
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
         return -7;
     }
 
-    if (auto doc = parser.scxmlDocument()) {
+    if (auto doc = Scxml::ScxmlParserPrivate::get(&parser)->scxmlDocument()) {
         QFile outH(outHFileName);
         if (!outH.open(QFile::WriteOnly)) {
             errs << QStringLiteral("Error: cannot open '%1': %2").arg(outH.fileName(), outH.errorString()) << endl;

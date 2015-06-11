@@ -20,7 +20,7 @@
 #define CPPDUMPER_H
 
 #include "scxmlglobals.h"
-#include "scxmlparser.h"
+#include "scxmlparser_p.h"
 #include "scxmlstatetable.h"
 
 #include <QTextStream>
