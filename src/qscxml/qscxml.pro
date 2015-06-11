@@ -17,7 +17,7 @@ HEADERS += \
     scxmlstatetable_p.h \
     nulldatamodel.h \
     ecmascriptdatamodel.h \
-    ecmascriptplatformproperties.h \
+    ecmascriptplatformproperties_p.h \
     executablecontent.h \
     executablecontent_p.h \
     scxmlevent.h \
