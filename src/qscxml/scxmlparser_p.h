@@ -400,7 +400,7 @@ struct ScxmlDocument
     }
 };
 
-class NodeVisitor
+class SCXML_EXPORT NodeVisitor
 {
 public:
     virtual ~NodeVisitor();

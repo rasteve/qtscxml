@@ -251,7 +251,7 @@ struct SCXML_EXPORT Invoke: Instruction
 #pragma pack(pop)
 #endif
 
-class DynamicTableData: public QObject, public TableData
+class SCXML_EXPORT DynamicTableData: public QObject, public TableData
 {
     Q_OBJECT
 
@@ -283,7 +283,7 @@ private:
     ExecutableContent::StringIds theDataNameIds;
 };
 
-class Builder: public DocumentModel::NodeVisitor
+class SCXML_EXPORT Builder: public DocumentModel::NodeVisitor
 {
 public:
     Builder();

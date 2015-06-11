@@ -20,8 +20,9 @@
 #define CPPDUMPER_H
 
 #include "scxmlglobals.h"
-#include "scxmlparser_p.h"
 #include "scxmlstatetable.h"
+
+#include <QScxml/private/scxmlparser_p.h>
 
 #include <QTextStream>
 
@@ -29,7 +30,7 @@ namespace Scxml {
 
 struct MainClass;
 
-struct SCXML_EXPORT CppDumpOptions
+struct CppDumpOptions
 {
     CppDumpOptions() : usePrivateApi(false), nameQObjects(false) { }
     QString classname;
@@ -38,7 +39,7 @@ struct SCXML_EXPORT CppDumpOptions
     bool nameQObjects;
 };
 
-class SCXML_EXPORT CppDumper
+class CppDumper
 {
 public:
     CppDumper(QTextStream &headerStream, QTextStream &cppStream, const QString &theHeaderName, const CppDumpOptions &theOptions)

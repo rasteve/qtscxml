@@ -27,7 +27,7 @@
 namespace Scxml {
 
 class StateTable;
-class SCXML_EXPORT PlatformProperties: public QObject
+class PlatformProperties: public QObject
 {
     Q_OBJECT
 

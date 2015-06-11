@@ -15,7 +15,6 @@ HEADERS += \
     scxmlstatetable.h \
     scxmlglobals.h \
     scxmlstatetable_p.h \
-    scxmlcppdumper.h \
     nulldatamodel.h \
     ecmascriptdatamodel.h \
     ecmascriptplatformproperties.h \
@@ -28,7 +27,6 @@ HEADERS += \
 SOURCES += \
     scxmlparser.cpp \
     scxmlstatetable.cpp \
-    scxmlcppdumper.cpp \
     nulldatamodel.cpp \
     ecmascriptdatamodel.cpp \
     ecmascriptplatformproperties.cpp \

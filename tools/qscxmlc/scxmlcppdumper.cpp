@@ -16,7 +16,7 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include "executablecontent_p.h"
+#include <QScxml/private/executablecontent_p.h>
 #include "scxmlcppdumper.h"
 
 #include <algorithm>
