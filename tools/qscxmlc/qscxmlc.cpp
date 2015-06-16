@@ -17,7 +17,7 @@
  ****************************************************************************/
 
 #include <QScxml/scxmlparser.h>
-#include <QScxml/scxmlcppdumper.h>
+#include "scxmlcppdumper.h"
 
 #include <QCoreApplication>
 #include <QFile>

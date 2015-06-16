@@ -17,7 +17,7 @@
  ****************************************************************************/
 
 #include "ecmascriptdatamodel.h"
-#include "ecmascriptplatformproperties.h"
+#include "ecmascriptplatformproperties_p.h"
 #include "executablecontent_p.h"
 
 #include <QJsonDocument>

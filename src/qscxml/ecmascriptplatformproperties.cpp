@@ -16,7 +16,7 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include "ecmascriptplatformproperties.h"
+#include "ecmascriptplatformproperties_p.h"
 #include "scxmlstatetable.h"
 
 namespace Scxml {
