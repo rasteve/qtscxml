@@ -98,8 +98,6 @@ static QSet<QString> weDieOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test388.txml") // Qt refuses to set an initial state to a "deep" state
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test403a.txml")
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test403c.txml")
-        // FIXME: the null data model is not fully implemented: the In predicate and the unsupported elements are missing.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test436.txml")
            ;
 
 static QSet<QString> differentSemantics = QSet<QString>()
@@ -287,7 +285,7 @@ void TestScion::compiled()
 
 static bool verifyStates(StateTable *stateMachine, const QJsonObject &stateDescription, const QString &key, int counter)
 {
-    auto current = stateMachine->currentStates();
+    auto current = stateMachine->activeStates();
     std::sort(current.begin(), current.end());
     auto expected = getStates(stateDescription, key);
     if (current == expected)

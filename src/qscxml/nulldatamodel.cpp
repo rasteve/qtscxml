@@ -18,11 +18,84 @@
 
 #include "nulldatamodel.h"
 
+#include "scxmlstatetable.h"
+
 using namespace Scxml;
+
+class NullDataModel::Data
+{
+    struct ResolvedEvaluatorInfo {
+        bool error = false;
+        QString str;
+    };
+
+public:
+    Data(NullDataModel *dataModel)
+        : q(dataModel)
+    {}
+
+    bool evalBool(EvaluatorId id, bool *ok)
+    {
+        Q_ASSERT(ok);
+
+        ResolvedEvaluatorInfo info;
+        Resolved::const_iterator it = resolved.find(id);
+        if (it == resolved.end()) {
+            info = prepare(id);
+        } else {
+            info = it.value();
+        }
+
+        if (info.error) {
+            *ok = false;
+            static QByteArray sendid;
+            q->table()->submitError(QByteArray("error.execution"), info.str, sendid);
+            return false;
+        }
+
+        return q->table()->isActive(info.str);
+    }
+
+    ResolvedEvaluatorInfo prepare(EvaluatorId id)
+    {
+        auto td = q->table()->tableData();
+        const EvaluatorInfo &info = td->evaluatorInfo(id);
+        QString expr = td->string(info.expr);
+        for (int i = 0; i < expr.size(); ) {
+            QChar ch = expr.at(i);
+            if (ch.isSpace()) {
+                expr.remove(i, 1);
+            } else {
+                ++i;
+            }
+        }
+
+        ResolvedEvaluatorInfo resolved;
+        if (expr.startsWith(QStringLiteral("In(")) && expr.endsWith(QLatin1Char(')'))) {
+            resolved.error = false;
+            resolved.str =  expr.mid(3, expr.length() - 4);
+        } else {
+            resolved.error = true;
+            resolved.str =  QStringLiteral("%1 in %2").arg(expr, td->string(info.context));
+        }
+        return qMove(resolved);
+    }
+
+private:
+    NullDataModel *q;
+    typedef QHash<EvaluatorId, ResolvedEvaluatorInfo> Resolved;
+    Resolved resolved;
+};
 
 NullDataModel::NullDataModel(StateTable *table)
     : DataModel(table)
+    , d(new Data(this))
 {}
+
+NullDataModel::~NullDataModel()
+{
+    delete d;
+}
 
 void NullDataModel::setup()
 {
@@ -30,18 +103,17 @@ void NullDataModel::setup()
 
 QString NullDataModel::evaluateToString(EvaluatorId id, bool *ok)
 {
-    Q_UNUSED(id);
-    Q_UNUSED(ok);
-    Q_UNREACHABLE();
-    return QString();
+    // We do implement this, because <log> is allowed in the Null data model,
+    // and <log> has an expr attribute that needs "evaluation" for it to generate the log message.
+    *ok = true;
+    auto td = table()->tableData();
+    const EvaluatorInfo &info = td->evaluatorInfo(id);
+    return td->string(info.expr);
 }
 
 bool NullDataModel::evaluateToBool(EvaluatorId id, bool *ok)
 {
-    Q_UNUSED(id);
-    Q_UNUSED(ok);
-    Q_UNREACHABLE();
-    return false;
+    return d->evalBool(id, ok);
 }
 
 QVariant NullDataModel::evaluateToVariant(EvaluatorId id, bool *ok)

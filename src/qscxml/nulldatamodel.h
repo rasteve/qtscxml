@@ -27,6 +27,7 @@ class SCXML_EXPORT NullDataModel: public DataModel
 {
 public:
     NullDataModel(StateTable *table);
+    ~NullDataModel();
 
     void setup() Q_DECL_OVERRIDE;
 
@@ -44,6 +45,10 @@ public:
     void setStringProperty(const QString &name, const QString &value, const QString &context, bool *ok) Q_DECL_OVERRIDE;
 
     virtual NullDataModel *asNullDataModel() Q_DECL_OVERRIDE;
+
+private:
+    class Data;
+    Data *d;
 };
 
 } // Scxml namespace

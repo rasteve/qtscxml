@@ -4,8 +4,8 @@
  <parallel id="p">
  
    <state id="ps0">
-   <transition cond="In('s1')" target="fail"/>
-   <transition cond="In('ps1')" target="pass"/> 
+   <transition cond="In(s1)" target="fail"/>
+   <transition cond="In(ps1)" target="pass"/>
    <transition target="fail"/>
    </state>
 

@@ -109,7 +109,8 @@ public:
     Q_INVOKABLE bool init();
 
     QString name() const;
-    QStringList currentStates(bool compress = true);
+    QStringList activeStates(bool compress = true);
+    bool isActive(const QString &scxmlStateName) const;
     bool hasState(const QString &scxmlStateName) const;
 
     using QObject::connect;

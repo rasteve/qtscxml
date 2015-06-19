@@ -66,10 +66,5 @@ QString PlatformProperties::marks() const
 
 bool PlatformProperties::In(const QString &stateName)
 {
-    foreach (QAbstractState *s, table()->configuration()) {
-        if (s->objectName() == stateName)
-            return true;
-    }
-
-    return false;
+    return table()->isActive(stateName);
 }

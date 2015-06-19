@@ -35,7 +35,7 @@ void State::componentComplete()
 
     StateMachine *stateMachine = qobject_cast<StateMachine *>(parent());
     if (Scxml::StateTable *table = stateMachine->stateMachine()) {
-        active = table->currentStates().contains(m_scxmlName);
+        active = table->isActive(m_scxmlName);
         connect(stateMachine, SIGNAL(filenameChanged()), this, SLOT(onFilenameChanged()));
     }
     if (active)

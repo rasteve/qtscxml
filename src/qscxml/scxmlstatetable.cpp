@@ -240,7 +240,7 @@ void StateTable::beginMicrostep(QEvent *event)
 {
     Q_D(StateTable);
 
-    qCDebug(scxmlLog) << d->_name << " started microstep from state" << currentStates()
+    qCDebug(scxmlLog) << d->_name << " started microstep from state" << activeStates()
                       << "with event" << d->_event.name() << "from event type" << event->type();
 }
 
@@ -249,7 +249,7 @@ void StateTable::endMicrostep(QEvent *event)
     Q_D(StateTable);
     Q_UNUSED(event);
 
-    qCDebug(scxmlLog) << d->_name << " finished microstep in state (" << currentStates() << ")";
+    qCDebug(scxmlLog) << d->_name << " finished microstep in state (" << activeStates() << ")";
 }
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
@@ -258,7 +258,7 @@ void StateTablePrivate::noMicrostep()
 {
     Q_Q(StateTable);
 
-    qCDebug(scxmlLog) << _name << " had no transition, stays in state (" << q->currentStates() << ")";
+    qCDebug(scxmlLog) << _name << " had no transition, stays in state (" << q->activeStates() << ")";
 }
 
 void StateTablePrivate::processedPendingEvents(bool didChange)
@@ -266,7 +266,7 @@ void StateTablePrivate::processedPendingEvents(bool didChange)
     Q_Q(StateTable);
 
     qCDebug(scxmlLog) << _name << " finishedPendingEvents " << didChange << " in state ("
-                      << q->currentStates() << ")";
+                      << q->activeStates() << ")";
     emit q->reachedStableState(didChange);
 }
 
@@ -278,7 +278,7 @@ void StateTablePrivate::endMacrostep(bool didChange)
 {
     Q_Q(StateTable);
     qCDebug(scxmlLog) << _name << " endMacrostep " << didChange << " in state ("
-                      << q->currentStates() << ")";
+                      << q->activeStates() << ")";
 }
 
 void StateTablePrivate::emitStateFinished(QState *forState, QFinalState *guiltyState)
@@ -319,7 +319,7 @@ int StateTablePrivate::eventIdForDelayedEvent(const QByteArray &scxmlEventId)
     return -1;
 }
 
-QStringList StateTable::currentStates(bool compress)
+QStringList StateTable::activeStates(bool compress)
 {
     QSet<QAbstractState *> config = d_func()->configuration;
     if (compress)
@@ -334,6 +334,17 @@ QStringList StateTable::currentStates(bool compress)
     }
     std::sort(res.begin(), res.end());
     return res;
+}
+
+bool StateTable::isActive(const QString &scxmlStateName) const
+{
+    QSet<QAbstractState *> config = d_func()->configuration;
+    foreach (QAbstractState *s, config) {
+        if (s->objectName() == scxmlStateName) {
+            return true;
+        }
+    }
+    return false;
 }
 
 static ScxmlState *findState(const QString &scxmlName, StateTable *parent)
