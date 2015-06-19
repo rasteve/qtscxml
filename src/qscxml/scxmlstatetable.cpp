@@ -30,6 +30,11 @@
 #include <QJSEngine>
 #include <QtCore/private/qstatemachine_p.h>
 
+#undef DUMP_EVENT
+#ifdef DUMP_EVENT
+#include "ecmascriptdatamodel.h"
+#endif
+
 namespace Scxml {
 Q_LOGGING_CATEGORY(scxmlLog, "scxml.table")
 
@@ -827,17 +832,18 @@ class ScxmlTransition::Data
 {
 public:
     EvaluatorId conditionalExp = NoEvaluator;
-    ScxmlEvent::EventType type;
     ExecutableContent::ContainerId instructionsOnTransition = ExecutableContent::NoInstruction;
 };
 
 ScxmlTransition::ScxmlTransition(QState *sourceState, const QList<QByteArray> &eventSelector)
     : ScxmlBaseTransition(sourceState, filterEmpty(eventSelector))
     , d(new Data)
-{
-    Q_ASSERT(sourceState);
-    d->type = ScxmlEvent::External;
-}
+{}
+
+ScxmlTransition::ScxmlTransition(const QList<QByteArray> &eventSelector)
+    : ScxmlBaseTransition(nullptr, filterEmpty(eventSelector))
+    , d(new Data)
+{}
 
 ScxmlTransition::~ScxmlTransition()
 {
@@ -846,7 +852,10 @@ ScxmlTransition::~ScxmlTransition()
 
 bool ScxmlTransition::eventTest(QEvent *event)
 {
-//    if (table()->engine()) qCDebug(scxmlLog) << qPrintable(table()->engine()->evaluate(QLatin1String("JSON.stringify(_event)")).toString());
+#ifdef DUMP_EVENT
+    if (auto edm = table()->dataModel()->asEcmaScriptDataModel()) qCDebug(scxmlLog) << qPrintable(edm->engine()->evaluate(QLatin1String("JSON.stringify(_event)")).toString());
+#endif
+
     if (ScxmlBaseTransition::eventTest(event)) {
         bool ok = true;
         if (d->conditionalExp != NoEvaluator)

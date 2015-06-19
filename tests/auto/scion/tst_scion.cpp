@@ -89,9 +89,11 @@ static QSet<QString> weDieOnThese = QSet<QString>()
         << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send1") // same as above
         << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send2") // same as above
         << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send3") // same as above
-        << QLatin1String("scion-tests/scxml-test-framework/test/history/history3") // problem with the initial transition of the history state
-        << QLatin1String("scion-tests/scxml-test-framework/test/history/history4") // same as above
-        << QLatin1String("scion-tests/scxml-test-framework/test/history/history5") // same as above
+#if QT_VERSION < QT_VERSION_CHECK(5, 6, 0) // QTBUG-46703
+        << QLatin1String("scion-tests/scxml-test-framework/test/history/history3")
+        << QLatin1String("scion-tests/scxml-test-framework/test/history/history4")
+        << QLatin1String("scion-tests/scxml-test-framework/test/history/history5")
+#endif // Qt 5.6.0
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test364.txml") // initial attribute on <state>
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test388.txml") // Qt refuses to set an initial state to a "deep" state
         << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test403a.txml")

@@ -307,6 +307,7 @@ protected:
         clazz.classFields << QStringLiteral("Scxml::ScxmlTransition ") + tName + QLatin1Char(';');
 
         // Initializer:
+#if QT_VERSION < QT_VERSION_CHECK(5, 6, 0) // QTBUG-46703 work-around. See bug report why it's a bad one.
         QString parentName;
         auto parent = m_parents.last();
         if (HistoryState *historyState = parent->asHistoryState()) {
@@ -316,6 +317,10 @@ protected:
         }
         Q_ASSERT(!parentName.isEmpty());
         QString initializer = tName + QStringLiteral("(&") + parentName + QStringLiteral(", {");
+#else
+        QString initializer = tName + QStringLiteral("({");
+#endif
+
         for (int i = 0, ei = node->events.size(); i != ei; ++i) {
             if (i == 0) {
                 initializer += QLatin1Char(' ');
@@ -336,7 +341,17 @@ protected:
             auto cond = createEvaluatorBool(QStringLiteral("transition"), QStringLiteral("cond"), condExpr);
             clazz.init.impl << tName + QStringLiteral(".setConditionalExpression(%1);").arg(cond);
         }
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
+        if (m_parents.last()->asHistoryState()) {
+            clazz.init.impl << parentStateMemberName() + QStringLiteral(".setDefaultTransition(&") + tName + QStringLiteral(");");
+        } else {
+            clazz.init.impl << parentStateMemberName() + QStringLiteral(".addTransition(&") + tName + QStringLiteral(");");
+        }
+#else // QTBUG-46703: no default transition for QHistoryState yet...
         clazz.init.impl << parentName + QStringLiteral(".addTransition(&") + tName + QStringLiteral(");");
+#endif
+
         if (node->type == Transition::Internal) {
             clazz.init.impl << tName + QStringLiteral(".setTransitionType(QAbstractTransition::InternalTransition);");
         }
@@ -396,8 +411,9 @@ protected:
         }
         clazz.init.impl << stateName + QStringLiteral(".setHistoryType(QHistoryState::") + depth + QStringLiteral("History);");
 
-        // visit the kids:
+        // visit the kid:
         if (Transition *t = node->defaultConfiguration()) {
+#if QT_VERSION < QT_VERSION_CHECK(5, 6, 0) // work-around for QTBUG-46703
             // Declaration:
             clazz.classFields << QStringLiteral("QState ") + stateName + QStringLiteral("_defaultConfiguration;");
 
@@ -411,8 +427,8 @@ protected:
             // init:
             clazz.init.impl << stateName + QStringLiteral(".setDefaultState(&")
                                + stateName + QStringLiteral("_defaultConfiguration);");
+#endif
 
-            //  visit the kid:
             m_parents.append(node);
             t->accept(this);
             m_parents.removeLast();

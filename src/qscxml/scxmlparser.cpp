@@ -34,7 +34,11 @@
 #include <QVector>
 #include <private/qabstracttransition_p.h>
 
-#include <typeinfo>
+namespace {
+enum {
+    DebugHelper_NameTransitions = 0
+};
+} // anonymous namespace
 
 namespace Scxml {
 
@@ -441,7 +445,15 @@ private:
 
     bool visit(DocumentModel::Transition *node) Q_DECL_OVERRIDE
     {
-        QState *parentState = 0;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
+        auto newTransition = new ScxmlTransition(toUtf8(node->events));
+        if (QHistoryState *parent = qobject_cast<QHistoryState*>(m_parents.last())) {
+            parent->setDefaultTransition(newTransition);
+        } else {
+            currentParent()->addTransition(newTransition);
+        }
+#else // See QTBUG-46703, which explains why the following is a bad work-around.
+        QState *parentState = Q_NULLPTR;
         if (QHistoryState *parent = qobject_cast<QHistoryState*>(m_parents.last())) {
             // QHistoryState cannot have an initial transition, only an initial state.
             // So, work around that by creating an initial state, and add the transition to that.
@@ -450,14 +462,15 @@ private:
         } else {
             parentState = currentParent();
         }
-
         auto newTransition = new ScxmlTransition(parentState, toUtf8(node->events));
+        parentState->addTransition(newTransition);
+#endif
+
         if (node->condition) {
             auto cond = createEvaluatorBool(QStringLiteral("transition"), QStringLiteral("cond"), *node->condition.data());
             newTransition->setConditionalExpression(cond);
         }
 
-        parentState->addTransition(newTransition);
         switch (node->type) {
         case DocumentModel::Transition::External:
             newTransition->setTransitionType(QAbstractTransition::ExternalTransition);
@@ -536,6 +549,9 @@ private: // Utility methods
                 targets.append(target);
             }
             i.key()->setTargetStates(targets);
+
+            if (DebugHelper_NameTransitions)
+                i.key()->setObjectName(QStringLiteral("%1 -> %2").arg(i.key()->parent()->objectName(), i.value()->targets.join(QStringLiteral(","))));
         }
     }
 

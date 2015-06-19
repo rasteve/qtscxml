@@ -212,6 +212,7 @@ class SCXML_EXPORT ScxmlTransition : public ScxmlBaseTransition
 
 public:
     ScxmlTransition(QState * sourceState = 0, const QList<QByteArray> &eventSelector = QList<QByteArray>());
+    ScxmlTransition(const QList<QByteArray> &eventSelector);
     ~ScxmlTransition();
 
     bool eventTest(QEvent *event) Q_DECL_OVERRIDE;
