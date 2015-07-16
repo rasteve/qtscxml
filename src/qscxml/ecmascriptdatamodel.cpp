@@ -37,6 +37,7 @@ class Scxml::EcmaScriptDataModelPrivate
 public:
     EcmaScriptDataModelPrivate(EcmaScriptDataModel *q)
         : q(q)
+        , jsEngine(Q_NULLPTR)
     {}
 
     QString evalStr(const QString &expr, const QString &context, bool *ok)
@@ -177,7 +178,7 @@ public:
 
     QJSEngine *engine() const
     {
-        if (jsEngine == nullptr) {
+        if (jsEngine == Q_NULLPTR) {
             jsEngine = new QJSEngine(table());
         }
 
@@ -273,7 +274,7 @@ private: // Uses private API
 
         QV4::Scope scope(engine);
         QV4::ScopedObject o(scope, QJSValuePrivate::getValue(object));
-        if (o == nullptr) {
+        if (o == Q_NULLPTR) {
             return SetPropertyFailedForAnotherReason;
         }
 
@@ -301,7 +302,7 @@ private: // Uses private API
 
 private:
     EcmaScriptDataModel *q;
-    mutable QJSEngine *jsEngine = nullptr;
+    mutable QJSEngine *jsEngine;
     QJSValue dataModel;
 };
 
@@ -377,9 +378,10 @@ void EcmaScriptDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
     }
 }
 
-bool EcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, std::function<bool ()> body)
+bool EcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body)
 {
     Q_ASSERT(ok);
+    Q_ASSERT(body);
     static QByteArray sendid;
     const ForeachInfo &info = table()->tableData()->foreachInfo(id);
 
@@ -413,7 +415,7 @@ bool EcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, std::functio
             if (!*ok)
                 return false;
         }
-        if (!body())
+        if (!body->run())
             return false;
     }
 

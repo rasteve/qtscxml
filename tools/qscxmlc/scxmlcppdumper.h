@@ -32,18 +32,28 @@ struct MainClass;
 
 struct CppDumpOptions
 {
-    CppDumpOptions() : usePrivateApi(false), nameQObjects(false) { }
+    CppDumpOptions()
+        : usePrivateApi(false)
+        , nameQObjects(false)
+        , useCxx11(true)
+    {}
+
     QString classname;
     QString namespaceName;
     bool usePrivateApi;
     bool nameQObjects;
+    bool useCxx11;
 };
 
 class CppDumper
 {
 public:
     CppDumper(QTextStream &headerStream, QTextStream &cppStream, const QString &theHeaderName, const CppDumpOptions &theOptions)
-        : h(headerStream), cpp(cppStream), headerName(theHeaderName), options(theOptions)
+        : h(headerStream)
+        , cpp(cppStream)
+        , headerName(theHeaderName)
+        , m_doc(Q_NULLPTR)
+        , options(theOptions)
     {}
 
     void dump(DocumentModel::ScxmlDocument *doc);
@@ -58,7 +68,7 @@ private:
     static QByteArray b(const char *str) { return QByteArray(str); }
     static QLatin1String l (const char *str) { return QLatin1String(str); }
 
-    DocumentModel::ScxmlDocument *m_doc = nullptr;
+    DocumentModel::ScxmlDocument *m_doc;
     QString mainClassName;
     CppDumpOptions options;
 };

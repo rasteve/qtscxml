@@ -273,10 +273,10 @@ void TestScion::compiled()
     jsonFile.close();
 
     auto table = creator();
-    if (table == nullptr && testStatus == TestFails) {
+    if (table == Q_NULLPTR && testStatus == TestFails) {
         QEXPECT_FAIL("", "This is expected to fail", Abort);
     }
-    QVERIFY(table != nullptr);
+    QVERIFY(table != Q_NULLPTR);
 
     if (testStatus == TestFails)
         QEXPECT_FAIL("", "This is expected to fail", Abort);

@@ -17,6 +17,7 @@
  ****************************************************************************/
 
 #include "nulldatamodel.h"
+#include "scxmlevent.h"
 
 #include "scxmlstatetable.h"
 
@@ -138,7 +139,7 @@ void NullDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
     Q_UNREACHABLE();
 }
 
-bool NullDataModel::evaluateForeach(EvaluatorId id, bool *ok, std::function<bool ()> body)
+bool NullDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body)
 {
     Q_UNUSED(id);
     Q_UNUSED(ok);

@@ -73,8 +73,8 @@ QAtomicInt EventBuilder::idCounter = QAtomicInt(0);
 
 ScxmlEvent *EventBuilder::buildEvent()
 {
-    auto dataModel = table ? table->dataModel() : nullptr;
-    auto tableData = table ? table->tableData() : nullptr;
+    auto dataModel = table ? table->dataModel() : Q_NULLPTR;
+    auto tableData = table ? table->tableData() : Q_NULLPTR;
 
     QByteArray eventName = event;
     bool ok = true;
@@ -96,7 +96,7 @@ ScxmlEvent *EventBuilder::buildEvent()
             dataValues.append(data);
         } else {
             // expr evaluation failure results in the data property of the event being set to null. See e.g. test528.
-            dataValues = { QVariant(QMetaType::VoidStar, 0) };
+            dataValues = QVariantList() << QVariant(QMetaType::VoidStar, 0);
         }
     } else {
         if (evaluate(params, table, dataValues, dataNames)) {
@@ -110,7 +110,7 @@ ScxmlEvent *EventBuilder::buildEvent()
         } else {
             // If the evaluation of the <param> tags fails, set _event.data to an empty string.
             // See test343.
-            dataValues = { QVariant(QMetaType::VoidStar, 0) };
+            dataValues = QVariantList() << QVariant(QMetaType::VoidStar, 0);
             dataNames.clear();
         }
     }
@@ -120,14 +120,14 @@ ScxmlEvent *EventBuilder::buildEvent()
         sendid = generateId();
         table->dataModel()->setStringProperty(idLocation, QString::fromUtf8(sendid), tableData->string(instructionLocation), &ok);
         if (!ok)
-            return nullptr;
+            return Q_NULLPTR;
     }
 
     QString origin = target;
     if (targetexpr != NoEvaluator) {
         origin = dataModel->evaluateToString(targetexpr, &ok);
         if (!ok)
-            return nullptr;
+            return Q_NULLPTR;
     }
     if (origin.isEmpty()) {
         if (eventType == ScxmlEvent::External) {
@@ -139,14 +139,14 @@ ScxmlEvent *EventBuilder::buildEvent()
                            QStringLiteral("Error in %1: %2 is not a legal target")
                            .arg(tableData->string(instructionLocation), origin),
                            sendid);
-        return nullptr;
+        return Q_NULLPTR;
     } else if (!table->isDispatchableTarget(origin)) {
         // [6.2.4] and test521.
         table->submitError(QByteArray("error.communication"),
                            QStringLiteral("Error in %1: cannot dispatch to target '%2'")
                            .arg(tableData->string(instructionLocation), origin),
                            sendid);
-        return nullptr;
+        return Q_NULLPTR;
     }
 
     QString origintype = type;
@@ -157,7 +157,7 @@ ScxmlEvent *EventBuilder::buildEvent()
     if (typeexpr != NoEvaluator) {
         origintype = dataModel->evaluateToString(typeexpr, &ok);
         if (!ok)
-            return nullptr;
+            return Q_NULLPTR;
     }
     if (!origintype.isEmpty() && origintype != QStringLiteral("http://www.w3.org/TR/scxml/#SCXMLEventProcessor")) {
         // [6.2.5] and test199
@@ -165,7 +165,7 @@ ScxmlEvent *EventBuilder::buildEvent()
                            QStringLiteral("Error in %1: %2 is not a valid type")
                            .arg(tableData->string(instructionLocation), origintype),
                            sendid);
-        return nullptr;
+        return Q_NULLPTR;
     }
 
     return new ScxmlEvent(eventName, eventType, dataValues, dataNames, sendid, origin, origintype);

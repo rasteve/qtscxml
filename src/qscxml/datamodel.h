@@ -63,6 +63,14 @@ class SCXML_EXPORT DataModel
     Q_DISABLE_COPY(DataModel)
 
 public:
+    class ForeachLoopBody
+    {
+    public:
+        virtual ~ForeachLoopBody();
+        virtual bool run() = 0;
+    };
+
+public:
     DataModel(StateTable *table);
     virtual ~DataModel();
 
@@ -75,7 +83,7 @@ public:
     virtual QVariant evaluateToVariant(EvaluatorId id, bool *ok) = 0;
     virtual void evaluateToVoid(EvaluatorId id, bool *ok) = 0;
     virtual void evaluateAssignment(EvaluatorId id, bool *ok) = 0;
-    virtual bool evaluateForeach(EvaluatorId id, bool *ok, std::function<bool()> body) = 0;
+    virtual bool evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body) = 0;
 
     virtual void setEvent(const ScxmlEvent &event) = 0;
 

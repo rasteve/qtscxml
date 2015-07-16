@@ -63,7 +63,7 @@ private:
 private:
     QUrl m_filename;
     Kids m_children;
-    Scxml::StateTable *m_table = nullptr;
+    Scxml::StateTable *m_table;
 };
 
 QT_END_NAMESPACE

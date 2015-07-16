@@ -87,7 +87,7 @@ void State::establishConnections()
         return;
 
     Scxml::StateTable *table = qobject_cast<StateMachine *>(parent())->stateMachine();
-    if (table == nullptr) {
+    if (table == Q_NULLPTR) {
         return;
     }
 

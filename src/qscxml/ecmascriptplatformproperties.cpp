@@ -23,7 +23,11 @@ namespace Scxml {
 class PlatformProperties::Data
 {
 public:
-    StateTable *m_table = nullptr;
+    Data()
+        : m_table(Q_NULLPTR)
+    {}
+
+    StateTable *m_table;
     QJSValue m_jsValue;
 };
 } // Scxml namespace

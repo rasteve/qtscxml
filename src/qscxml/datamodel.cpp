@@ -20,6 +20,9 @@
 
 using namespace Scxml;
 
+DataModel::ForeachLoopBody::~ForeachLoopBody()
+{}
+
 DataModel::DataModel(StateTable *table)
     : m_table(table)
 {
@@ -37,10 +40,10 @@ StateTable *DataModel::table() const
 
 NullDataModel *DataModel::asNullDataModel()
 {
-    return nullptr;
+    return Q_NULLPTR;
 }
 
 EcmaScriptDataModel *DataModel::asEcmaScriptDataModel()
 {
-    return nullptr;
+    return Q_NULLPTR;
 }

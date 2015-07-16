@@ -42,8 +42,6 @@ class PlatformProperties: public QObject
 {
     Q_OBJECT
 
-    PlatformProperties &operator=(const PlatformProperties &) = delete;
-
     PlatformProperties(QObject *parent);
 
     Q_PROPERTY(QString marks READ marks CONSTANT)

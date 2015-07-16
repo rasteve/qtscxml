@@ -164,6 +164,7 @@ public:
         : clazz(clazz)
         , m_mainClassName(mainClassName)
         , m_options(options)
+        , m_bindLate(false)
     {}
 
     void process(ScxmlDocument *doc)
@@ -316,23 +317,15 @@ protected:
             parentName = parentStateMemberName();
         }
         Q_ASSERT(!parentName.isEmpty());
-        QString initializer = tName + QStringLiteral("(&") + parentName + QStringLiteral(", {");
+        QString initializer = tName + QStringLiteral("(&") + parentName + QStringLiteral(", ");
 #else
-        QString initializer = tName + QStringLiteral("({");
+        QString initializer = tName + QStringLiteral("(");
 #endif
-
-        for (int i = 0, ei = node->events.size(); i != ei; ++i) {
-            if (i == 0) {
-                initializer += QLatin1Char(' ');
-            } else {
-                initializer += QStringLiteral(", ");
-            }
-            initializer += qba(node->events.at(i));
-            if (i + 1 == ei) {
-                initializer += QLatin1Char(' ');
-            }
-        }
-        initializer += QStringLiteral("})");
+        QStringList elements;
+        foreach (const QString &event, node->events)
+            elements.append(qba(event));
+        initializer += createList(QStringLiteral("QByteArray"), elements);
+        initializer += QStringLiteral(")");
         clazz.constructor.initializer << initializer;
 
         // init:
@@ -355,19 +348,11 @@ protected:
         if (node->type == Transition::Internal) {
             clazz.init.impl << tName + QStringLiteral(".setTransitionType(QAbstractTransition::InternalTransition);");
         }
-        QString targets = tName + QStringLiteral(".setTargetStates({");
-        for (int i = 0, ei = node->targetStates.size(); i != ei; ++i) {
-            if (i == 0) {
-                targets += QLatin1Char(' ');
-            } else {
-                targets += QStringLiteral(", ");
-            }
-            targets += QStringLiteral("&state_") + mangledName(node->targetStates.at(i));
-            if (i + 1 == ei) {
-                targets += QLatin1Char(' ');
-            }
-        }
-        clazz.init.impl << targets + QStringLiteral("});");
+        QStringList targetNames;
+        foreach (DocumentModel::AbstractState *s, node->targetStates)
+            targetNames.append(QStringLiteral("&state_") + mangledName(s));
+        QString targets = tName + QStringLiteral(".setTargetStates(") + createList(QStringLiteral("QAbstractState*"), targetNames);
+        clazz.init.impl << targets + QStringLiteral(");");
 
         // visit the kids:
         if (!node->instructionsOnTransition.isEmpty()) {
@@ -487,6 +472,22 @@ private:
         return idx;
     }
 
+    QString createList(const QString &elementType, const QStringList &elements) const
+    {
+        QString result;
+        if (m_options.useCxx11) {
+            if (elements.isEmpty())
+                result += QStringLiteral("{}");
+            else
+                result += QStringLiteral("{ ") + elements.join(QStringLiteral(", ")) + QStringLiteral(" }");
+        } else {
+            result += QStringLiteral("QList<%1>()").arg(elementType);
+            if (!elements.isEmpty())
+                result += QStringLiteral(" << ") + elements.join(QStringLiteral(" << "));
+        }
+        return result;
+    }
+
     QString generateInitializer(AbstractState *node)
     {
         auto stateName = QStringLiteral("state_") + mangledName(node);
@@ -601,6 +602,8 @@ private:
             t << QStringLiteral("qint32 %1::Data::theInstructions[] = {").arg(m_mainClassName);
             auto instr = td->instructionTable();
             generateList(t, [&instr](int idx) -> QString {
+                if (instr.isEmpty() && idx == 0) // prevent generation of empty array
+                    return QStringLiteral("-1");
                 if (idx < instr.size())
                     return QString::number(instr.at(idx));
                 else
@@ -620,6 +623,8 @@ private:
 
             t << QStringLiteral("%1::Data::Strings %1::Data::strings = {{").arg(m_mainClassName);
             auto strings = td->stringTable();
+            if (strings.isEmpty()) // prevent generation of empty array
+                strings.append(QStringLiteral(""));
             int ucharCount = 0;
             generateList(t, [&ucharCount, &strings](int idx) -> QString {
                 if (idx >= strings.size())
@@ -651,7 +656,13 @@ private:
             clazz.dataMethods << QStringLiteral("{");
             clazz.dataMethods << QStringLiteral("    Q_ASSERT(id >= Scxml::ExecutableContent::NoString); Q_ASSERT(id < %1);").arg(strings.size());
             clazz.dataMethods << QStringLiteral("    if (id == Scxml::ExecutableContent::NoString) return QString();");
-            clazz.dataMethods << QStringLiteral("    return QString({static_cast<QStringData*>(strings.data + id)});");
+            if (m_options.useCxx11) {
+                clazz.dataMethods << QStringLiteral("    return QString({static_cast<QStringData*>(strings.data + id)});");
+            } else {
+                clazz.dataMethods << QStringLiteral("    QStringDataPtr data;");
+                clazz.dataMethods << QStringLiteral("    data.ptr = static_cast<QStringData*>(strings.data + id);");
+                clazz.dataMethods << QStringLiteral("    return QString(data);");
+            }
             clazz.dataMethods << QStringLiteral("}");
             clazz.dataMethods << QString();
         }
@@ -664,6 +675,8 @@ private:
 
             t << QStringLiteral("%1::Data::ByteArrays %1::Data::byteArrays = {{").arg(m_mainClassName);
             auto byteArrays = td->byteArrayTable();
+            if (byteArrays.isEmpty()) // prevent generation of empty array
+                byteArrays.append(QByteArray(""));
             int charCount = 0;
             QString charData;
             generateList(t, [&charCount, &charData, &byteArrays](int idx) -> QString {
@@ -698,7 +711,13 @@ private:
             clazz.dataMethods << QStringLiteral("{");
             clazz.dataMethods << QStringLiteral("    Q_ASSERT(id >= Scxml::ExecutableContent::NoString); Q_ASSERT(id < %1);").arg(byteArrays.size());
             clazz.dataMethods << QStringLiteral("    if (id == Scxml::ExecutableContent::NoString) return QByteArray();");
-            clazz.dataMethods << QStringLiteral("    return QByteArray({byteArrays.data + id});");
+            if (m_options.useCxx11) {
+                clazz.dataMethods << QStringLiteral("    return QByteArray({byteArrays.data + id});");
+            } else {
+                clazz.dataMethods << QStringLiteral("    QByteArrayDataPtr data;");
+                clazz.dataMethods << QStringLiteral("    data.ptr = byteArrays.data + id;");
+                clazz.dataMethods << QStringLiteral("    return QByteArray(data);");
+            }
             clazz.dataMethods << QStringLiteral("}");
             clazz.dataMethods << QString();
         }
@@ -706,9 +725,11 @@ private:
         { // dataIds
             int count;
             auto dataIds = td->dataNames(&count);
-            clazz.classFields << QStringLiteral("static Scxml::ExecutableContent::StringId dataIds [];");
+            clazz.classFields << QStringLiteral("static Scxml::ExecutableContent::StringId dataIds[];");
             t << QStringLiteral("Scxml::ExecutableContent::StringId %1::Data::dataIds[] = {").arg(m_mainClassName);
             generateList(t, [&dataIds, count](int idx) -> QString {
+                if (count == 0 && idx == 0) // prevent generation of empty array
+                    return QStringLiteral("-1");
                 if (idx < count)
                     return QString::number(dataIds[idx]);
                 else
@@ -725,6 +746,8 @@ private:
             clazz.classFields << QStringLiteral("static Scxml::EvaluatorInfo evaluators[];");
             t << QStringLiteral("Scxml::EvaluatorInfo %1::Data::evaluators[] = {").arg(m_mainClassName);
             generateList(t, [&evaluators](int idx) -> QString {
+                if (evaluators.isEmpty() && idx == 0) // prevent generation of empty array
+                    return QStringLiteral("{ -1, -1 }");
                 if (idx >= evaluators.size())
                     return QString();
 
@@ -742,6 +765,8 @@ private:
             clazz.classFields << QStringLiteral("static Scxml::AssignmentInfo assignments[];");
             t << QStringLiteral("Scxml::AssignmentInfo %1::Data::assignments[] = {").arg(m_mainClassName);
             generateList(t, [&assignments](int idx) -> QString {
+                if (assignments.isEmpty() && idx == 0) // prevent generation of empty array
+                    return QStringLiteral("{ -1, -1, -1 }");
                 if (idx >= assignments.size())
                     return QString();
 
@@ -759,6 +784,8 @@ private:
             clazz.classFields << QStringLiteral("static Scxml::ForeachInfo foreaches[];");
             t << QStringLiteral("Scxml::ForeachInfo %1::Data::foreaches[] = {").arg(m_mainClassName);
             generateList(t, [&foreaches](int idx) -> QString {
+                if (foreaches.isEmpty() && idx == 0) // prevent generation of empty array
+                    return QStringLiteral("{ -1, -1, -1, -1 }");
                 if (idx >= foreaches.size())
                     return QString();
 
@@ -788,7 +815,7 @@ private:
     QVector<Node *> m_parents;
     QSet<QString> m_knownEvents;
     QString m_currentTransitionName;
-    bool m_bindLate = false;
+    bool m_bindLate;
     QVector<DocumentModel::DataElement *> m_dataElements;
 };
 } // anonymous namespace

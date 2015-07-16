@@ -63,12 +63,13 @@ static void clear(QQmlListProperty<QObject> *prop)
 
 StateMachine::StateMachine(QObject *parent)
     : QObject(parent)
+    , m_table(Q_NULLPTR)
 {
 }
 
 void StateMachine::componentComplete()
 {
-    if (m_table == nullptr) {
+    if (m_table == Q_NULLPTR) {
          qmlInfo(this) << "No state machine loaded.";
          return;
     }
@@ -95,7 +96,7 @@ Scxml::StateTable *StateMachine::stateMachine() const
 void StateMachine::setStateMachine(Scxml::StateTable *table)
 {
     qDebug()<<"setting state machine to"<<table;
-    if (m_table == nullptr && table != nullptr) {
+    if (m_table == Q_NULLPTR && table != Q_NULLPTR) {
         m_table = table;
     } else if (m_table) {
         qmlInfo(this) << "Can set the table only once";
@@ -112,7 +113,7 @@ void StateMachine::setFilename(const QUrl &filename)
     QUrl oldFilename = m_filename;
     if (m_table) {
         delete m_table;
-        m_table = nullptr;
+        m_table = Q_NULLPTR;
     }
 
     if (parse(filename)) {
@@ -147,7 +148,7 @@ bool StateMachine::parse(const QUrl &filename)
     parser.parse();
     setStateMachine(parser.instantiateStateMachine());
 
-    if (parser.state() != Scxml::ScxmlParser::FinishedParsing || m_table == nullptr) {
+    if (parser.state() != Scxml::ScxmlParser::FinishedParsing || m_table == Q_NULLPTR) {
         qmlInfo(this) << QStringLiteral("Something went wrong while parsing '%1':").arg(filename.fileName()) << endl;
         foreach (const Scxml::ScxmlParser::ErrorMessage &msg, parser.errors()) {
             qmlInfo(this) << msg.fileName << QStringLiteral(":") << msg.line

@@ -51,7 +51,7 @@ static Scxml::StateTable *create()
     if (!scxmlFile.open(QIODevice::ReadOnly)) {
         QTextStream errs(stderr, QIODevice::WriteOnly);
         errs << QStringLiteral("ERROR: cannot open '%1' for reading!").arg(scxmlFile.fileName());
-        return nullptr;
+        return Q_NULLPTR;
     }
 
     QXmlStreamReader xmlReader(&scxmlFile);
@@ -60,7 +60,7 @@ static Scxml::StateTable *create()
     scxmlFile.close();
     auto table = parser.instantiateStateMachine();
 
-    if (parser.state() != Scxml::ScxmlParser::FinishedParsing || table == nullptr) {
+    if (parser.state() != Scxml::ScxmlParser::FinishedParsing || table == Q_NULLPTR) {
         QTextStream errs(stderr, QIODevice::WriteOnly);
         errs << QStringLiteral("Something went wrong:") << endl;
         foreach (const Scxml::ScxmlParser::ErrorMessage &msg, parser.errors()) {
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
     QApplication app(argc, argv);
 
     auto machine = create();
-    if (machine == nullptr)
+    if (machine == Q_NULLPTR)
         return -1;
 
     TrafficLight widget(machine);

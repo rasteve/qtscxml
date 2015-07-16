@@ -40,21 +40,21 @@ namespace Scxml {
 
 class EventBuilder
 {
-    StateTable* table = nullptr;
+    StateTable* table;
     ExecutableContent::StringId instructionLocation;
     QByteArray event;
-    EvaluatorId eventexpr = NoEvaluator;
+    EvaluatorId eventexpr;
     QString contents;
-    EvaluatorId contentExpr = NoEvaluator;
-    const ExecutableContent::Array<ExecutableContent::Param> *params = nullptr;
-    ScxmlEvent::EventType eventType = ScxmlEvent::External;
+    EvaluatorId contentExpr;
+    const ExecutableContent::Array<ExecutableContent::Param> *params;
+    ScxmlEvent::EventType eventType;
     QByteArray id;
     QString idLocation;
     QString target;
-    EvaluatorId targetexpr = NoEvaluator;
+    EvaluatorId targetexpr;
     QString type;
-    EvaluatorId typeexpr = NoEvaluator;
-    const ExecutableContent::Array<ExecutableContent::StringId> *namelist = nullptr;
+    EvaluatorId typeexpr;
+    const ExecutableContent::Array<ExecutableContent::StringId> *namelist;
 
     static QAtomicInt idCounter;
     QByteArray generateId() const
@@ -65,12 +65,25 @@ class EventBuilder
     }
 
     EventBuilder()
-    {}
+    { init(); }
+
+    void init() // Because stupid VS2012 can't cope with non-static field initializers.
+    {
+        table = Q_NULLPTR;
+        eventexpr = NoEvaluator;
+        contentExpr = NoEvaluator;
+        params = Q_NULLPTR;
+        eventType = ScxmlEvent::External;
+        targetexpr = NoEvaluator;
+        typeexpr = NoEvaluator;
+        namelist = Q_NULLPTR;
+    }
 
 public:
     EventBuilder(StateTable *table, const QString &eventName, const ExecutableContent::DoneData *doneData)
-        : table(table)
     {
+        init();
+        this->table = table;
         Q_ASSERT(doneData);
         instructionLocation = doneData->location;
         event = eventName.toUtf8();
@@ -80,20 +93,22 @@ public:
     }
 
     EventBuilder(StateTable *table, ExecutableContent::Send &send)
-        : table(table)
-        , instructionLocation(send.instructionLocation)
-        , event(table->tableData()->byteArray(send.event))
-        , eventexpr(send.eventexpr)
-        , contents(table->tableData()->string(send.content))
-        , params(send.params())
-        , id(table->tableData()->byteArray(send.id))
-        , idLocation(table->tableData()->string(send.idLocation))
-        , target(table->tableData()->string(send.target))
-        , targetexpr(send.targetexpr)
-        , type(table->tableData()->string(send.type))
-        , typeexpr(send.typeexpr)
-        , namelist(&send.namelist)
-    {}
+    {
+        init();
+        this->table = table;
+        instructionLocation = send.instructionLocation;
+        event = table->tableData()->byteArray(send.event);
+        eventexpr = send.eventexpr;
+        contents = table->tableData()->string(send.content);
+        params = send.params();
+        id = table->tableData()->byteArray(send.id);
+        idLocation = table->tableData()->string(send.idLocation);
+        target = table->tableData()->string(send.target);
+        targetexpr = send.targetexpr;
+        type = table->tableData()->string(send.type);
+        typeexpr = send.typeexpr;
+        namelist = &send.namelist;
+    }
 
     ScxmlEvent *operator()() { return buildEvent(); }
 

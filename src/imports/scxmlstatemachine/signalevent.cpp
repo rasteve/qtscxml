@@ -65,8 +65,8 @@ void SignalEvent::setSignal(const QJSValue &signal)
     Q_ASSERT(qobjectSignal);
 
     QObject *sender = qobjectSignal->object();
-    QByteArray signature = sender->metaObject()->method(qobjectSignal->methodIndex()).methodSignature();
-    signature.prepend(SIGNAL());
+    QByteArray signature = QByteArray::number(QSIGNAL_CODE)
+            + sender->metaObject()->method(qobjectSignal->methodIndex()).methodSignature();
     m_signalConnection = connect(sender, signature.constData(), this, SLOT(invoke()));
 
     emit signalChanged();

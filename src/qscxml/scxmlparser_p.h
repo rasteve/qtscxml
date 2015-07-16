@@ -65,14 +65,14 @@ struct Node {
     virtual ~Node();
     virtual void accept(NodeVisitor *visitor) = 0;
 
-    virtual If *asIf() { return nullptr; }
-    virtual Send *asSend() { return nullptr; }
-    virtual Invoke *asInvoke() { return nullptr; }
-    virtual Script *asScript() { return nullptr; }
-    virtual State *asState() { return nullptr; }
-    virtual Transition *asTransition() { return nullptr; }
-    virtual HistoryState *asHistoryState() { return nullptr; }
-    virtual Scxml *asScxml() { return nullptr; }
+    virtual If *asIf() { return Q_NULLPTR; }
+    virtual Send *asSend() { return Q_NULLPTR; }
+    virtual Invoke *asInvoke() { return Q_NULLPTR; }
+    virtual Script *asScript() { return Q_NULLPTR; }
+    virtual State *asState() { return Q_NULLPTR; }
+    virtual Transition *asTransition() { return Q_NULLPTR; }
+    virtual HistoryState *asHistoryState() { return Q_NULLPTR; }
+    virtual Scxml *asScxml() { return Q_NULLPTR; }
 
 private:
     Q_DISABLE_COPY(Node)
@@ -230,13 +230,17 @@ struct StateOrTransition: public Node
 
 struct StateContainer
 {
-    StateContainer *parent = nullptr;
+    StateContainer()
+        : parent(Q_NULLPTR)
+    {}
+
+    StateContainer *parent;
 
     virtual ~StateContainer() {}
     virtual void add(StateOrTransition *s) = 0;
-    virtual AbstractState *asAbstractState() { return nullptr; }
-    virtual State *asState() { return nullptr; }
-    virtual Scxml *asScxml() { return nullptr; }
+    virtual AbstractState *asAbstractState() { return Q_NULLPTR; }
+    virtual State *asState() { return Q_NULLPTR; }
+    virtual Scxml *asScxml() { return Q_NULLPTR; }
     Node *asNode() { return dynamic_cast<Node *>(this); }
 };
 
@@ -256,12 +260,17 @@ struct State: public AbstractState, public StateOrTransition
     QVector<StateOrTransition *> children;
     InstructionSequences onEntry;
     InstructionSequences onExit;
-    DoneData *doneData = nullptr;
-    Type type = Normal;
+    DoneData *doneData;
+    Type type;
 
-    AbstractState *initialState = nullptr; // filled during verification
+    AbstractState *initialState; // filled during verification
 
-    State(const XmlLocation &xmlLocation): StateOrTransition(xmlLocation) {}
+    State(const XmlLocation &xmlLocation)
+        : StateOrTransition(xmlLocation)
+        , doneData(Q_NULLPTR)
+        , type(Normal)
+        , initialState(Q_NULLPTR)
+    {}
 
     void add(StateOrTransition *s) Q_DECL_OVERRIDE
     {
@@ -281,11 +290,14 @@ struct Transition: public StateOrTransition
     QScopedPointer<QString> condition;
     QStringList targets;
     InstructionSequence instructionsOnTransition;
-    Type type = External;
+    Type type;
 
     QVector<AbstractState *> targetStates; // filled during verification
 
-    Transition(const XmlLocation &xmlLocation): StateOrTransition(xmlLocation) {}
+    Transition(const XmlLocation &xmlLocation)
+        : StateOrTransition(xmlLocation)
+        , type(External)
+    {}
 
     Transition *asTransition() Q_DECL_OVERRIDE { return this; }
 
@@ -295,10 +307,14 @@ struct Transition: public StateOrTransition
 struct HistoryState: public AbstractState, public StateOrTransition
 {
     enum Type { Deep, Shallow };
-    Type type = Shallow;
+    Type type;
     QVector<StateOrTransition *> children;
 
-    HistoryState(const XmlLocation &xmlLocation): StateOrTransition(xmlLocation) {}
+    HistoryState(const XmlLocation &xmlLocation)
+        : StateOrTransition(xmlLocation)
+        , type(Shallow)
+    {}
+
     void add(StateOrTransition *s) Q_DECL_OVERRIDE
     {
         Q_ASSERT(s);
@@ -306,7 +322,7 @@ struct HistoryState: public AbstractState, public StateOrTransition
     }
 
     Transition *defaultConfiguration()
-    { return children.isEmpty() ? nullptr : children.first()->asTransition(); }
+    { return children.isEmpty() ? Q_NULLPTR : children.first()->asTransition(); }
 
     HistoryState *asHistoryState() Q_DECL_OVERRIDE { return this; }
     void accept(NodeVisitor *visitor) Q_DECL_OVERRIDE;
@@ -326,8 +342,8 @@ struct Scxml: public StateContainer, public Node
     QStringList initial;
     QString name;
     QString qtClassname;
-    DataModelType dataModel = NullDataModel;
-    BindingMethod binding = EarlyBinding;
+    DataModelType dataModel;
+    BindingMethod binding;
     QVector<StateOrTransition *> children;
     QVector<DataElement *> dataElements;
     QScopedPointer<Script> script;
@@ -335,7 +351,11 @@ struct Scxml: public StateContainer, public Node
 
     QVector<AbstractState *> initialStates; // filled during verification
 
-    Scxml(const XmlLocation &xmlLocation): Node(xmlLocation) {}
+    Scxml(const XmlLocation &xmlLocation)
+        : Node(xmlLocation)
+        , dataModel(NullDataModel)
+        , binding(EarlyBinding)
+    {}
 
     void add(StateOrTransition *s) Q_DECL_OVERRIDE
     {
@@ -350,12 +370,17 @@ struct Scxml: public StateContainer, public Node
 
 struct ScxmlDocument
 {
-    Scxml *root = nullptr;
+    Scxml *root;
     QVector<AbstractState *> allStates;
     QVector<Transition *> allTransitions;
     QVector<Node *> allNodes;
     QVector<InstructionSequence *> allSequences;
-    bool isVerified = false;
+    bool isVerified;
+
+    ScxmlDocument()
+        : root(Q_NULLPTR)
+        , isVerified(false)
+    {}
 
     ~ScxmlDocument()
     {

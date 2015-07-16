@@ -36,7 +36,7 @@ public:
     QVariant evaluateToVariant(EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
     void evaluateToVoid(EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
     void evaluateAssignment(EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
-    bool evaluateForeach(EvaluatorId id, bool *ok, std::function<bool()> body) Q_DECL_OVERRIDE;
+    bool evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body) Q_DECL_OVERRIDE;
 
     void setEvent(const ScxmlEvent &event) Q_DECL_OVERRIDE;
 

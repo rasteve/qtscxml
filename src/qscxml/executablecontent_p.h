@@ -369,8 +369,12 @@ private:
     };
     QVector<SequenceInfo> m_activeSequences;
 
-    class {
+    class InstructionStorage {
     public:
+        InstructionStorage()
+            : m_info(Q_NULLPTR)
+        {}
+
         ContainerId newContainerId() const { return m_instr.size(); }
 
         template <typename T>
@@ -412,9 +416,9 @@ private:
 
     private:
         QVector<qint32> m_instr;
-        SequenceInfo *m_info = nullptr;
-    } m_instructions;
-
+        SequenceInfo *m_info;
+    };
+    InstructionStorage m_instructions;
 
     EvaluatorId addEvaluator(const QString &expr, const QString &context)
     {

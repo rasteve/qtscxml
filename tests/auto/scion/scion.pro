@@ -29,8 +29,16 @@ defineReplace(nameTheClass) {
     return ($$cn)
 }
 
-myscxml.commands = $$[QT_HOST_BINS]/qscxmlc -name-qobjects -oh scxml/${QMAKE_FUNC_nameTheNamespace}_${QMAKE_FILE_IN_BASE}.h -ocpp ${QMAKE_FILE_OUT} -namespace ${QMAKE_FUNC_nameTheNamespace} -classname ${QMAKE_FUNC_nameTheClass} ${QMAKE_FILE_IN}
-myscxml.depends += $$[QT_HOST_BINS]/qscxmlc
+win32 {
+QSCXMLC_DEP=$$[QT_HOST_BINS]/qscxmlc.exe
+QSCXMLC_CMD=$$QSCXMLC_DEP -no-c++11
+} else {
+QSCXMLC_DEP=$$[QT_HOST_BINS]/qscxmlc
+QSCXMLC_CMD=$$QSCXMLC_DEP
+}
+
+myscxml.commands = $$QSCXMLC_CMD -name-qobjects -oh scxml/${QMAKE_FUNC_nameTheNamespace}_${QMAKE_FILE_IN_BASE}.h -ocpp ${QMAKE_FILE_OUT} -namespace ${QMAKE_FUNC_nameTheNamespace} -classname ${QMAKE_FUNC_nameTheClass} ${QMAKE_FILE_IN}
+myscxml.depends += $$QSCXMLC_DEP
 myscxml.output = scxml/${QMAKE_FUNC_nameTheNamespace}_${QMAKE_FILE_IN_BASE}.cpp
 myscxml.input = SCXMLS
 myscxml.variable_out = SOURCES

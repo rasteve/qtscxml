@@ -50,6 +50,8 @@ class ScxmlVerifier: public DocumentModel::NodeVisitor
 public:
     ScxmlVerifier(std::function<void (const DocumentModel::XmlLocation &, const QString &)> errorHandler)
         : m_errorHandler(errorHandler)
+        , m_doc(Q_NULLPTR)
+        , m_hasErrors(false)
     {}
 
     bool verify(DocumentModel::ScxmlDocument *doc)
@@ -105,7 +107,7 @@ private:
 
     bool visit(DocumentModel::State *state) Q_DECL_OVERRIDE
     {
-        Q_ASSERT(state->initialState == nullptr);
+        Q_ASSERT(state->initialState == Q_NULLPTR);
 
         if (state->initial.isEmpty()) {
             state->initialState = firstAbstractState(state);
@@ -142,7 +144,7 @@ private:
                     error(s->xmlLocation, QStringLiteral("substates are not allowed in initial states"));
                 }
             }
-            if (parentState() == nullptr) {
+            if (parentState() == Q_NULLPTR) {
                 error(state->xmlLocation, QStringLiteral("initial states can only occur in a state"));
             }
             break;
@@ -243,7 +245,7 @@ private:
             if (DocumentModel::Transition *t = child->asTransition())
                 return t;
         }
-        return nullptr;
+        return Q_NULLPTR;
     }
 
     static DocumentModel::AbstractState *firstAbstractState(DocumentModel::StateContainer *container)
@@ -261,7 +263,7 @@ private:
             else if (DocumentModel::HistoryState *h = child->asHistoryState())
                 return h;
         }
-        return nullptr;
+        return Q_NULLPTR;
     }
 
     void checkExpr(const DocumentModel::XmlLocation &loc, const QString &tag, const QString &attrName, const QString &attrValue)
@@ -285,25 +287,29 @@ private:
                 return s;
         }
 
-        return nullptr;
+        return Q_NULLPTR;
     }
 
 private:
     std::function<void (const DocumentModel::XmlLocation &, const QString &)> m_errorHandler;
     DocumentModel::ScxmlDocument *m_doc;
-    bool m_hasErrors = false;
+    bool m_hasErrors;
     QHash<QString, DocumentModel::AbstractState *> m_stateById;
     QVector<DocumentModel::Node *> m_parentNodes;
 };
 
 class StateTableBuilder: public ExecutableContent::Builder
 {
-    StateTable *m_table = nullptr;
-
 public:
+    StateTableBuilder()
+        : m_table(Q_NULLPTR)
+        , m_currentTransition(Q_NULLPTR)
+        , m_bindLate(false)
+    {}
+
     StateTable *build(DocumentModel::ScxmlDocument *doc)
     {
-        m_table = nullptr;
+        m_table = Q_NULLPTR;
         m_parents.reserve(32);
         m_allTransitions.reserve(doc->allTransitions.size());
         m_docStatesToQStates.reserve(doc->allStates.size());
@@ -319,7 +325,7 @@ public:
         m_parents.clear();
         m_allTransitions.clear();
         m_docStatesToQStates.clear();
-        m_currentTransition = nullptr;
+        m_currentTransition = Q_NULLPTR;
 
         return m_table;
     }
@@ -383,7 +389,7 @@ private:
 
     bool visit(DocumentModel::State *node) Q_DECL_OVERRIDE
     {
-        QAbstractState *newState = nullptr;
+        QAbstractState *newState = Q_NULLPTR;
         switch (node->type) {
         case DocumentModel::State::Normal: {
             auto s = new ScxmlState(currentParent());
@@ -531,7 +537,7 @@ private: // Utility methods
     QState *currentParent() const
     {
         if (m_parents.isEmpty())
-            return nullptr;
+            return Q_NULLPTR;
 
         QState *parent = qobject_cast<QState*>(m_parents.last());
         Q_ASSERT(parent);
@@ -588,12 +594,13 @@ private: // Utility methods
     { return m_table->dataModel(); }
 
 private:
+    StateTable *m_table;
     QVector<QAbstractState *> m_parents;
     QHash<QAbstractTransition *, DocumentModel::Transition*> m_allTransitions;
     QHash<DocumentModel::AbstractState *, QAbstractState *> m_docStatesToQStates;
-    QAbstractTransition *m_currentTransition = nullptr;
+    QAbstractTransition *m_currentTransition;
     QVector<QPair<QState *, DocumentModel::AbstractState *>> m_initialStates;
-    bool m_bindLate = false;
+    bool m_bindLate;
     QVector<DocumentModel::DataElement *> m_dataElements;
 };
 
@@ -626,7 +633,7 @@ StateTable *ScxmlParser::instantiateStateMachine()
     if (DocumentModel::ScxmlDocument *doc = p->scxmlDocument())
         return StateTableBuilder().build(doc);
     else
-        return nullptr;
+        return Q_NULLPTR;
 }
 
 ScxmlParser::State ScxmlParser::state() const
@@ -956,7 +963,7 @@ ScxmlParser *ScxmlParserPrivate::parser() const
 DocumentModel::ScxmlDocument *ScxmlParserPrivate::scxmlDocument()
 {
     if (!m_doc)
-        return nullptr;
+        return Q_NULLPTR;
 
     auto handler = [this](const DocumentModel::XmlLocation &location, const QString &msg) {
         this->addError(location, msg);
@@ -965,7 +972,7 @@ DocumentModel::ScxmlDocument *ScxmlParserPrivate::scxmlDocument()
     if (ScxmlVerifier(handler).verify(m_doc.data()))
         return m_doc.data();
     else
-        return nullptr;
+        return Q_NULLPTR;
 }
 
 QString ScxmlParserPrivate::fileName() const
@@ -1486,7 +1493,7 @@ void ScxmlParserPrivate::parse()
                 }
                 break;
             case ParserState::Data: {
-                DocumentModel::DataElement *data = nullptr;
+                DocumentModel::DataElement *data = Q_NULLPTR;
                 if (auto state = m_currentParent->asState()) {
                     data = state->dataElements.last();
                 } else if (auto scxml = m_currentParent->asNode()->asScxml()) {

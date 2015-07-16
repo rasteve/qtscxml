@@ -166,15 +166,31 @@ public:
         }
 
         case Instruction::Foreach: {
+            class LoopBody: public DataModel::ForeachLoopBody // If only we could put std::function in public API, we could use a lambda here. Alas....
+            {
+                Data *data;
+                const Instructions loopStart;
+
+            public:
+                LoopBody(Data *data, const Instructions loopStart)
+                    : data(data)
+                    , loopStart(loopStart)
+                {}
+
+                bool run() Q_DECL_OVERRIDE
+                {
+                    Instructions ip = loopStart;
+                    return data->step(ip);
+                }
+            };
+
             qDebug() << "Executing foreach step";
             Foreach *foreach = reinterpret_cast<Foreach *>(instr);
             Instructions loopStart = foreach->blockstart();
             ip += foreach->size();
             bool ok = true;
-            bool evenMoreOk = dataModel->evaluateForeach(foreach->doIt, &ok, [this,loopStart]()-> bool {
-                Instructions loop = loopStart;
-                return step(loop);
-            });
+            LoopBody body(this, loopStart);
+            bool evenMoreOk = dataModel->evaluateForeach(foreach->doIt, &ok, &body);
             return ok && evenMoreOk;
         }
 
@@ -473,7 +489,7 @@ InstructionSequence *Builder::endSequence()
 {
     SequenceInfo info = m_activeSequences.back();
     m_activeSequences.pop_back();
-    m_instructions.setSequenceInfo(m_activeSequences.isEmpty() ? nullptr : &m_activeSequences.last());
+    m_instructions.setSequenceInfo(m_activeSequences.isEmpty() ? Q_NULLPTR : &m_activeSequences.last());
 
     auto sequence = m_instructions.at<InstructionSequence>(info.location);
     Q_ASSERT(sequence->entryCount == -1); // set in startSequence

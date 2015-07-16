@@ -167,11 +167,11 @@ private:
 // precedence as we add it late...
 class SCXML_EXPORT ConcreteSignalTransition : public QSignalTransition {
 public:
-    ConcreteSignalTransition(const QObject *sender, const char *signal,
-                             QState *sourceState = 0) :
-        QSignalTransition(sender, signal, sourceState) { }
-    bool subEventTest(QEvent *event) {
-        return QSignalTransition::eventTest(event);
+    ConcreteSignalTransition(const QObject *asender, const char *asignal,
+                             QState *theSourceState = 0) :
+        QSignalTransition(asender, asignal, theSourceState) { }
+    bool subEventTest(QEvent *anevent) {
+        return QSignalTransition::eventTest(anevent);
     }
 protected:
     bool eventTest(QEvent *) Q_DECL_OVERRIDE {
@@ -264,7 +264,7 @@ class SCXML_EXPORT ScxmlInitialState: public ScxmlState
 {
     Q_OBJECT
 public:
-    ScxmlInitialState(QState *parent): ScxmlState(parent) { }
+    ScxmlInitialState(QState *theParent): ScxmlState(theParent) { }
 };
 
 class SCXML_EXPORT ScxmlFinalState: public QFinalState

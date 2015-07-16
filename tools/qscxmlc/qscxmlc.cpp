@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
     QStringList args = a.arguments();
-    QString usage = QStringLiteral("\nusage: %1 [-namespace <namespace>] [-o <base/out/name>] [-oh <header/out>] [-ocpp <cpp/out>] [-use-private-api]\n").arg(QFileInfo(args.value(0)).baseName());
+    QString usage = QStringLiteral("\nusage: %1 [-no-c++11] [-namespace <namespace>] [-o <base/out/name>] [-oh <header/out>] [-ocpp <cpp/out>] [-use-private-api]\n").arg(QFileInfo(args.value(0)).baseName());
            usage += QStringLiteral("      [-classname <stateMachineClassName>] [-name-qobjects] <input.scxml>\n\n");
            usage += QStringLiteral("compiles the given input.scxml file to a header and cpp file\n");
 
@@ -41,7 +41,9 @@ int main(int argc, char *argv[])
     QString outCppFileName;
     for (int iarg = 1; iarg < args.size(); ++iarg) {
         QString arg = args.at(iarg);
-        if (arg == QLatin1String("-namespace")) {
+        if (arg == QStringLiteral("-no-c++11")) {
+            options.useCxx11 = false;
+        } else if (arg == QLatin1String("-namespace")) {
             options.namespaceName = args.value(++iarg);
         } else if (arg == QLatin1String("-o")) {
             outFileName = args.value(++iarg);

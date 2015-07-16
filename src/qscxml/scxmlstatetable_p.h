@@ -61,17 +61,26 @@ protected: // overrides for QStateMachinePrivate:
     int eventIdForDelayedEvent(const QByteArray &scxmlEventId);
 
 public: // StateTable data fields:
-    DataModel *m_dataModel = nullptr;
     const int m_sessionId;
-    ExecutableContent::ContainerId m_initialSetup = ExecutableContent::NoInstruction;
-    StateTable::BindingMethod m_dataBinding = StateTable::EarlyBinding;
-    ExecutableContent::ExecutionEngine *m_executionEngine = nullptr;
-    TableData *tableData = nullptr;
-    ScxmlEvent _event;
-    QString _name;
+    DataModel *m_dataModel;
+    ExecutableContent::ContainerId m_initialSetup;
+    StateTable::BindingMethod m_dataBinding;
+    ExecutableContent::ExecutionEngine *m_executionEngine;
+    TableData *m_tableData;
+    ScxmlEvent m_event;
+    QString m_name;
 
-    struct QueuedEvent { QEvent *event; StateTable::EventPriority priority; };
-    QVector<QueuedEvent> *m_queuedEvents = nullptr;
+    struct QueuedEvent
+    {
+        QueuedEvent(QEvent *event = Q_NULLPTR, StateTable::EventPriority priority = StateTable::NormalPriority)
+            : event(event)
+            , priority(priority)
+        {}
+
+        QEvent *event;
+        StateTable::EventPriority priority;
+    };
+    QVector<QueuedEvent> *m_queuedEvents;
 };
 
 } // Scxml namespace

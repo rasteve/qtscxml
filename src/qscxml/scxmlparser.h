@@ -43,10 +43,16 @@ public:
         };
 
         QString fileName;
-        int line = 0;
-        int column = 0;
-        Severity severity = Debug;
+        int line;
+        int column;
+        Severity severity;
         QString msg;
+
+        ErrorMessage()
+            : line(0)
+            , column(0)
+            , severity(Debug)
+        {}
 
         ErrorMessage(const QString &theFileName,
                      int theLine,
