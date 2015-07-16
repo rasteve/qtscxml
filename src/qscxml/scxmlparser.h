@@ -90,6 +90,11 @@ public:
         FinishedParsing,
     };
 
+    enum DataModel {
+        NullDataModel,
+        EcmaScriptDataModel
+    };
+
 public:
     ScxmlParser(QXmlStreamReader *xmlReader, LoaderFunction loader = Q_NULLPTR);
     ~ScxmlParser();
@@ -99,6 +104,7 @@ public:
 
     void parse();
     StateTable *instantiateStateMachine();
+    DataModel dataModel() const;
 
     State state() const;
     QList<ErrorMessage> errors() const;

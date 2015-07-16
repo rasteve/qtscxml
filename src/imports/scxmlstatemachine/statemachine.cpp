@@ -146,7 +146,10 @@ bool StateMachine::parse(const QUrl &filename)
     QXmlStreamReader xmlReader(&buf);
     Scxml::ScxmlParser parser(&xmlReader);
     parser.parse();
-    setStateMachine(parser.instantiateStateMachine());
+    Scxml::StateTable *sm = parser.instantiateStateMachine();
+    m_dataModel.reset(new Scxml::EcmaScriptDataModel(sm));
+    sm->setDataModel(m_dataModel.data());
+    setStateMachine(sm);
 
     if (parser.state() != Scxml::ScxmlParser::FinishedParsing || m_table == Q_NULLPTR) {
         qmlInfo(this) << QStringLiteral("Something went wrong while parsing '%1':").arg(filename.fileName()) << endl;

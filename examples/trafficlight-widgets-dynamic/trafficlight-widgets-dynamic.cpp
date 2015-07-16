@@ -41,6 +41,7 @@
 #include "../trafficlight-common/trafficlight.h"
 
 #include <QScxml/scxmlparser.h>
+#include <QScxml/nulldatamodel.h>
 
 #include <QApplication>
 #include <QFile>
@@ -81,10 +82,13 @@ int main(int argc, char **argv)
     auto machine = create();
     if (machine == Q_NULLPTR)
         return -1;
+    Scxml::NullDataModel dataModel(machine);
+    machine->setDataModel(&dataModel);
 
     TrafficLight widget(machine);
     widget.resize(110, 300);
     widget.show();
+    machine->setParent(&widget);
 
     return app.exec();
 }

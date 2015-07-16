@@ -373,17 +373,6 @@ private:
             m_initialStates.append(qMakePair(m_table, initialState));
         }
 
-        switch (node->dataModel) {
-        case DocumentModel::Scxml::NullDataModel:
-            m_table->setDataModel(new NullDataModel(m_table));
-            break;
-        case DocumentModel::Scxml::JSDataModel:
-            m_table->setDataModel(new EcmaScriptDataModel(m_table));
-            break;
-        default:
-            Q_UNREACHABLE();
-        }
-
         return false;
     }
 
@@ -634,6 +623,19 @@ StateTable *ScxmlParser::instantiateStateMachine()
         return StateTableBuilder().build(doc);
     else
         return Q_NULLPTR;
+}
+
+ScxmlParser::DataModel ScxmlParser::dataModel() const
+{
+    switch (p->scxmlDocument()->root->dataModel) {
+    case DocumentModel::Scxml::NullDataModel:
+        return NullDataModel;
+    case DocumentModel::Scxml::JSDataModel:
+        return EcmaScriptDataModel;
+    default:
+        Q_UNREACHABLE();
+        return NullDataModel;
+    }
 }
 
 ScxmlParser::State ScxmlParser::state() const

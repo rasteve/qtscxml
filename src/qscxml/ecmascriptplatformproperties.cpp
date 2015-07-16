@@ -47,6 +47,11 @@ PlatformProperties *PlatformProperties::create(QJSEngine *engine, StateTable *ta
     return pp;
 }
 
+PlatformProperties::~PlatformProperties()
+{
+    delete data;
+}
+
 QJSEngine *PlatformProperties::engine() const
 {
     return qobject_cast<QJSEngine *>(parent());

@@ -24,6 +24,7 @@
 #include <QQmlParserStatus>
 #include <QQmlListProperty>
 #include <QScxml/scxmlstatetable.h>
+#include <QScxml/ecmascriptdatamodel.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -35,7 +36,7 @@ class StateMachine: public QObject, public QQmlParserStatus
     Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(QQmlListProperty<QObject> states READ states NOTIFY statesChanged DESIGNABLE false)
     Q_PROPERTY(QUrl filename READ filename WRITE setFilename NOTIFY filenameChanged)
-    Q_PROPERTY(Scxml::StateTable* stateMachine READ stateMachine WRITE setStateMachine)
+    Q_PROPERTY(Scxml::StateTable* stateMachine READ stateMachine WRITE setStateMachine DESIGNABLE false)
 
     Q_CLASSINFO("DefaultProperty", "states")
 
@@ -64,6 +65,7 @@ private:
     QUrl m_filename;
     Kids m_children;
     Scxml::StateTable *m_table;
+    QScopedPointer<Scxml::EcmaScriptDataModel> m_dataModel;
 };
 
 QT_END_NAMESPACE

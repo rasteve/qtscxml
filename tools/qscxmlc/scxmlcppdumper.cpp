@@ -192,20 +192,7 @@ protected:
             if (m_options.nameQObjects)
                 clazz.init.impl << QStringLiteral("table.setObjectName(string(%1));").arg(addString(node->name));
         }
-        QString dmName;
-        switch (node->dataModel) {
-        case Scxml::NullDataModel:
-            dmName = QStringLiteral("Null");
-            clazz.implIncludes << QStringLiteral("QScxml/nulldatamodel.h");
-            break;
-        case Scxml::JSDataModel:
-            dmName = QStringLiteral("EcmaScript");
-            clazz.implIncludes << QStringLiteral("QScxml/ecmascriptdatamodel.h");
-            break;
-        default:
-            Q_UNREACHABLE();
-        }
-        clazz.init.impl << QStringLiteral("table.setDataModel(new Scxml::") + dmName + QStringLiteral("DataModel(&table));");
+        clazz.init.impl << QStringLiteral("table.setDataModel(&dataModel);");
 
         QString binding;
         switch (node->binding) {
@@ -245,6 +232,24 @@ protected:
         }
 
         m_parents.removeLast();
+
+        { // the data model:
+            QString dmName;
+            switch (node->dataModel) {
+            case Scxml::NullDataModel:
+                dmName = QStringLiteral("Null");
+                clazz.implIncludes << QStringLiteral("QScxml/nulldatamodel.h");
+                break;
+            case Scxml::JSDataModel:
+                dmName = QStringLiteral("EcmaScript");
+                clazz.implIncludes << QStringLiteral("QScxml/ecmascriptdatamodel.h");
+                break;
+            default:
+                Q_UNREACHABLE();
+            }
+            clazz.classFields << QStringLiteral("Scxml::") + dmName + QStringLiteral("DataModel dataModel;");
+            clazz.constructor.initializer << QStringLiteral("dataModel(&table)");
+        }
         return false;
     }
 

@@ -48,6 +48,7 @@ class PlatformProperties: public QObject
 
 public:
     static PlatformProperties *create(QJSEngine *engine, StateTable *table);
+    ~PlatformProperties();
 
     QJSEngine *engine() const;
     StateTable *table() const;

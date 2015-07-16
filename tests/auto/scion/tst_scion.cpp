@@ -21,6 +21,7 @@
 
 #include <QScxml/scxmlparser.h>
 #include <QScxml/ecmascriptdatamodel.h>
+#include <QScxml/nulldatamodel.h>
 
 #include "scxml/scion.h"
 #include "scxml/compiled_tests.h"
@@ -226,15 +227,26 @@ void TestScion::dynamic()
     QVERIFY(parser.errors().isEmpty());
     scxmlFile.close();
 
-    auto table = parser.instantiateStateMachine();
-    if (table == nullptr && testStatus == TestFails) {
+    QScopedPointer<StateTable> table(parser.instantiateStateMachine());
+    if (table == Q_NULLPTR && testStatus == TestFails) {
         QEXPECT_FAIL("", "This is expected to fail", Abort);
     }
-    QVERIFY(table != nullptr);
+    QVERIFY(table != Q_NULLPTR);
+    switch (parser.dataModel()) {
+    case ScxmlParser::NullDataModel:
+        table->setDataModel(new NullDataModel(table.data()));
+        break;
+    case ScxmlParser::EcmaScriptDataModel:
+        table->setDataModel(new EcmaScriptDataModel(table.data()));
+        break;
+    default:
+        QFAIL("Unknown datamodel");
+    }
 
     if (testStatus == TestFails)
         QEXPECT_FAIL("", "This is expected to fail", Abort);
-    QVERIFY(runTest(table, testDescription.object()));
+    QVERIFY(runTest(table.data(), testDescription.object()));
+    delete table->dataModel();
 }
 
 static QStringList getStates(const QJsonObject &obj, const QString &key)
@@ -272,7 +284,7 @@ void TestScion::compiled()
     auto testDescription = QJsonDocument::fromJson(jsonFile.readAll());
     jsonFile.close();
 
-    auto table = creator();
+    QScopedPointer<Scxml::StateTable> table(creator());
     if (table == Q_NULLPTR && testStatus == TestFails) {
         QEXPECT_FAIL("", "This is expected to fail", Abort);
     }
@@ -280,7 +292,7 @@ void TestScion::compiled()
 
     if (testStatus == TestFails)
         QEXPECT_FAIL("", "This is expected to fail", Abort);
-    QVERIFY(runTest(table, testDescription.object()));
+    QVERIFY(runTest(table.data(), testDescription.object()));
 }
 
 static bool verifyStates(StateTable *stateMachine, const QJsonObject &stateDescription, const QString &key, int counter)
