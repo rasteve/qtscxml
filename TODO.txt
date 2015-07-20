@@ -1,4 +1,9 @@
-- document qt:classname property
+- Change interface: add a static StateTable::fromURL method that runs the parser, like QQmlComponent does.
+- put default data-model instantiation in there
+- document the two ways to instantiate a parser+datamodel
+- only process the scxml namespace, and don't complain about other namespaces
+
+- document qt:classname property and its schema/namespace
 - go over the TODOs/FIXMEs
 - probably rename ScxmlParser to Scxml::Parser
 - rename StateTable to something like Scxml::StateMachine
