@@ -1,5 +1,7 @@
 QT += widgets qscxml
 
+CONFIG += c++11
+
 SOURCES = ../trafficlight-common/trafficlight.cpp
 HEADERS = ../trafficlight-common/trafficlight.h
 STATECHARTS = ../trafficlight-common/statemachine.scxml
