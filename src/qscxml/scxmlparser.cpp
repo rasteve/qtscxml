@@ -17,6 +17,7 @@
  ****************************************************************************/
 
 #include "scxmlparser_p.h"
+#include "scxmlstatetable_p.h"
 #include "executablecontent_p.h"
 #include "nulldatamodel.h"
 #include "ecmascriptdatamodel.h"
@@ -617,25 +618,32 @@ void ScxmlParser::parse()
     p->parse();
 }
 
-StateTable *ScxmlParser::instantiateStateMachine()
+StateTable *ScxmlParser::instantiateStateMachine() const
 {
-    if (DocumentModel::ScxmlDocument *doc = p->scxmlDocument())
+    if (DocumentModel::ScxmlDocument *doc = p->scxmlDocument()) {
         return StateTableBuilder().build(doc);
-    else
-        return Q_NULLPTR;
+    } else {
+        auto table = new StateTable;
+        StateTablePrivate::get(table)->parserData()->m_errors = errors();
+        return table;
+    }
 }
 
-ScxmlParser::DataModel ScxmlParser::dataModel() const
+void ScxmlParser::instantiateDataModel(StateTable *table) const
 {
+    DataModel *dataModel = Q_NULLPTR;
     switch (p->scxmlDocument()->root->dataModel) {
     case DocumentModel::Scxml::NullDataModel:
-        return NullDataModel;
+        dataModel = new NullDataModel;
+        break;
     case DocumentModel::Scxml::JSDataModel:
-        return EcmaScriptDataModel;
+        dataModel = new EcmaScriptDataModel;
+        break;
     default:
         Q_UNREACHABLE();
-        return NullDataModel;
     }
+    table->setDataModel(dataModel);
+    StateTablePrivate::get(table)->parserData()->m_ownedDataModel.reset(dataModel);
 }
 
 ScxmlParser::State ScxmlParser::state() const
@@ -643,14 +651,14 @@ ScxmlParser::State ScxmlParser::state() const
     return p->state();
 }
 
-QList<ScxmlParser::ErrorMessage> ScxmlParser::errors() const
+QVector<Scxml::ScxmlError> ScxmlParser::errors() const
 {
     return p->errors();
 }
 
-void ScxmlParser::addError(const QString &msg, ErrorMessage::Severity severity)
+void ScxmlParser::addError(const QString &msg)
 {
-    p->addError(msg, severity);
+    p->addError(msg);
 }
 
 ScxmlParser::LoaderFunction ScxmlParser::loaderForDir(const QString &basedir)
@@ -1557,29 +1565,20 @@ ScxmlParser::State ScxmlParserPrivate::state() const
     return m_state;
 }
 
-QList<ScxmlParser::ErrorMessage> ScxmlParserPrivate::errors() const
+QVector<ScxmlError> ScxmlParserPrivate::errors() const
 {
     return m_errors;
 }
 
-void ScxmlParserPrivate::addError(const QString &msg, ScxmlParser::ErrorMessage::Severity severity)
+void ScxmlParserPrivate::addError(const QString &msg)
 {
-    m_errors.append(ScxmlParser::ErrorMessage(m_fileName,
-                                              m_reader->lineNumber(),
-                                              m_reader->columnNumber(),
-                                              severity,
-                                              msg));
-    if (severity == ScxmlParser::ErrorMessage::Error)
-        m_state = ScxmlParser::ParsingError;
+    m_errors.append(ScxmlError(m_fileName, m_reader->lineNumber(), m_reader->columnNumber(), msg));
+    m_state = ScxmlParser::ParsingError;
 }
 
 void ScxmlParserPrivate::addError(const DocumentModel::XmlLocation &location, const QString &msg)
 {
-    m_errors.append(ScxmlParser::ErrorMessage(m_fileName,
-                                              location.line,
-                                              location.column,
-                                              ScxmlParser::ErrorMessage::Error,
-                                              msg));
+    m_errors.append(ScxmlError(m_fileName, location.line, location.column, msg));
     m_state = ScxmlParser::ParsingError;
 }
 
@@ -1639,8 +1638,6 @@ bool ScxmlParserPrivate::checkAttributes(const QXmlStreamAttributes &attributes,
                     continue;
             }
             m_namespacesToIgnore << ns.toString();
-            addError(QStringLiteral("Ignoring unexpected namespace %1").arg(ns.toString()),
-                     ScxmlParser::ErrorMessage::Info);
             continue;
         }
         const QString name = attribute.name().toString();

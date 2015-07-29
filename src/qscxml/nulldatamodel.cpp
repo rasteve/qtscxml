@@ -88,9 +88,8 @@ private:
     Resolved resolved;
 };
 
-NullDataModel::NullDataModel(StateTable *table)
-    : DataModel(table)
-    , d(new Data(this))
+NullDataModel::NullDataModel()
+    : d(new Data(this))
 {}
 
 NullDataModel::~NullDataModel()

@@ -31,7 +31,7 @@ class EcmaScriptDataModelPrivate;
 class SCXML_EXPORT EcmaScriptDataModel: public DataModel
 {
 public:
-    EcmaScriptDataModel(StateTable *table);
+    EcmaScriptDataModel();
     ~EcmaScriptDataModel() Q_DECL_OVERRIDE;
 
     void setup() Q_DECL_OVERRIDE;

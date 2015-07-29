@@ -71,10 +71,11 @@ public:
     };
 
 public:
-    DataModel(StateTable *table);
+    DataModel();
     virtual ~DataModel();
 
     StateTable *table() const;
+    void setTable(StateTable *table);
 
     virtual void setup() = 0;
 
@@ -96,7 +97,8 @@ public:
     virtual EcmaScriptDataModel *asEcmaScriptDataModel();
 
 private:
-    StateTable *m_table;
+    class Data;
+    Data *d;
 };
 
 } // namespace Scxml

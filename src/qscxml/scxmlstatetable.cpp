@@ -22,12 +22,14 @@
 
 #include <QAbstractState>
 #include <QAbstractTransition>
-#include <QState>
+#include <QFile>
 #include <QHash>
+#include <QJSEngine>
+#include <QLoggingCategory>
+#include <QState>
 #include <QString>
 #include <QTimer>
-#include <QLoggingCategory>
-#include <QJSEngine>
+
 #include <QtCore/private/qstatemachine_p.h>
 
 #undef DUMP_EVENT
@@ -50,6 +52,112 @@ QByteArray objectId(QObject *obj, bool strict = false)
 }
 
 } // anonymous namespace
+
+class ScxmlError::ScxmlErrorPrivate
+{
+public:
+    ScxmlErrorPrivate()
+        : line(-1)
+        , column(-1)
+    {}
+
+    QString fileName;
+    int line;
+    int column;
+    QString description;
+};
+
+ScxmlError::ScxmlError()
+    : d(Q_NULLPTR)
+{}
+
+ScxmlError::ScxmlError(const QString &fileName, int line, int column, const QString &description)
+    : d(new ScxmlErrorPrivate)
+{
+    d->fileName = fileName;
+    d->line = line;
+    d->column = column;
+    d->description = description;
+}
+
+ScxmlError::ScxmlError(const ScxmlError &other)
+    : d(Q_NULLPTR)
+{
+    *this = other;
+}
+
+ScxmlError &ScxmlError::operator=(const ScxmlError &other)
+{
+    if (other.d) {
+        if (!d)
+            d = new ScxmlErrorPrivate;
+        d->fileName = other.d->fileName;
+        d->line = other.d->line;
+        d->column = other.d->column;
+        d->description = other.d->description;
+    } else {
+        delete d;
+        d = Q_NULLPTR;
+    }
+    return *this;
+}
+
+ScxmlError::~ScxmlError()
+{
+    delete d;
+    d = Q_NULLPTR;
+}
+
+bool ScxmlError::isValid() const
+{
+    return d != Q_NULLPTR;
+}
+
+QString ScxmlError::fileName() const
+{
+    return isValid() ? d->fileName : QString();
+}
+
+int ScxmlError::line() const
+{
+    return isValid() ? d->line : -1;
+}
+
+int ScxmlError::column() const
+{
+    return isValid() ? d->column : -1;
+}
+
+QString ScxmlError::description() const
+{
+    return isValid() ? d->description : QString();
+}
+
+QString ScxmlError::toString() const
+{
+    QString str;
+    if (!isValid())
+        return str;
+
+    if (d->fileName.isEmpty())
+        str = QStringLiteral("<Unknown File>");
+    else
+        str = d->fileName;
+    if (d->line != -1) {
+        str += QStringLiteral(":%1").arg(d->line);
+        if (d->column != -1)
+            str += QStringLiteral(":%1").arg(d->column);
+    }
+    str += QStringLiteral(": ") + d->description;
+
+    return str;
+}
+
+QDebug operator<<(QDebug debug, const ScxmlError &error)
+{
+    debug << error.toString();
+    return debug;
+}
 
 TableData::~TableData()
 {}
@@ -74,6 +182,50 @@ StateTablePrivate::~StateTablePrivate()
     delete m_queuedEvents;
 }
 
+StateTablePrivate::ParserData *StateTablePrivate::parserData()
+{
+    if (m_parserData.isNull())
+        m_parserData.reset(new ParserData);
+    return m_parserData.data();
+}
+
+StateTable *StateTable::fromFile(const QString &fileName, DataModel *dataModel)
+{
+    QFile scxmlFile(fileName);
+    if (!scxmlFile.open(QIODevice::ReadOnly)) {
+        QVector<ScxmlError> errors({
+                                ScxmlError(scxmlFile.fileName(), 0, 0, QStringLiteral("cannot open for reading"))
+                            });
+        auto table = new StateTable;
+        StateTablePrivate::get(table)->parserData()->m_errors = errors;
+        return table;
+    }
+
+    StateTable *table = fromData(&scxmlFile, dataModel);
+    scxmlFile.close();
+    return table;
+}
+
+StateTable *StateTable::fromData(QIODevice *data, DataModel *dataModel)
+{
+    QXmlStreamReader xmlReader(data);
+    Scxml::ScxmlParser parser(&xmlReader);
+    parser.parse();
+    auto table = parser.instantiateStateMachine();
+    if (dataModel) {
+        table->setDataModel(dataModel);
+    } else {
+        parser.instantiateDataModel(table);
+    }
+    return table;
+}
+
+QVector<ScxmlError> StateTable::errors() const
+{
+    Q_D(const StateTable);
+    return d->m_parserData ? d->m_parserData->m_errors : QVector<ScxmlError>();
+}
+
 StateTable::StateTable(QObject *parent)
     : QStateMachine(*new StateTablePrivate, parent)
 {
@@ -88,13 +240,6 @@ StateTable::StateTable(StateTablePrivate &dd, QObject *parent)
     Q_D(StateTable);
     d->m_executionEngine = new ExecutableContent::ExecutionEngine(this);
     connect(this, &QStateMachine::finished, this, &StateTable::onFinished);
-}
-
-StateTablePrivate *StateTable::privateData()
-{
-    Q_D(StateTable);
-
-    return d;
 }
 
 int StateTable::sessionId() const
@@ -116,6 +261,7 @@ void StateTable::setDataModel(DataModel *dataModel)
     Q_D(StateTable);
 
     d->m_dataModel = dataModel;
+    dataModel->setTable(this);
 }
 
 void StateTable::setDataBinding(StateTable::BindingMethod b)
@@ -694,7 +840,7 @@ bool ScxmlBaseTransition::eventTest(QEvent *event)
         return false;
     StateTable *stateTable = table();
     Q_ASSERT(stateTable);
-    QByteArray eventName = stateTable->privateData()->m_event.name();
+    QByteArray eventName = StateTablePrivate::get(stateTable)->m_event.name();
     bool selected = false;
     foreach (QByteArray eventStr, d->eventSelector) {
         if (eventStr == "*") {

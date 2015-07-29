@@ -306,9 +306,8 @@ private:
     QJSValue dataModel;
 };
 
-EcmaScriptDataModel::EcmaScriptDataModel(StateTable *table)
-    : DataModel(table)
-    , d(new EcmaScriptDataModelPrivate(this))
+EcmaScriptDataModel::EcmaScriptDataModel()
+    : d(new EcmaScriptDataModelPrivate(this))
 {}
 
 EcmaScriptDataModel::~EcmaScriptDataModel()

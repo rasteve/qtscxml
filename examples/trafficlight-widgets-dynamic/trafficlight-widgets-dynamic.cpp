@@ -44,46 +44,20 @@
 #include <QScxml/nulldatamodel.h>
 
 #include <QApplication>
-#include <QFile>
-
-static Scxml::StateTable *create()
-{
-    QFile scxmlFile(QStringLiteral(":statemachine.scxml"));
-    if (!scxmlFile.open(QIODevice::ReadOnly)) {
-        QTextStream errs(stderr, QIODevice::WriteOnly);
-        errs << QStringLiteral("ERROR: cannot open '%1' for reading!").arg(scxmlFile.fileName());
-        return Q_NULLPTR;
-    }
-
-    QXmlStreamReader xmlReader(&scxmlFile);
-    Scxml::ScxmlParser parser(&xmlReader);
-    parser.parse();
-    scxmlFile.close();
-    auto table = parser.instantiateStateMachine();
-
-    if (parser.state() != Scxml::ScxmlParser::FinishedParsing || table == Q_NULLPTR) {
-        QTextStream errs(stderr, QIODevice::WriteOnly);
-        errs << QStringLiteral("Something went wrong:") << endl;
-        foreach (const Scxml::ScxmlParser::ErrorMessage &msg, parser.errors()) {
-            errs << msg.fileName << QStringLiteral(":") << msg.line
-                 << QStringLiteral(":") << msg.column
-                 << QStringLiteral(": ") << msg.severityString()
-                 << QStringLiteral(": ") << msg.msg;
-        }
-    }
-
-    return table;
-}
 
 int main(int argc, char **argv)
 {
     QApplication app(argc, argv);
 
-    auto machine = create();
-    if (machine == Q_NULLPTR)
+    auto machine = Scxml::StateTable::fromFile(QStringLiteral(":statemachine.scxml"));
+    if (!machine->errors().isEmpty()) {
+        QTextStream errs(stderr, QIODevice::WriteOnly);
+        foreach (const Scxml::ScxmlError &error, machine->errors()) {
+            errs << error.toString();
+        }
+
         return -1;
-    Scxml::NullDataModel dataModel(machine);
-    machine->setDataModel(&dataModel);
+    }
 
     TrafficLight widget(machine);
     widget.resize(110, 300);

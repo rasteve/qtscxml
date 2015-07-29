@@ -26,7 +26,7 @@ namespace Scxml {
 class SCXML_EXPORT NullDataModel: public DataModel
 {
 public:
-    NullDataModel(StateTable *table);
+    NullDataModel();
     ~NullDataModel();
 
     void setup() Q_DECL_OVERRIDE;

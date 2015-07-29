@@ -578,10 +578,9 @@ public:
     void parse();
 
     ScxmlParser::State state() const;
-    QList<ScxmlParser::ErrorMessage> errors() const;
+    QVector<ScxmlError> errors() const;
 
-    void addError(const QString &msg,
-                  ScxmlParser::ErrorMessage::Severity severity = ScxmlParser::ErrorMessage::Error);
+    void addError(const QString &msg);
     void addError(const DocumentModel::XmlLocation &location, const QString &msg);
 
 private:
@@ -606,7 +605,7 @@ private:
     QXmlStreamReader *m_reader;
     QVector<ParserState> m_stack;
     ScxmlParser::State m_state;
-    QList<ScxmlParser::ErrorMessage> m_errors;
+    QVector<ScxmlError> m_errors;
 };
 
 } // namespace Scxml

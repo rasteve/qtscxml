@@ -232,21 +232,11 @@ void TestScion::dynamic()
         QEXPECT_FAIL("", "This is expected to fail", Abort);
     }
     QVERIFY(table != Q_NULLPTR);
-    switch (parser.dataModel()) {
-    case ScxmlParser::NullDataModel:
-        table->setDataModel(new NullDataModel(table.data()));
-        break;
-    case ScxmlParser::EcmaScriptDataModel:
-        table->setDataModel(new EcmaScriptDataModel(table.data()));
-        break;
-    default:
-        QFAIL("Unknown datamodel");
-    }
+    parser.instantiateDataModel(table.data());
 
     if (testStatus == TestFails)
         QEXPECT_FAIL("", "This is expected to fail", Abort);
     QVERIFY(runTest(table.data(), testDescription.object()));
-    delete table->dataModel();
 }
 
 static QStringList getStates(const QJsonObject &obj, const QString &key)
@@ -420,5 +410,5 @@ bool TestScion::runTest(StateTable *stateMachine, const QJsonObject &testDescrip
     }
 }
 
-QTEST_MAIN(TestScion)
+QTEST_GUILESS_MAIN(TestScion)
 #include "tst_scion.moc"

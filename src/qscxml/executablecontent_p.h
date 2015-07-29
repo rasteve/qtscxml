@@ -273,7 +273,7 @@ public:
     EvaluatorInfo evaluatorInfo(EvaluatorId evaluatorId) const Q_DECL_OVERRIDE;
     AssignmentInfo assignmentInfo(EvaluatorId assignmentId) const Q_DECL_OVERRIDE;
     ForeachInfo foreachInfo(EvaluatorId foreachId) const Q_DECL_OVERRIDE;
-    ExecutableContent::StringId *dataNames(int *count) const;
+    ExecutableContent::StringId *dataNames(int *count) const Q_DECL_OVERRIDE;
 
     QVector<qint32> instructionTable() const;
     QVector<QString> stringTable() const;

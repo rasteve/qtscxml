@@ -87,17 +87,8 @@ int main(int argc, char *argv[])
     parser.setFileName(file.fileName());
     parser.parse();
     if (!parser.errors().isEmpty()) {
-        foreach (const Scxml::ScxmlParser::ErrorMessage &error, parser.errors()) {
-            errs << error.fileName
-                 << QLatin1Char(':')
-                 << error.line
-                 << QLatin1Char(':')
-                 << error.column
-                 << QStringLiteral(": ")
-                 << error.severityString()
-                 << QStringLiteral(": ")
-                 << error.msg
-                 << endl;
+        foreach (const Scxml::ScxmlError &error, parser.errors()) {
+            errs << error.toString() << endl;
         }
         return -7;
     }

@@ -143,21 +143,13 @@ bool StateMachine::parse(const QUrl &filename)
     QByteArray data(scxmlFile.dataByteArray());
     QBuffer buf(&data);
     Q_ASSERT(buf.open(QIODevice::ReadOnly));
-    QXmlStreamReader xmlReader(&buf);
-    Scxml::ScxmlParser parser(&xmlReader);
-    parser.parse();
-    Scxml::StateTable *sm = parser.instantiateStateMachine();
-    m_dataModel.reset(new Scxml::EcmaScriptDataModel(sm));
-    sm->setDataModel(m_dataModel.data());
+    Scxml::StateTable *sm = Scxml::StateTable::fromData(&buf, new Scxml::EcmaScriptDataModel);
     setStateMachine(sm);
 
-    if (parser.state() != Scxml::ScxmlParser::FinishedParsing || m_table == Q_NULLPTR) {
+    if (!sm->errors().isEmpty()) {
         qmlInfo(this) << QStringLiteral("Something went wrong while parsing '%1':").arg(filename.fileName()) << endl;
-        foreach (const Scxml::ScxmlParser::ErrorMessage &msg, parser.errors()) {
-            qmlInfo(this) << msg.fileName << QStringLiteral(":") << msg.line
-                          << QStringLiteral(":") << msg.column
-                          << QStringLiteral(": ") << msg.severityString()
-                          << QStringLiteral(": ") << msg.msg;
+        foreach (const Scxml::ScxmlError &msg, sm->errors()) {
+            qmlInfo(this) << msg.toString();
         }
 
         return false;

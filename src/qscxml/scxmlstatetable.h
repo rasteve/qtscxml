@@ -49,7 +49,7 @@
 QT_BEGIN_NAMESPACE
 class QXmlStreamWriter;
 class QTextStream;
-
+class QDebug;
 QT_END_NAMESPACE
 
 namespace Scxml {
@@ -75,6 +75,31 @@ public:
     virtual ExecutableContent::StringId *dataNames(int *count) const = 0;
 };
 
+class Q_QML_EXPORT ScxmlError
+{
+public:
+    ScxmlError();
+    ScxmlError(const QString &fileName, int line, int column, const QString &description);
+    ScxmlError(const ScxmlError &);
+    ScxmlError &operator=(const ScxmlError &);
+    ~ScxmlError();
+
+    bool isValid() const;
+
+    QString fileName() const;
+    int line() const;
+    int column() const;
+    QString description() const;
+
+    QString toString() const;
+
+private:
+    class ScxmlErrorPrivate;
+    ScxmlErrorPrivate *d;
+};
+
+QDebug Q_QML_EXPORT operator<<(QDebug debug, const ScxmlError &error);
+
 class ScxmlState;
 class StateTablePrivate;
 class SCXML_EXPORT StateTable: public QStateMachine
@@ -88,9 +113,12 @@ public:
         LateBinding
     };
 
+    static StateTable *fromFile(const QString &fileName, DataModel *dataModel = Q_NULLPTR);
+    static StateTable *fromData(QIODevice *data, DataModel *dataModel = Q_NULLPTR);
+    QVector<ScxmlError> errors() const;
+
     StateTable(QObject *parent = 0);
     StateTable(StateTablePrivate &dd, QObject *parent);
-    StateTablePrivate *privateData();
 
     int sessionId() const;
 
@@ -293,5 +321,9 @@ private:
 };
 
 } // namespace Scxml
+
+QT_BEGIN_NAMESPACE
+Q_DECLARE_TYPEINFO(Scxml::ScxmlError, Q_MOVABLE_TYPE);
+QT_END_NAMESPACE
 
 #endif // SCXMLSTATETABLE_H

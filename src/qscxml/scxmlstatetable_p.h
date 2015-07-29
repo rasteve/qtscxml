@@ -43,9 +43,22 @@ class StateTablePrivate: public QStateMachinePrivate
 
     static QAtomicInt m_sessionIdCounter;
 
+public: // types
+    class ParserData
+    {
+    public:
+        QScopedPointer<DataModel> m_ownedDataModel;
+        QVector<ScxmlError> m_errors;
+    };
+
 public:
     StateTablePrivate();
     ~StateTablePrivate();
+
+    static StateTablePrivate *get(StateTable *t)
+    { return t->d_func(); }
+
+    ParserData *parserData();
 
 protected: // overrides for QStateMachinePrivate:
 #if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
@@ -81,6 +94,9 @@ public: // StateTable data fields:
         StateTable::EventPriority priority;
     };
     QVector<QueuedEvent> *m_queuedEvents;
+
+private:
+    QScopedPointer<ParserData> m_parserData; // used when created by StateTable::fromFile.
 };
 
 } // Scxml namespace

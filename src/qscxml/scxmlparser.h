@@ -34,52 +34,6 @@ class ScxmlParserPrivate;
 class SCXML_EXPORT ScxmlParser
 {
 public:
-    struct ErrorMessage
-    {
-        enum Severity {
-            Debug,
-            Info,
-            Error
-        };
-
-        QString fileName;
-        int line;
-        int column;
-        Severity severity;
-        QString msg;
-
-        ErrorMessage()
-            : line(0)
-            , column(0)
-            , severity(Debug)
-        {}
-
-        ErrorMessage(const QString &theFileName,
-                     int theLine,
-                     int theColumn,
-                     Severity theSeverity,
-                     const QString &message)
-            : fileName(theFileName)
-            , line(theLine)
-            , column(theColumn)
-            , severity(theSeverity)
-            , msg(message)
-        {}
-
-        QString severityString() const
-        {
-            switch (severity) {
-            case Debug:
-                return QStringLiteral("debug");
-            case Info:
-                return QStringLiteral("info");
-            case Error:
-                return QStringLiteral("error");
-            }
-            return QStringLiteral("Severity%1: ").arg(severity);
-        }
-    };
-
     typedef std::function<QByteArray(const QString &, bool &, ScxmlParser *parser)> LoaderFunction;
     static LoaderFunction loaderForDir(const QString &basedir);
 
@@ -90,11 +44,6 @@ public:
         FinishedParsing,
     };
 
-    enum DataModel {
-        NullDataModel,
-        EcmaScriptDataModel
-    };
-
 public:
     ScxmlParser(QXmlStreamReader *xmlReader, LoaderFunction loader = Q_NULLPTR);
     ~ScxmlParser();
@@ -103,12 +52,12 @@ public:
     void setFileName(const QString &fileName);
 
     void parse();
-    StateTable *instantiateStateMachine();
-    DataModel dataModel() const;
+    StateTable *instantiateStateMachine() const;
+    void instantiateDataModel(StateTable *table) const;
 
     State state() const;
-    QList<ErrorMessage> errors() const;
-    void addError(const QString &msg, ErrorMessage::Severity severity = ErrorMessage::Error);
+    QVector<ScxmlError> errors() const;
+    void addError(const QString &msg);
 
 private:
     friend ScxmlParserPrivate;

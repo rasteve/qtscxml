@@ -20,22 +20,36 @@
 
 using namespace Scxml;
 
+class DataModel::Data
+{
+public:
+    Data()
+        : m_table(Q_NULLPTR)
+    {}
+
+    StateTable *m_table;
+};
+
 DataModel::ForeachLoopBody::~ForeachLoopBody()
 {}
 
-DataModel::DataModel(StateTable *table)
-    : m_table(table)
-{
-    Q_ASSERT(table);
-}
+DataModel::DataModel()
+    : d(new Data)
+{}
 
 DataModel::~DataModel()
 {
+    delete d;
 }
 
 StateTable *DataModel::table() const
 {
-    return m_table;
+    return d->m_table;
+}
+
+void DataModel::setTable(StateTable *table)
+{
+    d->m_table = table;
 }
 
 NullDataModel *DataModel::asNullDataModel()

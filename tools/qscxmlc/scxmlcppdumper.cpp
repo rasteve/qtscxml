@@ -248,7 +248,6 @@ protected:
                 Q_UNREACHABLE();
             }
             clazz.classFields << QStringLiteral("Scxml::") + dmName + QStringLiteral("DataModel dataModel;");
-            clazz.constructor.initializer << QStringLiteral("dataModel(&table)");
         }
         return false;
     }
