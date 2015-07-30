@@ -339,10 +339,10 @@ protected:
     DynamicTableData *tableData();
 
     StringId addString(const QString &str)
-    { return m_stringTable.add(str); }
+    { return str.isEmpty() ? NoString : m_stringTable.add(str); }
 
     ByteArrayId addByteArray(const QByteArray &ba)
-    { return m_byteArrayTable.add(ba); }
+    { return ba.isEmpty() ? NoByteArray : m_byteArrayTable.add(ba); }
 
     void setInitialSetup(ContainerId id)
     { m_initialSetup = id; }

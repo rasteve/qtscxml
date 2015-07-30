@@ -553,7 +553,7 @@ QString DynamicTableData::string(StringId id) const
 
 QByteArray DynamicTableData::byteArray(ByteArrayId id) const
 {
-    return byteArrays.at(id);
+    return id == NoByteArray ? QByteArray() : byteArrays.at(id);
 }
 
 Instructions DynamicTableData::instructions() const

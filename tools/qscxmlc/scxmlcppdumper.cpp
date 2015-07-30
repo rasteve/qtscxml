@@ -763,8 +763,8 @@ private:
 
             clazz.dataMethods << QStringLiteral("QByteArray byteArray(Scxml::ExecutableContent::ByteArrayId id) const Q_DECL_OVERRIDE Q_DECL_FINAL");
             clazz.dataMethods << QStringLiteral("{");
-            clazz.dataMethods << QStringLiteral("    Q_ASSERT(id >= Scxml::ExecutableContent::NoString); Q_ASSERT(id < %1);").arg(byteArrays.size());
-            clazz.dataMethods << QStringLiteral("    if (id == Scxml::ExecutableContent::NoString) return QByteArray();");
+            clazz.dataMethods << QStringLiteral("    Q_ASSERT(id >= Scxml::ExecutableContent::NoByteArray); Q_ASSERT(id < %1);").arg(byteArrays.size());
+            clazz.dataMethods << QStringLiteral("    if (id == Scxml::ExecutableContent::NoByteArray) return QByteArray();");
             if (m_options.useCxx11) {
                 clazz.dataMethods << QStringLiteral("    return QByteArray({byteArrays.data + id});");
             } else {
@@ -961,7 +961,7 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     cpp << l("    { init(); }") << endl;
 
     cpp << endl;
-    cpp << l("    void init() {\n");    
+    cpp << l("    void init() {\n");
     clazz.init.impl.write(cpp, QStringLiteral("        "), QStringLiteral("\n"));
     cpp << l("    }") << endl;
     cpp << endl;
