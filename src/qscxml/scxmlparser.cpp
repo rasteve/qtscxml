@@ -353,7 +353,7 @@ private:
 
         m_table->setName(node->name);
 
-        m_parents.append(m_table);
+        m_parents.append(StateTablePrivate::get(m_table)->m_qStateMachine);
         visit(node->children);
 
         m_dataElements.append(node->dataElements);
@@ -371,7 +371,7 @@ private:
 
         foreach (auto initialState, node->initialStates) {
             Q_ASSERT(initialState);
-            m_initialStates.append(qMakePair(m_table, initialState));
+            m_initialStates.append(qMakePair(StateTablePrivate::get(m_table)->m_qStateMachine, initialState));
         }
 
         return false;

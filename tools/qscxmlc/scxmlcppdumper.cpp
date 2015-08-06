@@ -212,7 +212,7 @@ protected:
         clazz.init.impl << QStringLiteral("table.setTableData(this);");
 
         foreach (AbstractState *s, node->initialStates) {
-            clazz.init.impl << QStringLiteral("table.setInitialState(&state_") + mangledName(s) + QStringLiteral(");");
+            clazz.init.impl << QStringLiteral("table.qStateMachine()->setInitialState(&state_") + mangledName(s) + QStringLiteral(");");
         }
 
         // visit the kids:
@@ -495,11 +495,11 @@ private:
     QString generateInitializer(AbstractState *node)
     {
         auto stateName = QStringLiteral("state_") + mangledName(node);
-        QString init = stateName + QStringLiteral("(&");
+        QString init = stateName + QStringLiteral("(");
         if (State *parentState = node->parent->asState()) {
-            init += QStringLiteral("state_") + mangledName(parentState);
+            init += QStringLiteral("&state_") + mangledName(parentState);
         } else {
-            init += QStringLiteral("table");
+            init += QStringLiteral("table.qStateMachine()");
         }
         init += QLatin1Char(')');
         return init;
@@ -565,7 +565,7 @@ private:
         else if (HistoryState *h = parent->asHistoryState())
             return QStringLiteral("state_") + mangledName(h);
         else if (parent->asScxml())
-            return QStringLiteral("table");
+            return QStringLiteral("(*table.qStateMachine())");
         else
             Q_UNIMPLEMENTED();
         return QString();

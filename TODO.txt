@@ -1,6 +1,7 @@
-- Change interface: add a static StateTable::fromURL method that runs the parser, like QQmlComponent does.
-- put default data-model instantiation in there
-- document the two ways to instantiate a parser+datamodel
+- qscxmlc doesn't give an error when the target of a transition is not found/known.
+- add test to scxml validation failures.
+- add a signal for <invoke target="qt:signal:name"/>
+
 - only process the scxml namespace, and don't complain about other namespaces
 
 - document qt:classname property and its schema/namespace

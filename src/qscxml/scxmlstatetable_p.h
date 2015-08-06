@@ -36,8 +36,34 @@
 #include <QtCore/private/qstatemachine_p.h>
 
 namespace Scxml {
+namespace Internal {
+class MyQStateMachinePrivate;
+class MyQStateMachine: public QStateMachine
+{
+    Q_OBJECT
+    Q_DECLARE_PRIVATE(MyQStateMachine)
 
-class StateTablePrivate: public QStateMachinePrivate
+public:
+    MyQStateMachine(StateTable *parent);
+    MyQStateMachine(MyQStateMachinePrivate &dd, StateTable *parent);
+
+    StateTable *stateTable() const;
+
+    void queueEvent(ScxmlEvent *event, QStateMachine::EventPriority priority);
+    void submitQueuedEvents();
+    int eventIdForDelayedEvent(const QByteArray &scxmlEventId);
+
+protected:
+    void beginSelectTransitions(QEvent *event) Q_DECL_OVERRIDE;
+    void beginMicrostep(QEvent *event) Q_DECL_OVERRIDE;
+    void endMicrostep(QEvent *event) Q_DECL_OVERRIDE;
+
+private:
+    StateTablePrivate *stateTablePrivate();
+};
+} // Internal namespace
+
+class StateTablePrivate: public QObjectPrivate
 {
     Q_DECLARE_PUBLIC(StateTable)
 
@@ -58,20 +84,9 @@ public:
     static StateTablePrivate *get(StateTable *t)
     { return t->d_func(); }
 
+    void setQStateMachine(Internal::MyQStateMachine *stateMachine);
+
     ParserData *parserData();
-
-protected: // overrides for QStateMachinePrivate:
-#if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
-    void noMicrostep() Q_DECL_OVERRIDE;
-    void processedPendingEvents(bool didChange) Q_DECL_OVERRIDE;
-    void beginMacrostep() Q_DECL_OVERRIDE;
-    void endMacrostep(bool didChange) Q_DECL_OVERRIDE;
-
-    void emitStateFinished(QState *forState, QFinalState *guiltyState) Q_DECL_OVERRIDE;
-    void startupHook() Q_DECL_OVERRIDE;
-#endif
-
-    int eventIdForDelayedEvent(const QByteArray &scxmlEventId);
 
 public: // StateTable data fields:
     const int m_sessionId;
@@ -82,18 +97,7 @@ public: // StateTable data fields:
     TableData *m_tableData;
     ScxmlEvent m_event;
     QString m_name;
-
-    struct QueuedEvent
-    {
-        QueuedEvent(QEvent *event = Q_NULLPTR, StateTable::EventPriority priority = StateTable::NormalPriority)
-            : event(event)
-            , priority(priority)
-        {}
-
-        QEvent *event;
-        StateTable::EventPriority priority;
-    };
-    QVector<QueuedEvent> *m_queuedEvents;
+    Internal::MyQStateMachine *m_qStateMachine;
 
 private:
     QScopedPointer<ParserData> m_parserData; // used when created by StateTable::fromFile.

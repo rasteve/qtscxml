@@ -102,7 +102,7 @@ QDebug Q_QML_EXPORT operator<<(QDebug debug, const ScxmlError &error);
 
 class ScxmlState;
 class StateTablePrivate;
-class SCXML_EXPORT StateTable: public QStateMachine
+class SCXML_EXPORT StateTable: public QObject
 {
     Q_OBJECT
     Q_ENUMS(BindingMethod)
@@ -120,6 +120,9 @@ public:
     StateTable(QObject *parent = 0);
     StateTable(StateTablePrivate &dd, QObject *parent);
 
+    /// If this state machine is backed by a QStateMachine, that QStateMachine is returned. Otherwise, a null-pointer is returned.
+    QStateMachine *qStateMachine() const;
+
     int sessionId() const;
 
     DataModel *dataModel() const;
@@ -135,6 +138,8 @@ public:
     void doLog(const QString &label, const QString &msg);
 
     Q_INVOKABLE bool init();
+
+    bool isRunning() const;
 
     QString name() const;
     QStringList activeStates(bool compress = true);
@@ -162,8 +167,6 @@ public:
     void submitDelayedEvent(int delayInMiliSecs,
                             ScxmlEvent *e);
     void cancelDelayedEvent(const QByteArray &event);
-    void queueEvent(ScxmlEvent *event, EventPriority priority);
-    void submitQueuedEvents();
 
     bool isLegalTarget(const QString &target) const;
     bool isDispatchableTarget(const QString &target) const;
@@ -171,14 +174,15 @@ public:
 Q_SIGNALS:
     void log(const QString &label, const QString &msg);
     void reachedStableState(bool didChange);
+    void finished();
+
+public Q_SLOTS:
+    void start();
 
 private Q_SLOTS:
     void onFinished();
 
 protected:
-    void beginSelectTransitions(QEvent *event) Q_DECL_OVERRIDE;
-    void beginMicrostep(QEvent *event) Q_DECL_OVERRIDE;
-    void endMicrostep(QEvent *event) Q_DECL_OVERRIDE;
     void executeInitialSetup();
 
 protected: // friend interface
@@ -257,14 +261,14 @@ private:
     Data *d;
 };
 
+class ScxmlStatePrivate;
 class SCXML_EXPORT ScxmlState: public QState
 {
     Q_OBJECT
-    class Data;
+    Q_DECLARE_PRIVATE(ScxmlState)
 
 public:
     ScxmlState(QState *parent = 0);
-    ~ScxmlState();
 
     StateTable *table() const;
     virtual bool init();
@@ -279,13 +283,10 @@ Q_SIGNALS:
     void willExit();
 
 protected:
-    ScxmlState(QStatePrivate &dd, QState *parent = 0);
+    ScxmlState(ScxmlStatePrivate &dd, QState *parent = 0);
 
     void onEntry(QEvent * event) Q_DECL_OVERRIDE;
     void onExit(QEvent * event) Q_DECL_OVERRIDE;
-
-private:
-    Data *d;
 };
 
 class SCXML_EXPORT ScxmlInitialState: public ScxmlState
