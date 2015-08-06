@@ -288,6 +288,7 @@ bool ExecutionEngine::execute(ContainerId id, const QVariant &extraData)
 }
 
 Builder::Builder()
+    : m_initialSetup(ExecutableContent::NoInstruction)
 {
     m_activeSequences.reserve(4);
 }
@@ -540,9 +541,10 @@ DynamicTableData *Builder::tableData()
     td->theAssignments = m_assignments.data();
     td->theForeaches = m_foreaches.data();
     td->theDataNameIds = m_dataIds;
+    td->theInitialSetup = m_initialSetup;
+    td->theName = m_name;
     return td;
 }
-
 
 QString DynamicTableData::string(StringId id) const
 {
@@ -579,6 +581,16 @@ StringId *DynamicTableData::dataNames(int *count) const
     Q_ASSERT(count);
     *count = theDataNameIds.size();
     return const_cast<StringId *>(theDataNameIds.data());
+}
+
+ContainerId DynamicTableData::initialSetup() const
+{
+    return theInitialSetup;
+}
+
+QString DynamicTableData::name() const
+{
+    return theName;
 }
 
 QVector<qint32> DynamicTableData::instructionTable() const

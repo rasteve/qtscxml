@@ -73,6 +73,9 @@ public:
     virtual AssignmentInfo assignmentInfo(EvaluatorId assignmentId) const = 0;
     virtual ForeachInfo foreachInfo(EvaluatorId foreachId) const = 0;
     virtual ExecutableContent::StringId *dataNames(int *count) const = 0;
+
+    virtual ExecutableContent::ContainerId initialSetup() const = 0;
+    virtual QString name() const = 0;
 };
 
 class Q_QML_EXPORT ScxmlError
@@ -100,7 +103,6 @@ private:
 
 QDebug Q_QML_EXPORT operator<<(QDebug debug, const ScxmlError &error);
 
-class ScxmlState;
 class StateTablePrivate;
 class SCXML_EXPORT StateTable: public QObject
 {
@@ -185,121 +187,8 @@ private Q_SLOTS:
 protected:
     void executeInitialSetup();
 
-protected: // friend interface
-    friend class StateTableBuilder;
-    void setName(const QString &name);
-    void setInitialSetup(ExecutableContent::ContainerId sequence);
-
 private:
     Q_DECLARE_PRIVATE(StateTable)
-};
-
-class SCXML_EXPORT ScxmlBaseTransition : public QAbstractTransition
-{
-    Q_OBJECT
-    class Data;
-
-public:
-    ScxmlBaseTransition(QState * sourceState = 0, const QList<QByteArray> &eventSelector = QList<QByteArray>());
-    ScxmlBaseTransition(QAbstractTransitionPrivate &dd, QState *parent,
-                        const QList<QByteArray> &eventSelector = QList<QByteArray>());
-    ~ScxmlBaseTransition();
-
-    StateTable *table() const;
-    QString transitionLocation() const;
-
-    bool eventTest(QEvent *event) Q_DECL_OVERRIDE;
-    virtual bool clear();
-    virtual bool init();
-
-protected:
-    void onTransition(QEvent *event) Q_DECL_OVERRIDE;
-
-private:
-    Data *d;
-};
-
-class SCXML_EXPORT ScxmlTransition : public ScxmlBaseTransition
-{
-    Q_OBJECT
-    class Data;
-
-public:
-    ScxmlTransition(QState * sourceState = 0, const QList<QByteArray> &eventSelector = QList<QByteArray>());
-    ScxmlTransition(const QList<QByteArray> &eventSelector);
-    ~ScxmlTransition();
-
-    bool eventTest(QEvent *event) Q_DECL_OVERRIDE;
-    StateTable *table() const;
-
-    void setInstructionsOnTransition(ExecutableContent::ContainerId instructions);
-    void setConditionalExpression(EvaluatorId evaluator);
-
-protected:
-    void onTransition(QEvent *event) Q_DECL_OVERRIDE;
-
-private:
-    Data *d;
-};
-
-class ScxmlStatePrivate;
-class SCXML_EXPORT ScxmlState: public QState
-{
-    Q_OBJECT
-    Q_DECLARE_PRIVATE(ScxmlState)
-
-public:
-    ScxmlState(QState *parent = 0);
-
-    StateTable *table() const;
-    virtual bool init();
-    QString stateLocation() const;
-
-    void setInitInstructions(ExecutableContent::ContainerId instructions);
-    void setOnEntryInstructions(ExecutableContent::ContainerId instructions);
-    void setOnExitInstructions(ExecutableContent::ContainerId instructions);
-
-Q_SIGNALS:
-    void didEnter();
-    void willExit();
-
-protected:
-    ScxmlState(ScxmlStatePrivate &dd, QState *parent = 0);
-
-    void onEntry(QEvent * event) Q_DECL_OVERRIDE;
-    void onExit(QEvent * event) Q_DECL_OVERRIDE;
-};
-
-class SCXML_EXPORT ScxmlInitialState: public ScxmlState
-{
-    Q_OBJECT
-public:
-    ScxmlInitialState(QState *theParent): ScxmlState(theParent) { }
-};
-
-class SCXML_EXPORT ScxmlFinalState: public QFinalState
-{
-    Q_OBJECT
-    class Data;
-public:
-    ScxmlFinalState(QState *parent = 0);
-    ~ScxmlFinalState();
-
-    StateTable *table() const;
-    virtual bool init();
-
-    ExecutableContent::ContainerId doneData() const;
-    void setDoneData(ExecutableContent::ContainerId doneData);
-
-    void setOnEntryInstructions(ExecutableContent::ContainerId instructions);
-    void setOnExitInstructions(ExecutableContent::ContainerId instructions);
-
-protected:
-    void onEntry(QEvent * event) Q_DECL_OVERRIDE;
-    void onExit(QEvent * event) Q_DECL_OVERRIDE;
-
-private:
-    Data *d;
 };
 
 } // namespace Scxml

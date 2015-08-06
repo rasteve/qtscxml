@@ -274,6 +274,8 @@ public:
     AssignmentInfo assignmentInfo(EvaluatorId assignmentId) const Q_DECL_OVERRIDE;
     ForeachInfo foreachInfo(EvaluatorId foreachId) const Q_DECL_OVERRIDE;
     ExecutableContent::StringId *dataNames(int *count) const Q_DECL_OVERRIDE;
+    ExecutableContent::ContainerId initialSetup() const Q_DECL_OVERRIDE;
+    QString name() const Q_DECL_OVERRIDE;
 
     QVector<qint32> instructionTable() const;
     QVector<QString> stringTable() const;
@@ -292,6 +294,8 @@ private:
     QVector<AssignmentInfo> theAssignments;
     QVector<ForeachInfo> theForeaches;
     ExecutableContent::StringIds theDataNameIds;
+    EvaluatorId theInitialSetup;
+    QString theName;
 };
 
 class SCXML_EXPORT Builder: public DocumentModel::NodeVisitor
@@ -337,6 +341,12 @@ protected:
 
     ByteArrayId addByteArray(const QByteArray &ba)
     { return m_byteArrayTable.add(ba); }
+
+    void setInitialSetup(ContainerId id)
+    { m_initialSetup = id; }
+
+    void setName(const QString &name)
+    { m_name = name; }
 
 private:
     template <typename T, typename U>
@@ -462,6 +472,8 @@ private:
     Table<AssignmentInfo, EvaluatorId> m_assignments;
     Table<ForeachInfo, EvaluatorId> m_foreaches;
     ExecutableContent::StringIds m_dataIds;
+    ContainerId m_initialSetup;
+    QString m_name;
 };
 
 } // ExecutableContent namespace

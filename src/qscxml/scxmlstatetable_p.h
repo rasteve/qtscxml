@@ -91,18 +91,15 @@ public:
 public: // StateTable data fields:
     const int m_sessionId;
     DataModel *m_dataModel;
-    ExecutableContent::ContainerId m_initialSetup;
     StateTable::BindingMethod m_dataBinding;
     ExecutableContent::ExecutionEngine *m_executionEngine;
     TableData *m_tableData;
     ScxmlEvent m_event;
-    QString m_name;
     Internal::MyQStateMachine *m_qStateMachine;
 
 private:
     QScopedPointer<ParserData> m_parserData; // used when created by StateTable::fromFile.
 };
-
 } // Scxml namespace
 
 #endif // SCXMLSTATETABLE_P_H

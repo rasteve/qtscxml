@@ -21,6 +21,7 @@
 #include "executablecontent_p.h"
 #include "nulldatamodel.h"
 #include "ecmascriptdatamodel.h"
+#include "scxmlqstates.h"
 #include <QXmlStreamReader>
 #include <QLoggingCategory>
 #include <QState>
@@ -299,10 +300,10 @@ private:
     QVector<DocumentModel::Node *> m_parentNodes;
 };
 
-class StateTableBuilder: public ExecutableContent::Builder
+class QStateMachineBuilder: public ExecutableContent::Builder
 {
 public:
-    StateTableBuilder()
+    QStateMachineBuilder()
         : m_table(Q_NULLPTR)
         , m_currentTransition(Q_NULLPTR)
         , m_bindLate(false)
@@ -351,14 +352,14 @@ private:
             Q_UNREACHABLE();
         }
 
-        m_table->setName(node->name);
+        setName(node->name);
 
         m_parents.append(StateTablePrivate::get(m_table)->m_qStateMachine);
         visit(node->children);
 
         m_dataElements.append(node->dataElements);
         if (node->script || !m_dataElements.isEmpty() || !node->initialSetup.isEmpty()) {
-            m_table->setInitialSetup(startNewSequence());
+            setInitialSetup(startNewSequence());
             generate(m_dataElements);
             if (node->script) {
                 node->script->accept(this);
@@ -621,7 +622,7 @@ void ScxmlParser::parse()
 StateTable *ScxmlParser::instantiateStateMachine() const
 {
     if (DocumentModel::ScxmlDocument *doc = p->scxmlDocument()) {
-        return StateTableBuilder().build(doc);
+        return QStateMachineBuilder().build(doc);
     } else {
         auto table = new StateTable;
         StateTablePrivate::get(table)->parserData()->m_errors = errors();

@@ -188,9 +188,15 @@ protected:
     {
         // init:
         if (!node->name.isEmpty()) {
-            clazz.init.impl << QStringLiteral("table.setName(string(%1));").arg(addString(node->name));
+            clazz.dataMethods << QStringLiteral("QString name() const Q_DECL_OVERRIDE")
+                              << QStringLiteral("{ return string(%1); }").arg(addString(node->name))
+                              << QString();
             if (m_options.nameQObjects)
                 clazz.init.impl << QStringLiteral("table.setObjectName(string(%1));").arg(addString(node->name));
+        } else {
+            clazz.dataMethods << QStringLiteral("QString name() const Q_DECL_OVERRIDE")
+                              << QStringLiteral("{ return QString(); }").arg(addString(node->name))
+                              << QString();
         }
         clazz.init.impl << QStringLiteral("table.setDataModel(&dataModel);");
 
@@ -222,13 +228,19 @@ protected:
 
         m_dataElements.append(node->dataElements);
         if (node->script || !m_dataElements.isEmpty() || !node->initialSetup.isEmpty()) {
-            clazz.init.impl << QStringLiteral("table.setInitialSetup(%1);").arg(startNewSequence());
+            clazz.dataMethods << QStringLiteral("Scxml::ExecutableContent::ContainerId initialSetup() const Q_DECL_OVERRIDE")
+                              << QStringLiteral("{ return %1; }").arg(startNewSequence())
+                              << QString();
             generate(m_dataElements);
             if (node->script) {
                 node->script->accept(this);
             }
             visit(&node->initialSetup);
             endSequence();
+        } else {
+            clazz.dataMethods << QStringLiteral("Scxml::ExecutableContent::ContainerId initialSetup() const Q_DECL_OVERRIDE")
+                              << QStringLiteral("{ return Scxml::ExecutableContent::NoInstruction; }").arg(startNewSequence())
+                              << QString();
         }
 
         m_parents.removeLast();
@@ -875,7 +887,8 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
 
     // Generate the .cpp file:
     cpp << l("#include \"") << headerName << l("\"") << endl
-        << endl;
+        << endl
+        << QStringLiteral("#include <QScxml/scxmlqstates.h>") << endl;
     if (!clazz.implIncludes.isEmpty()) {
         clazz.implIncludes.write(cpp, QStringLiteral("#include <"), QStringLiteral(">\n"));
         cpp << endl;
