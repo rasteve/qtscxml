@@ -63,21 +63,21 @@ static void clear(QQmlListProperty<QObject> *prop)
 
 StateMachine::StateMachine(QObject *parent)
     : QObject(parent)
-    , m_table(Q_NULLPTR)
+    , m_stateMachine(Q_NULLPTR)
 {
 }
 
 void StateMachine::componentComplete()
 {
-    if (m_table == Q_NULLPTR) {
+    if (m_stateMachine == Q_NULLPTR) {
          qmlInfo(this) << "No state machine loaded.";
          return;
     }
 
     bool ok = false;
-    bool moreOk = QMetaObject::invokeMethod(m_table, "init", Qt::DirectConnection, Q_RETURN_ARG(bool, ok));
+    bool moreOk = QMetaObject::invokeMethod(m_stateMachine, "init", Qt::DirectConnection, Q_RETURN_ARG(bool, ok));
     if (ok && moreOk) {
-        QMetaObject::invokeMethod(m_table, "start");
+        QMetaObject::invokeMethod(m_stateMachine, "start");
     } else {
         qmlInfo(this) << "Failed to initialize the state machine.";
     }
@@ -88,17 +88,17 @@ QQmlListProperty<QObject> StateMachine::states()
     return QQmlListProperty<QObject>(this, &m_children, append, count, at, clear);
 }
 
-Scxml::StateMachine *StateMachine::stateMachine() const
+QT_PREPEND_NAMESPACE(Scxml::StateMachine) *StateMachine::stateMachine() const
 {
-    return m_table;
+    return m_stateMachine;
 }
 
 void StateMachine::setStateMachine(Scxml::StateMachine *table)
 {
     qDebug()<<"setting state machine to"<<table;
-    if (m_table == Q_NULLPTR && table != Q_NULLPTR) {
-        m_table = table;
-    } else if (m_table) {
+    if (m_stateMachine == Q_NULLPTR && table != Q_NULLPTR) {
+        m_stateMachine = table;
+    } else if (m_stateMachine) {
         qmlInfo(this) << "Can set the table only once";
     }
 }
@@ -111,9 +111,9 @@ QUrl StateMachine::filename()
 void StateMachine::setFilename(const QUrl &filename)
 {
     QUrl oldFilename = m_filename;
-    if (m_table) {
-        delete m_table;
-        m_table = Q_NULLPTR;
+    if (m_stateMachine) {
+        delete m_stateMachine;
+        m_stateMachine = Q_NULLPTR;
     }
 
     if (parse(filename)) {

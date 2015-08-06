@@ -19,6 +19,8 @@
 #define SCXMLGLOBALS_H
 #include <qglobal.h>
 
+QT_BEGIN_NAMESPACE
+
 #ifndef SCXML_EXPORT
 #   ifndef QT_STATIC
 #       ifdef SCXML_LIBRARY
@@ -29,10 +31,13 @@
 #   else
 #       define SCXML_EXPORT
 #   endif
-#endif
+#endif // SCXML_EXPORT
 
 #ifdef QT_DEBUG
-#define SCXML_DEBUG
-#endif
+#  define SCXML_DEBUG
+#endif // QT_DEBUG
+
+QT_END_NAMESPACE
+
 #endif // SCXMLGLOBALS_H
 

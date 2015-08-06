@@ -21,6 +21,7 @@
 
 #include <algorithm>
 
+QT_BEGIN_NAMESPACE
 namespace Scxml {
 
 struct StringListDumper {
@@ -944,3 +945,4 @@ QString CppDumper::mangleId(const QString &id)
 }
 
 } // namespace Scxml
+QT_END_NAMESPACE

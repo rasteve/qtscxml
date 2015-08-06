@@ -19,11 +19,13 @@
 #ifndef EXECUTABLECONTENT_H
 #define EXECUTABLECONTENT_H
 
-#include "scxmlglobals.h"
+#include <QScxml/scxmlglobals.h>
 
 #include <QByteArray>
 #include <QString>
 #include <QVariant>
+
+QT_BEGIN_NAMESPACE
 
 namespace Scxml {
 
@@ -54,5 +56,7 @@ private:
 
 } // ExecutableContent namespace
 } // namespace Scxml
+
+QT_END_NAMESPACE
 
 #endif // EXECUTABLECONTENT_H

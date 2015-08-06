@@ -26,6 +26,7 @@
 
 #include <QTextStream>
 
+QT_BEGIN_NAMESPACE
 namespace Scxml {
 
 struct MainClass;
@@ -74,4 +75,6 @@ private:
 };
 
 } // namespace Scxml
+QT_END_NAMESPACE
+
 #endif // CPPDUMPER_H

@@ -19,10 +19,12 @@
 #ifndef DATAMODEL_H
 #define DATAMODEL_H
 
-#include "executablecontent.h"
+#include <QScxml/executablecontent.h>
 
 #include <QVariant>
 #include <QVector>
+
+QT_BEGIN_NAMESPACE
 
 namespace Scxml {
 
@@ -102,5 +104,7 @@ private:
 };
 
 } // namespace Scxml
+
+QT_END_NAMESPACE
 
 #endif // DATAMODEL_H

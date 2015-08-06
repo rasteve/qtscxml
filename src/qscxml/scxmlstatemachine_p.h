@@ -16,8 +16,8 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#ifndef SCXMLSTATETABLE_P_H
-#define SCXMLSTATETABLE_P_H
+#ifndef SCXMLSTATEMACHINE_P_H
+#define SCXMLSTATEMACHINE_P_H
 
 //
 //  W A R N I N G
@@ -34,6 +34,8 @@
 #include "scxmlstatemachine.h"
 
 #include <QtCore/private/qstatemachine_p.h>
+
+QT_BEGIN_NAMESPACE
 
 namespace Scxml {
 namespace Internal {
@@ -102,5 +104,7 @@ private:
 };
 } // Scxml namespace
 
-#endif // SCXMLSTATETABLE_P_H
+QT_END_NAMESPACE
+
+#endif // SCXMLSTATEMACHINE_P_H
 

@@ -19,7 +19,9 @@
 #ifndef SCXMLQSTATES_H
 #define SCXMLQSTATES_H
 
-#include "scxmlstatemachine.h"
+#include <QScxml/scxmlstatemachine.h>
+
+QT_BEGIN_NAMESPACE
 
 namespace Scxml {
 
@@ -132,5 +134,7 @@ private:
 };
 
 } // Scxml namespace
+
+QT_END_NAMESPACE
 
 #endif // SCXMLQSTATES_H

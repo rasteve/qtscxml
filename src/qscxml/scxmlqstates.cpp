@@ -19,6 +19,8 @@
 #include "scxmlqstates.h"
 #include "scxmlstatemachine_p.h"
 
+QT_BEGIN_NAMESPACE
+
 namespace Scxml {
 
 class ScxmlBaseTransition::Data
@@ -345,3 +347,5 @@ void ScxmlFinalState::onExit(QEvent *event)
 }
 
 } // Scxml namespace
+
+QT_END_NAMESPACE

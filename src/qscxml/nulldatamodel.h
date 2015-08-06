@@ -19,7 +19,9 @@
 #ifndef NULLDATAMODEL_H
 #define NULLDATAMODEL_H
 
-#include "datamodel.h"
+#include <QScxml/datamodel.h>
+
+QT_BEGIN_NAMESPACE
 
 namespace Scxml {
 
@@ -52,5 +54,7 @@ private:
 };
 
 } // Scxml namespace
+
+QT_END_NAMESPACE
 
 #endif // NULLDATAMODEL_H

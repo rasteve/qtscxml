@@ -19,11 +19,13 @@
 #ifndef SCXMLEVENT_H
 #define SCXMLEVENT_H
 
-#include "scxmlglobals.h"
+#include <QScxml/scxmlglobals.h>
 
 #include <QEvent>
 #include <QStringList>
 #include <QVariantList>
+
+QT_BEGIN_NAMESPACE
 
 namespace Scxml {
 
@@ -65,5 +67,7 @@ private:
 };
 
 } // namespace Scxml
+
+QT_END_NAMESPACE
 
 #endif // SCXMLEVENT_H

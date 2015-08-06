@@ -38,6 +38,8 @@
 #include "ecmascriptdatamodel.h"
 #endif
 
+QT_BEGIN_NAMESPACE
+
 namespace Scxml {
 Q_LOGGING_CATEGORY(scxmlLog, "scxml.table")
 
@@ -868,3 +870,5 @@ void ScxmlEvent::clear() {
 }
 
 } // namespace Scxml
+
+QT_END_NAMESPACE

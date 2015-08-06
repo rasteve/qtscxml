@@ -64,7 +64,7 @@ private:
 private:
     QUrl m_filename;
     Kids m_children;
-    Scxml::StateMachine *m_table;
+    Scxml::StateMachine *m_stateMachine;
     QScopedPointer<Scxml::EcmaScriptDataModel> m_dataModel;
 };
 

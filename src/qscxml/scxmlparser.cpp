@@ -42,6 +42,7 @@ enum {
 };
 } // anonymous namespace
 
+QT_BEGIN_NAMESPACE
 namespace Scxml {
 
 static QString scxmlNamespace = QStringLiteral("http://www.w3.org/2005/07/scxml");
@@ -1656,3 +1657,4 @@ bool ScxmlParserPrivate::checkAttributes(const QXmlStreamAttributes &attributes,
 }
 
 } // namespace Scxml
+QT_END_NAMESPACE

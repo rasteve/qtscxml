@@ -35,6 +35,8 @@
 #include "scxmlparser_p.h"
 #include "scxmlstatemachine.h"
 
+QT_BEGIN_NAMESPACE
+
 namespace Scxml {
 
 static inline bool operator<(const EvaluatorInfo &ei1, const EvaluatorInfo &ei2)
@@ -478,5 +480,7 @@ private:
 
 } // ExecutableContent namespace
 } // namespace Scxml
+
+QT_END_NAMESPACE
 
 #endif // EXECUTABLECONTENT_P_H

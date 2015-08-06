@@ -35,6 +35,8 @@
 #include <QJSValue>
 #include <QObject>
 
+QT_BEGIN_NAMESPACE
+
 namespace Scxml {
 
 class StateMachine;
@@ -64,5 +66,7 @@ private:
 };
 
 } // Scxml namespace
+
+QT_END_NAMESPACE
 
 #endif // ECMASCRIPTPLATFORMPROPERTIES_P_H

@@ -35,6 +35,8 @@
 #include <QStringList>
 #include <QString>
 
+QT_BEGIN_NAMESPACE
+
 namespace Scxml {
 class ScxmlParser;
 
@@ -609,5 +611,7 @@ private:
 };
 
 } // namespace Scxml
+
+QT_END_NAMESPACE
 
 #endif // SCXMLPARSER_P_H

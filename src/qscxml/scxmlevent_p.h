@@ -36,6 +36,8 @@
 
 #include <QAtomicInt>
 
+QT_BEGIN_NAMESPACE
+
 namespace Scxml {
 
 class EventBuilder
@@ -126,6 +128,8 @@ public:
 };
 
 } // Scxml namespace
+
+QT_END_NAMESPACE
 
 #endif // SCXMLEVENT_P_H
 

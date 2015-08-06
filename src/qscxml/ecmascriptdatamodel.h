@@ -23,7 +23,6 @@
 
 QT_BEGIN_NAMESPACE
 class QJSEngine;
-QT_END_NAMESPACE
 
 namespace Scxml {
 
@@ -59,5 +58,7 @@ private:
 };
 
 } // Scxml namespace
+
+QT_END_NAMESPACE
 
 #endif // ECMASCRIPTDATAMODEL_H

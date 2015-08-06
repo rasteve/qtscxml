@@ -19,6 +19,7 @@
 #include "ecmascriptplatformproperties_p.h"
 #include "scxmlstatemachine.h"
 
+QT_BEGIN_NAMESPACE
 namespace Scxml {
 class PlatformProperties::Data
 {
@@ -31,6 +32,7 @@ public:
     QJSValue m_jsValue;
 };
 } // Scxml namespace
+QT_END_NAMESPACE
 
 using namespace Scxml;
 

@@ -22,11 +22,11 @@
 #include <QJSValue>
 #include <QObject>
 
+QT_BEGIN_NAMESPACE
+
 namespace Scxml {
 class ScxmlState;
 }
-
-QT_BEGIN_NAMESPACE
 
 class StateMachine;
 class SignalEvent: public QObject

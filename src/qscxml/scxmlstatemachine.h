@@ -16,12 +16,12 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#ifndef SCXMLSTATETABLE_H
-#define SCXMLSTATETABLE_H
+#ifndef SCXMLSTATEMACHINE_H
+#define SCXMLSTATEMACHINE_H
 
-#include "datamodel.h"
-#include "executablecontent.h"
-#include "scxmlevent.h"
+#include <QScxml/datamodel.h>
+#include <QScxml/executablecontent.h>
+#include <QScxml/scxmlevent.h>
 
 #include <QState>
 #include <QFinalState>
@@ -50,7 +50,6 @@ QT_BEGIN_NAMESPACE
 class QXmlStreamWriter;
 class QTextStream;
 class QDebug;
-QT_END_NAMESPACE
 
 namespace Scxml {
 SCXML_EXPORT Q_DECLARE_LOGGING_CATEGORY(scxmlLog)
@@ -193,8 +192,7 @@ private:
 
 } // namespace Scxml
 
-QT_BEGIN_NAMESPACE
 Q_DECLARE_TYPEINFO(Scxml::ScxmlError, Q_MOVABLE_TYPE);
 QT_END_NAMESPACE
 
-#endif // SCXMLSTATETABLE_H
+#endif // SCXMLSTATEMACHINE_H

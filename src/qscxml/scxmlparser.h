@@ -19,14 +19,13 @@
 #ifndef SCXMLPARSER_H
 #define SCXMLPARSER_H
 
-#include "scxmlstatemachine.h"
+#include <QScxml/scxmlstatemachine.h>
 
 #include <QStringList>
 #include <QString>
 
 QT_BEGIN_NAMESPACE
 class QXmlStreamReader;
-QT_END_NAMESPACE
 
 namespace Scxml {
 
@@ -65,5 +64,7 @@ private:
 };
 
 } // namespace Scxml
+
+QT_END_NAMESPACE
 
 #endif // SCXMLPARSER_H
