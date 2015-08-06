@@ -23,7 +23,7 @@
 #include <QVector>
 #include <QQmlParserStatus>
 #include <QQmlListProperty>
-#include <QScxml/scxmlstatetable.h>
+#include <QScxml/scxmlstatemachine.h>
 #include <QScxml/ecmascriptdatamodel.h>
 
 QT_BEGIN_NAMESPACE
@@ -36,7 +36,7 @@ class StateMachine: public QObject, public QQmlParserStatus
     Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(QQmlListProperty<QObject> states READ states NOTIFY statesChanged DESIGNABLE false)
     Q_PROPERTY(QUrl filename READ filename WRITE setFilename NOTIFY filenameChanged)
-    Q_PROPERTY(Scxml::StateTable* stateMachine READ stateMachine WRITE setStateMachine DESIGNABLE false)
+    Q_PROPERTY(Scxml::StateMachine* stateMachine READ stateMachine WRITE setStateMachine DESIGNABLE false)
 
     Q_CLASSINFO("DefaultProperty", "states")
 
@@ -48,8 +48,8 @@ public:
     void componentComplete();
     QQmlListProperty<QObject> states();
 
-    Scxml::StateTable *stateMachine() const;
-    void setStateMachine(Scxml::StateTable *stateMachine);
+    Scxml::StateMachine *stateMachine() const;
+    void setStateMachine(Scxml::StateMachine *stateMachine);
 
     QUrl filename();
     void setFilename(const QUrl &filename);
@@ -64,7 +64,7 @@ private:
 private:
     QUrl m_filename;
     Kids m_children;
-    Scxml::StateTable *m_table;
+    Scxml::StateMachine *m_table;
     QScopedPointer<Scxml::EcmaScriptDataModel> m_dataModel;
 };
 

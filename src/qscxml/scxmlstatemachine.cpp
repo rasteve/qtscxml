@@ -16,7 +16,7 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include "scxmlstatetable_p.h"
+#include "scxmlstatemachine_p.h"
 #include "executablecontent_p.h"
 #include "scxmlevent_p.h"
 #include "scxmlqstates.h"
@@ -59,7 +59,7 @@ class MyQStateMachinePrivate: public QStateMachinePrivate
     Q_DECLARE_PUBLIC(MyQStateMachine)
 
 public:
-    MyQStateMachinePrivate(StateTable *table)
+    MyQStateMachinePrivate(StateMachine *table)
         : m_table(table)
         , m_queuedEvents(Q_NULLPTR)
     {}
@@ -80,7 +80,7 @@ protected: // overrides for QStateMachinePrivate:
 #endif
 
 public: // fields
-    StateTable *m_table;
+    StateMachine *m_table;
 
     struct QueuedEvent
     {
@@ -95,26 +95,26 @@ public: // fields
     QVector<QueuedEvent> *m_queuedEvents;
 };
 
-MyQStateMachine::MyQStateMachine(StateTable *parent)
+MyQStateMachine::MyQStateMachine(StateMachine *parent)
     : QStateMachine(*new MyQStateMachinePrivate(parent), parent)
 {}
 
-MyQStateMachine::MyQStateMachine(MyQStateMachinePrivate &dd, StateTable *parent)
+MyQStateMachine::MyQStateMachine(MyQStateMachinePrivate &dd, StateMachine *parent)
     : QStateMachine(dd, parent)
 {}
 
-StateTable *MyQStateMachine::stateTable() const
+StateMachine *MyQStateMachine::stateTable() const
 {
     Q_D(const MyQStateMachine);
 
     return d->m_table;
 }
 
-StateTablePrivate *MyQStateMachine::stateTablePrivate()
+StateMachinePrivate *MyQStateMachine::stateMachinePrivate()
 {
     Q_D(MyQStateMachine);
 
-    return StateTablePrivate::get(d->m_table);
+    return StateMachinePrivate::get(d->m_table);
 }
 } // Internal namespace
 
@@ -227,53 +227,53 @@ QDebug operator<<(QDebug debug, const ScxmlError &error)
 TableData::~TableData()
 {}
 
-QAtomicInt StateTablePrivate::m_sessionIdCounter = QAtomicInt(0);
+QAtomicInt StateMachinePrivate::m_sessionIdCounter = QAtomicInt(0);
 
-StateTablePrivate::StateTablePrivate()
+StateMachinePrivate::StateMachinePrivate()
     : QObjectPrivate()
     , m_sessionId(m_sessionIdCounter++)
     , m_dataModel(Q_NULLPTR)
-    , m_dataBinding(StateTable::EarlyBinding)
+    , m_dataBinding(StateMachine::EarlyBinding)
     , m_executionEngine(Q_NULLPTR)
     , m_tableData(Q_NULLPTR)
     , m_qStateMachine(Q_NULLPTR)
 {}
 
-StateTablePrivate::~StateTablePrivate()
+StateMachinePrivate::~StateMachinePrivate()
 {
     delete m_executionEngine;
 }
 
-void StateTablePrivate::setQStateMachine(Internal::MyQStateMachine *stateMachine)
+void StateMachinePrivate::setQStateMachine(Internal::MyQStateMachine *stateMachine)
 {
     m_qStateMachine = stateMachine;
 }
 
-StateTablePrivate::ParserData *StateTablePrivate::parserData()
+StateMachinePrivate::ParserData *StateMachinePrivate::parserData()
 {
     if (m_parserData.isNull())
         m_parserData.reset(new ParserData);
     return m_parserData.data();
 }
 
-StateTable *StateTable::fromFile(const QString &fileName, DataModel *dataModel)
+StateMachine *StateMachine::fromFile(const QString &fileName, DataModel *dataModel)
 {
     QFile scxmlFile(fileName);
     if (!scxmlFile.open(QIODevice::ReadOnly)) {
         QVector<ScxmlError> errors({
                                 ScxmlError(scxmlFile.fileName(), 0, 0, QStringLiteral("cannot open for reading"))
                             });
-        auto table = new StateTable;
-        StateTablePrivate::get(table)->parserData()->m_errors = errors;
+        auto table = new StateMachine;
+        StateMachinePrivate::get(table)->parserData()->m_errors = errors;
         return table;
     }
 
-    StateTable *table = fromData(&scxmlFile, dataModel);
+    StateMachine *table = fromData(&scxmlFile, dataModel);
     scxmlFile.close();
     return table;
 }
 
-StateTable *StateTable::fromData(QIODevice *data, DataModel *dataModel)
+StateMachine *StateMachine::fromData(QIODevice *data, DataModel *dataModel)
 {
     QXmlStreamReader xmlReader(data);
     Scxml::ScxmlParser parser(&xmlReader);
@@ -287,96 +287,96 @@ StateTable *StateTable::fromData(QIODevice *data, DataModel *dataModel)
     return table;
 }
 
-QVector<ScxmlError> StateTable::errors() const
+QVector<ScxmlError> StateMachine::errors() const
 {
-    Q_D(const StateTable);
+    Q_D(const StateMachine);
     return d->m_parserData ? d->m_parserData->m_errors : QVector<ScxmlError>();
 }
 
-StateTable::StateTable(QObject *parent)
-    : QObject(*new StateTablePrivate, parent)
+StateMachine::StateMachine(QObject *parent)
+    : QObject(*new StateMachinePrivate, parent)
 {
-    Q_D(StateTable);
+    Q_D(StateMachine);
     d->m_executionEngine = new ExecutableContent::ExecutionEngine(this);
     d->setQStateMachine(new Internal::MyQStateMachine(this));
-    connect(d->m_qStateMachine, &QStateMachine::finished, this, &StateTable::onFinished);
-    connect(d->m_qStateMachine, &QStateMachine::finished, this, &StateTable::finished);
+    connect(d->m_qStateMachine, &QStateMachine::finished, this, &StateMachine::onFinished);
+    connect(d->m_qStateMachine, &QStateMachine::finished, this, &StateMachine::finished);
 }
 
-StateTable::StateTable(StateTablePrivate &dd, QObject *parent)
+StateMachine::StateMachine(StateMachinePrivate &dd, QObject *parent)
     : QObject(dd, parent)
 {
-    Q_D(StateTable);
+    Q_D(StateMachine);
     d->m_executionEngine = new ExecutableContent::ExecutionEngine(this);
-    connect(d->m_qStateMachine, &QStateMachine::finished, this, &StateTable::onFinished);
-    connect(d->m_qStateMachine, &QStateMachine::finished, this, &StateTable::finished);
+    connect(d->m_qStateMachine, &QStateMachine::finished, this, &StateMachine::onFinished);
+    connect(d->m_qStateMachine, &QStateMachine::finished, this, &StateMachine::finished);
 }
 
-QStateMachine *StateTable::qStateMachine() const
+QStateMachine *StateMachine::qStateMachine() const
 {
-    Q_D(const StateTable);
+    Q_D(const StateMachine);
 
     return d->m_qStateMachine;
 }
 
-int StateTable::sessionId() const
+int StateMachine::sessionId() const
 {
-    Q_D(const StateTable);
+    Q_D(const StateMachine);
 
     return d->m_sessionId;
 }
 
-DataModel *StateTable::dataModel() const
+DataModel *StateMachine::dataModel() const
 {
-    Q_D(const StateTable);
+    Q_D(const StateMachine);
 
     return d->m_dataModel;
 }
 
-void StateTable::setDataModel(DataModel *dataModel)
+void StateMachine::setDataModel(DataModel *dataModel)
 {
-    Q_D(StateTable);
+    Q_D(StateMachine);
 
     d->m_dataModel = dataModel;
     dataModel->setTable(this);
 }
 
-void StateTable::setDataBinding(StateTable::BindingMethod b)
+void StateMachine::setDataBinding(StateMachine::BindingMethod b)
 {
-    Q_D(StateTable);
+    Q_D(StateMachine);
 
     d->m_dataBinding = b;
 }
 
-StateTable::BindingMethod StateTable::dataBinding() const
+StateMachine::BindingMethod StateMachine::dataBinding() const
 {
-    Q_D(const StateTable);
+    Q_D(const StateMachine);
 
     return d->m_dataBinding;
 }
 
-ExecutableContent::ExecutionEngine *StateTable::executionEngine() const
+ExecutableContent::ExecutionEngine *StateMachine::executionEngine() const
 {
-    Q_D(const StateTable);
+    Q_D(const StateMachine);
 
     return d->m_executionEngine;
 }
 
-TableData *StateTable::tableData() const
+TableData *StateMachine::tableData() const
 {
-    Q_D(const StateTable);
+    Q_D(const StateMachine);
 
     return d->m_tableData;
 }
 
-void StateTable::setTableData(TableData *tableData)
+void StateMachine::setTableData(TableData *tableData)
 {
-    Q_D(StateTable);
+    Q_D(StateMachine);
 
     d->m_tableData = tableData;
 }
 
-void StateTable::doLog(const QString &label, const QString &msg)
+void StateMachine::doLog(const QString &label, const QString &msg)
 {
     qCDebug(scxmlLog) << label << ":" << msg;
     emit log(label, msg);
@@ -399,7 +399,7 @@ void Internal::MyQStateMachine::beginSelectTransitions(QEvent *event)
             QObject *s = e->sender();
             if (s == this) {
                 if (signalName.startsWith(QByteArray("event_"))){
-                    stateTablePrivate()->m_event.reset(signalName.mid(6), eventType, e->arguments());
+                    stateMachinePrivate()->m_event.reset(signalName.mid(6), eventType, e->arguments());
                     break;
                 } else {
                     qCWarning(scxmlLog) << "Unexpected signal event sent to StateMachine "
@@ -415,7 +415,7 @@ void Internal::MyQStateMachine::beginSelectTransitions(QEvent *event)
             QList<QByteArray> namePieces;
             namePieces << QByteArray("qsignal") << senderName << signalName;
             QByteArray eventName = namePieces.join('.');
-            stateTablePrivate()->m_event.reset(eventName, eventType, e->arguments());
+            stateMachinePrivate()->m_event.reset(eventName, eventType, e->arguments());
         } break;
         case QEvent::StateMachineWrapped: {
             QStateMachine::WrappedEvent * e = (QStateMachine::WrappedEvent *)event;
@@ -444,25 +444,25 @@ void Internal::MyQStateMachine::beginSelectTransitions(QEvent *event)
             QByteArray name = namePieces.join('.');
             ScxmlEvent::EventType eventType = ScxmlEvent::External;
             // use e->spontaneous(); to choose internal/external?
-            stateTablePrivate()->m_event.reset(name, eventType); // put something more in data for some elements like keyEvents and mouseEvents?
+            stateMachinePrivate()->m_event.reset(name, eventType); // put something more in data for some elements like keyEvents and mouseEvents?
         } break;
         default:
             if (event->type() == ScxmlEvent::scxmlEventType) {
-                stateTablePrivate()->m_event = *static_cast<ScxmlEvent *>(event);
+                stateMachinePrivate()->m_event = *static_cast<ScxmlEvent *>(event);
             } else {
                 QEvent::Type qeventType = event->type();
                 QByteArray eventName = QStringLiteral("qdirectevent.E%1").arg((int)qeventType).toUtf8();
-                stateTablePrivate()->m_event.reset(eventName);
+                stateMachinePrivate()->m_event.reset(eventName);
                 qCWarning(scxmlLog) << "Unexpected event directly sent to StateMachine "
                                     << d->m_table->tableData()->name() << ":" << event->type();
             }
             break;
         }
     } else {
-        stateTablePrivate()->m_event.clear();
+        stateMachinePrivate()->m_event.clear();
     }
 
-    d->m_table->dataModel()->setEvent(stateTablePrivate()->m_event);
+    d->m_table->dataModel()->setEvent(stateMachinePrivate()->m_event);
 }
 
 void Internal::MyQStateMachine::beginMicrostep(QEvent *event)
@@ -470,7 +470,7 @@ void Internal::MyQStateMachine::beginMicrostep(QEvent *event)
     Q_D(MyQStateMachine);
 
     qCDebug(scxmlLog) << d->m_table->tableData()->name() << " started microstep from state" << d->m_table->activeStates()
-                      << "with event" << stateTablePrivate()->m_event.name() << "from event type" << event->type();
+                      << "with event" << stateMachinePrivate()->m_event.name() << "from event type" << event->type();
 }
 
 void Internal::MyQStateMachine::endMicrostep(QEvent *event)
@@ -543,9 +543,9 @@ int Internal::MyQStateMachinePrivate::eventIdForDelayedEvent(const QByteArray &s
     return -1;
 }
 
-QStringList StateTable::activeStates(bool compress)
+QStringList StateMachine::activeStates(bool compress)
 {
-    Q_D(StateTable);
+    Q_D(StateMachine);
 
     QSet<QAbstractState *> config = QStateMachinePrivate::get(d->m_qStateMachine)->configuration;
     if (compress)
@@ -562,9 +562,9 @@ QStringList StateTable::activeStates(bool compress)
     return res;
 }
 
-bool StateTable::isActive(const QString &scxmlStateName) const
+bool StateMachine::isActive(const QString &scxmlStateName) const
 {
-    Q_D(const StateTable);
+    Q_D(const StateMachine);
     QSet<QAbstractState *> config = QStateMachinePrivate::get(d->m_qStateMachine)->configuration;
     foreach (QAbstractState *s, config) {
         if (s->objectName() == scxmlStateName) {
@@ -592,22 +592,22 @@ static ScxmlState *findState(const QString &scxmlName, QStateMachine *parent)
     return Q_NULLPTR;
 }
 
-bool StateTable::hasState(const QString &scxmlStateName) const
+bool StateMachine::hasState(const QString &scxmlStateName) const
 {
-    Q_D(const StateTable);
+    Q_D(const StateMachine);
     return findState(scxmlStateName, d->m_qStateMachine) != Q_NULLPTR;
 }
 
-QMetaObject::Connection StateTable::connect(const QString &scxmlStateName, const char *signal,
+QMetaObject::Connection StateMachine::connect(const QString &scxmlStateName, const char *signal,
                                             const QObject *receiver, const char *method,
                                             Qt::ConnectionType type)
 {
-    Q_D(StateTable);
+    Q_D(StateMachine);
     ScxmlState *state = findState(scxmlStateName, d->m_qStateMachine);
     return QObject::connect(state, signal, receiver, method, type);
 }
 
-void StateTable::executeInitialSetup()
+void StateMachine::executeInitialSetup()
 {
     executionEngine()->execute(tableData()->initialSetup());
 }
@@ -654,9 +654,9 @@ static bool loopOnSubStates(QState *startState,
     return true;
 }
 
-bool StateTable::init()
+bool StateMachine::init()
 {
-    Q_D(StateTable);
+    Q_D(StateMachine);
 
     dataModel()->setup();
     executeInitialSetup();
@@ -683,30 +683,30 @@ bool StateTable::init()
     return res;
 }
 
-bool StateTable::isRunning() const
+bool StateMachine::isRunning() const
 {
-    Q_D(const StateTable);
+    Q_D(const StateMachine);
 
     return d->m_qStateMachine->isRunning();
 }
 
-QString StateTable::name() const
+QString StateMachine::name() const
 {
     return tableData()->name();
 }
 
-void StateTable::submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid)
+void StateMachine::submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid)
 {
     qCDebug(scxmlLog) << "machine" << name() << "had error" << type << ":" << msg;
     submitEvent(EventBuilder::errorEvent(type, sendid));
 }
 
-void StateTable::submitEvent1(const QString &event)
+void StateMachine::submitEvent1(const QString &event)
 {
     submitEvent(event.toUtf8(), QVariantList());
 }
 
-void StateTable::submitEvent2(const QString &event, QVariant data)
+void StateMachine::submitEvent2(const QString &event, QVariant data)
 {
     QVariantList dataValues;
     if (data.isValid())
@@ -714,9 +714,9 @@ void StateTable::submitEvent2(const QString &event, QVariant data)
     submitEvent(event.toUtf8(), dataValues);
 }
 
-void StateTable::submitEvent(ScxmlEvent *e)
+void StateMachine::submitEvent(ScxmlEvent *e)
 {
-    Q_D(StateTable);
+    Q_D(StateMachine);
 
     if (!e)
         return;
@@ -731,7 +731,7 @@ void StateTable::submitEvent(ScxmlEvent *e)
         d->m_qStateMachine->queueEvent(e, priority);
 }
 
-void StateTable::submitEvent(const QByteArray &event, const QVariantList &dataValues,
+void StateMachine::submitEvent(const QByteArray &event, const QVariantList &dataValues,
                              const QStringList &dataNames, ScxmlEvent::EventType type,
                              const QByteArray &sendid, const QString &origin,
                              const QString &origintype, const QByteArray &invokeid)
@@ -742,10 +742,10 @@ void StateTable::submitEvent(const QByteArray &event, const QVariantList &dataVa
     submitEvent(e);
 }
 
-void StateTable::submitDelayedEvent(int delayInMiliSecs, ScxmlEvent *e)
+void StateMachine::submitDelayedEvent(int delayInMiliSecs, ScxmlEvent *e)
 {
     Q_ASSERT(delayInMiliSecs > 0);
-    Q_D(StateTable);
+    Q_D(StateMachine);
 
     if (!e)
         return;
@@ -758,9 +758,9 @@ void StateTable::submitDelayedEvent(int delayInMiliSecs, ScxmlEvent *e)
     qCDebug(scxmlLog) << name() << ": delayed event" << e->name() << "(" << e << ") got id:" << id;
 }
 
-void StateTable::cancelDelayedEvent(const QByteArray &sendid)
+void StateMachine::cancelDelayedEvent(const QByteArray &sendid)
 {
-    Q_D(StateTable);
+    Q_D(StateMachine);
 
     int id = d->m_qStateMachine->eventIdForDelayedEvent(sendid);
 
@@ -801,26 +801,26 @@ int Internal::MyQStateMachine::eventIdForDelayedEvent(const QByteArray &scxmlEve
     return d->eventIdForDelayedEvent(scxmlEventId);
 }
 
-bool StateTable::isLegalTarget(const QString &target) const
+bool StateMachine::isLegalTarget(const QString &target) const
 {
     return target.startsWith(QLatin1Char('#'));
 }
 
-bool StateTable::isDispatchableTarget(const QString &target) const
+bool StateMachine::isDispatchableTarget(const QString &target) const
 {
     return target == QStringLiteral("#_internal")
             || target == QStringLiteral("#_scxml_%1").arg(sessionId());
 }
 
-void StateTable::onFinished()
+void StateMachine::onFinished()
 {
     // The final state is also a stable state.
     emit reachedStableState(true);
 }
 
-void StateTable::start()
+void StateMachine::start()
 {
-    Q_D(StateTable);
+    Q_D(StateMachine);
 
     d->m_qStateMachine->start();
 }

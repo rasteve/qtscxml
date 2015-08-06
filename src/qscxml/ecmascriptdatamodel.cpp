@@ -79,7 +79,7 @@ public:
         if (v.isError()) {
             *ok = false;
             static QByteArray sendid;
-            table()->submitError(QByteArray("error.execution"),
+            stateMachine()->submitError(QByteArray("error.execution"),
                                  QStringLiteral("%1 in %2").arg(v.toString(), context),
                                  sendid);
             return QJSValue(QJSValue::UndefinedValue);
@@ -101,17 +101,17 @@ public:
     void setupSystemVariables()
     {
         setReadonlyProperty(&dataModel, QStringLiteral("_sessionid"),
-                            QStringLiteral("session%1").arg(table()->sessionId()));
+                            QStringLiteral("session%1").arg(stateMachine()->sessionId()));
 
-        setReadonlyProperty(&dataModel, QStringLiteral("_name"), table()->name());
+        setReadonlyProperty(&dataModel, QStringLiteral("_name"), stateMachine()->name());
 
         auto scxml = engine()->newObject();
-        scxml.setProperty(QStringLiteral("location"), QStringLiteral("#_scxml_%1").arg(table()->sessionId()));
+        scxml.setProperty(QStringLiteral("location"), QStringLiteral("#_scxml_%1").arg(stateMachine()->sessionId()));
         auto ioProcs = engine()->newObject();
         setReadonlyProperty(&ioProcs, QStringLiteral("scxml"), scxml);
         setReadonlyProperty(&dataModel, QStringLiteral("_ioprocessors"), ioProcs);
 
-        auto platformVars = PlatformProperties::create(engine(), table());
+        auto platformVars = PlatformProperties::create(engine(), stateMachine());
         dataModel.setProperty(QStringLiteral("_x"), platformVars->jsValue());
 
         dataModel.setProperty(QStringLiteral("In"),
@@ -173,13 +173,13 @@ public:
         }
     }
 
-    StateTable *table() const
-    { return q->table(); }
+    StateMachine *stateMachine() const
+    { return q->stateMachine(); }
 
     QJSEngine *engine() const
     {
         if (jsEngine == Q_NULLPTR) {
-            jsEngine = new QJSEngine(table());
+            jsEngine = new QJSEngine(stateMachine());
         }
 
         return jsEngine;
@@ -189,10 +189,10 @@ public:
     { jsEngine = engine; }
 
     QString string(ExecutableContent::StringId id) const
-    { return table()->tableData()->string(id); }
+    { return stateMachine()->tableData()->string(id); }
 
-    StateTable::BindingMethod dataBinding() const
-    { return table()->dataBinding(); }
+    StateMachine::BindingMethod dataBinding() const
+    { return stateMachine()->dataBinding(); }
 
     bool hasProperty(const QString &name) const
     { return dataModel.hasProperty(name); }
@@ -224,7 +224,7 @@ public:
 
         *ok = false;
         static QByteArray sendid;
-        table()->submitError(QByteArray("error.execution"), msg.arg(name, context), sendid);
+        stateMachine()->submitError(QByteArray("error.execution"), msg.arg(name, context), sendid);
     }
 
 private: // Uses private API
@@ -322,7 +322,7 @@ void EcmaScriptDataModel::setup()
     bool ok;
     QJSValue v(QJSValue::UndefinedValue); // See B.2.1, and test456.
     int count;
-    ExecutableContent::StringId *names = table()->tableData()->dataNames(&count);
+    ExecutableContent::StringId *names = stateMachine()->tableData()->dataNames(&count);
     for (int i = 0; i < count; ++i)
         d->setProperty(d->string(names[i]), v, QStringLiteral("<data>"), &ok);
 
@@ -330,28 +330,28 @@ void EcmaScriptDataModel::setup()
 
 QString EcmaScriptDataModel::evaluateToString(EvaluatorId id, bool *ok)
 {
-    const EvaluatorInfo &info = table()->tableData()->evaluatorInfo(id);
+    const EvaluatorInfo &info = stateMachine()->tableData()->evaluatorInfo(id);
 
     return d->evalStr(d->string(info.expr), d->string(info.context), ok);
 }
 
 bool EcmaScriptDataModel::evaluateToBool(EvaluatorId id, bool *ok)
 {
-    const EvaluatorInfo &info = table()->tableData()->evaluatorInfo(id);
+    const EvaluatorInfo &info = stateMachine()->tableData()->evaluatorInfo(id);
 
     return d->evalBool(d->string(info.expr), d->string(info.context), ok);
 }
 
 QVariant EcmaScriptDataModel::evaluateToVariant(EvaluatorId id, bool *ok)
 {
-    const EvaluatorInfo &info = table()->tableData()->evaluatorInfo(id);
+    const EvaluatorInfo &info = stateMachine()->tableData()->evaluatorInfo(id);
 
     return d->evalJSValue(d->string(info.expr), d->string(info.context), ok).toVariant();
 }
 
 void EcmaScriptDataModel::evaluateToVoid(EvaluatorId id, bool *ok)
 {
-    const EvaluatorInfo &info = table()->tableData()->evaluatorInfo(id);
+    const EvaluatorInfo &info = stateMachine()->tableData()->evaluatorInfo(id);
 
     d->eval(d->string(info.expr), d->string(info.context), ok);
 }
@@ -360,7 +360,7 @@ void EcmaScriptDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
 {
     Q_ASSERT(ok);
 
-    const AssignmentInfo &info = table()->tableData()->assignmentInfo(id);
+    const AssignmentInfo &info = stateMachine()->tableData()->assignmentInfo(id);
     static QByteArray sendid;
 
     QString dest = d->string(info.dest);
@@ -371,7 +371,7 @@ void EcmaScriptDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
             d->setProperty(dest, v, d->string(info.context), ok);
     } else {
         *ok = false;
-        table()->submitError(QByteArray("error.execution"),
+        stateMachine()->submitError(QByteArray("error.execution"),
                              QStringLiteral("%1 in %2 does not exist").arg(dest, d->string(info.context)),
                              sendid);
     }
@@ -382,18 +382,18 @@ bool EcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopB
     Q_ASSERT(ok);
     Q_ASSERT(body);
     static QByteArray sendid;
-    const ForeachInfo &info = table()->tableData()->foreachInfo(id);
+    const ForeachInfo &info = stateMachine()->tableData()->foreachInfo(id);
 
     QJSValue jsArray = d->property(d->string(info.array));
     if (!jsArray.isArray()) {
-        table()->submitError("error.execution", QStringLiteral("invalid array '%1' in %2").arg(d->string(info.array), d->string(info.context)), sendid);
+        stateMachine()->submitError("error.execution", QStringLiteral("invalid array '%1' in %2").arg(d->string(info.array), d->string(info.context)), sendid);
         *ok = false;
         return false;
     }
 
     QString item = d->string(info.item);
     if (engine()->evaluate(QStringLiteral("(function(){var %1 = 0})()").arg(item)).isError()) {
-        table()->submitError("error.execution", QStringLiteral("invalid item '%1' in %2")
+        stateMachine()->submitError("error.execution", QStringLiteral("invalid item '%1' in %2")
                              .arg(d->string(info.item), d->string(info.context)), sendid);
         *ok = false;
         return false;

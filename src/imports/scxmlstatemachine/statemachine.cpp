@@ -21,7 +21,7 @@
 #include "statemachine.h"
 
 #include <QScxml/ecmascriptdatamodel.h>
-#include <QScxml/scxmlstatetable.h>
+#include <QScxml/scxmlstatemachine.h>
 #include <QScxml/scxmlparser.h>
 #include <QQmlContext>
 #include <QQmlEngine>
@@ -88,12 +88,12 @@ QQmlListProperty<QObject> StateMachine::states()
     return QQmlListProperty<QObject>(this, &m_children, append, count, at, clear);
 }
 
-Scxml::StateTable *StateMachine::stateMachine() const
+Scxml::StateMachine *StateMachine::stateMachine() const
 {
     return m_table;
 }
 
-void StateMachine::setStateMachine(Scxml::StateTable *table)
+void StateMachine::setStateMachine(Scxml::StateMachine *table)
 {
     qDebug()<<"setting state machine to"<<table;
     if (m_table == Q_NULLPTR && table != Q_NULLPTR) {
@@ -143,7 +143,7 @@ bool StateMachine::parse(const QUrl &filename)
     QByteArray data(scxmlFile.dataByteArray());
     QBuffer buf(&data);
     Q_ASSERT(buf.open(QIODevice::ReadOnly));
-    Scxml::StateTable *sm = Scxml::StateTable::fromData(&buf, new Scxml::EcmaScriptDataModel);
+    Scxml::StateMachine *sm = Scxml::StateMachine::fromData(&buf, new Scxml::EcmaScriptDataModel);
     setStateMachine(sm);
 
     if (!sm->errors().isEmpty()) {

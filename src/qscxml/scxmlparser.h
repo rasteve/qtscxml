@@ -19,7 +19,7 @@
 #ifndef SCXMLPARSER_H
 #define SCXMLPARSER_H
 
-#include "scxmlstatetable.h"
+#include "scxmlstatemachine.h"
 
 #include <QStringList>
 #include <QString>
@@ -52,8 +52,8 @@ public:
     void setFileName(const QString &fileName);
 
     void parse();
-    StateTable *instantiateStateMachine() const;
-    void instantiateDataModel(StateTable *table) const;
+    StateMachine *instantiateStateMachine() const;
+    void instantiateDataModel(StateMachine *table) const;
 
     State state() const;
     QVector<ScxmlError> errors() const;

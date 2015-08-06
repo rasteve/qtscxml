@@ -124,7 +124,7 @@ for (f,ALLSCXMLS) {
         sn ~=s/[^a-zA-Z_0-9]/_/
 
         inc_list += "$${LITERAL_HASH}include \"scxml/$${sn}_$${hn}.h\""
-        func_list += "    []()->Scxml::StateTable*{return new $${sn}::$${cn};},"
+        func_list += "    []()->Scxml::StateMachine*{return new $${sn}::$${cn};},"
 
         tn = $$relative_path($$f,$$absolute_path($$SCXMLS_DIR/../../..))
         tn ~= s/\\.scxml$//
@@ -133,7 +133,7 @@ for (f,ALLSCXMLS) {
 }
 file_cont= \
     $$inc_list \
-    "std::function<Scxml::StateTable *()> creators[] = {" \
+    "std::function<Scxml::StateMachine *()> creators[] = {" \
     $$func_list \
     "};"
 write_file("scxml/compiled_tests.h", file_cont)|error("Aborting.")

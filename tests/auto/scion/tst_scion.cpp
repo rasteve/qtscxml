@@ -26,7 +26,7 @@
 #include "scxml/scion.h"
 #include "scxml/compiled_tests.h"
 
-Q_DECLARE_METATYPE(std::function<Scxml::StateTable *()>);
+Q_DECLARE_METATYPE(std::function<Scxml::StateMachine *()>);
 
 enum { SpyWaitTime = 8000 };
 
@@ -151,7 +151,7 @@ private slots:
 
 private:
     void generateData();
-    bool runTest(StateTable *stateMachine, const QJsonObject &testDescription);
+    bool runTest(StateMachine *stateMachine, const QJsonObject &testDescription);
 };
 
 void TestScion::initTestCase()
@@ -171,7 +171,7 @@ void TestScion::generateData()
     QTest::addColumn<QString>("scxml");
     QTest::addColumn<QString>("json");
     QTest::addColumn<TestStatus>("testStatus");
-    QTest::addColumn<std::function<Scxml::StateTable *()>>("creator");
+    QTest::addColumn<std::function<Scxml::StateMachine *()>>("creator");
 
     const int nrOfTests = sizeof(testBases) / sizeof(const char *);
     for (int i = 0; i < nrOfTests; ++i) {
@@ -202,7 +202,7 @@ void TestScion::dynamic()
     QFETCH(QString, scxml);
     QFETCH(QString, json);
     QFETCH(TestStatus, testStatus);
-    QFETCH(std::function<Scxml::StateTable *()>, creator);
+    QFETCH(std::function<Scxml::StateMachine *()>, creator);
 
 //    fprintf(stderr, "\n\n%s\n%s\n\n", qPrintable(scxml), qPrintable(json));
 
@@ -227,7 +227,7 @@ void TestScion::dynamic()
     QVERIFY(parser.errors().isEmpty());
     scxmlFile.close();
 
-    QScopedPointer<StateTable> table(parser.instantiateStateMachine());
+    QScopedPointer<StateMachine> table(parser.instantiateStateMachine());
     if (table == Q_NULLPTR && testStatus == TestFails) {
         QEXPECT_FAIL("", "This is expected to fail", Abort);
     }
@@ -262,7 +262,7 @@ void TestScion::compiled()
     QFETCH(QString, scxml);
     QFETCH(QString, json);
     QFETCH(TestStatus, testStatus);
-    QFETCH(std::function<Scxml::StateTable *()>, creator);
+    QFETCH(std::function<Scxml::StateMachine *()>, creator);
 
     if (testStatus == TestCrashes)
         QSKIP("Test is marked as a crasher");
@@ -274,7 +274,7 @@ void TestScion::compiled()
     auto testDescription = QJsonDocument::fromJson(jsonFile.readAll());
     jsonFile.close();
 
-    QScopedPointer<Scxml::StateTable> table(creator());
+    QScopedPointer<Scxml::StateMachine> table(creator());
     if (table == Q_NULLPTR && testStatus == TestFails) {
         QEXPECT_FAIL("", "This is expected to fail", Abort);
     }
@@ -285,7 +285,7 @@ void TestScion::compiled()
     QVERIFY(runTest(table.data(), testDescription.object()));
 }
 
-static bool verifyStates(StateTable *stateMachine, const QJsonObject &stateDescription, const QString &key, int counter)
+static bool verifyStates(StateMachine *stateMachine, const QJsonObject &stateDescription, const QString &key, int counter)
 {
     auto current = stateMachine->activeStates();
     std::sort(current.begin(), current.end());
@@ -299,7 +299,7 @@ static bool verifyStates(StateTable *stateMachine, const QJsonObject &stateDescr
     return false;
 }
 
-static bool playEvent(StateTable *stateMachine, const QJsonObject &eventDescription, int counter)
+static bool playEvent(StateMachine *stateMachine, const QJsonObject &eventDescription, int counter)
 {
     if (!stateMachine->isRunning()) {
         qWarning() << "State machine stopped running!";
@@ -369,7 +369,7 @@ static bool playEvent(StateTable *stateMachine, const QJsonObject &eventDescript
     return false;
 }
 
-static bool playEvents(StateTable *stateMachine, const QJsonObject &testDescription)
+static bool playEvents(StateMachine *stateMachine, const QJsonObject &testDescription)
 {
     auto jsonEvents = testDescription.value(QLatin1String("events"));
     Q_ASSERT(!jsonEvents.isNull());
@@ -381,7 +381,7 @@ static bool playEvents(StateTable *stateMachine, const QJsonObject &testDescript
     return true;
 }
 
-bool TestScion::runTest(StateTable *stateMachine, const QJsonObject &testDescription)
+bool TestScion::runTest(StateMachine *stateMachine, const QJsonObject &testDescription)
 {
     MySignalSpy stableStateSpy(stateMachine, SIGNAL(reachedStableState(bool)));
     MySignalSpy finishedSpy(stateMachine, SIGNAL(finished()));

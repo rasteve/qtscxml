@@ -24,10 +24,10 @@ class DataModel::Data
 {
 public:
     Data()
-        : m_table(Q_NULLPTR)
+        : m_stateMachine(Q_NULLPTR)
     {}
 
-    StateTable *m_table;
+    StateMachine *m_stateMachine;
 };
 
 DataModel::ForeachLoopBody::~ForeachLoopBody()
@@ -42,14 +42,14 @@ DataModel::~DataModel()
     delete d;
 }
 
-StateTable *DataModel::table() const
+StateMachine *DataModel::stateMachine() const
 {
-    return d->m_table;
+    return d->m_stateMachine;
 }
 
-void DataModel::setTable(StateTable *table)
+void DataModel::setTable(StateMachine *table)
 {
-    d->m_table = table;
+    d->m_stateMachine = table;
 }
 
 NullDataModel *DataModel::asNullDataModel()

@@ -37,7 +37,7 @@
 
 namespace Scxml {
 
-class StateTable;
+class StateMachine;
 class PlatformProperties: public QObject
 {
     Q_OBJECT
@@ -47,11 +47,11 @@ class PlatformProperties: public QObject
     Q_PROPERTY(QString marks READ marks CONSTANT)
 
 public:
-    static PlatformProperties *create(QJSEngine *engine, StateTable *table);
+    static PlatformProperties *create(QJSEngine *engine, StateMachine *stateMachine);
     ~PlatformProperties();
 
     QJSEngine *engine() const;
-    StateTable *table() const;
+    StateMachine *stateMachine() const;
     QJSValue jsValue() const;
 
     QString marks() const;

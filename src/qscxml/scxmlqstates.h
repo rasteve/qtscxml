@@ -19,7 +19,7 @@
 #ifndef SCXMLQSTATES_H
 #define SCXMLQSTATES_H
 
-#include "scxmlstatetable.h"
+#include "scxmlstatemachine.h"
 
 namespace Scxml {
 
@@ -34,7 +34,7 @@ public:
                         const QList<QByteArray> &eventSelector = QList<QByteArray>());
     ~ScxmlBaseTransition();
 
-    StateTable *table() const;
+    StateMachine *stateMachine() const;
     QString transitionLocation() const;
 
     bool eventTest(QEvent *event) Q_DECL_OVERRIDE;
@@ -59,7 +59,7 @@ public:
     ~ScxmlTransition();
 
     bool eventTest(QEvent *event) Q_DECL_OVERRIDE;
-    StateTable *table() const;
+    StateMachine *stateMachine() const;
 
     void setInstructionsOnTransition(ExecutableContent::ContainerId instructions);
     void setConditionalExpression(EvaluatorId evaluator);
@@ -80,7 +80,7 @@ class SCXML_EXPORT ScxmlState: public QState
 public:
     ScxmlState(QState *parent = 0);
 
-    StateTable *table() const;
+    StateMachine *stateMachine() const;
     virtual bool init();
     QString stateLocation() const;
 
@@ -114,7 +114,7 @@ public:
     ScxmlFinalState(QState *parent = 0);
     ~ScxmlFinalState();
 
-    StateTable *table() const;
+    StateMachine *stateMachine() const;
     virtual bool init();
 
     ExecutableContent::ContainerId doneData() const;

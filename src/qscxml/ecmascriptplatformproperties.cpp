@@ -17,7 +17,7 @@
  ****************************************************************************/
 
 #include "ecmascriptplatformproperties_p.h"
-#include "scxmlstatetable.h"
+#include "scxmlstatemachine.h"
 
 namespace Scxml {
 class PlatformProperties::Data
@@ -27,7 +27,7 @@ public:
         : m_table(Q_NULLPTR)
     {}
 
-    StateTable *m_table;
+    StateMachine *m_table;
     QJSValue m_jsValue;
 };
 } // Scxml namespace
@@ -39,7 +39,7 @@ PlatformProperties::PlatformProperties(QObject *parent)
     , data(new Data)
 {}
 
-PlatformProperties *PlatformProperties::create(QJSEngine *engine, StateTable *table)
+PlatformProperties *PlatformProperties::create(QJSEngine *engine, StateMachine *table)
 {
     PlatformProperties *pp = new PlatformProperties(engine);
     pp->data->m_table = table;
@@ -57,7 +57,7 @@ QJSEngine *PlatformProperties::engine() const
     return qobject_cast<QJSEngine *>(parent());
 }
 
-StateTable *PlatformProperties::table() const
+StateMachine *PlatformProperties::stateMachine() const
 {
     return data->m_table;
 }
@@ -75,5 +75,5 @@ QString PlatformProperties::marks() const
 
 bool PlatformProperties::In(const QString &stateName)
 {
-    return table()->isActive(stateName);
+    return stateMachine()->isActive(stateName);
 }

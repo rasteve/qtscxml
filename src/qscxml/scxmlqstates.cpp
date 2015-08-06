@@ -17,7 +17,7 @@
  ****************************************************************************/
 
 #include "scxmlqstates.h"
-#include "scxmlstatetable_p.h"
+#include "scxmlstatemachine_p.h"
 
 namespace Scxml {
 
@@ -47,12 +47,12 @@ ScxmlBaseTransition::~ScxmlBaseTransition()
     delete d;
 }
 
-StateTable *ScxmlBaseTransition::table() const {
+StateMachine *ScxmlBaseTransition::stateMachine() const {
     if (Internal::MyQStateMachine *t = qobject_cast<Internal::MyQStateMachine *>(parent()))
         return t->stateTable();
     if (QState *s = sourceState())
         return qobject_cast<Internal::MyQStateMachine *>(s->machine())->stateTable();
-    qCWarning(scxmlLog) << "could not resolve StateTable in " << transitionLocation();
+    qCWarning(scxmlLog) << "could not find Scxml::StateMachine in " << transitionLocation();
     return 0;
 }
 
@@ -71,9 +71,9 @@ bool ScxmlBaseTransition::eventTest(QEvent *event)
         return true;
     if (event->type() == QEvent::None)
         return false;
-    StateTable *stateTable = table();
+    StateMachine *stateTable = stateMachine();
     Q_ASSERT(stateTable);
-    QByteArray eventName = StateTablePrivate::get(stateTable)->m_event.name();
+    QByteArray eventName = StateMachinePrivate::get(stateTable)->m_event.name();
     bool selected = false;
     foreach (QByteArray eventStr, d->eventSelector) {
         if (eventStr == "*") {
@@ -169,7 +169,7 @@ bool ScxmlTransition::eventTest(QEvent *event)
     if (ScxmlBaseTransition::eventTest(event)) {
         bool ok = true;
         if (d->conditionalExp != NoEvaluator)
-            return table()->dataModel()->evaluateToBool(d->conditionalExp, &ok) && ok;
+            return stateMachine()->dataModel()->evaluateToBool(d->conditionalExp, &ok) && ok;
         return true;
     }
 
@@ -178,10 +178,10 @@ bool ScxmlTransition::eventTest(QEvent *event)
 
 void ScxmlTransition::onTransition(QEvent *)
 {
-    table()->executionEngine()->execute(d->instructionsOnTransition);
+    stateMachine()->executionEngine()->execute(d->instructionsOnTransition);
 }
 
-StateTable *ScxmlTransition::table() const {
+StateMachine *ScxmlTransition::stateMachine() const {
     // work around a bug in QStateMachine
     if (Internal::MyQStateMachine *t = qobject_cast<Internal::MyQStateMachine *>(sourceState()))
         return t->stateTable();
@@ -218,7 +218,7 @@ ScxmlState::ScxmlState(QState *parent)
     : QState(*new ScxmlStatePrivate, parent)
 {}
 
-StateTable *ScxmlState::table() const {
+StateMachine *ScxmlState::stateMachine() const {
     return qobject_cast<Internal::MyQStateMachine *>(machine())->stateTable();
 }
 
@@ -262,11 +262,11 @@ void ScxmlState::onEntry(QEvent *event)
     Q_D(ScxmlState);
 
     if (d->initInstructions != ExecutableContent::NoInstruction) {
-        table()->executionEngine()->execute(d->initInstructions);
+        stateMachine()->executionEngine()->execute(d->initInstructions);
         d->initInstructions = ExecutableContent::NoInstruction;
     }
     QState::onEntry(event);
-    table()->executionEngine()->execute(d->onEntryInstructions);
+    stateMachine()->executionEngine()->execute(d->onEntryInstructions);
     emit didEnter();
 }
 
@@ -276,7 +276,7 @@ void ScxmlState::onExit(QEvent *event)
 
     emit willExit();
     QState::onExit(event);
-    table()->executionEngine()->execute(d->onExitInstructions);
+    stateMachine()->executionEngine()->execute(d->onExitInstructions);
 }
 
 class ScxmlFinalState::Data
@@ -303,7 +303,7 @@ ScxmlFinalState::~ScxmlFinalState()
     delete d;
 }
 
-StateTable *ScxmlFinalState::table() const {
+StateMachine *ScxmlFinalState::stateMachine() const {
     return qobject_cast<Internal::MyQStateMachine *>(machine())->stateTable();
 }
 
@@ -335,13 +335,13 @@ void ScxmlFinalState::setOnExitInstructions(ExecutableContent::ContainerId instr
 void ScxmlFinalState::onEntry(QEvent *event)
 {
     QFinalState::onEntry(event);
-    table()->executionEngine()->execute(d->onEntryInstructions);
+    stateMachine()->executionEngine()->execute(d->onEntryInstructions);
 }
 
 void ScxmlFinalState::onExit(QEvent *event)
 {
     QFinalState::onExit(event);
-    table()->executionEngine()->execute(d->onExitInstructions);
+    stateMachine()->executionEngine()->execute(d->onExitInstructions);
 }
 
 } // Scxml namespace

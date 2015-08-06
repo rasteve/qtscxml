@@ -33,7 +33,7 @@
 #include "datamodel.h"
 #include "executablecontent.h"
 #include "scxmlparser_p.h"
-#include "scxmlstatetable.h"
+#include "scxmlstatemachine.h"
 
 namespace Scxml {
 

@@ -19,7 +19,7 @@
 #include "nulldatamodel.h"
 #include "scxmlevent.h"
 
-#include "scxmlstatetable.h"
+#include "scxmlstatemachine.h"
 
 using namespace Scxml;
 
@@ -50,16 +50,16 @@ public:
         if (info.error) {
             *ok = false;
             static QByteArray sendid;
-            q->table()->submitError(QByteArray("error.execution"), info.str, sendid);
+            q->stateMachine()->submitError(QByteArray("error.execution"), info.str, sendid);
             return false;
         }
 
-        return q->table()->isActive(info.str);
+        return q->stateMachine()->isActive(info.str);
     }
 
     ResolvedEvaluatorInfo prepare(EvaluatorId id)
     {
-        auto td = q->table()->tableData();
+        auto td = q->stateMachine()->tableData();
         const EvaluatorInfo &info = td->evaluatorInfo(id);
         QString expr = td->string(info.expr);
         for (int i = 0; i < expr.size(); ) {
@@ -106,7 +106,7 @@ QString NullDataModel::evaluateToString(EvaluatorId id, bool *ok)
     // We do implement this, because <log> is allowed in the Null data model,
     // and <log> has an expr attribute that needs "evaluation" for it to generate the log message.
     *ok = true;
-    auto td = table()->tableData();
+    auto td = stateMachine()->tableData();
     const EvaluatorInfo &info = td->evaluatorInfo(id);
     return td->string(info.expr);
 }

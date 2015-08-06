@@ -62,7 +62,7 @@ static int parseTime(const QString &t, bool *ok = 0)
 class ExecutionEngine::Data
 {
 public:
-    Data(StateTable *table)
+    Data(StateMachine *table)
         : table(table)
     {}
 
@@ -258,11 +258,11 @@ public:
         }
     }
 
-    StateTable *table;
+    StateMachine *table;
     QVariant extraData;
 };
 
-ExecutionEngine::ExecutionEngine(StateTable *table)
+ExecutionEngine::ExecutionEngine(StateMachine *table)
     : data(new Data(table))
 {
     Q_ASSERT(table);

@@ -31,7 +31,7 @@
 //
 
 #include "scxmlevent.h"
-#include "scxmlstatetable.h"
+#include "scxmlstatemachine.h"
 #include "executablecontent_p.h"
 
 #include <QAtomicInt>
@@ -40,7 +40,7 @@ namespace Scxml {
 
 class EventBuilder
 {
-    StateTable* table;
+    StateMachine* table;
     ExecutableContent::StringId instructionLocation;
     QByteArray event;
     EvaluatorId eventexpr;
@@ -80,7 +80,7 @@ class EventBuilder
     }
 
 public:
-    EventBuilder(StateTable *table, const QString &eventName, const ExecutableContent::DoneData *doneData)
+    EventBuilder(StateMachine *table, const QString &eventName, const ExecutableContent::DoneData *doneData)
     {
         init();
         this->table = table;
@@ -92,7 +92,7 @@ public:
         params = &doneData->params;
     }
 
-    EventBuilder(StateTable *table, ExecutableContent::Send &send)
+    EventBuilder(StateMachine *table, ExecutableContent::Send &send)
     {
         init();
         this->table = table;

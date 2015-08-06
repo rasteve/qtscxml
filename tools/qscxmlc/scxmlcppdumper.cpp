@@ -140,7 +140,7 @@ static QString toHex(const QString &str)
 }
 
 const char *headerStart =
-        "#include <QScxml/scxmlstatetable.h>\n"
+        "#include <QScxml/scxmlstatemachine.h>\n"
         "\n";
 
 using namespace DocumentModel;
@@ -192,13 +192,13 @@ protected:
                               << QStringLiteral("{ return string(%1); }").arg(addString(node->name))
                               << QString();
             if (m_options.nameQObjects)
-                clazz.init.impl << QStringLiteral("table.setObjectName(string(%1));").arg(addString(node->name));
+                clazz.init.impl << QStringLiteral("stateMachine.setObjectName(string(%1));").arg(addString(node->name));
         } else {
             clazz.dataMethods << QStringLiteral("QString name() const Q_DECL_OVERRIDE")
-                              << QStringLiteral("{ return QString(); }").arg(addString(node->name))
+                              << QStringLiteral("{ return QString(); }")
                               << QString();
         }
-        clazz.init.impl << QStringLiteral("table.setDataModel(&dataModel);");
+        clazz.init.impl << QStringLiteral("stateMachine.setDataModel(&dataModel);");
 
         QString binding;
         switch (node->binding) {
@@ -212,13 +212,13 @@ protected:
         default:
             Q_UNREACHABLE();
         }
-        clazz.init.impl << QStringLiteral("table.setDataBinding(Scxml::StateTable::%1Binding);").arg(binding);
+        clazz.init.impl << QStringLiteral("stateMachine.setDataBinding(Scxml::StateMachine::%1Binding);").arg(binding);
 
         clazz.implIncludes << QStringLiteral("QScxml/executablecontent.h");
-        clazz.init.impl << QStringLiteral("table.setTableData(this);");
+        clazz.init.impl << QStringLiteral("stateMachine.setTableData(this);");
 
         foreach (AbstractState *s, node->initialStates) {
-            clazz.init.impl << QStringLiteral("table.qStateMachine()->setInitialState(&state_") + mangledName(s) + QStringLiteral(");");
+            clazz.init.impl << QStringLiteral("stateMachine.qStateMachine()->setInitialState(&state_") + mangledName(s) + QStringLiteral(");");
         }
 
         // visit the kids:
@@ -239,7 +239,7 @@ protected:
             endSequence();
         } else {
             clazz.dataMethods << QStringLiteral("Scxml::ExecutableContent::ContainerId initialSetup() const Q_DECL_OVERRIDE")
-                              << QStringLiteral("{ return Scxml::ExecutableContent::NoInstruction; }").arg(startNewSequence())
+                              << QStringLiteral("{ return Scxml::ExecutableContent::NoInstruction; }")
                               << QString();
         }
 
@@ -469,7 +469,7 @@ private:
         } else if (HistoryState *historyState = parent->asHistoryState()) {
             parentName = mangledName(historyState);
         } else if (Scxml *scxml = parent->asScxml()) {
-            parentName = QStringLiteral("table");
+            parentName = QStringLiteral("stateMachine");
             idx = childIndex(t, scxml->children);
         } else {
             Q_UNREACHABLE();
@@ -511,7 +511,7 @@ private:
         if (State *parentState = node->parent->asState()) {
             init += QStringLiteral("&state_") + mangledName(parentState);
         } else {
-            init += QStringLiteral("table.qStateMachine()");
+            init += QStringLiteral("stateMachine.qStateMachine()");
         }
         init += QLatin1Char(')');
         return init;
@@ -577,7 +577,7 @@ private:
         else if (HistoryState *h = parent->asHistoryState())
             return QStringLiteral("state_") + mangledName(h);
         else if (parent->asScxml())
-            return QStringLiteral("(*table.qStateMachine())");
+            return QStringLiteral("(*stateMachine.qStateMachine())");
         else
             Q_UNIMPLEMENTED();
         return QString();
@@ -862,7 +862,7 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     h << l(headerStart);
     if (!options.namespaceName.isEmpty())
         h << l("namespace ") << options.namespaceName << l(" {") << endl << endl;
-    h << l("class ") << mainClassName << l(" : public Scxml::StateTable\n{") << endl;
+    h << l("class ") << mainClassName << l(" : public Scxml::StateMachine\n{") << endl;
     h << QLatin1String("    Q_OBJECT\n\n");
     h << QLatin1String("public:\n");
     h << l("    ") << mainClassName << l("(QObject *parent = 0);") << endl;
@@ -898,7 +898,7 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
 
     cpp << l("struct ") << mainClassName << l("::Data: private Scxml::TableData {") << endl;
 
-    cpp << QStringLiteral("    Data(%1 &table)\n        : table(table)").arg(mainClassName) << endl;
+    cpp << QStringLiteral("    Data(%1 &stateMachine)\n        : stateMachine(stateMachine)").arg(mainClassName) << endl;
     clazz.constructor.initializer.write(cpp, QStringLiteral("        , "), QStringLiteral("\n"));
     cpp << l("    { init(); }") << endl;
 
@@ -910,13 +910,13 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     clazz.dataMethods.write(cpp, QStringLiteral("    "), QStringLiteral("\n"));
 
     cpp << endl
-        << QStringLiteral("    %1 &table;").arg(mainClassName) << endl;
+        << QStringLiteral("    %1 &stateMachine;").arg(mainClassName) << endl;
     clazz.classFields.write(cpp, QStringLiteral("    "), QStringLiteral("\n"));
 
     cpp << l("};") << endl
         << endl;
     cpp << mainClassName << l("::") << mainClassName << l("(QObject *parent)") << endl
-        << l("    : Scxml::StateTable(parent)") << endl
+        << l("    : Scxml::StateMachine(parent)") << endl
         << l("    , data(new Data(*this))") << endl
         << l("{}") << endl
         << endl;

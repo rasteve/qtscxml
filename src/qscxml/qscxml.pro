@@ -12,9 +12,9 @@ DEFINES  += SCXML_LIBRARY \
 HEADERS += \
     scxmlparser.h \
     scxmlparser_p.h \
-    scxmlstatetable.h \
+    scxmlstatemachine.h \
+    scxmlstatemachine_p.h \
     scxmlglobals.h \
-    scxmlstatetable_p.h \
     nulldatamodel.h \
     ecmascriptdatamodel.h \
     ecmascriptplatformproperties_p.h \
@@ -27,7 +27,7 @@ HEADERS += \
 
 SOURCES += \
     scxmlparser.cpp \
-    scxmlstatetable.cpp \
+    scxmlstatemachine.cpp \
     nulldatamodel.cpp \
     ecmascriptdatamodel.cpp \
     ecmascriptplatformproperties.cpp \

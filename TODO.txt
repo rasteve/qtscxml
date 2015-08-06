@@ -2,12 +2,9 @@
 - add test to scxml validation failures.
 - add a signal for <invoke target="qt:signal:name"/>
 
-- only process the scxml namespace, and don't complain about other namespaces
-
 - document qt:classname property and its schema/namespace
 - go over the TODOs/FIXMEs
 - probably rename ScxmlParser to Scxml::Parser
-- rename StateTable to something like Scxml::StateMachine
 - check if the use of namespaces is according to Qt standards
 - code review
 - qmake review

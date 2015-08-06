@@ -103,8 +103,8 @@ private:
 
 QDebug Q_QML_EXPORT operator<<(QDebug debug, const ScxmlError &error);
 
-class StateTablePrivate;
-class SCXML_EXPORT StateTable: public QObject
+class StateMachinePrivate;
+class SCXML_EXPORT StateMachine: public QObject
 {
     Q_OBJECT
     Q_ENUMS(BindingMethod)
@@ -115,12 +115,12 @@ public:
         LateBinding
     };
 
-    static StateTable *fromFile(const QString &fileName, DataModel *dataModel = Q_NULLPTR);
-    static StateTable *fromData(QIODevice *data, DataModel *dataModel = Q_NULLPTR);
+    static StateMachine *fromFile(const QString &fileName, DataModel *dataModel = Q_NULLPTR);
+    static StateMachine *fromData(QIODevice *data, DataModel *dataModel = Q_NULLPTR);
     QVector<ScxmlError> errors() const;
 
-    StateTable(QObject *parent = 0);
-    StateTable(StateTablePrivate &dd, QObject *parent);
+    StateMachine(QObject *parent = 0);
+    StateMachine(StateMachinePrivate &dd, QObject *parent);
 
     /// If this state machine is backed by a QStateMachine, that QStateMachine is returned. Otherwise, a null-pointer is returned.
     QStateMachine *qStateMachine() const;
@@ -188,7 +188,7 @@ protected:
     void executeInitialSetup();
 
 private:
-    Q_DECLARE_PRIVATE(StateTable)
+    Q_DECLARE_PRIVATE(StateMachine)
 };
 
 } // namespace Scxml

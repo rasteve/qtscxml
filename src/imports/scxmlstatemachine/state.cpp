@@ -19,7 +19,7 @@
 #include "state.h"
 #include "statemachine.h"
 
-#include <QScxml/scxmlstatetable.h>
+#include <QScxml/scxmlstatemachine.h>
 #include <QQmlInfo>
 
 State::State(StateMachine *parent)
@@ -34,7 +34,7 @@ void State::componentComplete()
     establishConnections();
 
     StateMachine *stateMachine = qobject_cast<StateMachine *>(parent());
-    if (Scxml::StateTable *table = stateMachine->stateMachine()) {
+    if (Scxml::StateMachine *table = stateMachine->stateMachine()) {
         active = table->isActive(m_scxmlName);
         connect(stateMachine, SIGNAL(filenameChanged()), this, SLOT(onFilenameChanged()));
     }
@@ -86,7 +86,7 @@ void State::establishConnections()
     if (!completed)
         return;
 
-    Scxml::StateTable *table = qobject_cast<StateMachine *>(parent())->stateMachine();
+    Scxml::StateMachine *table = qobject_cast<StateMachine *>(parent())->stateMachine();
     if (table == Q_NULLPTR) {
         return;
     }

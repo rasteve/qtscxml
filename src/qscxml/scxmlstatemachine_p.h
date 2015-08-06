@@ -31,7 +31,7 @@
 //
 
 #include "executablecontent_p.h"
-#include "scxmlstatetable.h"
+#include "scxmlstatemachine.h"
 
 #include <QtCore/private/qstatemachine_p.h>
 
@@ -44,10 +44,10 @@ class MyQStateMachine: public QStateMachine
     Q_DECLARE_PRIVATE(MyQStateMachine)
 
 public:
-    MyQStateMachine(StateTable *parent);
-    MyQStateMachine(MyQStateMachinePrivate &dd, StateTable *parent);
+    MyQStateMachine(StateMachine *parent);
+    MyQStateMachine(MyQStateMachinePrivate &dd, StateMachine *parent);
 
-    StateTable *stateTable() const;
+    StateMachine *stateTable() const;
 
     void queueEvent(ScxmlEvent *event, QStateMachine::EventPriority priority);
     void submitQueuedEvents();
@@ -59,13 +59,13 @@ protected:
     void endMicrostep(QEvent *event) Q_DECL_OVERRIDE;
 
 private:
-    StateTablePrivate *stateTablePrivate();
+    StateMachinePrivate *stateMachinePrivate();
 };
 } // Internal namespace
 
-class StateTablePrivate: public QObjectPrivate
+class StateMachinePrivate: public QObjectPrivate
 {
-    Q_DECLARE_PUBLIC(StateTable)
+    Q_DECLARE_PUBLIC(StateMachine)
 
     static QAtomicInt m_sessionIdCounter;
 
@@ -78,27 +78,27 @@ public: // types
     };
 
 public:
-    StateTablePrivate();
-    ~StateTablePrivate();
+    StateMachinePrivate();
+    ~StateMachinePrivate();
 
-    static StateTablePrivate *get(StateTable *t)
+    static StateMachinePrivate *get(StateMachine *t)
     { return t->d_func(); }
 
     void setQStateMachine(Internal::MyQStateMachine *stateMachine);
 
     ParserData *parserData();
 
-public: // StateTable data fields:
+public: // data fields:
     const int m_sessionId;
     DataModel *m_dataModel;
-    StateTable::BindingMethod m_dataBinding;
+    StateMachine::BindingMethod m_dataBinding;
     ExecutableContent::ExecutionEngine *m_executionEngine;
     TableData *m_tableData;
     ScxmlEvent m_event;
     Internal::MyQStateMachine *m_qStateMachine;
 
 private:
-    QScopedPointer<ParserData> m_parserData; // used when created by StateTable::fromFile.
+    QScopedPointer<ParserData> m_parserData; // used when created by StateMachine::fromFile.
 };
 } // Scxml namespace
 

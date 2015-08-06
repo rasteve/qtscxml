@@ -21,7 +21,7 @@
 
 using namespace Scxml;
 
-static bool evaluate(const ExecutableContent::Param &param, StateTable *table, QVariantList &dataValues, QStringList &dataNames)
+static bool evaluate(const ExecutableContent::Param &param, StateMachine *table, QVariantList &dataValues, QStringList &dataNames)
 {
     auto dataModel = table->dataModel();
     auto tableData = table->tableData();
@@ -55,7 +55,7 @@ static bool evaluate(const ExecutableContent::Param &param, StateTable *table, Q
     }
 }
 
-static bool evaluate(const ExecutableContent::Array<ExecutableContent::Param> *params, StateTable *table, QVariantList &dataValues, QStringList &dataNames)
+static bool evaluate(const ExecutableContent::Array<ExecutableContent::Param> *params, StateMachine *table, QVariantList &dataValues, QStringList &dataNames)
 {
     if (!params)
         return true;

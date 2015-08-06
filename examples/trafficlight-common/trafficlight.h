@@ -41,7 +41,7 @@
 #ifndef TRAFFICLIGHT_H
 #define TRAFFICLIGHT_H
 
-#include <QScxml/scxmlstatetable.h>
+#include <QScxml/scxmlstatemachine.h>
 
 #include <QWidget>
 
@@ -50,13 +50,13 @@ class TrafficLight : public QWidget
     Q_OBJECT
 
 public:
-    TrafficLight(Scxml::StateTable *machine, QWidget *parent = 0);
+    TrafficLight(Scxml::StateMachine *machine, QWidget *parent = 0);
 
 public slots:
     void toggleWorking(bool pause);
 
 private:
-    Scxml::StateTable *m_machine;
+    Scxml::StateMachine *m_machine;
 };
 
 class LightWidget: public QWidget

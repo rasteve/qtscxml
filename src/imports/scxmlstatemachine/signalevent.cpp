@@ -74,7 +74,7 @@ void SignalEvent::setSignal(const QJSValue &signal)
 
 void SignalEvent::invoke()
 {
-    if (Scxml::StateTable *table = qobject_cast<StateMachine *>(parent())->stateMachine()) {
+    if (Scxml::StateMachine *table = qobject_cast<StateMachine *>(parent())->stateMachine()) {
         QMetaObject::invokeMethod(table, "submitEvent", Q_ARG(QByteArray, m_eventName));
     } else {
         qmlInfo(this) << QStringLiteral("No state table found to submit event '%1'.").arg(QString::fromUtf8(m_eventName));

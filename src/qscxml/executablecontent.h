@@ -27,7 +27,7 @@
 
 namespace Scxml {
 
-class StateTable;
+class StateMachine;
 
 namespace ExecutableContent {
 
@@ -42,7 +42,7 @@ typedef qint32 *Instructions;
 class SCXML_EXPORT ExecutionEngine
 {
 public:
-    ExecutionEngine(StateTable *table);
+    ExecutionEngine(StateMachine *table);
     ~ExecutionEngine();
 
     bool execute(ContainerId ip, const QVariant &extraData = QVariant());

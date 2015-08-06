@@ -17,7 +17,7 @@
  ****************************************************************************/
 
 #include "scxmlparser_p.h"
-#include "scxmlstatetable_p.h"
+#include "scxmlstatemachine_p.h"
 #include "executablecontent_p.h"
 #include "nulldatamodel.h"
 #include "ecmascriptdatamodel.h"
@@ -309,7 +309,7 @@ public:
         , m_bindLate(false)
     {}
 
-    StateTable *build(DocumentModel::ScxmlDocument *doc)
+    StateMachine *build(DocumentModel::ScxmlDocument *doc)
     {
         m_table = Q_NULLPTR;
         m_parents.reserve(32);
@@ -338,14 +338,14 @@ private:
 
     bool visit(DocumentModel::Scxml *node) Q_DECL_OVERRIDE
     {
-        m_table = new StateTable;
+        m_table = new StateMachine;
 
         switch (node->binding) {
         case DocumentModel::Scxml::EarlyBinding:
-            m_table->setDataBinding(StateTable::EarlyBinding);
+            m_table->setDataBinding(StateMachine::EarlyBinding);
             break;
         case DocumentModel::Scxml::LateBinding:
-            m_table->setDataBinding(StateTable::LateBinding);
+            m_table->setDataBinding(StateMachine::LateBinding);
             m_bindLate = true;
             break;
         default:
@@ -354,7 +354,7 @@ private:
 
         setName(node->name);
 
-        m_parents.append(StateTablePrivate::get(m_table)->m_qStateMachine);
+        m_parents.append(StateMachinePrivate::get(m_table)->m_qStateMachine);
         visit(node->children);
 
         m_dataElements.append(node->dataElements);
@@ -372,7 +372,7 @@ private:
 
         foreach (auto initialState, node->initialStates) {
             Q_ASSERT(initialState);
-            m_initialStates.append(qMakePair(StateTablePrivate::get(m_table)->m_qStateMachine, initialState));
+            m_initialStates.append(qMakePair(StateMachinePrivate::get(m_table)->m_qStateMachine, initialState));
         }
 
         return false;
@@ -487,7 +487,7 @@ private:
             endSequence();
             m_currentTransition = 0;
         }
-        Q_ASSERT(newTransition->table());
+        Q_ASSERT(newTransition->stateMachine());
         return false;
     }
 
@@ -585,7 +585,7 @@ private: // Utility methods
     { return m_table->dataModel(); }
 
 private:
-    StateTable *m_table;
+    StateMachine *m_table;
     QVector<QAbstractState *> m_parents;
     QHash<QAbstractTransition *, DocumentModel::Transition*> m_allTransitions;
     QHash<DocumentModel::AbstractState *, QAbstractState *> m_docStatesToQStates;
@@ -619,18 +619,18 @@ void ScxmlParser::parse()
     p->parse();
 }
 
-StateTable *ScxmlParser::instantiateStateMachine() const
+StateMachine *ScxmlParser::instantiateStateMachine() const
 {
     if (DocumentModel::ScxmlDocument *doc = p->scxmlDocument()) {
         return QStateMachineBuilder().build(doc);
     } else {
-        auto table = new StateTable;
-        StateTablePrivate::get(table)->parserData()->m_errors = errors();
+        auto table = new StateMachine;
+        StateMachinePrivate::get(table)->parserData()->m_errors = errors();
         return table;
     }
 }
 
-void ScxmlParser::instantiateDataModel(StateTable *table) const
+void ScxmlParser::instantiateDataModel(StateMachine *table) const
 {
     DataModel *dataModel = Q_NULLPTR;
     switch (p->scxmlDocument()->root->dataModel) {
@@ -644,7 +644,7 @@ void ScxmlParser::instantiateDataModel(StateTable *table) const
         Q_UNREACHABLE();
     }
     table->setDataModel(dataModel);
-    StateTablePrivate::get(table)->parserData()->m_ownedDataModel.reset(dataModel);
+    StateMachinePrivate::get(table)->parserData()->m_ownedDataModel.reset(dataModel);
 }
 
 ScxmlParser::State ScxmlParser::state() const

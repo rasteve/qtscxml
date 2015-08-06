@@ -27,7 +27,7 @@
 namespace Scxml {
 
 class ScxmlEvent;
-class StateTable;
+class StateMachine;
 
 #if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
 #pragma pack(push, 4) // 4 == sizeof(qint32)
@@ -74,8 +74,8 @@ public:
     DataModel();
     virtual ~DataModel();
 
-    StateTable *table() const;
-    void setTable(StateTable *table);
+    StateMachine *stateMachine() const;
+    void setTable(StateMachine *stateMachine);
 
     virtual void setup() = 0;
 
