@@ -898,7 +898,6 @@ class ScxmlBaseTransition::Data
 {
 public:
     QList<QByteArray> eventSelector;
-    QList<TransitionPtr> m_concreteTransitions;
 };
 
 ScxmlBaseTransition::ScxmlBaseTransition(QState *sourceState, const QList<QByteArray> &eventSelector)
@@ -971,108 +970,17 @@ bool ScxmlBaseTransition::eventTest(QEvent *event)
             }
         }
     }
-#ifdef SCXML_DEBUG
-    if (!d->m_concreteTransitions.isEmpty() && event->type() == QEvent::StateMachineSignal
-            && static_cast<QStateMachine::SignalEvent *>(event)->sender() != stateTable) {
-        bool selected2 = false;
-        foreach (TransitionPtr t, d->m_concreteTransitions) {
-            if (t->subEventTest(event))
-                selected2 = true;
-        }
-        if (selected != selected2) {
-            qCWarning(scxmlLog) << "text based triggering and signal based triggering differs for event"
-                                << eventName << " text based comparison with '"
-                                << d->eventSelector.join(' ')
-                                << "' gives value " << selected
-                                << " while the underlying concrete transitions give "
-                                << selected2 << " in " << transitionLocation();
-        }
-    }
-#endif
     return selected;
 }
 
 bool ScxmlBaseTransition::clear()
 {
-    foreach (TransitionPtr t, d->m_concreteTransitions)
-        sourceState()->removeTransition(t.data());
-    d->m_concreteTransitions.clear();
     return true;
 }
 
 bool ScxmlBaseTransition::init()
 {
-    Q_ASSERT(d->m_concreteTransitions.isEmpty());
-    if (d->eventSelector.isEmpty())
-        return true;
-    bool failure = false;
-    foreach (const QByteArray &eventStr, d->eventSelector) {
-        QList<QByteArray> selector = eventStr.split('.');
-        if (selector.isEmpty())
-            continue;
-        else if (selector.first() == QByteArray("qsignal")) {
-            // FIXME: the sender cannot be found this way anymore. We need some tests before we enable/fix this code.
-            if (true) {
-                Q_UNIMPLEMENTED();
-            } else {
-            // FIXME starts here.
-//            StateTable *stateTable = table();
-            if (selector.count() < 2) {
-                qCWarning(scxmlLog) << "qeventSelector requires a sender id in " << transitionLocation();
-                failure = true;
-                continue;
-            }
-            QObject *sender = Q_NULLPTR; // stateTable->idToValue<QObject>(selector.value(1));
-            if (!sender) {
-                qCWarning(scxmlLog) << "could not find object with id " << selector.value(1)
-                                    << " used in " << transitionLocation();
-                failure = true;
-                continue;
-            }
-            QByteArray methodName = selector.value(2);
-            bool partial = !methodName.contains('(');
-            int minMethodLen = methodName.size();
-            const QMetaObject *metaObject = sender->metaObject();
-            int maxImethod = metaObject->methodCount();
-            for (int imethod = 0; imethod < maxImethod; ++imethod){
-                QMetaMethod m = metaObject->method(imethod);
-                if (m.methodType() != QMetaMethod::Signal) continue;
-                QByteArray mName = m.methodSignature();
-                if (methodName == mName // exact match
-                        || ( // partial match, but excluding deleteLater() destroyed() that must be explicitly included
-                             partial && mName.size() > minMethodLen && mName != QByteArray("deleteLater()")
-                             && mName != QByteArray("destroyed()")
-                             && (methodName.isEmpty() || (mName.startsWith(methodName)
-                                                          && mName.at(methodName.size()) == '('))))
-                {
-                    ConcreteSignalTransition *newT = new ConcreteSignalTransition(sender, mName.data(), sourceState());
-                    newT->setTargetState(targetState()); // avoid?
-                    d->m_concreteTransitions << TransitionPtr(newT);
-                }
-            }
-            if (d->m_concreteTransitions.isEmpty()) {
-                QList<QByteArray> knownSignals;
-                for (int imethod = 0; imethod < maxImethod; ++imethod){
-                    QMetaMethod m = metaObject->method(imethod);
-                    if (m.methodType() != QMetaMethod::Signal) continue;
-                    QByteArray mName = m.methodSignature();
-                    knownSignals.append(mName);
-                }
-                qCWarning(scxmlLog) << "eventSelector failed to match anything in "
-                                    << transitionLocation() << ", selector is: "
-                                    << d->eventSelector.join(' ') << " and known signals are:\n  "
-                                    << knownSignals.join(' ');
-                failure = true; // ignore instead??
-            }
-            } // end of FIXME
-        } else if (selector.first() == QByteArray("qevent")){
-            qCWarning(scxmlLog) << "selector of qevent type to implement";
-            failure = true;
-        } else {
-            // this is expected to be a custom scxml event, no binding required
-        }
-    }
-    return !failure;
+    return true;
 }
 
 void ScxmlBaseTransition::onTransition(QEvent *event)

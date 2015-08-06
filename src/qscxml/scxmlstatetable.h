@@ -194,31 +194,12 @@ private:
     Q_DECLARE_PRIVATE(StateTable)
 };
 
-// this transition is used only to ensure that the signal is forwarded to the state machine
-// (mess with private api instead?), it never triggers, because it will have the incorrect
-// precedence as we add it late...
-class SCXML_EXPORT ConcreteSignalTransition : public QSignalTransition {
-public:
-    ConcreteSignalTransition(const QObject *asender, const char *asignal,
-                             QState *theSourceState = 0) :
-        QSignalTransition(asender, asignal, theSourceState) { }
-    bool subEventTest(QEvent *anevent) {
-        return QSignalTransition::eventTest(anevent);
-    }
-protected:
-    bool eventTest(QEvent *) Q_DECL_OVERRIDE {
-        return false;
-    }
-};
-
 class SCXML_EXPORT ScxmlBaseTransition : public QAbstractTransition
 {
     Q_OBJECT
     class Data;
 
 public:
-    typedef QSharedPointer<ConcreteSignalTransition> TransitionPtr;
-
     ScxmlBaseTransition(QState * sourceState = 0, const QList<QByteArray> &eventSelector = QList<QByteArray>());
     ScxmlBaseTransition(QAbstractTransitionPrivate &dd, QState *parent,
                         const QList<QByteArray> &eventSelector = QList<QByteArray>());
