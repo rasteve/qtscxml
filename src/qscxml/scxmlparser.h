@@ -33,8 +33,19 @@ class ScxmlParserPrivate;
 class SCXML_EXPORT ScxmlParser
 {
 public:
-    typedef std::function<QByteArray(const QString &, bool &, ScxmlParser *parser)> LoaderFunction;
-    static LoaderFunction loaderForDir(const QString &basedir);
+    class SCXML_EXPORT Loader
+    {
+    public:
+        Loader(ScxmlParser *parser);
+        virtual ~Loader();
+        virtual QByteArray load(const QString &name, const QString &baseDir, bool *ok) = 0;
+
+    protected:
+        ScxmlParser *parser() const;
+
+    private:
+        ScxmlParser *m_parser;
+    };
 
     enum State {
         StartingParsing,
@@ -44,11 +55,14 @@ public:
     };
 
 public:
-    ScxmlParser(QXmlStreamReader *xmlReader, LoaderFunction loader = Q_NULLPTR);
+    ScxmlParser(QXmlStreamReader *xmlReader);
     ~ScxmlParser();
 
     QString fileName() const;
     void setFileName(const QString &fileName);
+
+    Loader *loader() const;
+    void setLoader(Loader *newLoader);
 
     void parse();
     StateMachine *instantiateStateMachine() const;

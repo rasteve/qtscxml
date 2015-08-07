@@ -564,12 +564,22 @@ struct ParserState {
     static bool isExecutableContent(ParserState::Kind kind);
 };
 
+class DefaultLoader: public ScxmlParser::Loader
+{
+public:
+    DefaultLoader(ScxmlParser *parser)
+        : Loader(parser)
+    {}
+
+    QByteArray load(const QString &name, const QString &baseDir, bool *ok) Q_DECL_OVERRIDE;
+};
+
 class SCXML_EXPORT ScxmlParserPrivate
 {
 public:
     static ScxmlParserPrivate *get(ScxmlParser *parser);
 
-    ScxmlParserPrivate(ScxmlParser *parser, QXmlStreamReader *reader, Scxml::ScxmlParser::LoaderFunction loader);
+    ScxmlParserPrivate(ScxmlParser *parser, QXmlStreamReader *reader);
 
     ScxmlParser *parser() const;
     DocumentModel::ScxmlDocument *scxmlDocument();
@@ -578,6 +588,7 @@ public:
     void setFilename(const QString &fileName);
 
     void parse();
+    QByteArray load(const QString &name, bool *ok) const;
 
     ScxmlParser::State state() const;
     QVector<ScxmlError> errors() const;
@@ -601,7 +612,8 @@ private:
     QScopedPointer<DocumentModel::ScxmlDocument> m_doc;
     DocumentModel::StateContainer *m_currentParent;
     DocumentModel::StateContainer *m_currentState;
-    ScxmlParser::LoaderFunction m_loader;
+    DefaultLoader m_defaultLoader;
+    ScxmlParser::Loader *m_loader;
     QStringList m_namespacesToIgnore;
 
     QXmlStreamReader *m_reader;

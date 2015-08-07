@@ -92,8 +92,7 @@ int main(int argc, char *argv[])
         outCppFileName = outFileName + QLatin1String(".cpp");
 
     QXmlStreamReader reader(&file);
-    Scxml::ScxmlParser parser(&reader,
-                              Scxml::ScxmlParser::loaderForDir(QFileInfo(file.fileName()).absolutePath()));
+    Scxml::ScxmlParser parser(&reader);
     parser.setFileName(file.fileName());
     parser.parse();
     if (!parser.errors().isEmpty()) {

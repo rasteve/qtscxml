@@ -596,8 +596,8 @@ private:
     QVector<DocumentModel::DataElement *> m_dataElements;
 };
 
-ScxmlParser::ScxmlParser(QXmlStreamReader *reader, LoaderFunction loader)
-    : p(new ScxmlParserPrivate(this, reader, loader))
+ScxmlParser::ScxmlParser(QXmlStreamReader *reader)
+    : p(new ScxmlParserPrivate(this, reader))
 { }
 
 ScxmlParser::~ScxmlParser()
@@ -661,29 +661,6 @@ QVector<Scxml::ScxmlError> ScxmlParser::errors() const
 void ScxmlParser::addError(const QString &msg)
 {
     p->addError(msg);
-}
-
-ScxmlParser::LoaderFunction ScxmlParser::loaderForDir(const QString &basedir)
-{
-    return [basedir](const QString &path, bool &ok, ScxmlParser *parser) -> QByteArray {
-        ok = false;
-        QFileInfo fInfo(path);
-        if (fInfo.isRelative())
-            fInfo = QFileInfo(QDir(basedir).filePath(path));
-        if (!fInfo.exists()) {
-            parser->addError(QStringLiteral("src attribute resolves to non existing file (%1)").arg(fInfo.absoluteFilePath()));
-        } else {
-            QFile f(fInfo.absoluteFilePath());
-            if (f.open(QFile::ReadOnly)) {
-                ok = true;
-                return f.readAll();
-            } else {
-                parser->addError(QStringLiteral("Failure opening file %1: %2")
-                         .arg(fInfo.absoluteFilePath(), f.errorString()));
-            }
-        }
-        return QByteArray();
-    };
 }
 
 bool Scxml::ParserState::collectChars() {
@@ -953,16 +930,52 @@ void DocumentModel::Scxml::accept(DocumentModel::NodeVisitor *visitor)
 DocumentModel::NodeVisitor::~NodeVisitor()
 {}
 
+ScxmlParser::Loader::Loader(ScxmlParser *parser)
+    : m_parser(parser)
+{}
+
+ScxmlParser::Loader::~Loader()
+{}
+
+ScxmlParser *ScxmlParser::Loader::parser() const
+{
+    return m_parser;
+}
+
+QByteArray DefaultLoader::load(const QString &name, const QString &baseDir, bool *ok)
+{
+    Q_ASSERT(ok != nullptr);
+
+    *ok = false;
+    QFileInfo fInfo(name);
+    if (fInfo.isRelative())
+        fInfo = QFileInfo(QDir(baseDir).filePath(name));
+    if (!fInfo.exists()) {
+        parser()->addError(QStringLiteral("src attribute resolves to non existing file (%1)").arg(fInfo.absoluteFilePath()));
+    } else {
+        QFile f(fInfo.absoluteFilePath());
+        if (f.open(QFile::ReadOnly)) {
+            *ok = true;
+            return f.readAll();
+        } else {
+            parser()->addError(QStringLiteral("Failure opening file %1: %2")
+                               .arg(fInfo.absoluteFilePath(), f.errorString()));
+        }
+    }
+    return QByteArray();
+}
+
 ScxmlParserPrivate *ScxmlParserPrivate::get(ScxmlParser *parser)
 {
     return parser->p;
 }
 
-ScxmlParserPrivate::ScxmlParserPrivate(ScxmlParser *parser, QXmlStreamReader *reader, ScxmlParser::LoaderFunction loader)
+ScxmlParserPrivate::ScxmlParserPrivate(ScxmlParser *parser, QXmlStreamReader *reader)
     : m_parser(parser)
     , m_currentParent(Q_NULLPTR)
     , m_currentState(Q_NULLPTR)
-    , m_loader(loader)
+    , m_defaultLoader(parser)
+    , m_loader(&m_defaultLoader)
     , m_reader(reader)
     , m_state(ScxmlParser::StartingParsing)
 {}
@@ -1456,7 +1469,7 @@ void ScxmlParserPrivate::parse()
                         addError(QStringLiteral("cannot parse a document with external dependencies without a loader"));
                     } else {
                         bool ok;
-                        QByteArray data = m_loader(scriptI->src, ok, parser());
+                        QByteArray data = load(scriptI->src, &ok);
                         if (!ok) {
                             addError(QStringLiteral("failed to load external dependency"));
                         } else {
@@ -1560,6 +1573,11 @@ void ScxmlParserPrivate::parse()
             && m_reader->error() != QXmlStreamReader::PrematureEndOfDocumentError) {
         addError(QStringLiteral("Error parsing scxml file: %1").arg(m_reader->errorString()));
     }
+}
+
+QByteArray ScxmlParserPrivate::load(const QString &name, bool *ok) const
+{
+    return m_loader->load(name, QFileInfo(m_fileName).absolutePath(), ok);
 }
 
 ScxmlParser::State ScxmlParserPrivate::state() const
