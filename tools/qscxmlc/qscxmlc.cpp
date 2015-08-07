@@ -23,16 +23,26 @@
 #include <QFile>
 #include <QFileInfo>
 
+enum {
+    NoError = 0,
+    CommandLineArgumentsError = -1,
+    NoInputFilesError = -2,
+    CannotOpenInputFileError = -3,
+    ParseError = -4,
+    CannotOpenOutputHeaderFileError = -5,
+    CannotOpenOutputCppFileError = -6,
+    ScxmlVerificationError = -7
+};
+
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
     QStringList args = a.arguments();
-    QString usage = QStringLiteral("\nusage: %1 [-no-c++11] [-namespace <namespace>] [-o <base/out/name>] [-oh <header/out>] [-ocpp <cpp/out>] [-use-private-api]\n").arg(QFileInfo(args.value(0)).baseName());
-           usage += QStringLiteral("      [-classname <stateMachineClassName>] [-name-qobjects] <input.scxml>\n\n");
+    QString usage = QStringLiteral("\nUsage: %1 [-no-c++11] [-namespace <namespace>] [-o <base/out/name>] [-oh <header/out>] [-ocpp <cpp/out>] [-use-private-api]\n").arg(QFileInfo(args.value(0)).baseName());
+           usage += QStringLiteral("         [-classname <stateMachineClassName>] [-name-qobjects] <input.scxml>\n\n");
            usage += QStringLiteral("compiles the given input.scxml file to a header and cpp file\n");
 
     QTextStream errs(stderr, QIODevice::WriteOnly);
-    QTextStream outs(stderr, QIODevice::WriteOnly);
 
     Scxml::CppDumpOptions options;
     QString scxmlFileName;
@@ -62,17 +72,17 @@ int main(int argc, char *argv[])
         } else {
             errs << QStringLiteral("Unexpected argument: %1").arg(arg) << endl;
             errs << usage;
-            exit(-1);
+            exit(CommandLineArgumentsError);
         }
     }
     if (scxmlFileName.isEmpty()) {
         errs << QStringLiteral("Error: no input files.") << endl;
-        exit(-2);
+        exit(NoInputFilesError);
     }
     QFile file(scxmlFileName);
     if (!file.open(QFile::ReadOnly)) {
         errs << QStringLiteral("Error: cannot open input file %1").arg(scxmlFileName);
-        exit(-3);
+        exit(CannotOpenInputFileError);
     }
     if (outFileName.isEmpty())
         outFileName = QFileInfo(scxmlFileName).baseName();
@@ -90,32 +100,35 @@ int main(int argc, char *argv[])
         foreach (const Scxml::ScxmlError &error, parser.errors()) {
             errs << error.toString() << endl;
         }
-        return -7;
+        return ParseError;
     }
 
-    if (auto doc = Scxml::ScxmlParserPrivate::get(&parser)->scxmlDocument()) {
-        QFile outH(outHFileName);
-        if (!outH.open(QFile::WriteOnly)) {
-            errs << QStringLiteral("Error: cannot open '%1': %2").arg(outH.fileName(), outH.errorString()) << endl;
-            exit(-4);
+    auto doc = Scxml::ScxmlParserPrivate::get(&parser)->scxmlDocument();
+    if (doc == nullptr) {
+        Q_ASSERT(!parser.errors().isEmpty());
+        foreach (const Scxml::ScxmlError &error, parser.errors()) {
+            errs << error.toString() << endl;
         }
-
-        QFile outCpp(outCppFileName);
-        if (!outCpp.open(QFile::WriteOnly)) {
-            errs << QStringLiteral("Error: cannot open '%1': %2").arg(outCpp.fileName(), outCpp.errorString()) << endl;
-            exit(-5);
-        }
-
-        QTextStream h(&outH);
-        QTextStream c(&outCpp);
-        Scxml::CppDumper dumper(h, c, QFileInfo(outH).fileName(), options);
-        dumper.dump(doc);
-        outH.close();
-        outCpp.close();
-        a.exit();
-        return 0;
-    } else {
-        a.exit();
-        return -6;
+        return ScxmlVerificationError;
     }
+
+    QFile outH(outHFileName);
+    if (!outH.open(QFile::WriteOnly)) {
+        errs << QStringLiteral("Error: cannot open '%1': %2").arg(outH.fileName(), outH.errorString()) << endl;
+        exit(CannotOpenOutputHeaderFileError);
+    }
+
+    QFile outCpp(outCppFileName);
+    if (!outCpp.open(QFile::WriteOnly)) {
+        errs << QStringLiteral("Error: cannot open '%1': %2").arg(outCpp.fileName(), outCpp.errorString()) << endl;
+        exit(CannotOpenOutputCppFileError);
+    }
+
+    QTextStream h(&outH);
+    QTextStream c(&outCpp);
+    Scxml::CppDumper dumper(h, c, QFileInfo(outH).fileName(), options);
+    dumper.dump(doc);
+    outH.close();
+    outCpp.close();
+    return NoError;
 }
