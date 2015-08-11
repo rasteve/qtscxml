@@ -132,7 +132,6 @@ public:
     void setDataBinding(BindingMethod b);
     BindingMethod dataBinding() const;
 
-    ExecutableContent::ExecutionEngine *executionEngine() const;
     TableData *tableData() const;
     void setTableData(TableData *tableData);
 

@@ -357,13 +357,6 @@ StateMachine::BindingMethod StateMachine::dataBinding() const
     return d->m_dataBinding;
 }
 
-ExecutableContent::ExecutionEngine *StateMachine::executionEngine() const
-{
-    Q_D(const StateMachine);
-
-    return d->m_executionEngine;
-}
-
 TableData *StateMachine::tableData() const
 {
     Q_D(const StateMachine);
@@ -514,7 +507,7 @@ void Internal::MyQStateMachinePrivate::emitStateFinished(QState *forState, QFina
     if (ScxmlFinalState *finalState = qobject_cast<ScxmlFinalState *>(guiltyState)) {
         if (!q->isRunning())
             return;
-        m_table->executionEngine()->execute(finalState->doneData(), forState->objectName());
+        StateMachinePrivate::get(m_table)->m_executionEngine->execute(finalState->doneData(), forState->objectName());
     }
 
     QStateMachinePrivate::emitStateFinished(forState, guiltyState);
@@ -611,7 +604,8 @@ QMetaObject::Connection StateMachine::connect(const QString &scxmlStateName, con
 
 void StateMachine::executeInitialSetup()
 {
-    executionEngine()->execute(tableData()->initialSetup());
+    Q_D(const StateMachine);
+    d->m_executionEngine->execute(tableData()->initialSetup());
 }
 
 static bool loopOnSubStates(QState *startState,

@@ -180,7 +180,7 @@ bool ScxmlTransition::eventTest(QEvent *event)
 
 void ScxmlTransition::onTransition(QEvent *)
 {
-    stateMachine()->executionEngine()->execute(d->instructionsOnTransition);
+    StateMachinePrivate::get(stateMachine())->m_executionEngine->execute(d->instructionsOnTransition);
 }
 
 StateMachine *ScxmlTransition::stateMachine() const {
@@ -258,11 +258,11 @@ void ScxmlState::setOnExitInstructions(ExecutableContent::ContainerId instructio
 void ScxmlState::onEntry(QEvent *event)
 {
     if (d->initInstructions != ExecutableContent::NoInstruction) {
-        stateMachine()->executionEngine()->execute(d->initInstructions);
+        StateMachinePrivate::get(stateMachine())->m_executionEngine->execute(d->initInstructions);
         d->initInstructions = ExecutableContent::NoInstruction;
     }
     QState::onEntry(event);
-    stateMachine()->executionEngine()->execute(d->onEntryInstructions);
+    StateMachinePrivate::get(stateMachine())->m_executionEngine->execute(d->onEntryInstructions);
     emit didEnter();
 }
 
@@ -270,7 +270,7 @@ void ScxmlState::onExit(QEvent *event)
 {
     emit willExit();
     QState::onExit(event);
-    stateMachine()->executionEngine()->execute(d->onExitInstructions);
+    StateMachinePrivate::get(stateMachine())->m_executionEngine->execute(d->onExitInstructions);
 }
 
 class ScxmlFinalState::Data
@@ -329,13 +329,13 @@ void ScxmlFinalState::setOnExitInstructions(ExecutableContent::ContainerId instr
 void ScxmlFinalState::onEntry(QEvent *event)
 {
     QFinalState::onEntry(event);
-    stateMachine()->executionEngine()->execute(d->onEntryInstructions);
+    StateMachinePrivate::get(stateMachine())->m_executionEngine->execute(d->onEntryInstructions);
 }
 
 void ScxmlFinalState::onExit(QEvent *event)
 {
     QFinalState::onExit(event);
-    stateMachine()->executionEngine()->execute(d->onExitInstructions);
+    StateMachinePrivate::get(stateMachine())->m_executionEngine->execute(d->onExitInstructions);
 }
 
 } // Scxml namespace
