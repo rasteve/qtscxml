@@ -9,3 +9,6 @@
 - code review
 - qmake review
 - QML: move the parsing & instantiation of the state machine to a separate thread (if it wasn't created in C++ of course)
+
+- pass parameters in with an event (QML), and make it easier to do so within C++
+- pass out parameters from the state machine
