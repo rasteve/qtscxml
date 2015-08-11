@@ -20,9 +20,9 @@
 #include "state.h"
 #include "statemachine.h"
 
-#include <QScxml/ecmascriptdatamodel.h>
-#include <QScxml/scxmlstatemachine.h>
-#include <QScxml/scxmlparser.h>
+#include <QtScxml/ecmascriptdatamodel.h>
+#include <QtScxml/scxmlstatemachine.h>
+#include <QtScxml/scxmlparser.h>
 #include <QQmlContext>
 #include <QQmlEngine>
 #include <QQmlInfo>

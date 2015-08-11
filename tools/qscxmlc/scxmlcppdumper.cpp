@@ -16,7 +16,7 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include <QScxml/private/executablecontent_p.h>
+#include <QtScxml/private/executablecontent_p.h>
 #include "scxmlcppdumper.h"
 
 #include <algorithm>
@@ -141,7 +141,7 @@ static QString toHex(const QString &str)
 }
 
 const char *headerStart =
-        "#include <QScxml/scxmlstatemachine.h>\n"
+        "#include <QtScxml/scxmlstatemachine.h>\n"
         "\n";
 
 using namespace DocumentModel;
@@ -215,7 +215,7 @@ protected:
         }
         clazz.init.impl << QStringLiteral("stateMachine.setDataBinding(Scxml::StateMachine::%1Binding);").arg(binding);
 
-        clazz.implIncludes << QStringLiteral("QScxml/executablecontent.h");
+        clazz.implIncludes << QStringLiteral("QtScxml/executablecontent.h");
         clazz.init.impl << QStringLiteral("stateMachine.setTableData(this);");
 
         foreach (AbstractState *s, node->initialStates) {
@@ -251,11 +251,11 @@ protected:
             switch (node->dataModel) {
             case Scxml::NullDataModel:
                 dmName = QStringLiteral("Null");
-                clazz.implIncludes << QStringLiteral("QScxml/nulldatamodel.h");
+                clazz.implIncludes << QStringLiteral("QtScxml/nulldatamodel.h");
                 break;
             case Scxml::JSDataModel:
                 dmName = QStringLiteral("EcmaScript");
-                clazz.implIncludes << QStringLiteral("QScxml/ecmascriptdatamodel.h");
+                clazz.implIncludes << QStringLiteral("QtScxml/ecmascriptdatamodel.h");
                 break;
             default:
                 Q_UNREACHABLE();
@@ -889,7 +889,7 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     // Generate the .cpp file:
     cpp << l("#include \"") << headerName << l("\"") << endl
         << endl
-        << QStringLiteral("#include <QScxml/scxmlqstates.h>") << endl;
+        << QStringLiteral("#include <QtScxml/scxmlqstates.h>") << endl;
     if (!clazz.implIncludes.isEmpty()) {
         clazz.implIncludes.write(cpp, QStringLiteral("#include <"), QStringLiteral(">\n"));
         cpp << endl;

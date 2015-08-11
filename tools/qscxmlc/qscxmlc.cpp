@@ -16,7 +16,7 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include <QScxml/scxmlparser.h>
+#include <QtScxml/scxmlparser.h>
 #include "scxmlcppdumper.h"
 
 #include <QCoreApplication>

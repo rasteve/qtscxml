@@ -1,4 +1,4 @@
-QT += widgets qscxml
+QT += widgets scxml
 
 CONFIG += c++11
 

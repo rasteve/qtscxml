@@ -1,6 +1,6 @@
 option(host_build)
 
-QT       += core qml qscxml
+QT       += core qml scxml
 QT       -= gui
 
 TARGET = testCpp

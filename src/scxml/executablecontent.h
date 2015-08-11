@@ -19,7 +19,7 @@
 #ifndef EXECUTABLECONTENT_H
 #define EXECUTABLECONTENT_H
 
-#include <QScxml/scxmlglobals.h>
+#include <QtScxml/scxmlglobals.h>
 
 #include <QByteArray>
 #include <QString>

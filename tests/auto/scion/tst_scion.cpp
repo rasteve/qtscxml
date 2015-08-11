@@ -19,9 +19,9 @@
 #include <QtTest/QtTest>
 #include <QJsonDocument>
 
-#include <QScxml/scxmlparser.h>
-#include <QScxml/ecmascriptdatamodel.h>
-#include <QScxml/nulldatamodel.h>
+#include <QtScxml/scxmlparser.h>
+#include <QtScxml/ecmascriptdatamodel.h>
+#include <QtScxml/nulldatamodel.h>
 
 #include "scxml/scion.h"
 #include "scxml/compiled_tests.h"

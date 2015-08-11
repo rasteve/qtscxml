@@ -23,8 +23,8 @@
 #include <QVector>
 #include <QQmlParserStatus>
 #include <QQmlListProperty>
-#include <QScxml/scxmlstatemachine.h>
-#include <QScxml/ecmascriptdatamodel.h>
+#include <QtScxml/scxmlstatemachine.h>
+#include <QtScxml/ecmascriptdatamodel.h>
 
 QT_BEGIN_NAMESPACE
 

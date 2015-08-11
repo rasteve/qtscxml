@@ -1,4 +1,4 @@
-QT += testlib qscxml
+QT += testlib scxml
 CONFIG += testcase
 
 QT += core qml

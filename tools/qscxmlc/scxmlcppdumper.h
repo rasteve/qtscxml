@@ -22,7 +22,7 @@
 #include "scxmlglobals.h"
 #include "scxmlstatemachine.h"
 
-#include <QScxml/private/scxmlparser_p.h>
+#include <QtScxml/private/scxmlparser_p.h>
 
 #include <QTextStream>
 

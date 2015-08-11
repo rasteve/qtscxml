@@ -1,6 +1,6 @@
 TEMPLATE = app
 
-QT += qml qscxml
+QT += qml scxml
 
 CONFIG += c++11
 

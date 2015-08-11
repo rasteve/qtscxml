@@ -19,7 +19,7 @@
 #ifndef SCXMLPARSER_H
 #define SCXMLPARSER_H
 
-#include <QScxml/scxmlstatemachine.h>
+#include <QtScxml/scxmlstatemachine.h>
 
 #include <QStringList>
 #include <QString>
