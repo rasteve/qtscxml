@@ -200,25 +200,31 @@ void ScxmlTransition::setConditionalExpression(EvaluatorId evaluator)
     d->conditionalExp = evaluator;
 }
 
-class ScxmlStatePrivate: public QStatePrivate
+class ScxmlState::Data
 {
-    Q_DECLARE_PUBLIC(ScxmlState)
-
 public:
-    ScxmlStatePrivate()
-        : initInstructions(ExecutableContent::NoInstruction)
+    Data(ScxmlState *state)
+        : m_state(state)
+        , initInstructions(ExecutableContent::NoInstruction)
         , onEntryInstructions(ExecutableContent::NoInstruction)
         , onExitInstructions(ExecutableContent::NoInstruction)
     {}
 
+    ScxmlState *m_state;
     ExecutableContent::ContainerId initInstructions;
     ExecutableContent::ContainerId onEntryInstructions;
     ExecutableContent::ContainerId onExitInstructions;
 };
 
 ScxmlState::ScxmlState(QState *parent)
-    : QState(*new ScxmlStatePrivate, parent)
+    : QState(parent)
+    , d(new ScxmlState::Data(this))
 {}
+
+ScxmlState::~ScxmlState()
+{
+    delete d;
+}
 
 StateMachine *ScxmlState::stateMachine() const {
     return qobject_cast<Internal::MyQStateMachine *>(machine())->stateTable();
@@ -236,33 +242,21 @@ QString ScxmlState::stateLocation() const
 
 void ScxmlState::setInitInstructions(ExecutableContent::ContainerId instructions)
 {
-    Q_D(ScxmlState);
-
     d->initInstructions = instructions;
 }
 
 void ScxmlState::setOnEntryInstructions(ExecutableContent::ContainerId instructions)
 {
-    Q_D(ScxmlState);
-
     d->onEntryInstructions = instructions;
 }
 
 void ScxmlState::setOnExitInstructions(ExecutableContent::ContainerId instructions)
 {
-    Q_D(ScxmlState);
-
     d->onExitInstructions = instructions;
 }
 
-ScxmlState::ScxmlState(Scxml::ScxmlStatePrivate &dd, QState *parent)
-    : QState(dd, parent)
-{}
-
 void ScxmlState::onEntry(QEvent *event)
 {
-    Q_D(ScxmlState);
-
     if (d->initInstructions != ExecutableContent::NoInstruction) {
         stateMachine()->executionEngine()->execute(d->initInstructions);
         d->initInstructions = ExecutableContent::NoInstruction;
@@ -274,8 +268,6 @@ void ScxmlState::onEntry(QEvent *event)
 
 void ScxmlState::onExit(QEvent *event)
 {
-    Q_D(ScxmlState);
-
     emit willExit();
     QState::onExit(event);
     stateMachine()->executionEngine()->execute(d->onExitInstructions);

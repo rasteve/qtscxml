@@ -73,14 +73,13 @@ private:
     Data *d;
 };
 
-class ScxmlStatePrivate;
 class SCXML_EXPORT ScxmlState: public QState
 {
     Q_OBJECT
-    Q_DECLARE_PRIVATE(ScxmlState)
 
 public:
     ScxmlState(QState *parent = 0);
+    ~ScxmlState();
 
     StateMachine *stateMachine() const;
     virtual bool init();
@@ -95,10 +94,12 @@ Q_SIGNALS:
     void willExit();
 
 protected:
-    ScxmlState(ScxmlStatePrivate &dd, QState *parent = 0);
-
     void onEntry(QEvent * event) Q_DECL_OVERRIDE;
     void onExit(QEvent * event) Q_DECL_OVERRIDE;
+
+private:
+    class Data;
+    Data *d;
 };
 
 class SCXML_EXPORT ScxmlInitialState: public ScxmlState
