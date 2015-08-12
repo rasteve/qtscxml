@@ -1,7 +1,5 @@
 QT += widgets scxml
 
-CONFIG += c++11
-
 SOURCES = ../trafficlight-common/trafficlight.cpp
 HEADERS = ../trafficlight-common/trafficlight.h
 

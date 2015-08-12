@@ -1,10 +1,11 @@
 TARGET = QtScxml
 QT = core-private qml-private
+MODULE_CONFIG += c++11
 
 load(qt_module)
 
-CONFIG   += c++11
-DEFINES  += QT_NO_CAST_FROM_ASCII
+CONFIG  += $$MODULE_CONFIG
+DEFINES += QT_NO_CAST_FROM_ASCII
 
 HEADERS += \
     scxmlparser.h \

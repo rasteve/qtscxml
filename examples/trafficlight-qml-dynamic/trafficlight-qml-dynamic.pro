@@ -10,4 +10,3 @@ load(qscxmlc)
 
 target.path = $$[QT_INSTALL_EXAMPLES]/scxml/trafficlight-qml-dynamic
 INSTALLS += target
-

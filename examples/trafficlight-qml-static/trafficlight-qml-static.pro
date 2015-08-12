@@ -2,8 +2,6 @@ TEMPLATE = app
 
 QT += qml scxml
 
-CONFIG += c++11
-
 SOURCES += trafficlight-qml-static.cpp
 
 RESOURCES += trafficlight-qml-static.qrc
