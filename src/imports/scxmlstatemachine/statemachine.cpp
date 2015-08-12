@@ -110,6 +110,9 @@ QUrl StateMachine::filename()
 
 void StateMachine::setFilename(const QUrl &filename)
 {
+    if (!filename.isValid())
+        return;
+
     QUrl oldFilename = m_filename;
     if (m_stateMachine) {
         delete m_stateMachine;
