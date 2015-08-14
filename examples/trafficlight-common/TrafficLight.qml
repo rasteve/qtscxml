@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
-** This file is part of the QtCore module of the Qt Toolkit.
+** This file is part of the examples of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:BSD$
 ** You may use this file under the terms of the BSD license as follows:
@@ -40,12 +40,10 @@
 
 import QtQuick 2.5
 import QtQuick.Window 2.2
-import Scxml 1.0 as Scxml
 
 Window {
     id: root
     property QtObject stateMachine
-    property url filename
 
     visible: true
     width: 100
@@ -68,21 +66,21 @@ Window {
             id: redLight
             anchors.top: parent.top
             color: "red"
-            visible: red.active || redGoingGreen.active
+            visible: stateMachine.red.active || stateMachine.redGoingGreen.active
         }
 
         Light {
             id: yellowLight
             anchors.top: redLight.bottom
             color: "yellow"
-            visible: yellow.active || blinking.active
+            visible: stateMachine.yellow.active || stateMachine.blinking.active
         }
 
         Light {
             id: greenLight
             anchors.top: yellowLight.bottom
             color: "green"
-            visible: green.active
+            visible: stateMachine.green.active
         }
     }
 
@@ -93,55 +91,17 @@ Window {
         anchors.bottom: parent.bottom
 
         text: {
-            if (working.active)
+            if (stateMachine.working.active)
                 "Pause"
             else
                 "Unpause"
         }
-    }
 
-    Scxml.StateMachine {
-        stateMachine: root.stateMachine
-        filename: root.filename
-
-        Scxml.State {
-            id: red
-            scxmlName: "red"
-        }
-
-        Scxml.State {
-            id: yellow
-            scxmlName: "yellow"
-        }
-
-        Scxml.State {
-            id: redGoingGreen
-            scxmlName: "red-going-green"
-        }
-
-        Scxml.State {
-            id: green
-            scxmlName: "green"
-        }
-
-        Scxml.State {
-            id: blinking
-            scxmlName: "blinking"
-        }
-
-        Scxml.State {
-            id: working
-            scxmlName: "working"
-        }
-
-        Scxml.SignalEvent {
-            signal: button.clicked
-            eventName: {
-                if (working.active)
-                    "smash"
-                else
-                    "repair"
-            }
+        onClicked: {
+            if (stateMachine.working.active)
+                stateMachine.event_smash()
+            else
+                stateMachine.event_repair()
         }
     }
 }

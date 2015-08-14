@@ -38,32 +38,17 @@
 **
 ****************************************************************************/
 
-#include "../trafficlight-common/trafficlight.h"
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
 
-#include <QtScxml/scxmlparser.h>
-#include <QtScxml/nulldatamodel.h>
-
-#include <QApplication>
-
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
+    QGuiApplication app(argc, argv);
 
-    auto machine = Scxml::StateMachine::fromFile(QStringLiteral(":statemachine.scxml"));
-    if (!machine->errors().isEmpty()) {
-        QTextStream errs(stderr, QIODevice::WriteOnly);
-        foreach (const Scxml::ScxmlError &error, machine->errors()) {
-            errs << error.toString();
-        }
-
-        return -1;
-    }
-
-    TrafficLight widget(machine);
-    widget.resize(110, 300);
-    widget.show();
-    machine->setParent(&widget);
-    machine->start();
+    QQmlApplicationEngine engine;
+    engine.load(QUrl(QStringLiteral("qrc:///mediaplayer-qml-dynamic.qml")));
 
     return app.exec();
 }
+

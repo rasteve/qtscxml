@@ -55,6 +55,8 @@ public:
                const QByteArray &invokeid = QByteArray());
     void clear();
 
+    QVariant data() const;
+
 private:
     QByteArray m_name;
     EventType m_type;

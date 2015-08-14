@@ -51,22 +51,24 @@ struct StringListDumper {
         return text.isEmpty();
     }
 
-    void write(QTextStream &out, const QString &prefix, const QString &suffix) const
+    void write(QTextStream &out, const QString &prefix, const QString &suffix, const QString &mainClassName = QString()) const
     {
-        foreach (const QString &line, text)
+        foreach (QString line, text) {
+            if (!mainClassName.isEmpty() && line.contains(QStringLiteral("%"))) {
+                line = line.arg(mainClassName);
+            }
             out << prefix << line << suffix;
+        }
     }
 
     QStringList text;
 };
 
 struct Method {
-    QString name;
-    StringListDumper publicDeclaration; // void f(int i = 0);
-    StringListDumper implementationHeader; // void f(int i)
     StringListDumper initializer;
-    StringListDumper publicImplementationCode; // d->f(i);
-    StringListDumper impl; // m_i = ++i;
+    Method(const QString &decl = QString()): decl(decl) {}
+    QString decl; // void f(int i = 0);
+    StringListDumper impl; // void f(int i) { m_i = ++i; }
 };
 
 struct MainClass {
@@ -79,11 +81,11 @@ struct MainClass {
     StringListDumper dataMethods;
     Method constructor;
     Method destructor;
+    StringListDumper properties;
     StringListDumper signalMethods;
     QList<Method> publicMethods;
     StringListDumper publicSlotDeclarations;
     StringListDumper publicSlotDefinitions;
-    QList<Method> privateMethods;
 };
 
 namespace {
@@ -267,7 +269,15 @@ protected:
 
     bool visit(State *node) Q_DECL_OVERRIDE
     {
-        auto stateName = QStringLiteral("state_") + mangledName(node);
+        auto name = mangledName(node);
+        auto stateName = QStringLiteral("state_") + name;
+        // Property stuff:
+        clazz.properties << QStringLiteral("Q_PROPERTY(QAbstractState *%1 READ %1() CONSTANT)").arg(name); // FIXME: notify!
+        Method getter(QStringLiteral("QAbstractState *%1() const").arg(name));
+        getter.impl << QStringLiteral("QAbstractState *%2::%1() const").arg(name)
+                    << QStringLiteral("{ return &data->%1; }").arg(stateName);
+        clazz.publicMethods << getter;
+
         // Declaration:
         if (node->type == State::Final) {
             clazz.classFields << QStringLiteral("Scxml::ScxmlFinalState ") + stateName + QLatin1Char(';');
@@ -438,6 +448,18 @@ protected:
         return false;
     }
 
+    bool visit(Send *node) Q_DECL_OVERRIDE
+    {
+        if (node->type == QStringLiteral("qt:signal")) {
+            if (!m_signals.contains(node->event)) {
+                m_signals.insert(node->event);
+                clazz.signalMethods << QStringLiteral("void event_%1(const QVariant &data);").arg(CppDumper::mangleId(node->event));
+            }
+        }
+
+        return ExecutableContent::Builder::visit(node);
+    }
+
 private:
     QString mangledName(AbstractState *state)
     {
@@ -522,7 +544,7 @@ private:
     {
         QStringList knownEventsList = m_knownEvents.toList();
         std::sort(knownEventsList.begin(), knownEventsList.end());
-        foreach (QString event, knownEventsList) {
+        foreach (const QString &event, knownEventsList) {
             if (event.startsWith(QStringLiteral("done.")) || event.startsWith(QStringLiteral("qsignal."))
                     || event.startsWith(QStringLiteral("qevent."))) {
                 continue;
@@ -530,12 +552,27 @@ private:
             if (event.contains(QLatin1Char('*')))
                 continue;
 
-            clazz.publicSlotDeclarations << QStringLiteral("void event_") + CppDumper::mangleId(event) + QStringLiteral("();");
+            clazz.publicSlotDeclarations << QStringLiteral("void event_") + CppDumper::mangleId(event) + QStringLiteral("(const QVariant &eventData = QVariant());");
             clazz.publicSlotDefinitions << QStringLiteral("void ") + m_mainClassName
                                            + QStringLiteral("::event_")
                                            + CppDumper::mangleId(event)
-                                           + QStringLiteral("()\n{ submitEvent(data->") + qba(event)
-                                           + QStringLiteral("); }");
+                                           + QStringLiteral("(const QVariant &eventData)\n{ submitEvent(data->") + qba(event)
+                                           + QStringLiteral(", eventData); }");
+        }
+
+        if (!m_signals.isEmpty()) {
+            clazz.init.impl << QStringLiteral("stateMachine.setScxmlEventFilter(this);");
+            auto &dm = clazz.dataMethods;
+            dm << QStringLiteral("bool handle(Scxml::ScxmlEvent *event, Scxml::StateMachine *stateMachine) Q_DECL_OVERRIDE {")
+               << QStringLiteral("    if (event->origintype() != QStringLiteral(\"qt:signal\")) { return true; }")
+               << QStringLiteral("    %1 *m = qobject_cast<%1 *>(stateMachine);").arg(m_mainClassName);
+            foreach (const QString &s, m_signals) {
+                dm << QStringLiteral("    if (event->name() == %1) { emit m->event_%2(event->data()); return false; }")
+                      .arg(qba(s), CppDumper::mangleId(s));
+            }
+            dm << QStringLiteral("    return true;")
+               << QStringLiteral("}")
+               << QString();
         }
     }
 
@@ -627,9 +664,9 @@ private:
                     return QString();
             });
             t << QStringLiteral("};") << QStringLiteral("");
-            clazz.dataMethods << QStringLiteral("Scxml::ExecutableContent::Instructions instructions() const Q_DECL_OVERRIDE");
-            clazz.dataMethods << QStringLiteral("{ return theInstructions; }");
-            clazz.dataMethods << QString();
+            clazz.dataMethods << QStringLiteral("Scxml::ExecutableContent::Instructions instructions() const Q_DECL_OVERRIDE")
+                              << QStringLiteral("{ return theInstructions; }")
+                              << QString();
         }
 
         { // strings
@@ -831,6 +868,7 @@ private:
     QHash<DocumentModel::AbstractState *, QString> m_mangledNames;
     QVector<Node *> m_parents;
     QSet<QString> m_knownEvents;
+    QSet<QString> m_signals;
     QString m_currentTransitionName;
     bool m_bindLate;
     QVector<DocumentModel::DataElement *> m_dataElements;
@@ -864,10 +902,25 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     if (!options.namespaceName.isEmpty())
         h << l("namespace ") << options.namespaceName << l(" {") << endl << endl;
     h << l("class ") << mainClassName << l(" : public Scxml::StateMachine\n{") << endl;
-    h << QLatin1String("    Q_OBJECT\n\n");
-    h << QLatin1String("public:\n");
+    h << QLatin1String("    Q_OBJECT\n");
+    clazz.properties.write(h, QStringLiteral("    "), QStringLiteral("\n"));
+    h << QLatin1String("\npublic:\n");
     h << l("    ") << mainClassName << l("(QObject *parent = 0);") << endl;
     h << l("    ~") << mainClassName << "();" << endl;
+
+    if (!clazz.publicMethods.isEmpty()) {
+        h << endl;
+        foreach (const Method &m, clazz.publicMethods) {
+            h << QStringLiteral("    ") << m.decl << QLatin1Char(';') << endl;
+        }
+    }
+
+    if (!clazz.signalMethods.isEmpty()) {
+        h << endl
+          << QStringLiteral("signals:")
+          << endl;
+        clazz.signalMethods.write(h, QStringLiteral("    "), QStringLiteral("\n"));
+    }
 
     if (!clazz.publicSlotDeclarations.isEmpty()) {
         h << "\npublic slots:\n";
@@ -897,7 +950,11 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     if (!options.namespaceName.isEmpty())
         cpp << l("namespace ") << options.namespaceName << l(" {") << endl << endl;
 
-    cpp << l("struct ") << mainClassName << l("::Data: private Scxml::TableData {") << endl;
+    cpp << l("struct ") << mainClassName << l("::Data: private Scxml::TableData");
+    if (!clazz.signalMethods.isEmpty()) {
+        cpp << QStringLiteral(", public Scxml::ScxmlEventFilter");
+    }
+    cpp << l(" {") << endl;
 
     cpp << QStringLiteral("    Data(%1 &stateMachine)\n        : stateMachine(stateMachine)").arg(mainClassName) << endl;
     clazz.constructor.initializer.write(cpp, QStringLiteral("        , "), QStringLiteral("\n"));
@@ -919,11 +976,15 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     cpp << mainClassName << l("::") << mainClassName << l("(QObject *parent)") << endl
         << l("    : Scxml::StateMachine(parent)") << endl
         << l("    , data(new Data(*this))") << endl
-        << l("{}") << endl
+        << l("{ qRegisterMetaType<QAbstractState *>(); }") << endl
         << endl;
     cpp << mainClassName << l("::~") << mainClassName << l("()") << endl
         << l("{ delete data; }") << endl
         << endl;
+    foreach (const Method &m, clazz.publicMethods) {
+        m.impl.write(cpp, QStringLiteral(""), QStringLiteral("\n"), mainClassName);
+        cpp << endl;
+    }
     clazz.publicSlotDefinitions.write(cpp, QStringLiteral("\n"), QStringLiteral("\n"));
     cpp << endl;
 

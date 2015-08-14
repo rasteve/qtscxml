@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
 /****************************************************************************
 **
 ** Copyright (C) 2015 The Qt Company Ltd.
@@ -37,33 +39,44 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+-->
+<scxml
+    xmlns="http://www.w3.org/2005/07/scxml"
+    version="1.0"
+    name="MediaPlayerStateMachine"
+    initial="stopped"
+    datamodel="ecmascript"
+>
+    <datamodel>
+        <data id="media"/>
+    </datamodel>
 
-#include "../trafficlight-common/trafficlight.h"
-
-#include <QtScxml/scxmlparser.h>
-#include <QtScxml/nulldatamodel.h>
-
-#include <QApplication>
-
-int main(int argc, char **argv)
-{
-    QApplication app(argc, argv);
-
-    auto machine = Scxml::StateMachine::fromFile(QStringLiteral(":statemachine.scxml"));
-    if (!machine->errors().isEmpty()) {
-        QTextStream errs(stderr, QIODevice::WriteOnly);
-        foreach (const Scxml::ScxmlError &error, machine->errors()) {
-            errs << error.toString();
+    <script>
+        function isValidMedia() {
+            var m = _event.data.media
+            return (m + "").length > 0
         }
+    </script>
 
-        return -1;
-    }
+    <state id="stopped">
+        <transition event="tap" cond="isValidMedia()" target="playing"/>
+    </state>
 
-    TrafficLight widget(machine);
-    widget.resize(110, 300);
-    widget.show();
-    machine->setParent(&widget);
-    machine->start();
+    <state id="playing">
+        <onentry>
+            <assign location="media" expr="_event.data.media"/>
+            <send type="qt:signal" event="playbackStarted">
+                <param name="media" expr="media"/>
+            </send>
+        </onentry>
 
-    return app.exec();
-}
+        <onexit>
+            <send type="qt:signal" event="playbackStopped">
+                <param name="media" expr="media"/>
+            </send>
+        </onexit>
+
+        <transition event="tap" cond="!isValidMedia() || media === _event.data.media" target="stopped"/>
+        <transition event="tap" cond="isValidMedia() &amp;&amp; media !== _event.data.media" target="playing"/>
+    </state>
+</scxml>

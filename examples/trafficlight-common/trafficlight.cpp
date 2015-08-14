@@ -3,7 +3,7 @@
 ** Copyright (C) 2015 The Qt Company Ltd.
 ** Contact: http://www.qt.io/licensing/
 **
-** This file is part of the QtCore module of the Qt Toolkit.
+** This file is part of the examples of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:BSD$
 ** You may use this file under the terms of the BSD license as follows:
@@ -93,7 +93,7 @@ TrafficLight::TrafficLight(Scxml::StateMachine *machine, QWidget *parent)
 
     machine->connect(QStringLiteral("red"), SIGNAL(activeChanged(bool)),
                      widget->redLight(), SLOT(switchLight(bool)));
-    machine->connect(QStringLiteral("red-going-green"), SIGNAL(activeChanged(bool)),
+    machine->connect(QStringLiteral("redGoingGreen"), SIGNAL(activeChanged(bool)),
                      widget->redLight(), SLOT(switchLight(bool)));
     machine->connect(QStringLiteral("yellow"), SIGNAL(activeChanged(bool)),
                      widget->yellowLight(), SLOT(switchLight(bool)));
@@ -101,8 +101,6 @@ TrafficLight::TrafficLight(Scxml::StateMachine *machine, QWidget *parent)
                      widget->yellowLight(), SLOT(switchLight(bool)));
     machine->connect(QStringLiteral("green"), SIGNAL(activeChanged(bool)),
                      widget->greenLight(), SLOT(switchLight(bool)));
-
-    machine->start();
 }
 
 void TrafficLight::toggleWorking(bool pause)

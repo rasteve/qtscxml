@@ -102,6 +102,14 @@ private:
 
 QDebug Q_QML_EXPORT operator<<(QDebug debug, const ScxmlError &error);
 
+class StateMachine;
+class SCXML_EXPORT ScxmlEventFilter
+{
+public:
+    virtual ~ScxmlEventFilter();
+    virtual bool handle(ScxmlEvent *event, StateMachine *stateMachine) = 0;
+};
+
 class StateMachinePrivate;
 class SCXML_EXPORT StateMachine: public QObject
 {
@@ -151,11 +159,15 @@ public:
                                     const QObject *receiver, const char *method,
                                     Qt::ConnectionType type = Qt::AutoConnection);
 
+    ScxmlEventFilter *scxmlEventFilter() const;
+    void setScxmlEventFilter(ScxmlEventFilter *newFilter);
+
     Q_INVOKABLE void submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid);
     Q_INVOKABLE void submitEvent1(const QString &event);
     Q_INVOKABLE void submitEvent2(const QString &event,  QVariant data);
 
     void submitEvent(ScxmlEvent *e);
+    Q_INVOKABLE void submitEvent(const QByteArray &event, const QVariant &data);
     Q_INVOKABLE void submitEvent(const QByteArray &event,
                                  const QVariantList &dataValues = QVariantList(),
                                  const QStringList &dataNames = QStringList(),

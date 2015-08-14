@@ -16,9 +16,7 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include "statemachine.h"
-#include "state.h"
-#include "signalevent.h"
+#include "statemachineloader.h"
 
 #include <QQmlExtensionPlugin>
 #include <qqml.h>
@@ -33,9 +31,7 @@ class ScxmlStateMachinePlugin : public QQmlExtensionPlugin
 public:
     void registerTypes(const char *uri)
     {
-        qmlRegisterType<StateMachine>(uri, 1, 0, "StateMachine");
-        qmlRegisterType<State>(uri, 1, 0, "State");
-        qmlRegisterType<SignalEvent>(uri, 1, 0, "SignalEvent");
+        qmlRegisterType<StateMachineLoader>(uri, 1, 0, "StateMachineLoader");
         qmlProtectModule(uri, 1);
     }
 };

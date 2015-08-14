@@ -88,6 +88,8 @@ public:
 
     void setQStateMachine(Internal::MyQStateMachine *stateMachine);
 
+    QAbstractState *stateByScxmlName(const QString &scxmlName);
+
     ParserData *parserData();
 
 public: // data fields:
@@ -98,6 +100,7 @@ public: // data fields:
     TableData *m_tableData;
     ScxmlEvent m_event;
     Internal::MyQStateMachine *m_qStateMachine;
+    ScxmlEventFilter *m_eventFilter;
 
 private:
     QScopedPointer<ParserData> m_parserData; // used when created by StateMachine::fromFile.

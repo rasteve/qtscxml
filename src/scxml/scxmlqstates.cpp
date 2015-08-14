@@ -19,6 +19,11 @@
 #include "scxmlqstates.h"
 #include "scxmlstatemachine_p.h"
 
+#define DUMP_EVENT
+#ifdef DUMP_EVENT
+#include "ecmascriptdatamodel.h"
+#endif
+
 QT_BEGIN_NAMESPACE
 
 namespace Scxml {
@@ -165,7 +170,7 @@ ScxmlTransition::~ScxmlTransition()
 bool ScxmlTransition::eventTest(QEvent *event)
 {
 #ifdef DUMP_EVENT
-    if (auto edm = table()->dataModel()->asEcmaScriptDataModel()) qCDebug(scxmlLog) << qPrintable(edm->engine()->evaluate(QLatin1String("JSON.stringify(_event)")).toString());
+    if (auto edm = stateMachine()->dataModel()->asEcmaScriptDataModel()) qCDebug(scxmlLog) << qPrintable(edm->engine()->evaluate(QLatin1String("JSON.stringify(_event)")).toString());
 #endif
 
     if (ScxmlBaseTransition::eventTest(event)) {

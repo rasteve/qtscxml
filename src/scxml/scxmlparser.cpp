@@ -35,6 +35,8 @@
 #include <QDir>
 #include <QVector>
 #include <private/qabstracttransition_p.h>
+#include <private/qmetaobjectbuilder_p.h>
+#include <QJSValue>
 
 namespace {
 enum {
@@ -301,6 +303,162 @@ private:
     QVector<DocumentModel::Node *> m_parentNodes;
 };
 
+class QStateMachineBuilder;
+class DynamicStateMachine: public StateMachine, public Scxml::ScxmlEventFilter
+{
+    // Manually expanded from Q_OBJECT macro:
+public:
+    Q_OBJECT_CHECK
+
+    const QMetaObject *metaObject() const Q_DECL_OVERRIDE
+    { return m_metaObject; }
+
+    int qt_metacall(QMetaObject::Call _c, int _id, void **_a) Q_DECL_OVERRIDE
+    {
+        _id = StateMachine::qt_metacall(_c, _id, _a);
+        if (_id < 0)
+            return _id;
+        int ownMethodCount = m_metaObject->methodCount() - m_metaObject->methodOffset();
+        if (_c == QMetaObject::InvokeMetaMethod) {
+            if (_id < ownMethodCount)
+                qt_static_metacall(this, _c, _id, _a);
+            _id -= ownMethodCount;
+        } else if (_c == QMetaObject::ReadProperty || _c == QMetaObject::WriteProperty
+                   || _c == QMetaObject::ResetProperty || _c == QMetaObject::RegisterPropertyMetaType) {
+            qt_static_metacall(this, _c, _id, _a);
+            _id -= m_metaObject->propertyCount();
+        }
+        return _id;
+    }
+
+private:
+    Q_DECL_HIDDEN static void qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+    {
+        if (_c == QMetaObject::InvokeMetaMethod) {
+            DynamicStateMachine *_t = static_cast<DynamicStateMachine *>(_o);
+            if (_id >= _t->m_eventNamesByIndex.size() || _id < 0) {
+                Q_UNREACHABLE();
+            }
+            const QByteArray &event = _t->m_eventNamesByIndex.at(_id);
+            if (!event.isEmpty()) {
+                if (_id < _t->m_firstSlotWithoutData) {
+                    QVariant data = *reinterpret_cast< QVariant(*)>(_a[1]);
+                    if (data.canConvert<QJSValue>()) {
+                        data = data.value<QJSValue>().toVariant();
+                    }
+                    _t->submitEvent(event, data);
+                } else {
+                    _t->submitEvent(event, QVariant());
+                }
+            }
+        } else if (_c == QMetaObject::RegisterPropertyMetaType) {
+            *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType<QAbstractState *>();
+        } else if (_c == QMetaObject::ReadProperty) {
+            DynamicStateMachine *_t = static_cast<DynamicStateMachine *>(_o);
+            void *_v = _a[0];
+            if (_id >= 0 && _id < _t->m_propertyNamesByIndex.size()) {
+                *reinterpret_cast<QAbstractState**>(_v) = StateMachinePrivate::get(_t)->stateByScxmlName(_t->m_propertyNamesByIndex.at(_id));
+            }
+        }
+    }
+    // end of Q_OBJECT macro
+
+private:
+    friend QStateMachineBuilder;
+    DynamicStateMachine()
+        : m_metaObject(Q_NULLPTR)
+        , m_firstSlot(0)
+        , m_firstSlotWithoutData(0)
+    {
+        setScxmlEventFilter(this);
+    }
+
+    void initDynamicParts(const QSet<QByteArray> &eventSignals,
+                          const QSet<QByteArray> &eventSlots,
+                          const QSet<QString> &stateNames)
+    {
+        m_eventNamesByIndex.reserve(eventSignals.size() + eventSlots.size());
+
+        QMetaObjectBuilder b;
+        b.setClassName("DynamicStateMachine");
+        b.setSuperClass(&StateMachine::staticMetaObject);
+        b.setStaticMetacallFunction(qt_static_metacall);
+
+        // signals
+        foreach (const QByteArray &eventName, eventSignals) {
+            QByteArray signalName = QByteArray("event_") + eventName + "(const QVariant &)";
+            QMetaMethodBuilder signalBuilder = b.addSignal(signalName);
+            signalBuilder.setParameterNames({"data"});
+            int idx = signalBuilder.index();
+            m_eventNamesByIndex.resize(std::max(idx + 1, m_eventNamesByIndex.size()));
+            m_eventNamesByIndex[idx] = eventName;
+        }
+
+        // slots
+        m_firstSlot = m_eventNamesByIndex.size();
+        foreach (const QByteArray &eventName, eventSlots) {
+            QByteArray slotName = QByteArray("event_") + eventName + "(const QVariant &)";
+            QMetaMethodBuilder slotBuilder = b.addSlot(slotName);
+            slotBuilder.setParameterNames({"data"});
+            int idx = slotBuilder.index();
+            m_eventNamesByIndex.resize(std::max(idx + 1, m_eventNamesByIndex.size()));
+            m_eventNamesByIndex[idx] = eventName;
+        }
+
+        m_firstSlotWithoutData = m_eventNamesByIndex.size();
+        foreach (const QByteArray &eventName, eventSlots) {
+            QByteArray slotName = QByteArray("event_") + eventName + "()";
+            QMetaMethodBuilder slotBuilder = b.addSlot(slotName);
+            int idx = slotBuilder.index();
+            m_eventNamesByIndex.resize(std::max(idx + 1, m_eventNamesByIndex.size()));
+            m_eventNamesByIndex[idx] = eventName;
+        }
+
+        // properties
+        foreach (const QString &stateName, stateNames) {
+            QMetaPropertyBuilder prop = b.addProperty(stateName.toUtf8(), "QAbstractState *");
+            prop.setWritable(false);
+            prop.setConstant(true);
+            int idx = prop.index();
+            m_propertyNamesByIndex.resize(std::max(idx + 1, m_propertyNamesByIndex.size()));
+            m_propertyNamesByIndex[idx] = stateName;
+        }
+
+        m_metaObject = b.toMetaObject();
+    }
+
+public:
+    ~DynamicStateMachine()
+    { if (m_metaObject) free(m_metaObject); }
+
+    bool handle(Scxml::ScxmlEvent *event, Scxml::StateMachine *stateMachine) Q_DECL_OVERRIDE {
+        Q_UNUSED(stateMachine);
+
+        if (event->origintype() != QStringLiteral("qt:signal")) {
+            return true;
+        }
+
+        auto eventName = event->name();
+        for (int i = 0; i < m_firstSlot; ++i) {
+            if (m_eventNamesByIndex.at(i) == eventName) {
+                QVariant data = event->data();
+                void *argv[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&data)) };
+                QMetaObject::activate(this, metaObject(), i, argv);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+private:
+    QMetaObject *m_metaObject;
+    QVector<QByteArray> m_eventNamesByIndex;
+    QVector<QString> m_propertyNamesByIndex;
+    int m_firstSlot;
+    int m_firstSlotWithoutData;
+};
+
 class QStateMachineBuilder: public ExecutableContent::Builder
 {
 public:
@@ -324,6 +482,7 @@ public:
         ExecutableContent::DynamicTableData *td = tableData();
         td->setParent(m_table);
         m_table->setTableData(td);
+        m_table->initDynamicParts(m_eventSignals, m_eventSlots, m_stateNames);
 
         m_parents.clear();
         m_allTransitions.clear();
@@ -339,7 +498,7 @@ private:
 
     bool visit(DocumentModel::Scxml *node) Q_DECL_OVERRIDE
     {
-        m_table = new StateMachine;
+        m_table = new DynamicStateMachine;
 
         switch (node->binding) {
         case DocumentModel::Scxml::EarlyBinding:
@@ -409,6 +568,7 @@ private:
         }
 
         newState->setObjectName(node->id);
+        m_stateNames.insert(node->id);
 
         m_docStatesToQStates.insert(node, newState);
         m_parents.append(newState);
@@ -444,7 +604,9 @@ private:
     bool visit(DocumentModel::Transition *node) Q_DECL_OVERRIDE
     {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-        auto newTransition = new ScxmlTransition(toUtf8(node->events));
+        auto events = toUtf8(node->events);
+        m_eventSlots.unite(events.toSet());
+        auto newTransition = new ScxmlTransition(events);
         if (QHistoryState *parent = qobject_cast<QHistoryState*>(m_parents.last())) {
             parent->setDefaultTransition(newTransition);
         } else {
@@ -517,6 +679,15 @@ private:
         m_parents.removeLast();
     }
 
+    bool visit(DocumentModel::Send *node) Q_DECL_OVERRIDE
+    {
+        if (node->type == QStringLiteral("qt:signal")) {
+            m_eventSignals.insert(node->event.toUtf8());
+        }
+
+        return ExecutableContent::Builder::visit(node);
+    }
+
 private: // Utility methods
     static QList<QByteArray> toUtf8(const QStringList &l)
     {
@@ -586,7 +757,7 @@ private: // Utility methods
     { return m_table->dataModel(); }
 
 private:
-    StateMachine *m_table;
+    DynamicStateMachine *m_table;
     QVector<QAbstractState *> m_parents;
     QHash<QAbstractTransition *, DocumentModel::Transition*> m_allTransitions;
     QHash<DocumentModel::AbstractState *, QAbstractState *> m_docStatesToQStates;
@@ -594,6 +765,9 @@ private:
     QVector<QPair<QState *, DocumentModel::AbstractState *>> m_initialStates;
     bool m_bindLate;
     QVector<DocumentModel::DataElement *> m_dataElements;
+    QSet<QByteArray> m_eventSignals;
+    QSet<QByteArray> m_eventSlots;
+    QSet<QString> m_stateNames;
 };
 
 ScxmlParser::ScxmlParser(QXmlStreamReader *reader)

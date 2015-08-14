@@ -38,10 +38,8 @@
 **
 ****************************************************************************/
 
-#include "../trafficlight-common/trafficlight.h"
-
-#include <QtScxml/scxmlparser.h>
-#include <QtScxml/nulldatamodel.h>
+#include "mediaplayer.h"
+#include "../mediaplayer-common/mainwindow.h"
 
 #include <QApplication>
 
@@ -49,21 +47,18 @@ int main(int argc, char **argv)
 {
     QApplication app(argc, argv);
 
-    auto machine = Scxml::StateMachine::fromFile(QStringLiteral(":statemachine.scxml"));
-    if (!machine->errors().isEmpty()) {
-        QTextStream errs(stderr, QIODevice::WriteOnly);
-        foreach (const Scxml::ScxmlError &error, machine->errors()) {
-            errs << error.toString();
-        }
+    MediaPlayerStateMachine_StateMachine machine;
+    machine.init();
+    MainWindow mainWindow;
 
-        return -1;
-    }
+    QObject::connect(&mainWindow, &MainWindow::tap,
+                     &machine, &MediaPlayerStateMachine_StateMachine::event_tap);
+    QObject::connect(&machine, &MediaPlayerStateMachine_StateMachine::event_playbackStarted,
+                     &mainWindow, &MainWindow::started);
+    QObject::connect(&machine, &MediaPlayerStateMachine_StateMachine::event_playbackStopped,
+                     &mainWindow, &MainWindow::stopped);
 
-    TrafficLight widget(machine);
-    widget.resize(110, 300);
-    widget.show();
-    machine->setParent(&widget);
-    machine->start();
-
+    machine.start();
+    mainWindow.show();
     return app.exec();
 }

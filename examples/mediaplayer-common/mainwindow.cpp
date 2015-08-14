@@ -38,32 +38,46 @@
 **
 ****************************************************************************/
 
-#include "../trafficlight-common/trafficlight.h"
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
 
-#include <QtScxml/scxmlparser.h>
-#include <QtScxml/nulldatamodel.h>
+#include <QStringListModel>
 
-#include <QApplication>
+#include <QDebug>
 
-int main(int argc, char **argv)
+QT_USE_NAMESPACE
+
+MainWindow::MainWindow(QWidget *parent) :
+    QWidget(parent),
+    ui(new Ui::MainWindow)
 {
-    QApplication app(argc, argv);
+    ui->setupUi(this);
 
-    auto machine = Scxml::StateMachine::fromFile(QStringLiteral(":statemachine.scxml"));
-    if (!machine->errors().isEmpty()) {
-        QTextStream errs(stderr, QIODevice::WriteOnly);
-        foreach (const Scxml::ScxmlError &error, machine->errors()) {
-            errs << error.toString();
-        }
+    auto model = new QStringListModel({"song 1", "song 2", "song 3"}, this);
+    ui->mediaListView->setModel(model);
 
-        return -1;
-    }
+    connect(ui->mediaListView, &QAbstractItemView::clicked, [model,this](const QModelIndex & index){
+        emit tap(QVariantMap({
+            std::make_pair(QStringLiteral("media"), model->data(index, Qt::EditRole).toString())
+        }));
+    });
+}
 
-    TrafficLight widget(machine);
-    widget.resize(110, 300);
-    widget.show();
-    machine->setParent(&widget);
-    machine->start();
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
 
-    return app.exec();
+void MainWindow::started(const QVariant &data)
+{
+    QString media = data.toMap().value("media").toString();
+    ui->logText->appendPlainText(QStringLiteral("call on slot started with media '%1'").arg(media));
+    ui->statusLabel->setText(QStringLiteral("Playing %1").arg(media));
+}
+
+void MainWindow::stopped(const QVariant &data)
+{
+    QString media = data.toMap().value("media").toString();
+    ui->logText->appendPlainText(QStringLiteral("call on slot stopped with media '%1'").arg(media));
+    ui->statusLabel->setText(QStringLiteral("Stopped"));
 }

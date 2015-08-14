@@ -33,11 +33,6 @@
 
 #include <QtCore/private/qstatemachine_p.h>
 
-#undef DUMP_EVENT
-#ifdef DUMP_EVENT
-#include "ecmascriptdatamodel.h"
-#endif
-
 QT_BEGIN_NAMESPACE
 
 namespace Scxml {
@@ -239,6 +234,7 @@ StateMachinePrivate::StateMachinePrivate()
     , m_executionEngine(Q_NULLPTR)
     , m_tableData(Q_NULLPTR)
     , m_qStateMachine(Q_NULLPTR)
+    , m_eventFilter(Q_NULLPTR)
 {}
 
 StateMachinePrivate::~StateMachinePrivate()
@@ -251,12 +247,38 @@ void StateMachinePrivate::setQStateMachine(Internal::MyQStateMachine *stateMachi
     m_qStateMachine = stateMachine;
 }
 
+static ScxmlState *findState(const QString &scxmlName, QStateMachine *parent)
+{
+    QList<QObject *> worklist;
+    worklist.reserve(parent->children().size() + parent->configuration().size());
+    worklist.append(parent);
+
+    while (!worklist.isEmpty()) {
+        QObject *obj = worklist.takeLast();
+        if (ScxmlState *state = qobject_cast<ScxmlState *>(obj)) {
+            if (state->objectName() == scxmlName)
+                return state;
+        }
+        worklist.append(obj->children());
+    }
+
+    return Q_NULLPTR;
+}
+
+QAbstractState *StateMachinePrivate::stateByScxmlName(const QString &scxmlName)
+{
+    return findState(scxmlName, m_qStateMachine);
+}
+
 StateMachinePrivate::ParserData *StateMachinePrivate::parserData()
 {
     if (m_parserData.isNull())
         m_parserData.reset(new ParserData);
     return m_parserData.data();
 }
+
+ScxmlEventFilter::~ScxmlEventFilter()
+{}
 
 StateMachine *StateMachine::fromFile(const QString &fileName, DataModel *dataModel)
 {
@@ -569,24 +591,6 @@ bool StateMachine::isActive(const QString &scxmlStateName) const
     return false;
 }
 
-static ScxmlState *findState(const QString &scxmlName, QStateMachine *parent)
-{
-    QList<QObject *> worklist;
-    worklist.reserve(parent->children().size() + parent->configuration().size());
-    worklist.append(parent);
-
-    while (!worklist.isEmpty()) {
-        QObject *obj = worklist.takeLast();
-        if (ScxmlState *state = qobject_cast<ScxmlState *>(obj)) {
-            if (state->objectName() == scxmlName)
-                return state;
-        }
-        worklist.append(obj->children());
-    }
-
-    return Q_NULLPTR;
-}
-
 bool StateMachine::hasState(const QString &scxmlStateName) const
 {
     Q_D(const StateMachine);
@@ -600,6 +604,18 @@ QMetaObject::Connection StateMachine::connect(const QString &scxmlStateName, con
     Q_D(StateMachine);
     ScxmlState *state = findState(scxmlStateName, d->m_qStateMachine);
     return QObject::connect(state, signal, receiver, method, type);
+}
+
+ScxmlEventFilter *StateMachine::scxmlEventFilter() const
+{
+    Q_D(const StateMachine);
+    return d->m_eventFilter;
+}
+
+void StateMachine::setScxmlEventFilter(ScxmlEventFilter *newFilter)
+{
+    Q_D(StateMachine);
+    d->m_eventFilter = newFilter;
 }
 
 void StateMachine::executeInitialSetup()
@@ -717,6 +733,9 @@ void StateMachine::submitEvent(ScxmlEvent *e)
     if (!e)
         return;
 
+    if (d->m_eventFilter && !d->m_eventFilter->handle(e, this))
+        return;
+
     QStateMachine::EventPriority priority =
             e->eventType() == ScxmlEvent::External ? QStateMachine::NormalPriority
                                                    : QStateMachine::HighPriority;
@@ -727,13 +746,34 @@ void StateMachine::submitEvent(ScxmlEvent *e)
         d->m_qStateMachine->queueEvent(e, priority);
 }
 
+void StateMachine::submitEvent(const QByteArray &event, const QVariant &data)
+{
+    QVariantList dataValues;
+    QStringList dataNames;
+    QVariant incomingData = data;
+    if (incomingData.canConvert<QJSValue>()) {
+        incomingData = incomingData.value<QJSValue>().toVariant();
+    }
+
+    if (incomingData.type() == QVariant::Map) {
+        auto map = incomingData.toMap();
+        for (QVariantMap::const_iterator i = map.begin(), ei = map.end(); i != ei; ++i) {
+            dataValues.append(i.value());
+            dataNames.append(i.key());
+        }
+    } else {
+        dataValues.append(incomingData);
+    }
+
+    ScxmlEvent *e = new ScxmlEvent(event, ScxmlEvent::External, dataValues, dataNames);
+    submitEvent(e);
+}
+
 void StateMachine::submitEvent(const QByteArray &event, const QVariantList &dataValues,
                              const QStringList &dataNames, ScxmlEvent::EventType type,
                              const QByteArray &sendid, const QString &origin,
                              const QString &origintype, const QByteArray &invokeid)
 {
-    qCDebug(scxmlLog) << name() << ": submitting event" << event;
-
     ScxmlEvent *e = new ScxmlEvent(event, type, dataValues, dataNames, sendid, origin, origintype, invokeid);
     submitEvent(e);
 }
@@ -861,6 +901,23 @@ void ScxmlEvent::clear() {
     m_origintype = QString();
     m_invokeid = QByteArray();
     m_dataValues = QVariantList();
+}
+
+QVariant ScxmlEvent::data() const
+{
+    if (m_dataNames.isEmpty()) {
+        if (m_dataValues.size() == 1) {
+            return m_dataValues.first();
+        } else {
+            return QVariant(QVariant::Invalid);
+        }
+    }
+
+    QVariantMap result;
+    for (int i = 0, ei = m_dataNames.size(); i != ei; ++i) {
+        result.insert(m_dataNames.at(i), m_dataValues.at(i));
+    }
+    return result;
 }
 
 } // namespace Scxml

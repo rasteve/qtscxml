@@ -16,47 +16,41 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#ifndef SIGNALEVENT_H
-#define SIGNALEVENT_H
+#ifndef STATEMACHINELOADER_H
+#define STATEMACHINELOADER_H
 
-#include <QJSValue>
-#include <QObject>
+#include <QUrl>
+#include <QtScxml/scxmlstatemachine.h>
+#include <private/qqmlengine_p.h>
 
 QT_BEGIN_NAMESPACE
 
-namespace Scxml {
-class ScxmlState;
-}
-
-class StateMachine;
-class SignalEvent: public QObject
+class StateMachineLoader: public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QJSValue signal READ signal WRITE setSignal NOTIFY signalChanged)
-    Q_PROPERTY(QString eventName READ eventName WRITE setEventName NOTIFY eventNameChanged)
+    Q_PROPERTY(QUrl filename READ filename WRITE setFilename NOTIFY filenameChanged)
+    Q_PROPERTY(Scxml::StateMachine* stateMachine READ stateMachine DESIGNABLE false NOTIFY stateMachineChanged)
 
 public:
-    explicit SignalEvent(StateMachine *parent = 0);
+    explicit StateMachineLoader(QObject *parent = 0);
 
-    QString eventName() const;
-    void setEventName(const QString &eventName);
+    Scxml::StateMachine *stateMachine() const;
 
-    const QJSValue &signal();
-    void setSignal(const QJSValue &signal);
+    QUrl filename();
+    void setFilename(const QUrl &filename);
 
 Q_SIGNALS:
-    void signalChanged();
-    void eventNameChanged();
-
-public Q_SLOTS:
-    void invoke();
+    void filenameChanged();
+    void stateMachineChanged();
 
 private:
-    QJSValue m_signal;
-    QByteArray m_eventName;
-    QMetaObject::Connection m_signalConnection;
+    bool parse(const QUrl &filename);
+
+private:
+    QUrl m_filename;
+    Scxml::StateMachine *m_stateMachine;
 };
 
 QT_END_NAMESPACE
 
-#endif // SIGNALEVENT_H
+#endif // STATEMACHINELOADER_H
