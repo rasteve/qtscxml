@@ -431,10 +431,10 @@ public:
     ~DynamicStateMachine()
     { if (m_metaObject) free(m_metaObject); }
 
-    bool handle(Scxml::ScxmlEvent *event, Scxml::StateMachine *stateMachine) Q_DECL_OVERRIDE {
+    bool handle(QScxmlEvent *event, Scxml::StateMachine *stateMachine) Q_DECL_OVERRIDE {
         Q_UNUSED(stateMachine);
 
-        if (event->origintype() != QStringLiteral("qt:signal")) {
+        if (event->originType() != QStringLiteral("qt:signal")) {
             return true;
         }
 

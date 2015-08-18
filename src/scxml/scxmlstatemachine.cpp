@@ -35,10 +35,10 @@
 
 QT_BEGIN_NAMESPACE
 
+QEvent::Type QScxmlEvent::scxmlEventType = (QEvent::Type)QEvent::registerEventType();
+
 namespace Scxml {
 Q_LOGGING_CATEGORY(scxmlLog, "scxml.table")
-
-QEvent::Type ScxmlEvent::scxmlEventType = (QEvent::Type)QEvent::registerEventType();
 
 namespace {
 QByteArray objectId(QObject *obj, bool strict = false)
@@ -412,7 +412,7 @@ void Internal::MyQStateMachine::beginSelectTransitions(QEvent *event)
             //signalName.chop(1);
             //if (signalName.endsWith(QLatin1Char('.')))
             //    signalName.chop(1);
-            ScxmlEvent::EventType eventType = ScxmlEvent::External;
+            QScxmlEvent::EventType eventType = QScxmlEvent::ExternalEvent;
             QObject *s = e->sender();
             if (s == this) {
                 if (signalName.startsWith(QByteArray("event_"))){
@@ -459,13 +459,13 @@ void Internal::MyQStateMachine::beginSelectTransitions(QEvent *event)
             QList<QByteArray> namePieces;
             namePieces << QByteArray("qevent") << senderName << eventName;
             QByteArray name = namePieces.join('.');
-            ScxmlEvent::EventType eventType = ScxmlEvent::External;
+            QScxmlEvent::EventType eventType = QScxmlEvent::ExternalEvent;
             // use e->spontaneous(); to choose internal/external?
             stateMachinePrivate()->m_event.reset(name, eventType); // put something more in data for some elements like keyEvents and mouseEvents?
         } break;
         default:
-            if (event->type() == ScxmlEvent::scxmlEventType) {
-                stateMachinePrivate()->m_event = *static_cast<ScxmlEvent *>(event);
+            if (event->type() == QScxmlEvent::scxmlEventType) {
+                stateMachinePrivate()->m_event = *static_cast<QScxmlEvent *>(event);
             } else {
                 QEvent::Type qeventType = event->type();
                 QByteArray eventName = QStringLiteral("qdirectevent.E%1").arg((int)qeventType).toUtf8();
@@ -550,8 +550,8 @@ int Internal::MyQStateMachinePrivate::eventIdForDelayedEvent(const QByteArray &s
 
     QHash<int, DelayedEvent>::const_iterator it;
     for (it = delayedEvents.constBegin(); it != delayedEvents.constEnd(); ++it) {
-        if (ScxmlEvent *e = dynamic_cast<ScxmlEvent *>(it->event)) {
-            if (e->sendid() == scxmlEventId) {
+        if (QScxmlEvent *e = dynamic_cast<QScxmlEvent *>(it->event)) {
+            if (e->sendId() == scxmlEventId) {
                 return it.key();
             }
         }
@@ -726,7 +726,7 @@ void StateMachine::submitEvent2(const QString &event, QVariant data)
     submitEvent(event.toUtf8(), dataValues);
 }
 
-void StateMachine::submitEvent(ScxmlEvent *e)
+void StateMachine::submitEvent(QScxmlEvent *e)
 {
     Q_D(StateMachine);
 
@@ -737,7 +737,7 @@ void StateMachine::submitEvent(ScxmlEvent *e)
         return;
 
     QStateMachine::EventPriority priority =
-            e->eventType() == ScxmlEvent::External ? QStateMachine::NormalPriority
+            e->eventType() == QScxmlEvent::ExternalEvent ? QStateMachine::NormalPriority
                                                    : QStateMachine::HighPriority;
 
     if (d->m_qStateMachine->isRunning())
@@ -765,20 +765,34 @@ void StateMachine::submitEvent(const QByteArray &event, const QVariant &data)
         dataValues.append(incomingData);
     }
 
-    ScxmlEvent *e = new ScxmlEvent(event, ScxmlEvent::External, dataValues, dataNames);
+    QScxmlEvent *e = new QScxmlEvent;
+    e->setName(event);
+    e->setEventType(QScxmlEvent::ExternalEvent);
+    e->setDataValues(dataValues);
+    e->setDataNames(dataNames);
     submitEvent(e);
 }
 
 void StateMachine::submitEvent(const QByteArray &event, const QVariantList &dataValues,
-                             const QStringList &dataNames, ScxmlEvent::EventType type,
+                             const QStringList &dataNames, QScxmlEvent::EventType type,
                              const QByteArray &sendid, const QString &origin,
                              const QString &origintype, const QByteArray &invokeid)
 {
-    ScxmlEvent *e = new ScxmlEvent(event, type, dataValues, dataNames, sendid, origin, origintype, invokeid);
+    qCDebug(scxmlLog) << name() << ": submitting event" << event;
+
+    QScxmlEvent *e = new QScxmlEvent;
+    e->setName(event);
+    e->setEventType(type);
+    e->setDataValues(dataValues);
+    e->setDataNames(dataNames);
+    e->setSendId(sendid);
+    e->setOrigin(origin);
+    e->setOriginType(origintype);
+    e->setInvokeId(invokeid);
     submitEvent(e);
 }
 
-void StateMachine::submitDelayedEvent(int delayInMiliSecs, ScxmlEvent *e)
+void StateMachine::submitDelayedEvent(int delayInMiliSecs, QScxmlEvent *e)
 {
     Q_ASSERT(delayInMiliSecs > 0);
     Q_D(StateMachine);
@@ -786,9 +800,9 @@ void StateMachine::submitDelayedEvent(int delayInMiliSecs, ScxmlEvent *e)
     if (!e)
         return;
 
-    qCDebug(scxmlLog) << name() << ": submitting event" << e->name() << "with delay" << delayInMiliSecs << "ms" << "and sendid" << e->sendid();
+    qCDebug(scxmlLog) << name() << ": submitting event" << e->name() << "with delay" << delayInMiliSecs << "ms" << "and sendid" << e->sendId();
 
-    Q_ASSERT(e->eventType() == ScxmlEvent::External);
+    Q_ASSERT(e->eventType() == QScxmlEvent::ExternalEvent);
     int id = d->m_qStateMachine->postDelayedEvent(e, delayInMiliSecs);
 
     qCDebug(scxmlLog) << name() << ": delayed event" << e->name() << "(" << e << ") got id:" << id;
@@ -806,7 +820,7 @@ void StateMachine::cancelDelayedEvent(const QByteArray &sendid)
         d->m_qStateMachine->cancelDelayedEvent(id);
 }
 
-void Internal::MyQStateMachine::queueEvent(ScxmlEvent *event, EventPriority priority)
+void Internal::MyQStateMachine::queueEvent(QScxmlEvent *event, EventPriority priority)
 {
     Q_D(MyQStateMachine);
 
@@ -861,65 +875,23 @@ void StateMachine::start()
     d->m_qStateMachine->start();
 }
 
-ScxmlEvent::ScxmlEvent(const QByteArray &name, ScxmlEvent::EventType eventType,
-                       const QVariantList &dataValues, const QStringList &dataNames,
-                       const QByteArray &sendid, const QString &origin,
-                       const QString &origintype, const QByteArray &invokeid)
-    : QEvent(scxmlEventType), m_name(name), m_type(eventType), m_dataValues(dataValues), m_dataNames(dataNames)
-    , m_sendid(sendid), m_origin(origin), m_origintype(origintype), m_invokeid(invokeid)
-{ }
+} // namespace Scxml
 
-QString ScxmlEvent::scxmlType() const {
-    switch (m_type) {
-    case Platform:
-        return QLatin1String("platform");
-    case Internal:
-        return QLatin1String("internal");
-    case External:
-        break;
-    }
-    return QLatin1String("external");
-}
-
-void ScxmlEvent::reset(const QByteArray &name, ScxmlEvent::EventType eventType, QVariantList dataValues,
-                       const QByteArray &sendid, const QString &origin,
-                       const QString &origintype, const QByteArray &invokeid) {
-    m_name = name;
-    m_type = eventType;
-    m_sendid = sendid;
-    m_origin = origin;
-    m_origintype = origintype;
-    m_invokeid = invokeid;
-    m_dataValues = dataValues;
-}
-
-void ScxmlEvent::clear() {
-    m_name = QByteArray();
-    m_type = External;
-    m_sendid = QByteArray();
-    m_origin = QString();
-    m_origintype = QString();
-    m_invokeid = QByteArray();
-    m_dataValues = QVariantList();
-}
-
-QVariant ScxmlEvent::data() const
+QVariant QScxmlEvent::data() const
 {
-    if (m_dataNames.isEmpty()) {
-        if (m_dataValues.size() == 1) {
-            return m_dataValues.first();
+    if (d->dataNames.isEmpty()) {
+        if (d->dataValues.size() == 1) {
+            return d->dataValues.first();
         } else {
             return QVariant(QVariant::Invalid);
         }
     }
 
     QVariantMap result;
-    for (int i = 0, ei = m_dataNames.size(); i != ei; ++i) {
-        result.insert(m_dataNames.at(i), m_dataValues.at(i));
+    for (int i = 0, ei = d->dataNames.size(); i != ei; ++i) {
+        result.insert(d->dataNames.at(i), d->dataValues.at(i));
     }
     return result;
 }
-
-} // namespace Scxml
 
 QT_END_NAMESPACE

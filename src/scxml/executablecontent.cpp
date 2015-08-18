@@ -114,7 +114,7 @@ public:
                     return false;
             }
 
-            ScxmlEvent *event = EventBuilder(table, *send).buildEvent();
+            QScxmlEvent *event = EventBuilder(table, *send).buildEvent();
             if (!event)
                 return false;
 
@@ -199,7 +199,7 @@ public:
             Raise *raise = reinterpret_cast<Raise *>(instr);
             ip += raise->size();
             auto event = tableData->byteArray(raise->event);
-            table->submitEvent(event, QVariantList(), QStringList(), ScxmlEvent::Internal);
+            table->submitEvent(event, QVariantList(), QStringList(), QScxmlEvent::InternalEvent);
             return true;
         }
 

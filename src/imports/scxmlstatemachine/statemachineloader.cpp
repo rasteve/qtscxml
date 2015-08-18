@@ -16,8 +16,6 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include "signalevent.h"
-#include "state.h"
 #include "statemachineloader.h"
 
 #include <QtScxml/scxmlstatemachine.h>

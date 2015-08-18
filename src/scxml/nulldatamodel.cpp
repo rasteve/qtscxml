@@ -147,7 +147,7 @@ bool NullDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *b
     return false;
 }
 
-void NullDataModel::setEvent(const ScxmlEvent &event)
+void NullDataModel::setEvent(const QScxmlEvent &event)
 {
     Q_UNUSED(event);
 }

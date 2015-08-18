@@ -51,7 +51,7 @@ public:
 
     StateMachine *stateTable() const;
 
-    void queueEvent(ScxmlEvent *event, QStateMachine::EventPriority priority);
+    void queueEvent(QScxmlEvent *event, QStateMachine::EventPriority priority);
     void submitQueuedEvents();
     int eventIdForDelayedEvent(const QByteArray &scxmlEventId);
 
@@ -98,7 +98,7 @@ public: // data fields:
     StateMachine::BindingMethod m_dataBinding;
     ExecutableContent::ExecutionEngine *m_executionEngine;
     TableData *m_tableData;
-    ScxmlEvent m_event;
+    QScxmlEvent m_event;
     Internal::MyQStateMachine *m_qStateMachine;
     ScxmlEventFilter *m_eventFilter;
 

@@ -19,6 +19,8 @@
 #include "executablecontent_p.h"
 #include "scxmlevent_p.h"
 
+QT_USE_NAMESPACE
+
 using namespace Scxml;
 
 static bool evaluate(const ExecutableContent::Param &param, StateMachine *table, QVariantList &dataValues, QStringList &dataNames)
@@ -71,7 +73,7 @@ static bool evaluate(const ExecutableContent::Array<ExecutableContent::Param> *p
 
 QAtomicInt EventBuilder::idCounter = QAtomicInt(0);
 
-ScxmlEvent *EventBuilder::buildEvent()
+QScxmlEvent *EventBuilder::buildEvent()
 {
     auto dataModel = table ? table->dataModel() : Q_NULLPTR;
     auto tableData = table ? table->tableData() : Q_NULLPTR;
@@ -130,7 +132,7 @@ ScxmlEvent *EventBuilder::buildEvent()
             return Q_NULLPTR;
     }
     if (origin.isEmpty()) {
-        if (eventType == ScxmlEvent::External) {
+        if (eventType == QScxmlEvent::ExternalEvent) {
             origin = QStringLiteral("#_internal");
         }
     } else if (!table->isLegalTarget(origin)) {
@@ -170,5 +172,152 @@ ScxmlEvent *EventBuilder::buildEvent()
         return Q_NULLPTR;
     }
 
-    return new ScxmlEvent(eventName, eventType, dataValues, dataNames, sendid, origin, origintype);
+    QScxmlEvent *event = new QScxmlEvent;
+    event->setName(eventName);
+    event->setEventType(eventType);
+    event->setDataValues(dataValues);
+    event->setDataNames(dataNames);
+    event->setSendId(sendid);
+    event->setOrigin(origin);
+    event->setOriginType(origintype);
+    return event;
 }
+
+QScxmlEvent::QScxmlEvent()
+    : QEvent(scxmlEventType), d(new QScxmlEventPrivate)
+{ }
+
+QScxmlEvent::~QScxmlEvent()
+{
+    delete d;
+}
+
+QString QScxmlEvent::scxmlType() const
+{
+    switch (d->eventType) {
+    case PlatformEvent:
+        return QLatin1String("platform");
+    case InternalEvent:
+        return QLatin1String("internal");
+    case ExternalEvent:
+        break;
+    }
+    return QLatin1String("external");
+}
+
+void QScxmlEvent::reset(const QByteArray &name, QScxmlEvent::EventType eventType, QVariantList dataValues,
+                       const QByteArray &sendid, const QString &origin,
+                       const QString &origintype, const QByteArray &invokeid)
+{
+    d->name = name;
+    d->eventType = eventType;
+    d->sendid = sendid;
+    d->origin = origin;
+    d->originType = origintype;
+    d->invokeId = invokeid;
+    d->dataValues = dataValues;
+}
+
+void QScxmlEvent::clear()
+{
+    d->name = QByteArray();
+    d->eventType = ExternalEvent;
+    d->sendid = QByteArray();
+    d->origin = QString();
+    d->originType = QString();
+    d->invokeId = QByteArray();
+    d->dataValues = QVariantList();
+}
+
+QScxmlEvent &QScxmlEvent::operator=(const QScxmlEvent &other)
+{
+    QEvent::operator=(other);
+    *d = *other.d;
+    return *this;
+}
+
+QScxmlEvent::QScxmlEvent(const QScxmlEvent &other)
+    : QEvent(other), d(new QScxmlEventPrivate(*other.d))
+{
+}
+
+QByteArray QScxmlEvent::name() const
+{
+    return d->name;
+}
+
+void QScxmlEvent::setName(const QByteArray &name)
+{
+    d->name = name;
+}
+
+QByteArray QScxmlEvent::sendId() const
+{
+    return d->sendid;
+}
+
+void QScxmlEvent::setSendId(const QByteArray &sendid)
+{
+    d->sendid = sendid;
+}
+
+QString QScxmlEvent::origin() const
+{
+    return d->origin;
+}
+
+void QScxmlEvent::setOrigin(const QString &origin)
+{
+    d->origin = origin;
+}
+
+QString QScxmlEvent::originType() const
+{
+    return d->originType;
+}
+
+void QScxmlEvent::setOriginType(const QString &origintype)
+{
+    d->originType = origintype;
+}
+
+QByteArray QScxmlEvent::invokeId() const
+{
+    return d->invokeId;
+}
+
+void QScxmlEvent::setInvokeId(const QByteArray &invokeid)
+{
+    d->invokeId = invokeid;
+}
+
+QVariantList QScxmlEvent::dataValues() const
+{
+    return d->dataValues;
+}
+
+void QScxmlEvent::setDataValues(const QVariantList &dataValues)
+{
+    d->dataValues = dataValues;
+}
+
+QStringList QScxmlEvent::dataNames() const
+{
+    return d->dataNames;
+}
+
+void QScxmlEvent::setDataNames(const QStringList &dataNames)
+{
+    d->dataNames = dataNames;
+}
+
+QScxmlEvent::EventType QScxmlEvent::eventType() const
+{
+    return d->eventType;
+}
+
+void QScxmlEvent::setEventType(const EventType &type)
+{
+    d->eventType = type;
+}
+

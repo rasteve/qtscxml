@@ -49,7 +49,7 @@ class EventBuilder
     QString contents;
     EvaluatorId contentExpr;
     const ExecutableContent::Array<ExecutableContent::Param> *params;
-    ScxmlEvent::EventType eventType;
+    QScxmlEvent::EventType eventType;
     QByteArray id;
     QString idLocation;
     QString target;
@@ -75,7 +75,7 @@ class EventBuilder
         eventexpr = NoEvaluator;
         contentExpr = NoEvaluator;
         params = Q_NULLPTR;
-        eventType = ScxmlEvent::External;
+        eventType = QScxmlEvent::ExternalEvent;
         targetexpr = NoEvaluator;
         typeexpr = NoEvaluator;
         namelist = Q_NULLPTR;
@@ -112,15 +112,15 @@ public:
         namelist = &send.namelist;
     }
 
-    ScxmlEvent *operator()() { return buildEvent(); }
+    QScxmlEvent *operator()() { return buildEvent(); }
 
-    ScxmlEvent *buildEvent();
+    QScxmlEvent *buildEvent();
 
-    static ScxmlEvent *errorEvent(const QByteArray &name, const QByteArray &sendid)
+    static QScxmlEvent *errorEvent(const QByteArray &name, const QByteArray &sendid)
     {
         EventBuilder event;
         event.event = name;
-        event.eventType = ScxmlEvent::Platform; // Errors are platform events. See e.g. test331.
+        event.eventType = QScxmlEvent::PlatformEvent; // Errors are platform events. See e.g. test331.
         // _event.data == null, see test528
         event.id = sendid;
         return event();
@@ -128,6 +128,19 @@ public:
 };
 
 } // Scxml namespace
+
+class QScxmlEventPrivate
+{
+public:
+    QByteArray name;
+    QScxmlEvent::EventType eventType;
+    QVariantList dataValues; // extra data
+    QStringList dataNames; // extra data
+    QByteArray sendid; // if set, or id of <send> if failure
+    QString origin; // uri to answer by setting the target of send, empty for internal and platform events
+    QString originType; // type to answer by setting the type of send, empty for internal and platform events
+    QByteArray invokeId; // id of the invocation that triggered the child process if this was invoked
+};
 
 QT_END_NAMESPACE
 

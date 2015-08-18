@@ -27,48 +27,62 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace Scxml {
+class QScxmlEventPrivate;
 
-class SCXML_EXPORT ScxmlEvent: public QEvent {
+class SCXML_EXPORT QScxmlEvent: public QEvent
+{
 public:
+    QScxmlEvent();
+    ~QScxmlEvent();
+
+    QScxmlEvent &operator=(const QScxmlEvent &other);
+    QScxmlEvent(const QScxmlEvent &other);
+
     static QEvent::Type scxmlEventType;
-    enum EventType { Platform, Internal, External };
 
-    ScxmlEvent(const QByteArray &name = QByteArray(), EventType eventType = External,
-               const QVariantList &dataValues = QVariantList(), const QStringList &dataNames = QStringList(),
-               const QByteArray &sendid = QByteArray (),
-               const QString &origin = QString (), const QString &origintype = QString (),
-               const QByteArray &invokeid = QByteArray());
+    enum EventType {
+        PlatformEvent,
+        InternalEvent,
+        ExternalEvent
+    };
 
-    QByteArray name() const { return m_name; }
-    EventType eventType() const { return m_type; }
+    QByteArray name() const;
+    void setName(const QByteArray &name);
+
+    EventType eventType() const;
+    void setEventType(const EventType &type);
+
     QString scxmlType() const;
-    QByteArray sendid() const { return m_sendid; }
-    QString origin() const { return m_origin; }
-    QString origintype() const { return m_origintype; }
-    QByteArray invokeid() const { return m_invokeid; }
-    QVariantList dataValues() const { return m_dataValues; }
-    QStringList dataNames() const { return m_dataNames; }
-    void reset(const QByteArray &name, EventType eventType = External,
-               QVariantList dataValues = QVariantList(), const QByteArray &sendid = QByteArray(),
-               const QString &origin = QString(), const QString &origintype = QString(),
-               const QByteArray &invokeid = QByteArray());
+
+    QByteArray sendId() const;
+    void setSendId(const QByteArray &sendId);
+
+    QString origin() const;
+    void setOrigin(const QString &origin);
+
+    QString originType() const;
+    void setOriginType(const QString &originType);
+
+    QByteArray invokeId() const;
+    void setInvokeId(const QByteArray &invokeId);
+
+    QVariantList dataValues() const;
+    void setDataValues(const QVariantList &dataValues);
+
+    QStringList dataNames() const;
+    void setDataNames(const QStringList &dataNames);
+
+    void reset(const QByteArray &name, EventType eventType = ExternalEvent,
+               QVariantList dataValues = QVariantList(), const QByteArray &sendId = QByteArray(),
+               const QString &origin = QString(), const QString &originType = QString(),
+               const QByteArray &invokeId = QByteArray());
     void clear();
 
     QVariant data() const;
 
 private:
-    QByteArray m_name;
-    EventType m_type;
-    QVariantList m_dataValues; // extra data
-    QStringList m_dataNames; // extra data
-    QByteArray m_sendid; // if set, or id of <send> if failure
-    QString m_origin; // uri to answer by setting the target of send, empty for internal and platform events
-    QString m_origintype; // type to answer by setting the type of send, empty for internal and platform events
-    QByteArray m_invokeid; // id of the invocation that triggered the child process if this was invoked
+    QScxmlEventPrivate *d;
 };
-
-} // namespace Scxml
 
 QT_END_NAMESPACE
 

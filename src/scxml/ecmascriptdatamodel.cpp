@@ -118,20 +118,20 @@ public:
                               engine()->evaluate(QStringLiteral("function(id){return _x.In(id);}")));
     }
 
-    void assignEvent(const ScxmlEvent &event)
+    void assignEvent(const QScxmlEvent &event)
     {
         QJSValue _event = engine()->newObject();
         QJSValue dataValue = eventDataAsJSValue(event);
         _event.setProperty(QStringLiteral("data"), dataValue.isUndefined() ? QJSValue(QJSValue::UndefinedValue)
                                                                            : dataValue);
-        _event.setProperty(QStringLiteral("invokeid"), event.invokeid().isEmpty() ? QJSValue(QJSValue::UndefinedValue)
-                                                                                  : engine()->toScriptValue(QString::fromUtf8(event.invokeid())));
-        if (!event.origintype().isEmpty())
-            _event.setProperty(QStringLiteral("origintype"), engine()->toScriptValue(event.origintype()));
+        _event.setProperty(QStringLiteral("invokeid"), event.invokeId().isEmpty() ? QJSValue(QJSValue::UndefinedValue)
+                                                                                  : engine()->toScriptValue(QString::fromUtf8(event.invokeId())));
+        if (!event.originType().isEmpty())
+            _event.setProperty(QStringLiteral("origintype"), engine()->toScriptValue(event.originType()));
         _event.setProperty(QStringLiteral("origin"), event.origin().isEmpty() ? QJSValue(QJSValue::UndefinedValue)
                                                                               : engine()->toScriptValue(event.origin()) );
-        _event.setProperty(QStringLiteral("sendid"), event.sendid().isEmpty() ? QJSValue(QJSValue::UndefinedValue)
-                                                                              : engine()->toScriptValue(QString::fromUtf8(event.sendid())));
+        _event.setProperty(QStringLiteral("sendid"), event.sendId().isEmpty() ? QJSValue(QJSValue::UndefinedValue)
+                                                                              : engine()->toScriptValue(QString::fromUtf8(event.sendId())));
         _event.setProperty(QStringLiteral("type"), engine()->toScriptValue(event.scxmlType()));
         _event.setProperty(QStringLiteral("name"), engine()->toScriptValue(QString::fromUtf8(event.name())));
         _event.setProperty(QStringLiteral("raw"), QStringLiteral("unsupported")); // See test178
@@ -140,7 +140,7 @@ public:
         setReadonlyProperty(&dataModel, QStringLiteral("_event"), _event);
     }
 
-    QJSValue eventDataAsJSValue(const ScxmlEvent &event) const
+    QJSValue eventDataAsJSValue(const QScxmlEvent &event) const
     {
         if (event.dataNames().isEmpty()) {
             if (event.dataValues().size() == 0) {
@@ -421,7 +421,7 @@ bool EcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopB
     return true;
 }
 
-void EcmaScriptDataModel::setEvent(const ScxmlEvent &event)
+void EcmaScriptDataModel::setEvent(const QScxmlEvent &event)
 {
     d->assignEvent(event);
 }

@@ -26,9 +26,10 @@
 
 QT_BEGIN_NAMESPACE
 
+class QScxmlEvent;
+
 namespace Scxml {
 
-class ScxmlEvent;
 class StateMachine;
 
 #if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
@@ -88,7 +89,7 @@ public:
     virtual void evaluateAssignment(EvaluatorId id, bool *ok) = 0;
     virtual bool evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body) = 0;
 
-    virtual void setEvent(const ScxmlEvent &event) = 0;
+    virtual void setEvent(const QScxmlEvent &event) = 0;
 
     virtual QVariant property(const QString &name) const = 0;
     virtual bool hasProperty(const QString &name) const = 0;

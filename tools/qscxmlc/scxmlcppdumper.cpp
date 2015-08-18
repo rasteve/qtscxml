@@ -563,8 +563,8 @@ private:
         if (!m_signals.isEmpty()) {
             clazz.init.impl << QStringLiteral("stateMachine.setScxmlEventFilter(this);");
             auto &dm = clazz.dataMethods;
-            dm << QStringLiteral("bool handle(Scxml::ScxmlEvent *event, Scxml::StateMachine *stateMachine) Q_DECL_OVERRIDE {")
-               << QStringLiteral("    if (event->origintype() != QStringLiteral(\"qt:signal\")) { return true; }")
+            dm << QStringLiteral("bool handle(QScxmlEvent *event, Scxml::StateMachine *stateMachine) Q_DECL_OVERRIDE {")
+               << QStringLiteral("    if (event->originType() != QStringLiteral(\"qt:signal\")) { return true; }")
                << QStringLiteral("    %1 *m = qobject_cast<%1 *>(stateMachine);").arg(m_mainClassName);
             foreach (const QString &s, m_signals) {
                 dm << QStringLiteral("    if (event->name() == %1) { emit m->event_%2(event->data()); return false; }")

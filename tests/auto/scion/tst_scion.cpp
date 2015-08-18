@@ -310,13 +310,13 @@ static bool playEvent(StateMachine *stateMachine, const QJsonObject &eventDescri
     auto event = eventDescription.value(QLatin1String("event")).toObject();
     auto eventName = event.value(QLatin1String("name")).toString().toUtf8();
     Q_ASSERT(!eventName.isEmpty());
-    ScxmlEvent::EventType type = ScxmlEvent::External;
+    QScxmlEvent::EventType type = QScxmlEvent::ExternalEvent;
     if (event.contains(QLatin1String("type"))) {
         QString typeStr = event.value(QLatin1String("type")).toString();
         if (typeStr.compare(QLatin1String("external"), Qt::CaseInsensitive) == 0)
-            type = ScxmlEvent::Internal;
+            type = QScxmlEvent::InternalEvent;
         else if (typeStr.compare(QLatin1String("platform"), Qt::CaseInsensitive) == 0)
-            type = ScxmlEvent::Platform;
+            type = QScxmlEvent::PlatformEvent;
         else {
             qWarning() << "unexpected event type in " << eventDescription;
             return false;
@@ -349,7 +349,15 @@ static bool playEvent(StateMachine *stateMachine, const QJsonObject &eventDescri
     QByteArray invokeid;
     if (event.contains(QLatin1String("invokeid")))
         invokeid = event.value(QLatin1String("invokeid")).toString().toUtf8();
-    ScxmlEvent *e = new ScxmlEvent(eventName, type, dataValues, dataNames, sendid, origin, origintype, invokeid);
+    QScxmlEvent *e = new QScxmlEvent;
+    e->setName(eventName);
+    e->setEventType(type);
+    e->setDataValues(dataValues);
+    e->setDataNames(dataNames);
+    e->setSendId(sendid);
+    e->setOrigin(origin);
+    e->setOriginType(origintype);
+    e->setInvokeId(invokeid);
 //    qDebug() << "submitting event" << eventName << "....";
     if (eventDescription.contains(QLatin1String("after"))) {
         int delay = eventDescription.value(QLatin1String("after")).toInt();

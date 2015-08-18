@@ -107,7 +107,7 @@ class SCXML_EXPORT ScxmlEventFilter
 {
 public:
     virtual ~ScxmlEventFilter();
-    virtual bool handle(ScxmlEvent *event, StateMachine *stateMachine) = 0;
+    virtual bool handle(QScxmlEvent *event, StateMachine *stateMachine) = 0;
 };
 
 class StateMachinePrivate;
@@ -166,18 +166,18 @@ public:
     Q_INVOKABLE void submitEvent1(const QString &event);
     Q_INVOKABLE void submitEvent2(const QString &event,  QVariant data);
 
-    void submitEvent(ScxmlEvent *e);
+    void submitEvent(QScxmlEvent *e);
     Q_INVOKABLE void submitEvent(const QByteArray &event, const QVariant &data);
     Q_INVOKABLE void submitEvent(const QByteArray &event,
                                  const QVariantList &dataValues = QVariantList(),
                                  const QStringList &dataNames = QStringList(),
-                                 ScxmlEvent::EventType type = ScxmlEvent::External,
+                                 QScxmlEvent::EventType type = QScxmlEvent::ExternalEvent,
                                  const QByteArray &sendid = QByteArray(),
                                  const QString &origin = QString(),
                                  const QString &origintype = QString(),
                                  const QByteArray &invokeid = QByteArray());
     void submitDelayedEvent(int delayInMiliSecs,
-                            ScxmlEvent *e);
+                            QScxmlEvent *e);
     void cancelDelayedEvent(const QByteArray &event);
 
     bool isLegalTarget(const QString &target) const;

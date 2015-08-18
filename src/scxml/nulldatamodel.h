@@ -40,7 +40,7 @@ public:
     void evaluateAssignment(EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
     bool evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body) Q_DECL_OVERRIDE;
 
-    void setEvent(const ScxmlEvent &event) Q_DECL_OVERRIDE;
+    void setEvent(const QScxmlEvent &event) Q_DECL_OVERRIDE;
 
     QVariant property(const QString &name) const Q_DECL_OVERRIDE;
     bool hasProperty(const QString &name) const Q_DECL_OVERRIDE;
