@@ -1,8 +1,8 @@
 option(host_build)
-QT += core qml scxml-private
 
 TARGET = qscxmlc
 CONFIG += console c++11
+QT = core scxml-private
 
 SOURCES += \
     qscxmlc.cpp \
