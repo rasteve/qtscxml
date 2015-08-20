@@ -25,7 +25,7 @@ QT_BEGIN_NAMESPACE
 
 namespace Scxml {
 
-class SCXML_EXPORT ScxmlBaseTransition : public QAbstractTransition
+class Q_SCXML_EXPORT ScxmlBaseTransition : public QAbstractTransition
 {
     Q_OBJECT
     class Data;
@@ -50,7 +50,7 @@ private:
     Data *d;
 };
 
-class SCXML_EXPORT ScxmlTransition : public ScxmlBaseTransition
+class Q_SCXML_EXPORT ScxmlTransition : public ScxmlBaseTransition
 {
     Q_OBJECT
     class Data;
@@ -73,7 +73,7 @@ private:
     Data *d;
 };
 
-class SCXML_EXPORT ScxmlState: public QState
+class Q_SCXML_EXPORT ScxmlState: public QState
 {
     Q_OBJECT
 
@@ -102,14 +102,14 @@ private:
     Data *d;
 };
 
-class SCXML_EXPORT ScxmlInitialState: public ScxmlState
+class Q_SCXML_EXPORT ScxmlInitialState: public ScxmlState
 {
     Q_OBJECT
 public:
     ScxmlInitialState(QState *theParent): ScxmlState(theParent) { }
 };
 
-class SCXML_EXPORT ScxmlFinalState: public QFinalState
+class Q_SCXML_EXPORT ScxmlFinalState: public QFinalState
 {
     Q_OBJECT
     class Data;

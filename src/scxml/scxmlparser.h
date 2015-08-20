@@ -30,10 +30,10 @@ class QXmlStreamReader;
 namespace Scxml {
 
 class ScxmlParserPrivate;
-class SCXML_EXPORT ScxmlParser
+class Q_SCXML_EXPORT ScxmlParser
 {
 public:
-    class SCXML_EXPORT Loader
+    class Q_SCXML_EXPORT Loader
     {
     public:
         Loader(ScxmlParser *parser);

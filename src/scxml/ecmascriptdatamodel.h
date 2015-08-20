@@ -27,7 +27,7 @@ class QJSEngine;
 namespace Scxml {
 
 class EcmaScriptDataModelPrivate;
-class SCXML_EXPORT EcmaScriptDataModel: public DataModel
+class Q_SCXML_EXPORT EcmaScriptDataModel: public DataModel
 {
 public:
     EcmaScriptDataModel();

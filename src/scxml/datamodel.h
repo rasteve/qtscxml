@@ -61,7 +61,7 @@ enum { NoEvaluator = -1 };
 
 class NullDataModel;
 class EcmaScriptDataModel;
-class SCXML_EXPORT DataModel
+class Q_SCXML_EXPORT DataModel
 {
     Q_DISABLE_COPY(DataModel)
 

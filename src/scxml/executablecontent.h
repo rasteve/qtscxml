@@ -41,7 +41,7 @@ enum { NoString = -1 };
 typedef qint32 ByteArrayId;
 typedef qint32 *Instructions;
 
-class SCXML_EXPORT ExecutionEngine
+class Q_SCXML_EXPORT ExecutionEngine
 {
 public:
     ExecutionEngine(StateMachine *table);

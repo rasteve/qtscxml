@@ -438,7 +438,7 @@ struct ScxmlDocument
     }
 };
 
-class SCXML_EXPORT NodeVisitor
+class Q_SCXML_EXPORT NodeVisitor
 {
 public:
     virtual ~NodeVisitor();
@@ -574,7 +574,7 @@ public:
     QByteArray load(const QString &name, const QString &baseDir, bool *ok) Q_DECL_OVERRIDE;
 };
 
-class SCXML_EXPORT ScxmlParserPrivate
+class Q_SCXML_EXPORT ScxmlParserPrivate
 {
 public:
     static ScxmlParserPrivate *get(ScxmlParser *parser);

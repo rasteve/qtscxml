@@ -84,7 +84,7 @@ struct Array
     int size() const { return sizeof(Array<T>) / sizeof(qint32) + dataSize(); }
 };
 
-struct SCXML_EXPORT Param
+struct Q_SCXML_EXPORT Param
 {
     StringId name;
     EvaluatorId expr;
@@ -93,7 +93,7 @@ struct SCXML_EXPORT Param
     static int calculateSize() { return sizeof(Param) / sizeof(qint32); }
 };
 
-struct SCXML_EXPORT Instruction
+struct Q_SCXML_EXPORT Instruction
 {
     enum InstructionType: qint32 {
         Sequence = 1,
@@ -111,7 +111,7 @@ struct SCXML_EXPORT Instruction
     } instructionType;
 };
 
-struct SCXML_EXPORT DoneData: Instruction
+struct Q_SCXML_EXPORT DoneData: Instruction
 {
     StringId location;
     StringId contents;
@@ -121,7 +121,7 @@ struct SCXML_EXPORT DoneData: Instruction
     static InstructionType kind() { return Instruction::DoneData; }
 };
 
-struct SCXML_EXPORT InstructionSequence: Instruction
+struct Q_SCXML_EXPORT InstructionSequence: Instruction
 {
     qint32 entryCount; // the amount of qint32's that the instructions take up
     // Instruction[] instructions;
@@ -131,7 +131,7 @@ struct SCXML_EXPORT InstructionSequence: Instruction
     int size() const { return sizeof(InstructionSequence) / sizeof(qint32) + entryCount; }
 };
 
-struct SCXML_EXPORT InstructionSequences: Instruction
+struct Q_SCXML_EXPORT InstructionSequences: Instruction
 {
     qint32 sequenceCount;
     qint32 entryCount; // the amount of qint32's that the sequences take up
@@ -151,7 +151,7 @@ struct SCXML_EXPORT InstructionSequences: Instruction
     }
 };
 
-struct SCXML_EXPORT Send: Instruction
+struct Q_SCXML_EXPORT Send: Instruction
 {
     StringId instructionLocation;
     ByteArrayId event;
@@ -179,7 +179,7 @@ struct SCXML_EXPORT Send: Instruction
     }
 };
 
-struct SCXML_EXPORT Raise: Instruction
+struct Q_SCXML_EXPORT Raise: Instruction
 {
     ByteArrayId event;
 
@@ -187,7 +187,7 @@ struct SCXML_EXPORT Raise: Instruction
     int size() const { return sizeof(Raise) / sizeof(qint32); }
 };
 
-struct SCXML_EXPORT Log: Instruction
+struct Q_SCXML_EXPORT Log: Instruction
 {
     StringId label;
     EvaluatorId expr;
@@ -196,7 +196,7 @@ struct SCXML_EXPORT Log: Instruction
     int size() const { return sizeof(Log) / sizeof(qint32); }
 };
 
-struct SCXML_EXPORT JavaScript: Instruction
+struct Q_SCXML_EXPORT JavaScript: Instruction
 {
     EvaluatorId go;
 
@@ -204,7 +204,7 @@ struct SCXML_EXPORT JavaScript: Instruction
     int size() const { return sizeof(JavaScript) / sizeof(qint32); }
 };
 
-struct SCXML_EXPORT Assign: Instruction
+struct Q_SCXML_EXPORT Assign: Instruction
 {
     EvaluatorId expression;
 
@@ -212,7 +212,7 @@ struct SCXML_EXPORT Assign: Instruction
     int size() const { return sizeof(Assign) / sizeof(qint32); }
 };
 
-struct SCXML_EXPORT If: Instruction
+struct Q_SCXML_EXPORT If: Instruction
 {
     Array<EvaluatorId> conditions;
     // InstructionSequences blocks;
@@ -225,7 +225,7 @@ struct SCXML_EXPORT If: Instruction
     int size() { return sizeof(If) / sizeof(qint32) + blocks()->size() + conditions.dataSize(); }
 };
 
-struct SCXML_EXPORT Foreach: Instruction
+struct Q_SCXML_EXPORT Foreach: Instruction
 {
     EvaluatorId doIt;
     InstructionSequence block;
@@ -235,7 +235,7 @@ struct SCXML_EXPORT Foreach: Instruction
     Instructions blockstart() { return reinterpret_cast<Instructions>(&block); }
 };
 
-struct SCXML_EXPORT Cancel: Instruction
+struct Q_SCXML_EXPORT Cancel: Instruction
 {
     ByteArrayId sendid;
     EvaluatorId sendidexpr;
@@ -244,7 +244,7 @@ struct SCXML_EXPORT Cancel: Instruction
     int size() const { return sizeof(Cancel) / sizeof(qint32); }
 };
 
-struct SCXML_EXPORT Invoke: Instruction
+struct Q_SCXML_EXPORT Invoke: Instruction
 {
     StringId type;
     StringId typeexpr;
@@ -264,7 +264,7 @@ struct SCXML_EXPORT Invoke: Instruction
 #pragma pack(pop)
 #endif
 
-class SCXML_EXPORT DynamicTableData: public QObject, public TableData
+class Q_SCXML_EXPORT DynamicTableData: public QObject, public TableData
 {
     Q_OBJECT
 
@@ -300,7 +300,7 @@ private:
     QString theName;
 };
 
-class SCXML_EXPORT Builder: public DocumentModel::NodeVisitor
+class Q_SCXML_EXPORT Builder: public DocumentModel::NodeVisitor
 {
 public:
     Builder();

@@ -29,7 +29,7 @@ QT_BEGIN_NAMESPACE
 
 class QScxmlEventPrivate;
 
-class SCXML_EXPORT QScxmlEvent: public QEvent
+class Q_SCXML_EXPORT QScxmlEvent: public QEvent
 {
 public:
     QScxmlEvent();

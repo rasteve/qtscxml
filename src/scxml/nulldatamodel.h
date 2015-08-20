@@ -25,7 +25,7 @@ QT_BEGIN_NAMESPACE
 
 namespace Scxml {
 
-class SCXML_EXPORT NullDataModel: public DataModel
+class Q_SCXML_EXPORT NullDataModel: public DataModel
 {
 public:
     NullDataModel();

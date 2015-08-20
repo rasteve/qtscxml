@@ -52,7 +52,7 @@ class QTextStream;
 class QDebug;
 
 namespace Scxml {
-SCXML_EXPORT Q_DECLARE_LOGGING_CATEGORY(scxmlLog)
+Q_SCXML_EXPORT Q_DECLARE_LOGGING_CATEGORY(scxmlLog)
 
 class ScxmlParser;
 
@@ -60,7 +60,7 @@ namespace ExecutableContent {
 class ExecutionEngine;
 }
 
-class SCXML_EXPORT TableData
+class Q_SCXML_EXPORT TableData
 {
 public:
     virtual ~TableData();
@@ -111,7 +111,7 @@ public:
 };
 
 class StateMachinePrivate;
-class SCXML_EXPORT StateMachine: public QObject
+class Q_SCXML_EXPORT StateMachine: public QObject
 {
     Q_OBJECT
     Q_ENUMS(BindingMethod)

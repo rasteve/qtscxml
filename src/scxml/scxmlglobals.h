@@ -23,17 +23,13 @@ QT_BEGIN_NAMESPACE
 
 #ifndef QT_STATIC
 #  ifdef QT_BUILD_SCXML_LIB
-#    define SCXML_EXPORT Q_DECL_EXPORT
+#    define Q_SCXML_EXPORT Q_DECL_EXPORT
 #  else
-#    define SCXML_EXPORT Q_DECL_IMPORT
+#    define Q_SCXML_EXPORT Q_DECL_IMPORT
 #  endif
 #else
-#  define SCXML_EXPORT
+#  define Q_SCXML_EXPORT
 #endif
-
-#ifdef QT_DEBUG
-#  define SCXML_DEBUG
-#endif // QT_DEBUG
 
 QT_END_NAMESPACE
 
