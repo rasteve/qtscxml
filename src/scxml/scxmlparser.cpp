@@ -370,6 +370,13 @@ private:
         , m_firstSlot(0)
         , m_firstSlotWithoutData(0)
     {
+        // Temporarily wire up the QMetaObject, because qobject_cast needs it while building MyQStateMachine.
+        QMetaObjectBuilder b;
+        b.setClassName("DynamicStateMachine");
+        b.setSuperClass(&StateMachine::staticMetaObject);
+        b.setStaticMetacallFunction(qt_static_metacall);
+        m_metaObject = b.toMetaObject();
+
         setScxmlEventFilter(this);
     }
 
@@ -377,8 +384,13 @@ private:
                           const QSet<QByteArray> &eventSlots,
                           const QSet<QString> &stateNames)
     {
+        // Release the temporary QMetaObject.
+        Q_ASSERT(m_metaObject);
+        free(m_metaObject);
+
         m_eventNamesByIndex.reserve(eventSignals.size() + eventSlots.size());
 
+        // Build the real one.
         QMetaObjectBuilder b;
         b.setClassName("DynamicStateMachine");
         b.setSuperClass(&StateMachine::staticMetaObject);
