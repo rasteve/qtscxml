@@ -7,6 +7,7 @@ qtHaveModule(widgets) {
     SUBDIRS +=  mediaplayer-widgets-dynamic
     SUBDIRS +=  pinball-widgets-static
     SUBDIRS +=  pinball-ecmascript-widgets-static
+    SUBDIRS +=  calculator-widgets-static
 }
 
 qtHaveModule(qml) {
