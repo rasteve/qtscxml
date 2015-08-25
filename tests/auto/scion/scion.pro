@@ -1,8 +1,5 @@
-QT += testlib scxml
+QT = core gui qml testlib scxml
 CONFIG += testcase
-
-QT += core qml
-QT -= gui
 
 TARGET = tst_scion
 CONFIG += console
@@ -143,5 +140,4 @@ testBases_cont = \
     "};"
 write_file("scxml/scion.h", testBases_cont)|error("Aborting.")
 
-load(qt_tool)
 load(qscxmlc)
