@@ -23,6 +23,9 @@ QT_USE_NAMESPACE
 
 using namespace Scxml;
 
+QEvent::Type QScxmlEvent::scxmlEventType = (QEvent::Type) QEvent::registerEventType();
+QEvent::Type QScxmlEvent::ignoreEventType = (QEvent::Type) QEvent::registerEventType();
+
 static bool evaluate(const ExecutableContent::Param &param, StateMachine *table, QVariantList &dataValues, QStringList &dataNames)
 {
     auto dataModel = table->dataModel();

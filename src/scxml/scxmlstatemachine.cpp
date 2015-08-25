@@ -35,8 +35,6 @@
 
 QT_BEGIN_NAMESPACE
 
-QEvent::Type QScxmlEvent::scxmlEventType = (QEvent::Type)QEvent::registerEventType();
-
 namespace Scxml {
 Q_LOGGING_CATEGORY(scxmlLog, "scxml.table")
 
@@ -403,6 +401,17 @@ void Internal::MyQStateMachine::beginSelectTransitions(QEvent *event)
 {
     Q_D(MyQStateMachine);
 
+    if (event->type() == QScxmlEvent::scxmlEventType) {
+        auto smp = stateMachinePrivate();
+        auto e = static_cast<QScxmlEvent *>(event);
+        if (smp->m_eventFilter && !smp->m_eventFilter->handle(e, d->m_table)) {
+            e->makeIgnorable();
+            e->clear();
+            smp->m_event.clear();
+            return;
+        }
+    }
+
     if (event && event->type() != QEvent::None) {
         switch (event->type()) {
         case QEvent::StateMachineSignal: {
@@ -733,9 +742,6 @@ void StateMachine::submitEvent(QScxmlEvent *e)
     if (!e)
         return;
 
-    if (d->m_eventFilter && !d->m_eventFilter->handle(e, this))
-        return;
-
     QStateMachine::EventPriority priority =
             e->eventType() == QScxmlEvent::ExternalEvent ? QStateMachine::NormalPriority
                                                    : QStateMachine::HighPriority;
@@ -892,6 +898,11 @@ QVariant QScxmlEvent::data() const
         result.insert(d->dataNames.at(i), d->dataValues.at(i));
     }
     return result;
+}
+
+void QScxmlEvent::makeIgnorable()
+{
+    t = ignoreEventType;
 }
 
 QT_END_NAMESPACE

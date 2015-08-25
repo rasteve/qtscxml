@@ -27,6 +27,12 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace Scxml {
+namespace Internal {
+class MyQStateMachine;
+}
+}
+
 class QScxmlEventPrivate;
 
 class Q_SCXML_EXPORT QScxmlEvent: public QEvent
@@ -37,8 +43,6 @@ public:
 
     QScxmlEvent &operator=(const QScxmlEvent &other);
     QScxmlEvent(const QScxmlEvent &other);
-
-    static QEvent::Type scxmlEventType;
 
     enum EventType {
         PlatformEvent,
@@ -80,8 +84,15 @@ public:
 
     QVariant data() const;
 
+protected:
+    friend Scxml::Internal::MyQStateMachine;
+    static QEvent::Type scxmlEventType;
+    static QEvent::Type ignoreEventType;
+    void makeIgnorable();
+
 private:
     QScxmlEventPrivate *d;
+
 };
 
 QT_END_NAMESPACE

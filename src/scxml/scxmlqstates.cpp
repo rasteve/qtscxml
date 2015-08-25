@@ -95,11 +95,6 @@ bool ScxmlBaseTransition::eventTest(QEvent *event)
                 nextC = eventName.at(eventStr.size());
             if (nextC == '.' || nextC == '(') {
                 selected = true;
-                if (event->type() != QEvent::StateMachineSignal && event->type() != QScxmlEvent::scxmlEventType) {
-                    qCWarning(scxmlLog) << "unexpected triggering of event " << eventName
-                                        << " with type " << event->type() << " detected in "
-                                        << transitionLocation();
-                }
                 break;
             }
         }
