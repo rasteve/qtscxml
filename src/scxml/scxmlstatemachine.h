@@ -77,7 +77,7 @@ public:
     virtual QString name() const = 0;
 };
 
-class Q_QML_EXPORT ScxmlError
+class Q_SCXML_EXPORT ScxmlError
 {
 public:
     ScxmlError();
@@ -100,10 +100,10 @@ private:
     ScxmlErrorPrivate *d;
 };
 
-QDebug Q_QML_EXPORT operator<<(QDebug debug, const ScxmlError &error);
+QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const ScxmlError &error);
 
 class StateMachine;
-class SCXML_EXPORT ScxmlEventFilter
+class Q_SCXML_EXPORT ScxmlEventFilter
 {
 public:
     virtual ~ScxmlEventFilter();
