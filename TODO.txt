@@ -1,14 +1,9 @@
-- qscxmlc doesn't give an error when the target of a transition is not found/known.
 - add test to scxml validation failures.
-- add a signal for <invoke target="qt:signal:name"/>
 
-- document qt:classname property and its schema/namespace
+- remove qt:classname property and its schema/namespace
 - go over the TODOs/FIXMEs
 - probably rename ScxmlParser to Scxml::Parser
-- check if the use of namespaces is according to Qt standards
 - code review
 - qmake review
-- QML: move the parsing & instantiation of the state machine to a separate thread (if it wasn't created in C++ of course)
-
-- pass parameters in with an event (QML), and make it easier to do so within C++
-- pass out parameters from the state machine
+- fix logging
+- check all messages to have the same format
