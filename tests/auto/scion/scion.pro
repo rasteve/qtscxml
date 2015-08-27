@@ -129,7 +129,7 @@ for (f,ALLSCXMLS) {
         testBases += "    \"$$tn\","
 
         file = $$relative_path($$f, $$absolute_path($$PWD))
-        qrc += '<file alias="$$base">$$file</file>' 
+        qrc += '<file alias="$$base">$$file</file>'
 
         json = $$file
         json ~= s/\\.scxml$/.json/
