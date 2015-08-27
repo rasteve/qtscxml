@@ -7,7 +7,7 @@ CONFIG -= app_bundle
 
 TEMPLATE = app
 
-RESOURCES = ../../3rdparty/scion.qrc
+RESOURCES = $$OUT_PWD/scion.qrc
 
 SOURCES += \
     tst_scion.cpp
@@ -123,21 +123,29 @@ for (f,ALLSCXMLS) {
         inc_list += "$${LITERAL_HASH}include \"scxml/$${sn}_$${hn}.h\""
         func_list += "    []()->Scxml::StateMachine*{return new $${sn}::$${cn};},"
 
-        tn = $$relative_path($$f,$$absolute_path($$SCXMLS_DIR/../../..))
+        base = $$relative_path($$f,$$absolute_path($$SCXMLS_DIR))
+        tn = $$base
         tn ~= s/\\.scxml$//
         testBases += "    \"$$tn\","
+
+        file = $$relative_path($$f, $$absolute_path($$PWD))
+        qrc += '<file alias="$$base">$$file</file>' 
+
+        json = $$file
+        json ~= s/\\.scxml$/.json/
+        json_alias = $$base
+        json_alias ~= s/\\.scxml$/.json/
+        qrc += '<file alias="$$json_alias">$$json</file>'
     }
 }
-file_cont= \
-    $$inc_list \
-    "std::function<Scxml::StateMachine *()> creators[] = {" \
-    $$func_list \
-    "};"
-write_file("scxml/compiled_tests.h", file_cont)|error("Aborting.")
-testBases_cont = \
-    "const char *testBases[] = {" \
-    $$testBases \
-    "};"
-write_file("scxml/scion.h", testBases_cont)|error("Aborting.")
+
+contents = $$inc_list "std::function<Scxml::StateMachine *()> creators[] = {" $$func_list "};"
+write_file("scxml/compiled_tests.h", contents)|error("Aborting.")
+
+contents = "const char *testBases[] = {" $$testBases "};"
+write_file("scxml/scion.h", contents)|error("Aborting.")
+
+contents = '<!DOCTYPE RCC><RCC version=\"1.0\">' '<qresource>' $$qrc '</qresource></RCC>'
+write_file("scion.qrc", contents)|error("Aborting.")
 
 load(qscxmlc)
