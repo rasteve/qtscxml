@@ -292,8 +292,9 @@ protected:
         if (!node->id.isEmpty() && m_options.nameQObjects) {
             clazz.init.impl << stateName + QStringLiteral(".setObjectName(string(%1));").arg(addString(node->id));
         }
-        if (node->initialState) {
-            clazz.init.impl << stateName + QStringLiteral(".setInitialState(&state_") + mangledName(node->initialState) + QStringLiteral(");");
+        foreach (AbstractState *initialState, node->initialStates) {
+            clazz.init.impl << stateName + QStringLiteral(".setInitialState(&state_")
+                               + mangledName(initialState) + QStringLiteral(");");
         }
         if (node->type == State::Parallel) {
             clazz.init.impl << stateName + QStringLiteral(".setChildMode(QState::ParallelStates);");

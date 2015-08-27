@@ -257,7 +257,7 @@ struct State: public AbstractState, public StateOrTransition
 {
     enum Type { Normal, Parallel, Initial, Final };
 
-    QString initial;
+    QStringList initial;
     QVector<DataElement *> dataElements;
     QVector<StateOrTransition *> children;
     InstructionSequences onEntry;
@@ -265,13 +265,12 @@ struct State: public AbstractState, public StateOrTransition
     DoneData *doneData;
     Type type;
 
-    AbstractState *initialState; // filled during verification
+    QVector<AbstractState *> initialStates; // filled during verification
 
     State(const XmlLocation &xmlLocation)
         : StateOrTransition(xmlLocation)
         , doneData(Q_NULLPTR)
         , type(Normal)
-        , initialState(Q_NULLPTR)
     {}
 
     void add(StateOrTransition *s) Q_DECL_OVERRIDE
@@ -548,7 +547,6 @@ struct ParserState {
     QString chars;
     DocumentModel::Instruction *instruction;
     DocumentModel::InstructionSequence *instructionContainer;
-    QByteArray initialId;
 
     bool collectChars();
 

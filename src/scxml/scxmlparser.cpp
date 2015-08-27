@@ -112,16 +112,22 @@ private:
 
     bool visit(DocumentModel::State *state) Q_DECL_OVERRIDE
     {
-        Q_ASSERT(state->initialState == Q_NULLPTR);
+        Q_ASSERT(state->initialStates.isEmpty());
 
         if (state->initial.isEmpty()) {
-            state->initialState = firstAbstractState(state);
+            if (auto firstChild = firstAbstractState(state)) {
+                state->initialStates += firstChild;
+            }
         } else {
             Q_ASSERT(state->type == DocumentModel::State::Normal);
-            if (DocumentModel::AbstractState *s = m_stateById.value(state->initial)) {
-                state->initialState = s;
-            } else {
-                error(state->xmlLocation, QStringLiteral("undefined initial state '%1' for state '%2'").arg(state->initial, state->id));
+            foreach (const QString &initialState, state->initial) {
+                if (DocumentModel::AbstractState *s = m_stateById.value(initialState)) {
+                    state->initialStates += s;
+                } else {
+                    error(state->xmlLocation,
+                          QStringLiteral("undefined initial state '%1' for state '%2'")
+                            .arg(initialState, state->id));
+                }
             }
         }
 
@@ -557,8 +563,9 @@ private:
         case DocumentModel::State::Normal: {
             auto s = new ScxmlState(currentParent());
             newState = s;
-            if (node->initialState)
-                m_initialStates.append(qMakePair(s, node->initialState));
+            foreach (DocumentModel::AbstractState *initialState, node->initialStates) {
+                m_initialStates.append(qMakePair(s, initialState));
+            }
         } break;
         case DocumentModel::State::Parallel: {
             auto s = new ScxmlState(currentParent());
@@ -1273,7 +1280,10 @@ void ScxmlParserPrivate::parse()
                     return;
                 }
                 ParserState pNew = ParserState(ParserState::Scxml);
-                pNew.initialId = attributes.value(QLatin1String("initial")).toUtf8();
+                if (attributes.hasAttribute(QStringLiteral("initial"))) {
+                    QString initial = attributes.value(QStringLiteral("initial")).toString();
+                    scxml->initial += initial.split(QChar::Space, QString::SkipEmptyParts);
+                }
                 QStringRef datamodel = attributes.value(QLatin1String("datamodel"));
                 if (datamodel.isEmpty() || datamodel == QLatin1String("null")) {
                     scxml->dataModel = DocumentModel::Scxml::NullDataModel;
@@ -1309,7 +1319,10 @@ void ScxmlParserPrivate::parse()
                 auto newState = m_doc->newState(m_currentParent, DocumentModel::State::Normal, xmlLocation());
                 if (!maybeId(attributes, &newState->id)) return;
                 ParserState pNew = ParserState(ParserState::State);
-                pNew.initialId = attributes.value(QLatin1String("initial")).toUtf8();
+                if (attributes.hasAttribute(QStringLiteral("initial"))) {
+                    QString initial = attributes.value(QStringLiteral("initial")).toString();
+                    newState->initial += initial.split(QChar::Space, QString::SkipEmptyParts);
+                }
                 m_currentState = m_currentParent = newState;
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("parallel")) {
