@@ -239,6 +239,13 @@ private:
         return false;
     }
 
+    bool visit(DocumentModel::Invoke *node) Q_DECL_OVERRIDE
+    {
+        ScxmlVerifier subVerifier(m_errorHandler);
+        m_hasErrors = !subVerifier.verify(node->content.data());
+        return false;
+    }
+
 private:
     static int transitionCount(DocumentModel::State *state)
     {
@@ -477,6 +484,28 @@ private:
     int m_firstSlotWithoutData;
 };
 
+class InvokeDynamicScxmlFactory: public ScxmlInvokableServiceFactory
+{
+public:
+    InvokeDynamicScxmlFactory(ExecutableContent::StringId invokeLocation,
+                       ExecutableContent::StringId id,
+                       ExecutableContent::StringId idPrefix,
+                       ExecutableContent::StringId idlocation,
+                       const QVector<ExecutableContent::StringId> &namelist,
+                       bool autoforward,
+                       const QVector<Param> &params)
+        : ScxmlInvokableServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist, autoforward, params)
+    {}
+
+    void setContent(const QSharedPointer<DocumentModel::ScxmlDocument> &content)
+    { m_content = content; }
+
+    ScxmlInvokableService *invoke(StateMachine *child) Q_DECL_OVERRIDE;
+
+private:
+    QSharedPointer<DocumentModel::ScxmlDocument> m_content;
+};
+
 class QStateMachineBuilder: public ExecutableContent::Builder
 {
 public:
@@ -607,6 +636,33 @@ private:
         if (ScxmlState *s = qobject_cast<ScxmlState *>(newState)) {
             s->setOnEntryInstructions(onEntry);
             s->setOnExitInstructions(onExit);
+            if (!node->invokes.isEmpty()) {
+                QVector<ScxmlInvokableServiceFactory *> factories;
+                foreach (DocumentModel::Invoke *invoke, node->invokes) {
+                    auto ctxt = createContext(QStringLiteral("invoke"));
+                    QVector<ExecutableContent::StringId> namelist;
+                    foreach (const QString &name, invoke->namelist)
+                        namelist += addString(name);
+                    QVector<ScxmlInvokableServiceFactory::Param> params;
+                    foreach (DocumentModel::Param *param, invoke->params) {
+                        params.append({
+                                          addString(param->name),
+                                          createEvaluatorVariant(QStringLiteral("param"), QStringLiteral("expr"), param->expr),
+                                          addString(param->location)
+                                      });
+                    }
+                    auto factory = new InvokeDynamicScxmlFactory(ctxt,
+                                                                 addString(invoke->id),
+                                                                 addString(node->id + QStringLiteral(".session-")),
+                                                                 addString(invoke->idLocation),
+                                                                 namelist,
+                                                                 invoke->autoforward,
+                                                                 params);
+                    factory->setContent(invoke->content);
+                    factories.append(factory);
+                }
+                s->setInvokableServiceFactories(factories);
+            }
         } else if (ScxmlFinalState *f = qobject_cast<ScxmlFinalState *>(newState)) {
             f->setOnEntryInstructions(onEntry);
             f->setOnExitInstructions(onExit);
@@ -789,6 +845,30 @@ private:
     QSet<QString> m_stateNames;
 };
 
+inline ScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(StateMachine *parent)
+{
+    auto child = QStateMachineBuilder().build(m_content.data());
+
+    //-----
+    // FIXME: duplicated code from ScxmlParser::instantiateDataModel
+    DataModel *dataModel = Q_NULLPTR;
+    switch (m_content->root->dataModel) {
+    case DocumentModel::Scxml::NullDataModel:
+        dataModel = new NullDataModel;
+        break;
+    case DocumentModel::Scxml::JSDataModel:
+        dataModel = new EcmaScriptDataModel;
+        break;
+    default:
+        Q_UNREACHABLE();
+    }
+    child->setDataModel(dataModel);
+    StateMachinePrivate::get(child)->parserData()->m_ownedDataModel.reset(dataModel);
+    //-----
+
+    return finishInvoke(child, parent);
+}
+
 ScxmlParser::ScxmlParser(QXmlStreamReader *reader)
     : p(new ScxmlParserPrivate(this, reader))
 { }
@@ -968,10 +1048,11 @@ bool ParserState::validChild(ParserState::Kind parent, ParserState::Kind child)
     case ParserState::Content:
     case ParserState::Param:
     case ParserState::Cancel:
-    case ParserState::Invoke:
     case ParserState::Finalize:
         return isExecutableContent(child);
         break;
+    case ParserState::Invoke:
+        return child == ParserState::Content;
     case ParserState::Script:
     case ParserState::None:
         break;
@@ -1087,6 +1168,8 @@ void DocumentModel::State::accept(DocumentModel::NodeVisitor *visitor)
         visitor->visit(onExit);
         if (doneData)
             doneData->accept(visitor);
+        foreach (Invoke *invoke, invokes)
+            invoke->accept(visitor);
     }
     visitor->endVisit(this);
 }
@@ -1205,7 +1288,7 @@ void ScxmlParserPrivate::setFilename(const QString &fileName)
 
 void ScxmlParserPrivate::parse()
 {
-    m_doc.reset(new DocumentModel::ScxmlDocument);
+    m_doc.reset(new DocumentModel::ScxmlDocument(fileName()));
     m_currentParent = m_doc->root;
     m_currentState = m_doc->root;
     while (!m_reader->atEnd()) {
@@ -1523,6 +1606,21 @@ void ScxmlParserPrivate::parse()
                     Q_ASSERT(s);
                     s->content = attributes.value(QLatin1String("expr")).toString();
                 } break;
+                case ParserState::Invoke: {
+                    DocumentModel::Invoke *i = m_stack.last().instruction->asInvoke();
+                    Q_ASSERT(i);
+                    if (attributes.hasAttribute(QStringLiteral("expr"))) {
+                        addError(QStringLiteral("expr attribute in content of invoke is not supported"));
+                        break;
+                    }
+                    ScxmlParser p(m_reader);
+                    p.setFileName(m_fileName);
+                    p.parse();
+                    i->content.reset(p.p->m_doc.take());
+                    m_errors.append(p.errors());
+                    if (p.state() == ScxmlParser::ParsingError)
+                        m_state = ScxmlParser::ParsingError;
+                } break;
                 default:
                     addError(QStringLiteral("unexpected parent of content %1").arg(m_stack.last().kind));
                 }
@@ -1590,31 +1688,34 @@ void ScxmlParserPrivate::parse()
                 pNew.instruction = cancel;
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("invoke")) {
-                if (true) {
-                    addError(xmlLocation(), QStringLiteral("<invoke> is not supported"));
-                } else {
-                    if (!checkAttributes(attributes, "|event,eventexpr,id,idlocation,type,typeexpr,namelist,delay,delayexpr")) return;
-                    ParserState pNew = ParserState(ParserState::Invoke);
-                    auto *invoke = m_doc->newNode<DocumentModel::Invoke>(xmlLocation());
-                    invoke->src = attributes.value(QLatin1String("src")).toString();
-                    invoke->srcexpr = attributes.value(QLatin1String("srcexpr")).toString();
-                    invoke->id = attributes.value(QLatin1String("id")).toString();
-                    invoke->idLocation = attributes.value(QLatin1String("idlocation")).toString();
-                    invoke->type = attributes.value(QLatin1String("type")).toString();
-                    invoke->typeexpr = attributes.value(QLatin1String("typeexpr")).toString();
-                    QStringRef autoforwardS = attributes.value(QLatin1String("autoforward"));
-                    if (QStringRef::compare(autoforwardS, QLatin1String("true"), Qt::CaseInsensitive) == 0
-                            || QStringRef::compare(autoforwardS, QLatin1String("yes"), Qt::CaseInsensitive) == 0
-                            || QStringRef::compare(autoforwardS, QLatin1String("t"), Qt::CaseInsensitive) == 0
-                            || QStringRef::compare(autoforwardS, QLatin1String("y"), Qt::CaseInsensitive) == 0
-                            || autoforwardS == QLatin1String("1"))
-                        invoke->autoforward = true;
-                    else
-                        invoke->autoforward = false;
-                    invoke->namelist = attributes.value(QLatin1String("namelist")).toString().split(QLatin1Char(' '), QString::SkipEmptyParts);
-                    pNew.instruction = invoke;
-                    m_stack.append(pNew);
+                if (!checkAttributes(attributes, "|event,eventexpr,id,idlocation,type,typeexpr,namelist,delay,delayexpr")) return;
+                ParserState pNew = ParserState(ParserState::Invoke);
+                auto *invoke = m_doc->newNode<DocumentModel::Invoke>(xmlLocation());
+                DocumentModel::State *parentState = m_currentParent->asState();
+                if (!parentState ||
+                        (parentState->type != DocumentModel::State::Normal && parentState->type != DocumentModel::State::Parallel)) {
+                    addError(QStringLiteral("invoke can only occur in <state> or <parallel>"));
+                    break;
                 }
+                parentState->invokes.append(invoke);
+                invoke->src = attributes.value(QLatin1String("src")).toString();
+                invoke->srcexpr = attributes.value(QLatin1String("srcexpr")).toString();
+                invoke->id = attributes.value(QLatin1String("id")).toString();
+                invoke->idLocation = attributes.value(QLatin1String("idlocation")).toString();
+                invoke->type = attributes.value(QLatin1String("type")).toString();
+                invoke->typeexpr = attributes.value(QLatin1String("typeexpr")).toString();
+                QStringRef autoforwardS = attributes.value(QLatin1String("autoforward"));
+                if (QStringRef::compare(autoforwardS, QLatin1String("true"), Qt::CaseInsensitive) == 0
+                        || QStringRef::compare(autoforwardS, QLatin1String("yes"), Qt::CaseInsensitive) == 0
+                        || QStringRef::compare(autoforwardS, QLatin1String("t"), Qt::CaseInsensitive) == 0
+                        || QStringRef::compare(autoforwardS, QLatin1String("y"), Qt::CaseInsensitive) == 0
+                        || autoforwardS == QLatin1String("1"))
+                    invoke->autoforward = true;
+                else
+                    invoke->autoforward = false;
+                invoke->namelist = attributes.value(QLatin1String("namelist")).toString().split(QLatin1Char(' '), QString::SkipEmptyParts);
+                pNew.instruction = invoke;
+                m_stack.append(pNew);
             } else if (elName == QLatin1String("finalize")) {
                 ParserState pNew(ParserState::Finalize);
                 auto invoke = m_stack.last().instruction->asInvoke();
@@ -1650,6 +1751,7 @@ void ScxmlParserPrivate::parse()
                 Q_ASSERT(m_currentParent->parent);
                 m_currentState = m_currentParent = m_currentParent->parent;
                 break;
+            case ParserState::Invoke:
             case ParserState::Transition:
             case ParserState::OnEntry:
             case ParserState::OnExit:
@@ -1683,8 +1785,7 @@ void ScxmlParserPrivate::parse()
             case ParserState::Log:
             case ParserState::Assign:
             case ParserState::Send:
-            case ParserState::Cancel:
-            case ParserState::Invoke: {
+            case ParserState::Cancel: {
                 DocumentModel::InstructionSequence *instructions = m_stack.last().instructionContainer;
                 if (!instructions) {
                     addError(QStringLiteral("got executable content within an element that did not set instructionContainer"));

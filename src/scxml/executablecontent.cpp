@@ -227,11 +227,6 @@ public:
             return ok;
         }
 
-        case Instruction::Invoke:
-            Q_UNIMPLEMENTED();
-            Q_UNREACHABLE();
-            return false;
-
         case Instruction::Assign: {
             qDebug() << "Executing assign step";
             Assign *assign = reinterpret_cast<Assign *>(instr);

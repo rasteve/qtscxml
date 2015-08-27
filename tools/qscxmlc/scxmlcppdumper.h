@@ -29,49 +29,58 @@
 QT_BEGIN_NAMESPACE
 namespace Scxml {
 
-struct MainClass;
+struct ClassDump;
 
-struct CppDumpOptions
+struct TranslationUnit
 {
-    CppDumpOptions()
-        : usePrivateApi(false)
-        , nameQObjects(false)
-        , useCxx11(true)
+    TranslationUnit()
+        : useCxx11(true)
+        , mainDocument(Q_NULLPTR)
     {}
 
-    QString classname;
+    QString outHFileName, outCppFileName;
     QString namespaceName;
-    bool usePrivateApi;
-    bool nameQObjects;
     bool useCxx11;
+    DocumentModel::ScxmlDocument *mainDocument;
+    QHash<DocumentModel::ScxmlDocument *, QString> classnameForDocument;
+    QList<TranslationUnit *> dependencies;
+
+    QList<DocumentModel::ScxmlDocument *> otherDocuments() const
+    {
+        auto docs = classnameForDocument.keys();
+        docs.removeOne(mainDocument);
+        return docs;
+    }
 };
 
 class CppDumper
 {
 public:
-    CppDumper(QTextStream &headerStream, QTextStream &cppStream, const QString &theHeaderName, const CppDumpOptions &theOptions)
+    CppDumper(QTextStream &headerStream, QTextStream &cppStream)
         : h(headerStream)
         , cpp(cppStream)
-        , headerName(theHeaderName)
-        , m_doc(Q_NULLPTR)
-        , options(theOptions)
     {}
 
-    void dump(DocumentModel::ScxmlDocument *doc);
+    void dump(TranslationUnit *unit);
 
     static QString mangleId(const QString &id);
 
 private:
+    void writeHeaderStart(const QString &headerGuard);
+    void writeClass(const ClassDump &clazz);
+    void writeHeaderEnd(const QString &headerGuard);
+    void writeImplStart(const QVector<ClassDump> &allClazzes);
+    void writeImplBody(const ClassDump &clazz);
+    void writeImplEnd();
+
+private:
     QTextStream &h;
     QTextStream &cpp;
-    QString headerName;
 
     static QByteArray b(const char *str) { return QByteArray(str); }
     static QLatin1String l (const char *str) { return QLatin1String(str); }
 
-    DocumentModel::ScxmlDocument *m_doc;
-    QString mainClassName;
-    CppDumpOptions options;
+    TranslationUnit *m_translationUnit;
 };
 
 } // namespace Scxml

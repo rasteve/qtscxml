@@ -210,10 +210,15 @@ public:
         , onExitInstructions(ExecutableContent::NoInstruction)
     {}
 
+    ~Data()
+    { qDeleteAll(invokableServiceFactories); }
+
     ScxmlState *m_state;
     ExecutableContent::ContainerId initInstructions;
     ExecutableContent::ContainerId onEntryInstructions;
     ExecutableContent::ContainerId onExitInstructions;
+    QVector<ScxmlInvokableServiceFactory *> invokableServiceFactories;
+    QVector<ScxmlInvokableService *> invokedServices;
 };
 
 ScxmlState::ScxmlState(QState *parent)
@@ -255,6 +260,11 @@ void ScxmlState::setOnExitInstructions(ExecutableContent::ContainerId instructio
     d->onExitInstructions = instructions;
 }
 
+void ScxmlState::setInvokableServiceFactories(const QVector<ScxmlInvokableServiceFactory *> &factories)
+{
+    d->invokableServiceFactories = factories;
+}
+
 void ScxmlState::onEntry(QEvent *event)
 {
     if (d->initInstructions != ExecutableContent::NoInstruction) {
@@ -262,15 +272,29 @@ void ScxmlState::onEntry(QEvent *event)
         d->initInstructions = ExecutableContent::NoInstruction;
     }
     QState::onEntry(event);
-    StateMachinePrivate::get(stateMachine())->m_executionEngine->execute(d->onEntryInstructions);
+    auto sm = stateMachine();
+    StateMachinePrivate::get(sm)->m_executionEngine->execute(d->onEntryInstructions);
+    foreach (ScxmlInvokableServiceFactory *serviceFactory, d->invokableServiceFactories) {
+        if (ScxmlInvokableService *service = serviceFactory->invoke(sm)) {
+            d->invokedServices.append(service);
+            sm->registerService(service);
+        }
+    }
     emit didEnter();
 }
 
 void ScxmlState::onExit(QEvent *event)
 {
     emit willExit();
+    auto sm = stateMachine();
+    foreach (ScxmlInvokableService *service, d->invokedServices) {
+        sm->unregisterService(service);
+        delete service;
+    }
+    d->invokedServices.clear();
+
+    StateMachinePrivate::get(sm)->m_executionEngine->execute(d->onExitInstructions);
     QState::onExit(event);
-    StateMachinePrivate::get(stateMachine())->m_executionEngine->execute(d->onExitInstructions);
 }
 
 class ScxmlFinalState::Data

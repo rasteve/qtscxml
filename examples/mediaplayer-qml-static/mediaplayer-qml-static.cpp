@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    MediaPlayerStateMachine_StateMachine stateMachine;
+    MediaPlayerStateMachine stateMachine;
     stateMachine.init();
     stateMachine.start();
 

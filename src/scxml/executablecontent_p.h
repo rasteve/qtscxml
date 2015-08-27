@@ -106,7 +106,6 @@ struct Q_SCXML_EXPORT Instruction
         If,
         Foreach,
         Cancel,
-        Invoke,
         DoneData
     } instructionType;
 };
@@ -242,22 +241,6 @@ struct Q_SCXML_EXPORT Cancel: Instruction
 
     static InstructionType kind() { return Instruction::Cancel; }
     int size() const { return sizeof(Cancel) / sizeof(qint32); }
-};
-
-struct Q_SCXML_EXPORT Invoke: Instruction
-{
-    StringId type;
-    StringId typeexpr;
-    StringId src;
-    StringId srcexpr;
-    StringId id;
-    StringId idLocation;
-    Array<StringId> namelist;
-    qint32 autoforward;
-    Array<Param> params;
-    InstructionSequence finalize;
-
-    static InstructionType kind() { return Instruction::Invoke; }
 };
 
 #if defined(Q_CC_MSVC) || defined(Q_CC_GNU)

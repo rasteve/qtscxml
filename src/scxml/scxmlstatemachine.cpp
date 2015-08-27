@@ -46,6 +46,33 @@ QByteArray objectId(QObject *obj, bool strict = false)
     Q_UNIMPLEMENTED();
     return QByteArray();
 }
+
+class InvokableScxml: public ScxmlInvokableService
+{
+public:
+    InvokableScxml(StateMachine *stateMachine, const QString &id, const QVariantMap &data,
+                   bool autoforward, StateMachine *parent)
+        : ScxmlInvokableService(id, data, autoforward, parent)
+        , m_stateMachine(stateMachine)
+    {
+        stateMachine->setSessionId(id);
+        stateMachine->setParentStateMachine(parent);
+        stateMachine->init();
+        stateMachine->start();
+    }
+
+    ~InvokableScxml()
+    { delete m_stateMachine; }
+
+    void submitEvent(QScxmlEvent *event) Q_DECL_OVERRIDE
+    {
+        m_stateMachine->submitEvent(event);
+    }
+
+
+private:
+    StateMachine *m_stateMachine;
+};
 } // anonymous namespace
 
 namespace Internal {
@@ -222,17 +249,197 @@ QDebug operator<<(QDebug debug, const ScxmlError &error)
 TableData::~TableData()
 {}
 
+class ScxmlInvokableService::Data
+{
+public:
+    Data(const QString &id, const QVariantMap &data, bool autoforward, StateMachine *parent)
+        : id(id)
+        , data(data)
+        , autoforward(autoforward)
+        , parent(parent)
+    {}
+
+    QString id;
+    QVariantMap data;
+    bool autoforward;
+    StateMachine *parent;
+};
+
+ScxmlInvokableService::ScxmlInvokableService(const QString &id, const QVariantMap &data,
+                                             bool autoforward, StateMachine *parent)
+    : d(new Data(id, data, autoforward, parent))
+{}
+
+ScxmlInvokableService::~ScxmlInvokableService()
+{
+    delete d;
+}
+
+QString ScxmlInvokableService::id() const
+{
+    return d->id;
+}
+
+bool ScxmlInvokableService::autoforward() const
+{
+    return d->autoforward;
+}
+
+QVariantMap ScxmlInvokableService::data() const
+{
+    return d->data;
+}
+
+StateMachine *ScxmlInvokableService::parent() const
+{
+    return d->parent;
+}
+
+class ScxmlInvokableServiceFactory::Data
+{
+public:
+    Data(ExecutableContent::StringId invokeLocation, ExecutableContent::StringId id,
+         ExecutableContent::StringId idPrefix, ExecutableContent::StringId idlocation,
+         const QVector<ExecutableContent::StringId> &namelist, bool autoforward,
+         const QVector<ScxmlInvokableServiceFactory::Param> &params)
+        : invokeLocation(invokeLocation)
+        , id(id)
+        , idPrefix(idPrefix)
+        , idlocation(idlocation)
+        , namelist(namelist)
+        , autoforward(autoforward)
+        , params(params)
+    {}
+
+    ExecutableContent::StringId invokeLocation;
+    ExecutableContent::StringId id;
+    ExecutableContent::StringId idPrefix;
+    ExecutableContent::StringId idlocation;
+    QVector<ExecutableContent::StringId> namelist;
+    bool autoforward;
+    QVector<ScxmlInvokableServiceFactory::Param> params;
+
+};
+
+ScxmlInvokableServiceFactory::ScxmlInvokableServiceFactory(
+        ExecutableContent::StringId invokeLocation,  ExecutableContent::StringId id,
+        ExecutableContent::StringId idPrefix, ExecutableContent::StringId idlocation,
+        const QVector<ExecutableContent::StringId> &namelist, bool autoforward,
+        const QVector<Param> &params)
+    : d(new Data(invokeLocation, id, idPrefix, idlocation, namelist, autoforward, params))
+{}
+
+ScxmlInvokableServiceFactory::~ScxmlInvokableServiceFactory()
+{
+    delete d;
+}
+
+ScxmlInvokableService *ScxmlInvokableServiceFactory::finishInvoke(StateMachine *child, StateMachine *parent)
+{
+    bool ok = false;
+    auto id = calculateId(parent, &ok);
+    if (!ok)
+        return Q_NULLPTR;
+    auto data = calculateData(parent, &ok);
+    if (!ok)
+        return Q_NULLPTR;
+    return new InvokableScxml(child, id, data, autoforward(), parent);
+}
+
+QString ScxmlInvokableServiceFactory::calculateId(StateMachine *parent, bool *ok) const
+{
+    Q_ASSERT(ok);
+    *ok = true;
+    auto table = parent->tableData();
+
+    if (d->id != ExecutableContent::NoString) {
+        return table->string(d->id);
+    }
+
+    QString id = StateMachine::generateSessionId(table->string(d->idPrefix));
+
+    if (d->idlocation != ExecutableContent::NoString) {
+        auto idloc = table->string(d->idlocation);
+        auto ctxt = table->string(d->invokeLocation);
+        parent->dataModel()->setStringProperty(idloc, id, ctxt, ok);
+        if (!*ok)
+            return QString();
+    }
+
+    return id;
+}
+
+QVariantMap ScxmlInvokableServiceFactory::calculateData(StateMachine *parent, bool *ok) const
+{
+    Q_ASSERT(ok);
+
+    QVariantMap result;
+    auto dataModel = parent->dataModel();
+    auto tableData = parent->tableData();
+
+    foreach (const Param &param, d->params) {
+        auto name = tableData->string(param.name);
+
+        if (param.expr != NoEvaluator) {
+            *ok = false;
+            auto v = dataModel->evaluateToVariant(param.expr, ok);
+            if (!*ok)
+                return QVariantMap();
+            result.insert(name, v);
+        } else {
+            QString loc;
+            if (param.location != ExecutableContent::NoString) {
+                loc = tableData->string(param.location);
+            }
+
+            if (loc.isEmpty()) {
+                // TODO: error message?
+                *ok = false;
+                return QVariantMap();
+            }
+
+            auto v = dataModel->property(loc);
+            result.insert(name, v);
+        }
+    }
+
+    foreach (ExecutableContent::StringId locid, d->namelist) {
+        QString loc;
+        if (locid != ExecutableContent::NoString) {
+            loc = tableData->string(locid);
+        }
+        if (loc.isEmpty()) {
+            // TODO: error message?
+            *ok = false;
+            return QVariantMap();
+        }
+        auto v = dataModel->property(loc);
+        result.insert(loc, v);
+    }
+
+    return result;
+}
+
+bool ScxmlInvokableServiceFactory::autoforward() const
+{
+    return d->autoforward;
+}
+
+ScxmlEventFilter::~ScxmlEventFilter()
+{}
+
 QAtomicInt StateMachinePrivate::m_sessionIdCounter = QAtomicInt(0);
 
 StateMachinePrivate::StateMachinePrivate()
     : QObjectPrivate()
-    , m_sessionId(m_sessionIdCounter++)
+    , m_sessionId(StateMachine::generateSessionId(QStringLiteral("session-")))
     , m_dataModel(Q_NULLPTR)
     , m_dataBinding(StateMachine::EarlyBinding)
     , m_executionEngine(Q_NULLPTR)
     , m_tableData(Q_NULLPTR)
     , m_qStateMachine(Q_NULLPTR)
     , m_eventFilter(Q_NULLPTR)
+    , m_parentStateMachine(Q_NULLPTR)
 {}
 
 StateMachinePrivate::~StateMachinePrivate()
@@ -274,9 +481,6 @@ StateMachinePrivate::ParserData *StateMachinePrivate::parserData()
         m_parserData.reset(new ParserData);
     return m_parserData.data();
 }
-
-ScxmlEventFilter::~ScxmlEventFilter()
-{}
 
 StateMachine *StateMachine::fromFile(const QString &fileName, DataModel *dataModel)
 {
@@ -341,11 +545,23 @@ QStateMachine *StateMachine::qStateMachine() const
     return d->m_qStateMachine;
 }
 
-int StateMachine::sessionId() const
+QString StateMachine::sessionId() const
 {
     Q_D(const StateMachine);
 
     return d->m_sessionId;
+}
+
+void StateMachine::setSessionId(const QString &id)
+{
+    Q_D(StateMachine);
+    d->m_sessionId = id;
+}
+
+QString StateMachine::generateSessionId(const QString &prefix)
+{
+    int id = ++StateMachinePrivate::m_sessionIdCounter;
+    return prefix + QString::number(id);
 }
 
 DataModel *StateMachine::dataModel() const
@@ -395,6 +611,18 @@ void StateMachine::doLog(const QString &label, const QString &msg)
 {
     qCDebug(scxmlLog) << label << ":" << msg;
     emit log(label, msg);
+}
+
+StateMachine *StateMachine::parentStateMachine() const
+{
+    Q_D(const StateMachine);
+    return d->m_parentStateMachine;
+}
+
+void StateMachine::setParentStateMachine(StateMachine *parent)
+{
+    Q_D(StateMachine);
+    d->m_parentStateMachine = parent;
 }
 
 void Internal::MyQStateMachine::beginSelectTransitions(QEvent *event)
@@ -742,6 +970,8 @@ void StateMachine::submitEvent(QScxmlEvent *e)
     if (!e)
         return;
 
+    // FIXME: event routing to services
+
     QStateMachine::EventPriority priority =
             e->eventType() == QScxmlEvent::ExternalEvent ? QStateMachine::NormalPriority
                                                    : QStateMachine::HighPriority;
@@ -868,8 +1098,30 @@ bool StateMachine::isDispatchableTarget(const QString &target) const
             || target == QStringLiteral("#_scxml_%1").arg(sessionId());
 }
 
+void StateMachine::registerService(ScxmlInvokableService *service)
+{
+    Q_D(StateMachine);
+    Q_ASSERT(!d->m_registeredServices.contains(service));
+    d->m_registeredServices.append(service);
+}
+
+void StateMachine::unregisterService(ScxmlInvokableService *service)
+{
+    Q_D(StateMachine);
+    int idx =  d->m_registeredServices.indexOf(service);
+    Q_ASSERT(idx >= 0);
+    d->m_registeredServices.remove(idx);
+}
+
 void StateMachine::onFinished()
 {
+    Q_D(StateMachine);
+    if (d->m_parentStateMachine) {
+        auto done = new QScxmlEvent;
+        done->setName(QByteArray("done.invoke.") + sessionId().toUtf8());
+        d->m_parentStateMachine->submitEvent(done);
+    }
+
     // The final state is also a stable state.
     emit reachedStableState(true);
 }

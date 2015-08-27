@@ -93,7 +93,7 @@ public:
     ParserData *parserData();
 
 public: // data fields:
-    const int m_sessionId;
+    QString m_sessionId;
     DataModel *m_dataModel;
     StateMachine::BindingMethod m_dataBinding;
     ExecutableContent::ExecutionEngine *m_executionEngine;
@@ -101,6 +101,8 @@ public: // data fields:
     QScxmlEvent m_event;
     Internal::MyQStateMachine *m_qStateMachine;
     ScxmlEventFilter *m_eventFilter;
+    QVector<ScxmlInvokableService *> m_registeredServices;
+    StateMachine *m_parentStateMachine;
 
 private:
     QScopedPointer<ParserData> m_parserData; // used when created by StateMachine::fromFile.

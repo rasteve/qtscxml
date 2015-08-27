@@ -102,6 +102,56 @@ private:
 
 QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const ScxmlError &error);
 
+class Q_SCXML_EXPORT ScxmlInvokableService
+{
+public:
+    ScxmlInvokableService(const QString &id, const QVariantMap &data, bool autoforward,
+                          StateMachine *parent);
+    virtual ~ScxmlInvokableService();
+
+    QString id() const;
+    bool autoforward() const;
+    QVariantMap data() const;
+    StateMachine *parent() const;
+
+    virtual void submitEvent(QScxmlEvent *event) = 0;
+
+private:
+    class Data;
+    Data *d;
+};
+
+class Q_SCXML_EXPORT ScxmlInvokableServiceFactory
+{
+public:
+    struct Q_SCXML_EXPORT Param
+    {
+        ExecutableContent::StringId name;
+        EvaluatorId expr;
+        ExecutableContent::StringId location;
+    };
+
+    ScxmlInvokableServiceFactory(ExecutableContent::StringId invokeLocation,
+                                 ExecutableContent::StringId id, ExecutableContent::StringId idPrefix,
+                                 ExecutableContent::StringId idlocation,
+                                 const QVector<ExecutableContent::StringId> &namelist,
+                                 bool autoforward,
+                                 const QVector<Param> &params);
+    virtual ~ScxmlInvokableServiceFactory();
+
+    virtual ScxmlInvokableService *invoke(StateMachine *parent) = 0;
+
+protected:
+    ScxmlInvokableService *finishInvoke(StateMachine *child, StateMachine *parent);
+    QString calculateId(StateMachine *parent, bool *ok) const;
+    QVariantMap calculateData(StateMachine *parent, bool *ok) const;
+    bool autoforward() const;
+
+private:
+    class Data;
+    Data *d;
+};
+
 class StateMachine;
 class Q_SCXML_EXPORT ScxmlEventFilter
 {
@@ -132,7 +182,9 @@ public:
     /// If this state machine is backed by a QStateMachine, that QStateMachine is returned. Otherwise, a null-pointer is returned.
     QStateMachine *qStateMachine() const;
 
-    int sessionId() const;
+    QString sessionId() const;
+    void setSessionId(const QString &id);
+    static QString generateSessionId(const QString &prefix);
 
     DataModel *dataModel() const;
     void setDataModel(DataModel *dataModel);
@@ -144,6 +196,9 @@ public:
     void setTableData(TableData *tableData);
 
     void doLog(const QString &label, const QString &msg);
+
+    StateMachine *parentStateMachine() const;
+    void setParentStateMachine(StateMachine *parent);
 
     Q_INVOKABLE bool init();
 
@@ -182,6 +237,9 @@ public:
 
     bool isLegalTarget(const QString &target) const;
     bool isDispatchableTarget(const QString &target) const;
+
+    void registerService(ScxmlInvokableService *service);
+    void unregisterService(ScxmlInvokableService *service);
 
 Q_SIGNALS:
     void log(const QString &label, const QString &msg);

@@ -32,6 +32,7 @@
 
 #include "scxmlparser.h"
 
+#include <QSharedPointer>
 #include <QStringList>
 #include <QString>
 
@@ -141,6 +142,7 @@ struct Send: public Instruction
     void accept(NodeVisitor *visitor) Q_DECL_OVERRIDE;
 };
 
+struct ScxmlDocument;
 struct Invoke: public Instruction
 {
     QString type;
@@ -153,6 +155,8 @@ struct Invoke: public Instruction
     bool autoforward;
     QVector<Param *> params;
     InstructionSequence finalize;
+
+    QSharedPointer<ScxmlDocument> content;
 
     Invoke(const XmlLocation &xmlLocation): Instruction(xmlLocation) {}
     Invoke *asInvoke() Q_DECL_OVERRIDE { return this; }
@@ -263,6 +267,7 @@ struct State: public AbstractState, public StateOrTransition
     InstructionSequences onEntry;
     InstructionSequences onExit;
     DoneData *doneData;
+    QVector<Invoke *> invokes;
     Type type;
 
     QVector<AbstractState *> initialStates; // filled during verification
@@ -364,13 +369,14 @@ struct Scxml: public StateContainer, public Node
         children.append(s);
     }
 
-    Scxml *asScxml() { return this; }
+    Scxml *asScxml() Q_DECL_OVERRIDE { return this; }
 
     void accept(NodeVisitor *visitor) Q_DECL_OVERRIDE;
 };
 
 struct ScxmlDocument
 {
+    const QString fileName;
     Scxml *root;
     QVector<AbstractState *> allStates;
     QVector<Transition *> allTransitions;
@@ -378,8 +384,9 @@ struct ScxmlDocument
     QVector<InstructionSequence *> allSequences;
     bool isVerified;
 
-    ScxmlDocument()
-        : root(Q_NULLPTR)
+    ScxmlDocument(const QString &fileName)
+        : fileName(fileName)
+        , root(Q_NULLPTR)
         , isVerified(false)
     {}
 

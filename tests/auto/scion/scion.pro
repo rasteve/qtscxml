@@ -34,7 +34,7 @@ QSCXMLC_DEP=$$[QT_HOST_BINS]/qscxmlc
 QSCXMLC_CMD=$$QSCXMLC_DEP
 }
 
-myscxml.commands = $$QSCXMLC_CMD -name-qobjects -oh scxml/${QMAKE_FUNC_nameTheNamespace}_${QMAKE_FILE_IN_BASE}.h -ocpp ${QMAKE_FILE_OUT} -namespace ${QMAKE_FUNC_nameTheNamespace} -classname ${QMAKE_FUNC_nameTheClass} ${QMAKE_FILE_IN}
+myscxml.commands = $$QSCXMLC_CMD -oh scxml/${QMAKE_FUNC_nameTheNamespace}_${QMAKE_FILE_IN_BASE}.h -ocpp ${QMAKE_FILE_OUT} -namespace ${QMAKE_FUNC_nameTheNamespace} -classname ${QMAKE_FUNC_nameTheClass} ${QMAKE_FILE_IN}
 myscxml.depends += $$QSCXMLC_DEP
 myscxml.output = scxml/${QMAKE_FUNC_nameTheNamespace}_${QMAKE_FILE_IN_BASE}.cpp
 myscxml.input = SCXMLS
@@ -68,7 +68,6 @@ BLACKLISTED = \
     test207.txml.scxml \
     test215.txml.scxml \
     test216.txml.scxml \
-    test220.txml.scxml \
     test223.txml.scxml \
     test224.txml.scxml \
     test225.txml.scxml \

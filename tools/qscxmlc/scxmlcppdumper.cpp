@@ -20,6 +20,7 @@
 #include "scxmlcppdumper.h"
 
 #include <algorithm>
+#include <QFileInfo>
 
 QT_BEGIN_NAMESPACE
 namespace Scxml {
@@ -61,6 +62,12 @@ struct StringListDumper {
         }
     }
 
+    void unique()
+    {
+        text.sort();
+        text.removeDuplicates();
+    }
+
     QStringList text;
 };
 
@@ -71,7 +78,7 @@ struct Method {
     StringListDumper impl; // void f(int i) { m_i = ++i; }
 };
 
-struct MainClass {
+struct ClassDump {
     StringListDumper implIncludes;
     QString className;
     StringListDumper classFields;
@@ -163,15 +170,18 @@ class DumperVisitor: public ExecutableContent::Builder
     Q_DISABLE_COPY(DumperVisitor)
 
 public:
-    DumperVisitor(MainClass &clazz, const QString &mainClassName, const CppDumpOptions &options)
+    DumperVisitor(ClassDump &clazz, TranslationUnit *tu)
         : clazz(clazz)
-        , m_mainClassName(mainClassName)
-        , m_options(options)
+        , translationUnit(tu)
         , m_bindLate(false)
     {}
 
     void process(ScxmlDocument *doc)
     {
+        Q_ASSERT(doc);
+
+        clazz.className = translationUnit->classnameForDocument.value(doc);
+
         doc->root->accept(this);
 
         addEvents();
@@ -194,8 +204,7 @@ protected:
             clazz.dataMethods << QStringLiteral("QString name() const Q_DECL_OVERRIDE")
                               << QStringLiteral("{ return string(%1); }").arg(addString(node->name))
                               << QString();
-            if (m_options.nameQObjects)
-                clazz.init.impl << QStringLiteral("stateMachine.setObjectName(string(%1));").arg(addString(node->name));
+            clazz.init.impl << QStringLiteral("stateMachine.setObjectName(string(%1));").arg(addString(node->name));
         } else {
             clazz.dataMethods << QStringLiteral("QString name() const Q_DECL_OVERRIDE")
                               << QStringLiteral("{ return QString(); }")
@@ -289,7 +298,7 @@ protected:
         clazz.constructor.initializer << generateInitializer(node);
 
         // init:
-        if (!node->id.isEmpty() && m_options.nameQObjects) {
+        if (!node->id.isEmpty()) {
             clazz.init.impl << stateName + QStringLiteral(".setObjectName(string(%1));").arg(addString(node->id));
         }
         foreach (AbstractState *initialState, node->initialStates) {
@@ -317,6 +326,50 @@ protected:
             clazz.init.impl << stateName + QStringLiteral(".setOnEntryInstructions(%1);").arg(generate(node->onEntry));
         if (!node->onExit.isEmpty())
             clazz.init.impl << stateName + QStringLiteral(".setOnExitInstructions(%1);").arg(generate(node->onExit));
+        if (!node->invokes.isEmpty()) {
+            clazz.init.impl << stateName + QStringLiteral(".setInvokableServiceFactories({");
+            for (int i = 0, ei = node->invokes.size(); i != ei; ++i) {
+                Invoke *invoke = node->invokes.at(i);
+                QString line = QStringLiteral("    new Scxml::InvokeScxmlFactory<%1>(").arg(scxmlClassName(invoke->content.data()));
+                line += QStringLiteral("%1, ").arg(Builder::createContext(QStringLiteral("invoke")));
+                line += QStringLiteral("%1, ").arg(addString(invoke->id));
+                line += QStringLiteral("%1, ").arg(addString(node->id + QStringLiteral(".session-")));
+                line += QStringLiteral("%1, ").arg(addString(invoke->idLocation));
+                if (invoke->namelist.isEmpty()) {
+                    line += QStringLiteral("{}, ");
+                } else {
+                    line += QStringLiteral("{");
+                    bool first = true;
+                    foreach (const QString &name, invoke->namelist) {
+                        if (first) {
+                            first = false;
+                        } else {
+                            line += QLatin1Char(',');
+                        }
+                        line += QStringLiteral(" %1").arg(addString(name));
+                    }
+                    line += QStringLiteral(" }");
+                }
+                line += QStringLiteral("%1, ").arg(invoke->autoforward ? QStringLiteral("true") : QStringLiteral("false"));
+                if (invoke->params.isEmpty()) {
+                    line += QStringLiteral("{}");
+                } else {
+                    line += QLatin1Char('{');
+                    foreach (DocumentModel::Param *param, invoke->params) {
+                        line += QStringLiteral("{ %1, %2, %3 }")
+                                .arg(addString(param->name))
+                                .arg(createEvaluatorVariant(QStringLiteral("param"), QStringLiteral("expr"), param->expr))
+                                .arg(addString(param->location));
+                    }
+                    line += QLatin1Char('}');
+                }
+                line += QLatin1Char(')');
+                if (i + 1 != ei)
+                    line += QLatin1Char(',');
+                clazz.init.impl << line;
+            }
+            clazz.init.impl << QStringLiteral("});");
+        }
 
         if (node->type == State::Final) {
             auto id = generate(node->doneData);
@@ -408,7 +461,7 @@ protected:
         clazz.constructor.initializer << generateInitializer(node);
 
         // init:
-        if (!node->id.isEmpty() && m_options.nameQObjects) {
+        if (!node->id.isEmpty()) {
             clazz.init.impl << stateName + QStringLiteral(".setObjectName(string(%1));").arg(addString(node->id));
         }
         QString depth;
@@ -515,7 +568,7 @@ private:
     QString createList(const QString &elementType, const QStringList &elements) const
     {
         QString result;
-        if (m_options.useCxx11) {
+        if (translationUnit->useCxx11) {
             if (elements.isEmpty())
                 result += QStringLiteral("{}");
             else
@@ -554,7 +607,7 @@ private:
                 continue;
 
             clazz.publicSlotDeclarations << QStringLiteral("void event_") + CppDumper::mangleId(event) + QStringLiteral("(const QVariant &eventData = QVariant());");
-            clazz.publicSlotDefinitions << QStringLiteral("void ") + m_mainClassName
+            clazz.publicSlotDefinitions << QStringLiteral("void ") + clazz.className
                                            + QStringLiteral("::event_")
                                            + CppDumper::mangleId(event)
                                            + QStringLiteral("(const QVariant &eventData)\n{ submitEvent(data->") + qba(event)
@@ -566,7 +619,7 @@ private:
             auto &dm = clazz.dataMethods;
             dm << QStringLiteral("bool handle(QScxmlEvent *event, Scxml::StateMachine *stateMachine) Q_DECL_OVERRIDE {")
                << QStringLiteral("    if (event->originType() != QStringLiteral(\"qt:signal\")) { return true; }")
-               << QStringLiteral("    %1 *m = qobject_cast<%1 *>(stateMachine);").arg(m_mainClassName);
+               << QStringLiteral("    %1 *m = qobject_cast<%1 *>(stateMachine);").arg(clazz.className);
             foreach (const QString &s, m_signals) {
                 dm << QStringLiteral("    if (event->name() == %1) { emit m->event_%2(event->data()); return false; }")
                       .arg(qba(s), CppDumper::mangleId(s));
@@ -654,7 +707,7 @@ private:
 
         { // instructions
             clazz.classFields << QStringLiteral("static qint32 theInstructions[];");
-            t << QStringLiteral("qint32 %1::Data::theInstructions[] = {").arg(m_mainClassName);
+            t << QStringLiteral("qint32 %1::Data::theInstructions[] = {").arg(clazz.className);
             auto instr = td->instructionTable();
             generateList(t, [&instr](int idx) -> QString {
                 if (instr.isEmpty() && idx == 0) // prevent generation of empty array
@@ -676,7 +729,7 @@ private:
               << QStringLiteral("    qptrdiff(offsetof(Strings, stringdata) + ofs * sizeof(qunicodechar) - idx * sizeof(QArrayData)) \\")
               << QStringLiteral("    )");
 
-            t << QStringLiteral("%1::Data::Strings %1::Data::strings = {{").arg(m_mainClassName);
+            t << QStringLiteral("%1::Data::Strings %1::Data::strings = {{").arg(clazz.className);
             auto strings = td->stringTable();
             if (strings.isEmpty()) // prevent generation of empty array
                 strings.append(QStringLiteral(""));
@@ -711,7 +764,7 @@ private:
             clazz.dataMethods << QStringLiteral("{");
             clazz.dataMethods << QStringLiteral("    Q_ASSERT(id >= Scxml::ExecutableContent::NoString); Q_ASSERT(id < %1);").arg(strings.size());
             clazz.dataMethods << QStringLiteral("    if (id == Scxml::ExecutableContent::NoString) return QString();");
-            if (m_options.useCxx11) {
+            if (translationUnit->useCxx11) {
                 clazz.dataMethods << QStringLiteral("    return QString({static_cast<QStringData*>(strings.data + id)});");
             } else {
                 clazz.dataMethods << QStringLiteral("    QStringDataPtr data;");
@@ -728,7 +781,7 @@ private:
               << QStringLiteral("    qptrdiff(offsetof(ByteArrays, stringdata) + ofs - idx * sizeof(QByteArrayData)) \\")
               << QStringLiteral("    )");
 
-            t << QStringLiteral("%1::Data::ByteArrays %1::Data::byteArrays = {{").arg(m_mainClassName);
+            t << QStringLiteral("%1::Data::ByteArrays %1::Data::byteArrays = {{").arg(clazz.className);
             auto byteArrays = td->byteArrayTable();
             if (byteArrays.isEmpty()) // prevent generation of empty array
                 byteArrays.append(QByteArray(""));
@@ -766,7 +819,7 @@ private:
             clazz.dataMethods << QStringLiteral("{");
             clazz.dataMethods << QStringLiteral("    Q_ASSERT(id >= Scxml::ExecutableContent::NoByteArray); Q_ASSERT(id < %1);").arg(byteArrays.size());
             clazz.dataMethods << QStringLiteral("    if (id == Scxml::ExecutableContent::NoByteArray) return QByteArray();");
-            if (m_options.useCxx11) {
+            if (translationUnit->useCxx11) {
                 clazz.dataMethods << QStringLiteral("    return QByteArray({byteArrays.data + id});");
             } else {
                 clazz.dataMethods << QStringLiteral("    QByteArrayDataPtr data;");
@@ -781,7 +834,7 @@ private:
             int count;
             auto dataIds = td->dataNames(&count);
             clazz.classFields << QStringLiteral("static Scxml::ExecutableContent::StringId dataIds[];");
-            t << QStringLiteral("Scxml::ExecutableContent::StringId %1::Data::dataIds[] = {").arg(m_mainClassName);
+            t << QStringLiteral("Scxml::ExecutableContent::StringId %1::Data::dataIds[] = {").arg(clazz.className);
             generateList(t, [&dataIds, count](int idx) -> QString {
                 if (count == 0 && idx == 0) // prevent generation of empty array
                     return QStringLiteral("-1");
@@ -799,7 +852,7 @@ private:
         { // evaluators
             auto evaluators = td->evaluators();
             clazz.classFields << QStringLiteral("static Scxml::EvaluatorInfo evaluators[];");
-            t << QStringLiteral("Scxml::EvaluatorInfo %1::Data::evaluators[] = {").arg(m_mainClassName);
+            t << QStringLiteral("Scxml::EvaluatorInfo %1::Data::evaluators[] = {").arg(clazz.className);
             generateList(t, [&evaluators](int idx) -> QString {
                 if (evaluators.isEmpty() && idx == 0) // prevent generation of empty array
                     return QStringLiteral("{ -1, -1 }");
@@ -818,7 +871,7 @@ private:
         { // assignments
             auto assignments = td->assignments();
             clazz.classFields << QStringLiteral("static Scxml::AssignmentInfo assignments[];");
-            t << QStringLiteral("Scxml::AssignmentInfo %1::Data::assignments[] = {").arg(m_mainClassName);
+            t << QStringLiteral("Scxml::AssignmentInfo %1::Data::assignments[] = {").arg(clazz.className);
             generateList(t, [&assignments](int idx) -> QString {
                 if (assignments.isEmpty() && idx == 0) // prevent generation of empty array
                     return QStringLiteral("{ -1, -1, -1 }");
@@ -837,7 +890,7 @@ private:
         { // foreaches
             auto foreaches = td->foreaches();
             clazz.classFields << QStringLiteral("static Scxml::ForeachInfo foreaches[];");
-            t << QStringLiteral("Scxml::ForeachInfo %1::Data::foreaches[] = {").arg(m_mainClassName);
+            t << QStringLiteral("Scxml::ForeachInfo %1::Data::foreaches[] = {").arg(clazz.className);
             generateList(t, [&foreaches](int idx) -> QString {
                 if (foreaches.isEmpty() && idx == 0) // prevent generation of empty array
                     return QStringLiteral("{ -1, -1, -1, -1 }");
@@ -862,11 +915,17 @@ private:
         return QStringLiteral("byteArray(%1)").arg(addByteArray(bytes.toUtf8()));
     }
 
+    QString scxmlClassName(DocumentModel::ScxmlDocument *doc) const
+    {
+        auto name = translationUnit->classnameForDocument.value(doc);
+        Q_ASSERT(!name.isEmpty());
+        return name;
+    }
+
 private:
-    MainClass &clazz;
-    const QString &m_mainClassName;
-    const CppDumpOptions &m_options;
-    QHash<DocumentModel::AbstractState *, QString> m_mangledNames;
+    ClassDump &clazz;
+    TranslationUnit *translationUnit;
+    QHash<AbstractState *, QString> m_mangledNames;
     QVector<Node *> m_parents;
     QSet<QString> m_knownEvents;
     QSet<QString> m_signals;
@@ -877,37 +936,65 @@ private:
 } // anonymous namespace
 
 
-void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
+void CppDumper::dump(TranslationUnit *unit)
 {
-    m_doc = doc;
-    mainClassName = options.classname;
-    if (mainClassName.isEmpty()) {
-        mainClassName = doc->root->qtClassname;
-    }
-    if (mainClassName.isEmpty()) {
-        mainClassName = mangleId(doc->root->name);
-        if (!mainClassName.isEmpty())
-            mainClassName.append(QLatin1Char('_'));
-        mainClassName.append(l("StateMachine"));
+    Q_ASSERT(unit);
+    Q_ASSERT(unit->mainDocument);
+
+    m_translationUnit = unit;
+
+    QVector<ClassDump> clazzes;
+    auto docs = m_translationUnit->otherDocuments();
+    clazzes.resize(docs.size() + 1);
+    DumperVisitor(clazzes[0], m_translationUnit).process(unit->mainDocument);
+    for (int i = 0, ei = docs.size(); i != ei; ++i) {
+        auto doc = docs.at(i);
+        DumperVisitor(clazzes[i + 1], m_translationUnit).process(doc);
     }
 
-    MainClass clazz;
-    DumperVisitor(clazz, mainClassName, options).process(doc);
-
-    // Generate the .h file:
+    auto headerName = QFileInfo(unit->outHFileName).fileName();
     const QString headerGuard = headerName.toUpper().replace(QLatin1Char('.'), QLatin1Char('_'));
+    writeHeaderStart(headerGuard);
+    writeImplStart(clazzes);
+
+    foreach (const ClassDump &clazz, clazzes) {
+        writeClass(clazz);
+        writeImplBody(clazz);
+    }
+
+    writeHeaderEnd(headerGuard);
+    writeImplEnd();
+}
+
+QString CppDumper::mangleId(const QString &id)
+{
+    QString mangled(id);
+    mangled = mangled.replace(QLatin1Char('_'), QLatin1String("__"));
+    mangled = mangled.replace(QLatin1Char(':'), QLatin1String("_colon_"));
+    mangled = mangled.replace(QLatin1Char('-'), QLatin1String("_dash_"));
+    mangled = mangled.replace(QLatin1Char('@'), QLatin1String("_at_"));
+    mangled = mangled.replace(QLatin1Char('.'), QLatin1String("_dot_"));
+    return mangled;
+}
+
+void CppDumper::writeHeaderStart(const QString &headerGuard)
+{
     h << QStringLiteral("#ifndef ") << headerGuard << endl
       << QStringLiteral("#define ") << headerGuard << endl
       << endl;
     h << l(headerStart);
-    if (!options.namespaceName.isEmpty())
-        h << l("namespace ") << options.namespaceName << l(" {") << endl << endl;
-    h << l("class ") << mainClassName << l(" : public Scxml::StateMachine\n{") << endl;
+    if (!m_translationUnit->namespaceName.isEmpty())
+        h << l("namespace ") << m_translationUnit->namespaceName << l(" {") << endl << endl;
+}
+
+void CppDumper::writeClass(const ClassDump &clazz)
+{
+    h << l("class ") << clazz.className << l(" : public Scxml::StateMachine\n{") << endl;
     h << QLatin1String("    Q_OBJECT\n");
     clazz.properties.write(h, QStringLiteral("    "), QStringLiteral("\n"));
     h << QLatin1String("\npublic:\n");
-    h << l("    ") << mainClassName << l("(QObject *parent = 0);") << endl;
-    h << l("    ~") << mainClassName << "();" << endl;
+    h << l("    ") << clazz.className << l("(QObject *parent = 0);") << endl;
+    h << l("    ~") << clazz.className << "();" << endl;
 
     if (!clazz.publicMethods.isEmpty()) {
         h << endl;
@@ -934,30 +1021,45 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
       << l("    friend Data;") << endl
       << l("    struct Data *data;") << endl
       << l("};") << endl;
+}
 
-    if (!options.namespaceName.isEmpty())
-        h << endl << l("} // namespace ") << options.namespaceName << endl;
+void CppDumper::writeHeaderEnd(const QString &headerGuard)
+{
+    if (!m_translationUnit->namespaceName.isEmpty())
+        h << endl << l("} // namespace ") << m_translationUnit->namespaceName << endl;
     h << endl
       << QStringLiteral("#endif // ") << headerGuard << endl;
+}
 
-    // Generate the .cpp file:
-    cpp << l("#include \"") << headerName << l("\"") << endl
-        << endl
+void CppDumper::writeImplStart(const QVector<ClassDump> &allClazzes)
+{
+    StringListDumper includes;
+    foreach (const ClassDump &clazz, allClazzes) {
+        includes.text += clazz.implIncludes.text;
+    }
+    includes.unique();
+
+    auto headerName = QFileInfo(m_translationUnit->outHFileName).fileName();
+    cpp << l("#include \"") << headerName << l("\"") << endl;
+    cpp << endl
         << QStringLiteral("#include <QtScxml/scxmlqstates.h>") << endl;
-    if (!clazz.implIncludes.isEmpty()) {
-        clazz.implIncludes.write(cpp, QStringLiteral("#include <"), QStringLiteral(">\n"));
+    if (!includes.isEmpty()) {
+        includes.write(cpp, QStringLiteral("#include <"), QStringLiteral(">\n"));
         cpp << endl;
     }
-    if (!options.namespaceName.isEmpty())
-        cpp << l("namespace ") << options.namespaceName << l(" {") << endl << endl;
+    if (!m_translationUnit->namespaceName.isEmpty())
+        cpp << l("namespace ") << m_translationUnit->namespaceName << l(" {") << endl << endl;
+}
 
-    cpp << l("struct ") << mainClassName << l("::Data: private Scxml::TableData");
+void CppDumper::writeImplBody(const ClassDump &clazz)
+{
+    cpp << l("struct ") << clazz.className << l("::Data: private Scxml::TableData");
     if (!clazz.signalMethods.isEmpty()) {
         cpp << QStringLiteral(", public Scxml::ScxmlEventFilter");
     }
     cpp << l(" {") << endl;
 
-    cpp << QStringLiteral("    Data(%1 &stateMachine)\n        : stateMachine(stateMachine)").arg(mainClassName) << endl;
+    cpp << QStringLiteral("    Data(%1 &stateMachine)\n        : stateMachine(stateMachine)").arg(clazz.className) << endl;
     clazz.constructor.initializer.write(cpp, QStringLiteral("        , "), QStringLiteral("\n"));
     cpp << l("    { init(); }") << endl;
 
@@ -969,41 +1071,33 @@ void CppDumper::dump(DocumentModel::ScxmlDocument *doc)
     clazz.dataMethods.write(cpp, QStringLiteral("    "), QStringLiteral("\n"));
 
     cpp << endl
-        << QStringLiteral("    %1 &stateMachine;").arg(mainClassName) << endl;
+        << QStringLiteral("    %1 &stateMachine;").arg(clazz.className) << endl;
     clazz.classFields.write(cpp, QStringLiteral("    "), QStringLiteral("\n"));
 
     cpp << l("};") << endl
         << endl;
-    cpp << mainClassName << l("::") << mainClassName << l("(QObject *parent)") << endl
+    cpp << clazz.className << l("::") << clazz.className << l("(QObject *parent)") << endl
         << l("    : Scxml::StateMachine(parent)") << endl
         << l("    , data(new Data(*this))") << endl
         << l("{ qRegisterMetaType<QAbstractState *>(); }") << endl
         << endl;
-    cpp << mainClassName << l("::~") << mainClassName << l("()") << endl
+    cpp << clazz.className << l("::~") << clazz.className << l("()") << endl
         << l("{ delete data; }") << endl
         << endl;
     foreach (const Method &m, clazz.publicMethods) {
-        m.impl.write(cpp, QStringLiteral(""), QStringLiteral("\n"), mainClassName);
+        m.impl.write(cpp, QStringLiteral(""), QStringLiteral("\n"), clazz.className);
         cpp << endl;
     }
     clazz.publicSlotDefinitions.write(cpp, QStringLiteral("\n"), QStringLiteral("\n"));
     cpp << endl;
 
     clazz.tables.write(cpp, QStringLiteral(""), QStringLiteral("\n"));
-
-    if (!options.namespaceName.isEmpty())
-        cpp << l("} // namespace ") << options.namespaceName << endl;
 }
 
-QString CppDumper::mangleId(const QString &id)
+void CppDumper::writeImplEnd()
 {
-    QString mangled(id);
-    mangled = mangled.replace(QLatin1Char('_'), QLatin1String("__"));
-    mangled = mangled.replace(QLatin1Char(':'), QLatin1String("_colon_"));
-    mangled = mangled.replace(QLatin1Char('-'), QLatin1String("_dash_"));
-    mangled = mangled.replace(QLatin1Char('@'), QLatin1String("_at_"));
-    mangled = mangled.replace(QLatin1Char('.'), QLatin1String("_dot_"));
-    return mangled;
+    if (!m_translationUnit->namespaceName.isEmpty())
+        cpp << l("} // namespace ") << m_translationUnit->namespaceName << endl;
 }
 
 } // namespace Scxml

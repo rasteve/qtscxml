@@ -52,7 +52,6 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         // We do not (yet?) support invoke.
         << QLatin1String("w3c-ecma/test215.txml")
         << QLatin1String("w3c-ecma/test216.txml")
-        << QLatin1String("w3c-ecma/test220.txml")
         << QLatin1String("w3c-ecma/test223.txml")
         << QLatin1String("w3c-ecma/test224.txml")
         << QLatin1String("w3c-ecma/test225.txml")

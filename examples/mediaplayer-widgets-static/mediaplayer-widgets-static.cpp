@@ -47,15 +47,15 @@ int main(int argc, char **argv)
 {
     QApplication app(argc, argv);
 
-    MediaPlayerStateMachine_StateMachine machine;
+    MediaPlayerStateMachine machine;
     machine.init();
     MainWindow mainWindow;
 
     QObject::connect(&mainWindow, &MainWindow::tap,
-                     &machine, &MediaPlayerStateMachine_StateMachine::event_tap);
-    QObject::connect(&machine, &MediaPlayerStateMachine_StateMachine::event_playbackStarted,
+                     &machine, &MediaPlayerStateMachine::event_tap);
+    QObject::connect(&machine, &MediaPlayerStateMachine::event_playbackStarted,
                      &mainWindow, &MainWindow::started);
-    QObject::connect(&machine, &MediaPlayerStateMachine_StateMachine::event_playbackStopped,
+    QObject::connect(&machine, &MediaPlayerStateMachine::event_playbackStopped,
                      &mainWindow, &MainWindow::stopped);
 
     machine.start();

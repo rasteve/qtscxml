@@ -101,7 +101,7 @@ public:
     void setupSystemVariables()
     {
         setReadonlyProperty(&dataModel, QStringLiteral("_sessionid"),
-                            QStringLiteral("session%1").arg(stateMachine()->sessionId()));
+                            stateMachine()->sessionId());
 
         setReadonlyProperty(&dataModel, QStringLiteral("_name"), stateMachine()->name());
 

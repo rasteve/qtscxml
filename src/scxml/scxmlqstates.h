@@ -25,6 +25,26 @@ QT_BEGIN_NAMESPACE
 
 namespace Scxml {
 
+template<class T>
+class InvokeScxmlFactory: public Scxml::ScxmlInvokableServiceFactory
+{
+public:
+    InvokeScxmlFactory(Scxml::ExecutableContent::StringId invokeLocation,
+                       Scxml::ExecutableContent::StringId id,
+                       Scxml::ExecutableContent::StringId idPrefix,
+                       Scxml::ExecutableContent::StringId idlocation,
+                       const QVector<Scxml::ExecutableContent::StringId> &namelist,
+                       bool autoforward,
+                       const QVector<Param> &params)
+        : ScxmlInvokableServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist, autoforward, params)
+    {}
+
+    Scxml::ScxmlInvokableService *invoke(StateMachine *parent) Q_DECL_OVERRIDE
+    {
+        return finishInvoke(new T, parent);
+    }
+};
+
 class Q_SCXML_EXPORT ScxmlBaseTransition : public QAbstractTransition
 {
     Q_OBJECT
@@ -88,6 +108,7 @@ public:
     void setInitInstructions(ExecutableContent::ContainerId instructions);
     void setOnEntryInstructions(ExecutableContent::ContainerId instructions);
     void setOnExitInstructions(ExecutableContent::ContainerId instructions);
+    void setInvokableServiceFactories(const QVector<ScxmlInvokableServiceFactory *>& factories);
 
 Q_SIGNALS:
     void didEnter();

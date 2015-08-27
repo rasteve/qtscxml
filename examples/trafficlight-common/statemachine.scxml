@@ -44,8 +44,7 @@
     xmlns="http://www.w3.org/2005/07/scxml"
     xmlns:qt="http://theqtcompany.com/scxml/2015/06/"
     version="1.0"
-    name="trafficlight"
-    qt:classname="TrafficLightStateMachine"
+    name="TrafficLightStateMachine"
     initial="working"
 >
     <state id="working" initial="yellow">
