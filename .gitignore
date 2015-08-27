@@ -21,6 +21,7 @@ tst_scion
 tests/auto/scion/compiled_tests.h
 tests/auto/scion/scxml
 tests/auto/scion/scion.h
+tests/auto/scion/scion.qrc
 
 examples/trafficlight-qml/statemachine.cpp
 examples/trafficlight-qml/statemachine.h

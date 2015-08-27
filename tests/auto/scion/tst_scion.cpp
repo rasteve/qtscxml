@@ -32,90 +32,90 @@ enum { SpyWaitTime = 8000 };
 
 static QSet<QString> weFailOnThese = QSet<QString>()
         // The following test needs manual inspection of the result. However, note that we do not support multiple identical keys for event data.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test178.txml")
+        << QLatin1String("w3c-ecma/test178.txml")
         // Currently we do not support loading data as XML content inside the <data> tag.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test557.txml")
+        << QLatin1String("w3c-ecma/test557.txml")
         // FIXME: Currently we do not support loading data from a src.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test552.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test558.txml")
+        << QLatin1String("w3c-ecma/test552.txml")
+        << QLatin1String("w3c-ecma/test558.txml")
         // A nested state machine is used, which we do not support.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test187.txml")
+        << QLatin1String("w3c-ecma/test187.txml")
         // We do not support the optional basic http event i/o processor.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test201.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test207.txml")
+        << QLatin1String("w3c-ecma/test201.txml")
+        << QLatin1String("w3c-ecma/test207.txml")
         // The following test uses the undocumented "exmode" attribute.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test441a.txml")
+        << QLatin1String("w3c-ecma/test441a.txml")
         // The following test needs manual inspection of the result. However, note that we do not support the undocumented "exmode" attribute.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test441b.txml")
+        << QLatin1String("w3c-ecma/test441b.txml")
         // The following test needs manual inspection of the result.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test307.txml")
+        << QLatin1String("w3c-ecma/test307.txml")
         // We do not (yet?) support invoke.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test215.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test216.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test220.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test223.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test224.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test225.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test226.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test228.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test229.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test230.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test232.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test233.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test234.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test235.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test236.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test237.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test238.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test239.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test240.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test241.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test243.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test244.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test245.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test247.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test242.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test276.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test253.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test252.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test250.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test338.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test422.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test530.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test554.txml")
+        << QLatin1String("w3c-ecma/test215.txml")
+        << QLatin1String("w3c-ecma/test216.txml")
+        << QLatin1String("w3c-ecma/test220.txml")
+        << QLatin1String("w3c-ecma/test223.txml")
+        << QLatin1String("w3c-ecma/test224.txml")
+        << QLatin1String("w3c-ecma/test225.txml")
+        << QLatin1String("w3c-ecma/test226.txml")
+        << QLatin1String("w3c-ecma/test228.txml")
+        << QLatin1String("w3c-ecma/test229.txml")
+        << QLatin1String("w3c-ecma/test230.txml")
+        << QLatin1String("w3c-ecma/test232.txml")
+        << QLatin1String("w3c-ecma/test233.txml")
+        << QLatin1String("w3c-ecma/test234.txml")
+        << QLatin1String("w3c-ecma/test235.txml")
+        << QLatin1String("w3c-ecma/test236.txml")
+        << QLatin1String("w3c-ecma/test237.txml")
+        << QLatin1String("w3c-ecma/test238.txml")
+        << QLatin1String("w3c-ecma/test239.txml")
+        << QLatin1String("w3c-ecma/test240.txml")
+        << QLatin1String("w3c-ecma/test241.txml")
+        << QLatin1String("w3c-ecma/test243.txml")
+        << QLatin1String("w3c-ecma/test244.txml")
+        << QLatin1String("w3c-ecma/test245.txml")
+        << QLatin1String("w3c-ecma/test247.txml")
+        << QLatin1String("w3c-ecma/test242.txml")
+        << QLatin1String("w3c-ecma/test276.txml")
+        << QLatin1String("w3c-ecma/test253.txml")
+        << QLatin1String("w3c-ecma/test252.txml")
+        << QLatin1String("w3c-ecma/test250.txml")
+        << QLatin1String("w3c-ecma/test338.txml")
+        << QLatin1String("w3c-ecma/test422.txml")
+        << QLatin1String("w3c-ecma/test530.txml")
+        << QLatin1String("w3c-ecma/test554.txml")
            ;
 
 static QSet<QString> weDieOnThese = QSet<QString>()
-        << QLatin1String("scion-tests/scxml-test-framework/test/send-data/send1") // test suite problem: we expect every stable configuration to be listed.
-        << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send1") // same as above
-        << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send2") // same as above
-        << QLatin1String("scion-tests/scxml-test-framework/test/delayedSend/send3") // same as above
+        << QLatin1String("send-data/send1") // test suite problem: we expect every stable configuration to be listed.
+        << QLatin1String("delayedSend/send1") // same as above
+        << QLatin1String("delayedSend/send2") // same as above
+        << QLatin1String("delayedSend/send3") // same as above
 #if QT_VERSION < QT_VERSION_CHECK(5, 6, 0) // QTBUG-46703
-        << QLatin1String("scion-tests/scxml-test-framework/test/history/history3")
-        << QLatin1String("scion-tests/scxml-test-framework/test/history/history4")
-        << QLatin1String("scion-tests/scxml-test-framework/test/history/history5")
+        << QLatin1String("history/history3")
+        << QLatin1String("history/history4")
+        << QLatin1String("history/history5")
 #endif // Qt 5.6.0
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test364.txml") // initial attribute on <state>
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test388.txml") // Qt refuses to set an initial state to a "deep" state
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test403a.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test403c.txml")
+        << QLatin1String("w3c-ecma/test364.txml") // initial attribute on <state>
+        << QLatin1String("w3c-ecma/test388.txml") // Qt refuses to set an initial state to a "deep" state
+        << QLatin1String("w3c-ecma/test403a.txml")
+        << QLatin1String("w3c-ecma/test403c.txml")
            ;
 
 static QSet<QString> differentSemantics = QSet<QString>()
         // FIXME: looks like a bug in internal event ordering when writing to read-only variables.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test329.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test346.txml")
+        << QLatin1String("w3c-ecma/test329.txml")
+        << QLatin1String("w3c-ecma/test346.txml")
         // Scion apparently sets <data> values without a src/expr attribute to 0. We set it to undefined, as specified in B.2.1.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test456.txml") // replaced by modified_test456
+        << QLatin1String("w3c-ecma/test456.txml") // replaced by modified_test456
         // Qt does not support forcing initial states that are not marked as such.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test413.txml") // FIXME: verify initial state setting...
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test576.txml")
+        << QLatin1String("w3c-ecma/test413.txml") // FIXME: verify initial state setting...
+        << QLatin1String("w3c-ecma/test576.txml")
         // FIXME: Currently we do not support loading scripts from a src.
-        << QLatin1String("scion-tests/scxml-test-framework/test/w3c-ecma/test301.txml")
-        << QLatin1String("scion-tests/scxml-test-framework/test/script-src/test0")
-        << QLatin1String("scion-tests/scxml-test-framework/test/script-src/test1")
-        << QLatin1String("scion-tests/scxml-test-framework/test/script-src/test2")
-        << QLatin1String("scion-tests/scxml-test-framework/test/script-src/test3")
+        << QLatin1String("w3c-ecma/test301.txml")
+        << QLatin1String("script-src/test0")
+        << QLatin1String("script-src/test1")
+        << QLatin1String("script-src/test2")
+        << QLatin1String("script-src/test3")
         ;
 
 class MySignalSpy: public QSignalSpy
@@ -214,7 +214,9 @@ void TestScion::dynamic()
     QFile jsonFile(QLatin1String(":/") + json);
     QVERIFY(jsonFile.open(QIODevice::ReadOnly));
     auto testDescription = QJsonDocument::fromJson(jsonFile.readAll());
+//    fprintf(stderr, "test description: %s\n", testDescription.toJson().constData());
     jsonFile.close();
+    QVERIFY(testDescription.isObject());
 
     QFile scxmlFile(QLatin1String(":/") + scxml);
     QVERIFY(scxmlFile.open(QIODevice::ReadOnly));
