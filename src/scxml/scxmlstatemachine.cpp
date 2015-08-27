@@ -208,7 +208,7 @@ QString ScxmlError::toString() const
         if (d->column != -1)
             str += QStringLiteral(":%1").arg(d->column);
     }
-    str += QStringLiteral(": ") + d->description;
+    str += QStringLiteral(": error: ") + d->description;
 
     return str;
 }
