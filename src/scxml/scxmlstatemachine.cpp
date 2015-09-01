@@ -494,15 +494,16 @@ StateMachine *StateMachine::fromFile(const QString &fileName, DataModel *dataMod
         return table;
     }
 
-    StateMachine *table = fromData(&scxmlFile, dataModel);
+    StateMachine *table = fromData(&scxmlFile, fileName, dataModel);
     scxmlFile.close();
     return table;
 }
 
-StateMachine *StateMachine::fromData(QIODevice *data, DataModel *dataModel)
+StateMachine *StateMachine::fromData(QIODevice *data, const QString &fileName, DataModel *dataModel)
 {
     QXmlStreamReader xmlReader(data);
     Scxml::ScxmlParser parser(&xmlReader);
+    parser.setFileName(fileName);
     parser.parse();
     auto table = parser.instantiateStateMachine();
     if (dataModel) {

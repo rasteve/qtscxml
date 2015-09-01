@@ -173,7 +173,7 @@ public:
     };
 
     static StateMachine *fromFile(const QString &fileName, DataModel *dataModel = Q_NULLPTR);
-    static StateMachine *fromData(QIODevice *data, DataModel *dataModel = Q_NULLPTR);
+    static StateMachine *fromData(QIODevice *data, const QString &fileName = QString(), DataModel *dataModel = Q_NULLPTR);
     QVector<ScxmlError> errors() const;
 
     StateMachine(QObject *parent = 0);

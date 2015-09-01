@@ -1,2 +1,2 @@
 TEMPLATE = subdirs
-SUBDIRS = cmake scion
+SUBDIRS = cmake parser scion
