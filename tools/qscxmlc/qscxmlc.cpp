@@ -148,6 +148,12 @@ int main(int argc, char *argv[])
     mainDoc->root->accept(&collector);
     if (mainClassname.isEmpty())
         mainClassname = mainDoc->root->name;
+    if (mainClassname.isEmpty()) {
+        mainClassname = QFileInfo(scxmlFileName).fileName();
+        int dot = mainClassname.indexOf(QLatin1Char('.'));
+        if (dot != -1)
+            mainClassname = mainClassname.left(dot);
+    }
     collector.docs.insert(mainDoc, mainClassname);
 
     TranslationUnit tu = options;
@@ -157,7 +163,7 @@ int main(int argc, char *argv[])
     for (QMap<DocumentModel::ScxmlDocument *, QString>::const_iterator i = collector.docs.begin(), ei = collector.docs.end(); i != ei; ++i) {
         auto name = i.value();
         if (name.isEmpty()) {
-            name = QStringLiteral("StateMachine_%1").arg(tu.classnameForDocument.size() + 1);
+            name = QStringLiteral("%1_StateMachine_%2").arg(mainClassname).arg(tu.classnameForDocument.size() + 1);
         }
         tu.classnameForDocument.insert(i.key(), name);
     }

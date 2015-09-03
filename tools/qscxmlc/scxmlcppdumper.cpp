@@ -1020,13 +1020,13 @@ void CppDumper::writeClass(const ClassDump &clazz)
       << l("    struct Data;") << endl
       << l("    friend Data;") << endl
       << l("    struct Data *data;") << endl
-      << l("};") << endl;
+      << l("};") << endl << endl;
 }
 
 void CppDumper::writeHeaderEnd(const QString &headerGuard)
 {
     if (!m_translationUnit->namespaceName.isEmpty())
-        h << endl << l("} // namespace ") << m_translationUnit->namespaceName << endl;
+        h << l("} // namespace ") << m_translationUnit->namespaceName << endl;
     h << endl
       << QStringLiteral("#endif // ") << headerGuard << endl;
 }

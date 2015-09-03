@@ -68,9 +68,6 @@ BLACKLISTED = \
     test207.txml.scxml \
     test215.txml.scxml \
     test216.txml.scxml \
-    test223.txml.scxml \
-    test224.txml.scxml \
-    test225.txml.scxml \
     test226.txml.scxml \
     test228.txml.scxml \
     test229.txml.scxml \
