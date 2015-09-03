@@ -39,20 +39,12 @@ namespace Scxml {
 Q_LOGGING_CATEGORY(scxmlLog, "scxml.table")
 
 namespace {
-QByteArray objectId(QObject *obj, bool strict = false)
-{
-    Q_UNUSED(obj);
-    Q_UNUSED(strict);
-    Q_UNIMPLEMENTED();
-    return QByteArray();
-}
-
 class InvokableScxml: public ScxmlInvokableService
 {
 public:
     InvokableScxml(StateMachine *stateMachine, const QString &id, const QVariantMap &data,
-                   bool autoforward, StateMachine *parent)
-        : ScxmlInvokableService(id, data, autoforward, parent)
+                   bool autoforward, ExecutableContent::ContainerId finalize, StateMachine *parent)
+        : ScxmlInvokableService(id, data, autoforward, finalize, parent)
         , m_stateMachine(stateMachine)
     {
         stateMachine->setSessionId(id);
@@ -68,7 +60,6 @@ public:
     {
         m_stateMachine->submitEvent(event);
     }
-
 
 private:
     StateMachine *m_stateMachine;
@@ -260,22 +251,28 @@ TableData::~TableData()
 class ScxmlInvokableService::Data
 {
 public:
-    Data(const QString &id, const QVariantMap &data, bool autoforward, StateMachine *parent)
+    Data(const QString &id, const QVariantMap &data, bool autoforward,
+         ExecutableContent::ContainerId finalize, StateMachine *parent)
         : id(id)
         , data(data)
         , autoforward(autoforward)
         , parent(parent)
+        , finalize(finalize)
     {}
 
     QString id;
     QVariantMap data;
     bool autoforward;
     StateMachine *parent;
+    ExecutableContent::ContainerId finalize;
 };
 
-ScxmlInvokableService::ScxmlInvokableService(const QString &id, const QVariantMap &data,
-                                             bool autoforward, StateMachine *parent)
-    : d(new Data(id, data, autoforward, parent))
+ScxmlInvokableService::ScxmlInvokableService(const QString &id,
+                                             const QVariantMap &data,
+                                             bool autoforward,
+                                             ExecutableContent::ContainerId finalize,
+                                             StateMachine *parent)
+    : d(new Data(id, data, autoforward, finalize, parent))
 {}
 
 ScxmlInvokableService::~ScxmlInvokableService()
@@ -303,13 +300,20 @@ StateMachine *ScxmlInvokableService::parent() const
     return d->parent;
 }
 
+void ScxmlInvokableService::finalize()
+{
+    auto smp = StateMachinePrivate::get(parent());
+    smp->m_executionEngine->execute(d->finalize);
+}
+
 class ScxmlInvokableServiceFactory::Data
 {
 public:
     Data(ExecutableContent::StringId invokeLocation, ExecutableContent::StringId id,
          ExecutableContent::StringId idPrefix, ExecutableContent::StringId idlocation,
          const QVector<ExecutableContent::StringId> &namelist, bool autoforward,
-         const QVector<ScxmlInvokableServiceFactory::Param> &params)
+         const QVector<ScxmlInvokableServiceFactory::Param> &params,
+         ExecutableContent::ContainerId finalize)
         : invokeLocation(invokeLocation)
         , id(id)
         , idPrefix(idPrefix)
@@ -317,6 +321,7 @@ public:
         , namelist(namelist)
         , autoforward(autoforward)
         , params(params)
+        , finalize(finalize)
     {}
 
     ExecutableContent::StringId invokeLocation;
@@ -326,6 +331,7 @@ public:
     QVector<ExecutableContent::StringId> namelist;
     bool autoforward;
     QVector<ScxmlInvokableServiceFactory::Param> params;
+    ExecutableContent::ContainerId finalize;
 
 };
 
@@ -333,8 +339,8 @@ ScxmlInvokableServiceFactory::ScxmlInvokableServiceFactory(
         ExecutableContent::StringId invokeLocation,  ExecutableContent::StringId id,
         ExecutableContent::StringId idPrefix, ExecutableContent::StringId idlocation,
         const QVector<ExecutableContent::StringId> &namelist, bool autoforward,
-        const QVector<Param> &params)
-    : d(new Data(invokeLocation, id, idPrefix, idlocation, namelist, autoforward, params))
+        const QVector<Param> &params, ExecutableContent::ContainerId finalize)
+    : d(new Data(invokeLocation, id, idPrefix, idlocation, namelist, autoforward, params, finalize))
 {}
 
 ScxmlInvokableServiceFactory::~ScxmlInvokableServiceFactory()
@@ -421,6 +427,11 @@ bool ScxmlInvokableServiceFactory::autoforward() const
     return d->autoforward;
 }
 
+ExecutableContent::ContainerId ScxmlInvokableServiceFactory::finalizeContent() const
+{
+    return d->finalize;
+}
+
 ScxmlEventFilter::~ScxmlEventFilter()
 {}
 
@@ -434,7 +445,7 @@ ScxmlInvokableService *InvokableScxmlServiceFactory::finishInvoke(StateMachine *
     if (!ok)
         return Q_NULLPTR;
     child->setIsInvoked(true);
-    return new InvokableScxml(child, id, data, autoforward(), parent);
+    return new InvokableScxml(child, id, data, autoforward(), finalizeContent(), parent);
 }
 
 QAtomicInt StateMachinePrivate::m_sessionIdCounter = QAtomicInt(0);
@@ -652,8 +663,24 @@ void Internal::MyQStateMachine::beginSelectTransitions(QEvent *event)
 {
     Q_D(MyQStateMachine);
 
-    if (event->type() == QScxmlEvent::scxmlEventType) {
+    if (event && event->type() == QScxmlEvent::scxmlEventType) {
+        stateMachinePrivate()->m_event = *static_cast<QScxmlEvent *>(event);
+        d->m_table->dataModel()->setEvent(stateMachinePrivate()->m_event);
+
+        auto scxmlEvent = static_cast<QScxmlEvent *>(event);
         auto smp = stateMachinePrivate();
+
+        foreach (ScxmlInvokableService *service, smp->m_registeredServices) {
+            if (scxmlEvent->invokeId() == service->id()) {
+                service->finalize();
+            }
+            if (service->autoforward()) {
+                qCDebug(scxmlLog) << "auto-forwarding event" << scxmlEvent->name()
+                                  << "from" << stateTable()->name() << "to service" << service->id();
+                service->submitEvent(new QScxmlEvent(*scxmlEvent));
+            }
+        }
+
         auto e = static_cast<QScxmlEvent *>(event);
         if (smp->m_eventFilter && !smp->m_eventFilter->handle(e, d->m_table)) {
             e->makeIgnorable();
@@ -661,85 +688,10 @@ void Internal::MyQStateMachine::beginSelectTransitions(QEvent *event)
             smp->m_event.clear();
             return;
         }
-    }
-
-    if (event && event->type() != QEvent::None) {
-        switch (event->type()) {
-        case QEvent::StateMachineSignal: {
-            QStateMachine::SignalEvent* e = (QStateMachine::SignalEvent*)event;
-            QByteArray signalName = e->sender()->metaObject()->method(e->signalIndex()).methodSignature();
-            //signalName.replace(signalName.indexOf('('), 1, QLatin1Char('.'));
-            //signalName.chop(1);
-            //if (signalName.endsWith(QLatin1Char('.')))
-            //    signalName.chop(1);
-            QScxmlEvent::EventType eventType = QScxmlEvent::ExternalEvent;
-            QObject *s = e->sender();
-            if (s == this) {
-                if (signalName.startsWith(QByteArray("event_"))){
-                    stateMachinePrivate()->m_event.reset(signalName.mid(6), eventType, e->arguments());
-                    break;
-                } else {
-                    qCWarning(scxmlLog) << "Unexpected signal event sent to StateMachine "
-                                        << d->m_table->tableData()->name() << ":" << signalName;
-                }
-            }
-            QByteArray senderName = QByteArray("@0");
-            if (s) {
-                senderName = objectId(s, true);
-                if (senderName.isEmpty() && !s->objectName().isEmpty())
-                    senderName = s->objectName().toUtf8();
-            }
-            QList<QByteArray> namePieces;
-            namePieces << QByteArray("qsignal") << senderName << signalName;
-            QByteArray eventName = namePieces.join('.');
-            stateMachinePrivate()->m_event.reset(eventName, eventType, e->arguments());
-        } break;
-        case QEvent::StateMachineWrapped: {
-            QStateMachine::WrappedEvent * e = (QStateMachine::WrappedEvent *)event;
-            QObject *s = e->object();
-            QByteArray senderName = QByteArray("@0");
-            if (s) {
-                senderName = objectId(s, true);
-                if (senderName.isEmpty() && !s->objectName().isEmpty())
-                    senderName = s->objectName().toUtf8();
-            }
-            QEvent::Type qeventType = e->event()->type();
-            QByteArray eventName;
-            QMetaObject metaObject = QEvent::staticMetaObject;
-            int maxIenum = metaObject.enumeratorCount();
-            for (int ienum = metaObject.enumeratorOffset(); ienum < maxIenum; ++ienum) {
-                QMetaEnum en = metaObject.enumerator(ienum);
-                if (QByteArray(en.name()) == QByteArray("Type")) {
-                    eventName = QByteArray(en.valueToKey(qeventType));
-                    break;
-                }
-            }
-            if (eventName.isEmpty())
-                eventName = QStringLiteral("E%1").arg((int)qeventType).toUtf8();
-            QList<QByteArray> namePieces;
-            namePieces << QByteArray("qevent") << senderName << eventName;
-            QByteArray name = namePieces.join('.');
-            QScxmlEvent::EventType eventType = QScxmlEvent::ExternalEvent;
-            // use e->spontaneous(); to choose internal/external?
-            stateMachinePrivate()->m_event.reset(name, eventType); // put something more in data for some elements like keyEvents and mouseEvents?
-        } break;
-        default:
-            if (event->type() == QScxmlEvent::scxmlEventType) {
-                stateMachinePrivate()->m_event = *static_cast<QScxmlEvent *>(event);
-            } else {
-                QEvent::Type qeventType = event->type();
-                QByteArray eventName = QStringLiteral("qdirectevent.E%1").arg((int)qeventType).toUtf8();
-                stateMachinePrivate()->m_event.reset(eventName);
-                qCWarning(scxmlLog) << "Unexpected event directly sent to StateMachine "
-                                    << d->m_table->tableData()->name() << ":" << event->type();
-            }
-            break;
-        }
     } else {
         stateMachinePrivate()->m_event.clear();
+        d->m_table->dataModel()->setEvent(stateMachinePrivate()->m_event);
     }
-
-    d->m_table->dataModel()->setEvent(stateMachinePrivate()->m_event);
 }
 
 void Internal::MyQStateMachine::beginMicrostep(QEvent *event)
@@ -999,13 +951,6 @@ void StateMachine::submitEvent(QScxmlEvent *e)
     if (!e)
         return;
 
-    foreach (ScxmlInvokableService *service, d->m_registeredServices) {
-        if (service->autoforward()) {
-            qCDebug(scxmlLog) << "auto-forwarding event" << e->name() << "from" << name() << "to service" << service->id();
-            service->submitEvent(new QScxmlEvent(*e));
-        }
-    }
-
     if (e->delay() > 0) {
         qCDebug(scxmlLog) << name() << ": submitting event" << e->name() << "with delay" << e->delay() << "ms" << "and sendid" << e->sendId();
 
@@ -1134,13 +1079,12 @@ void StateMachine::unregisterService(ScxmlInvokableService *service)
 
 void StateMachine::onFinished()
 {
-    Q_D(StateMachine);
-    if (auto psm = d->m_parentStateMachine) {
+    auto psm = parentStateMachine();
+    if (psm) {
         auto done = new QScxmlEvent;
-        auto invokeId = sessionId();
-        done->setName(QByteArray("done.invoke.") + invokeId.toUtf8());
-        done->setInvokeId(invokeId);
-        qCDebug(scxmlLog) << name() << ": submitting event" << done->name() << "to parent" << psm->name();
+        done->setName(QByteArray("done.invoke.") + sessionId().toUtf8());
+        done->setInvokeId(sessionId());
+        qCDebug(scxmlLog) << "submitting event" << done->name() << "to" << psm->name();
         psm->submitEvent(done);
     }
 

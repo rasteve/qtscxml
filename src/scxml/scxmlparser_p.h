@@ -353,7 +353,7 @@ struct Scxml: public StateContainer, public Node
     QVector<StateOrTransition *> children;
     QVector<DataElement *> dataElements;
     QScopedPointer<Script> script;
-    DocumentModel::InstructionSequence initialSetup;
+    InstructionSequence initialSetup;
 
     QVector<AbstractState *> initialStates; // filled during verification
 

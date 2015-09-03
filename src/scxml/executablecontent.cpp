@@ -373,12 +373,6 @@ void Builder::visit(DocumentModel::Cancel *node)
     instr->sendidexpr = createEvaluatorString(QStringLiteral("cancel"), QStringLiteral("sendidexpr"), node->sendidexpr);
 }
 
-bool Builder::visit(DocumentModel::Invoke *)
-{
-    Q_UNIMPLEMENTED();
-    return false;
-}
-
 ContainerId Builder::generate(const DocumentModel::DoneData *node)
 {
     auto id = m_instructions.newContainerId();

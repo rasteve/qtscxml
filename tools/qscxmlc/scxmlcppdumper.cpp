@@ -352,7 +352,7 @@ protected:
                 }
                 line += QStringLiteral("%1, ").arg(invoke->autoforward ? QStringLiteral("true") : QStringLiteral("false"));
                 if (invoke->params.isEmpty()) {
-                    line += QStringLiteral("{}");
+                    line += QStringLiteral("{}, ");
                 } else {
                     line += QLatin1Char('{');
                     foreach (DocumentModel::Param *param, invoke->params) {
@@ -361,7 +361,14 @@ protected:
                                 .arg(createEvaluatorVariant(QStringLiteral("param"), QStringLiteral("expr"), param->expr))
                                 .arg(addString(param->location));
                     }
-                    line += QLatin1Char('}');
+                    line += QStringLiteral("}, ");
+                }
+                if (invoke->finalize.isEmpty()) {
+                    line += QStringLiteral("Scxml::ExecutableContent::NoInstruction");
+                } else {
+                    line += QString::number(startNewSequence());
+                    visit(&invoke->finalize);
+                    endSequence();
                 }
                 line += QLatin1Char(')');
                 if (i + 1 != ei)

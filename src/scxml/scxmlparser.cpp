@@ -488,13 +488,14 @@ class InvokeDynamicScxmlFactory: public InvokableScxmlServiceFactory
 {
 public:
     InvokeDynamicScxmlFactory(ExecutableContent::StringId invokeLocation,
-                       ExecutableContent::StringId id,
-                       ExecutableContent::StringId idPrefix,
-                       ExecutableContent::StringId idlocation,
-                       const QVector<ExecutableContent::StringId> &namelist,
-                       bool autoforward,
-                       const QVector<Param> &params)
-        : InvokableScxmlServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist, autoforward, params)
+                              ExecutableContent::StringId id,
+                              ExecutableContent::StringId idPrefix,
+                              ExecutableContent::StringId idlocation,
+                              const QVector<ExecutableContent::StringId> &namelist,
+                              bool autoforward,
+                              const QVector<Param> &params,
+                              ExecutableContent::ContainerId finalize)
+        : InvokableScxmlServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist, autoforward, params, finalize)
     {}
 
     void setContent(const QSharedPointer<DocumentModel::ScxmlDocument> &content)
@@ -651,13 +652,20 @@ private:
                                           addString(param->location)
                                       });
                     }
+                    ExecutableContent::ContainerId finalize = ExecutableContent::NoInstruction;
+                    if (!invoke->finalize.isEmpty()) {
+                        finalize = startNewSequence();
+                        visit(&invoke->finalize);
+                        endSequence();
+                    }
                     auto factory = new InvokeDynamicScxmlFactory(ctxt,
                                                                  addString(invoke->id),
                                                                  addString(node->id + QStringLiteral(".session-")),
                                                                  addString(invoke->idLocation),
                                                                  namelist,
                                                                  invoke->autoforward,
-                                                                 params);
+                                                                 params,
+                                                                 finalize);
                     factory->setContent(invoke->content);
                     factories.append(factory);
                 }
@@ -1052,7 +1060,7 @@ bool ParserState::validChild(ParserState::Kind parent, ParserState::Kind child)
         return isExecutableContent(child);
         break;
     case ParserState::Invoke:
-        return child == ParserState::Content;
+        return child == ParserState::Content || child == ParserState::Finalize;
     case ParserState::Script:
     case ParserState::None:
         break;

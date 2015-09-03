@@ -299,7 +299,6 @@ protected: // visitor
     bool visit(DocumentModel::If *node) Q_DECL_OVERRIDE;
     bool visit(DocumentModel::Foreach *node) Q_DECL_OVERRIDE;
     void visit(DocumentModel::Cancel *node) Q_DECL_OVERRIDE;
-    bool visit(DocumentModel::Invoke *) Q_DECL_OVERRIDE;
 
 protected:
     ContainerId generate(const DocumentModel::DoneData *node);

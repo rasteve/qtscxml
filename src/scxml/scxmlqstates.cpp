@@ -353,7 +353,8 @@ void ScxmlFinalState::setOnExitInstructions(ExecutableContent::ContainerId instr
 void ScxmlFinalState::onEntry(QEvent *event)
 {
     QFinalState::onEntry(event);
-    StateMachinePrivate::get(stateMachine())->m_executionEngine->execute(d->onEntryInstructions);
+    auto smp = StateMachinePrivate::get(stateMachine());
+    smp->m_executionEngine->execute(d->onEntryInstructions);
 }
 
 void ScxmlFinalState::onExit(QEvent *event)

@@ -35,8 +35,10 @@ public:
                        Scxml::ExecutableContent::StringId idlocation,
                        const QVector<Scxml::ExecutableContent::StringId> &namelist,
                        bool autoforward,
-                       const QVector<Param> &params)
-        : InvokableScxmlServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist, autoforward, params)
+                       const QVector<Param> &params,
+                       ExecutableContent::ContainerId finalize)
+        : InvokableScxmlServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist,
+                                       autoforward, params, finalize)
     {}
 
     Scxml::ScxmlInvokableService *invoke(StateMachine *parent) Q_DECL_OVERRIDE
