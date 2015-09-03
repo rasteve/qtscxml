@@ -143,7 +143,6 @@ public:
     virtual ScxmlInvokableService *invoke(StateMachine *parent) = 0;
 
 protected:
-    ScxmlInvokableService *finishInvoke(StateMachine *child, StateMachine *parent);
     QString calculateId(StateMachine *parent, bool *ok) const;
     QVariantMap calculateData(StateMachine *parent, bool *ok) const;
     bool autoforward() const;
@@ -151,6 +150,23 @@ protected:
 private:
     class Data;
     Data *d;
+};
+
+class Q_SCXML_EXPORT InvokableScxmlServiceFactory: public ScxmlInvokableServiceFactory
+{
+public:
+    InvokableScxmlServiceFactory(Scxml::ExecutableContent::StringId invokeLocation,
+                       Scxml::ExecutableContent::StringId id,
+                       Scxml::ExecutableContent::StringId idPrefix,
+                       Scxml::ExecutableContent::StringId idlocation,
+                       const QVector<Scxml::ExecutableContent::StringId> &namelist,
+                       bool autoforward,
+                       const QVector<Param> &params)
+        : ScxmlInvokableServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist, autoforward, params)
+    {}
+
+protected:
+    ScxmlInvokableService *finishInvoke(StateMachine *child, StateMachine *parent);
 };
 
 class StateMachine;
@@ -186,6 +202,9 @@ public:
     QString sessionId() const;
     void setSessionId(const QString &id);
     static QString generateSessionId(const QString &prefix);
+
+    bool isInvoked() const;
+    void setIsInvoked(bool invoked);
 
     DataModel *dataModel() const;
     void setDataModel(DataModel *dataModel);
@@ -231,7 +250,7 @@ public:
                                  const QByteArray &sendid = QByteArray(),
                                  const QString &origin = QString(),
                                  const QString &origintype = QString(),
-                                 const QByteArray &invokeid = QByteArray());
+                                 const QString &invokeid = QString());
     void submitDelayedEvent(int delayInMiliSecs,
                             QScxmlEvent *e);
     void cancelDelayedEvent(const QByteArray &event);

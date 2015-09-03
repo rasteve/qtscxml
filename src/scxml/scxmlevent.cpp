@@ -175,6 +175,11 @@ QScxmlEvent *EventBuilder::buildEvent()
         return Q_NULLPTR;
     }
 
+    QString invokeid;
+    if (table && table->isInvoked()) {
+        invokeid = table->sessionId();
+    }
+
     QScxmlEvent *event = new QScxmlEvent;
     event->setName(eventName);
     event->setEventType(eventType);
@@ -183,6 +188,7 @@ QScxmlEvent *EventBuilder::buildEvent()
     event->setSendId(sendid);
     event->setOrigin(origin);
     event->setOriginType(origintype);
+    event->setInvokeId(invokeid);
     return event;
 }
 
@@ -210,7 +216,7 @@ QString QScxmlEvent::scxmlType() const
 
 void QScxmlEvent::reset(const QByteArray &name, QScxmlEvent::EventType eventType, QVariantList dataValues,
                        const QByteArray &sendid, const QString &origin,
-                       const QString &origintype, const QByteArray &invokeid)
+                       const QString &origintype, const QString &invokeid)
 {
     d->name = name;
     d->eventType = eventType;
@@ -228,7 +234,7 @@ void QScxmlEvent::clear()
     d->sendid = QByteArray();
     d->origin = QString();
     d->originType = QString();
-    d->invokeId = QByteArray();
+    d->invokeId = QString();
     d->dataValues = QVariantList();
 }
 
@@ -284,12 +290,12 @@ void QScxmlEvent::setOriginType(const QString &origintype)
     d->originType = origintype;
 }
 
-QByteArray QScxmlEvent::invokeId() const
+QString QScxmlEvent::invokeId() const
 {
     return d->invokeId;
 }
 
-void QScxmlEvent::setInvokeId(const QByteArray &invokeid)
+void QScxmlEvent::setInvokeId(const QString &invokeid)
 {
     d->invokeId = invokeid;
 }

@@ -116,9 +116,10 @@ public:
 
     QScxmlEvent *buildEvent();
 
-    static QScxmlEvent *errorEvent(const QByteArray &name, const QByteArray &sendid)
+    static QScxmlEvent *errorEvent(StateMachine *table, const QByteArray &name, const QByteArray &sendid)
     {
         EventBuilder event;
+        event.table = table;
         event.event = name;
         event.eventType = QScxmlEvent::PlatformEvent; // Errors are platform events. See e.g. test331.
         // _event.data == null, see test528
@@ -139,7 +140,7 @@ public:
     QByteArray sendid; // if set, or id of <send> if failure
     QString origin; // uri to answer by setting the target of send, empty for internal and platform events
     QString originType; // type to answer by setting the type of send, empty for internal and platform events
-    QByteArray invokeId; // id of the invocation that triggered the child process if this was invoked
+    QString invokeId; // id of the invocation that triggered the child process if this was invoked
 };
 
 QT_END_NAMESPACE

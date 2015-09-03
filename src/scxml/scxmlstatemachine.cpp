@@ -342,18 +342,6 @@ ScxmlInvokableServiceFactory::~ScxmlInvokableServiceFactory()
     delete d;
 }
 
-ScxmlInvokableService *ScxmlInvokableServiceFactory::finishInvoke(StateMachine *child, StateMachine *parent)
-{
-    bool ok = false;
-    auto id = calculateId(parent, &ok);
-    if (!ok)
-        return Q_NULLPTR;
-    auto data = calculateData(parent, &ok);
-    if (!ok)
-        return Q_NULLPTR;
-    return new InvokableScxml(child, id, data, autoforward(), parent);
-}
-
 QString ScxmlInvokableServiceFactory::calculateId(StateMachine *parent, bool *ok) const
 {
     Q_ASSERT(ok);
@@ -436,11 +424,25 @@ bool ScxmlInvokableServiceFactory::autoforward() const
 ScxmlEventFilter::~ScxmlEventFilter()
 {}
 
+ScxmlInvokableService *InvokableScxmlServiceFactory::finishInvoke(StateMachine *child, StateMachine *parent)
+{
+    bool ok = false;
+    auto id = calculateId(parent, &ok);
+    if (!ok)
+        return Q_NULLPTR;
+    auto data = calculateData(parent, &ok);
+    if (!ok)
+        return Q_NULLPTR;
+    child->setIsInvoked(true);
+    return new InvokableScxml(child, id, data, autoforward(), parent);
+}
+
 QAtomicInt StateMachinePrivate::m_sessionIdCounter = QAtomicInt(0);
 
 StateMachinePrivate::StateMachinePrivate()
     : QObjectPrivate()
     , m_sessionId(StateMachine::generateSessionId(QStringLiteral("session-")))
+    , m_isInvoked(false)
     , m_dataModel(Q_NULLPTR)
     , m_dataBinding(StateMachine::EarlyBinding)
     , m_executionEngine(Q_NULLPTR)
@@ -571,6 +573,18 @@ QString StateMachine::generateSessionId(const QString &prefix)
 {
     int id = ++StateMachinePrivate::m_sessionIdCounter;
     return prefix + QString::number(id);
+}
+
+bool StateMachine::isInvoked() const
+{
+    Q_D(const StateMachine);
+    return d->m_isInvoked;
+}
+
+void StateMachine::setIsInvoked(bool invoked)
+{
+    Q_D(StateMachine);
+    d->m_isInvoked = invoked;
 }
 
 DataModel *StateMachine::dataModel() const
@@ -956,7 +970,7 @@ QString StateMachine::name() const
 void StateMachine::submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid)
 {
     qCDebug(scxmlLog) << "machine" << name() << "had error" << type << ":" << msg;
-    submitEvent(EventBuilder::errorEvent(type, sendid));
+    submitEvent(EventBuilder::errorEvent(this, type, sendid));
 }
 
 void StateMachine::submitEvent1(const QString &event)
@@ -1021,7 +1035,7 @@ void StateMachine::submitEvent(const QByteArray &event, const QVariant &data)
 void StateMachine::submitEvent(const QByteArray &event, const QVariantList &dataValues,
                              const QStringList &dataNames, QScxmlEvent::EventType type,
                              const QByteArray &sendid, const QString &origin,
-                             const QString &origintype, const QByteArray &invokeid)
+                             const QString &origintype, const QString &invokeid)
 {
     qCDebug(scxmlLog) << name() << ": submitting event" << event;
 
@@ -1127,7 +1141,9 @@ void StateMachine::onFinished()
     Q_D(StateMachine);
     if (d->m_parentStateMachine) {
         auto done = new QScxmlEvent;
-        done->setName(QByteArray("done.invoke.") + sessionId().toUtf8());
+        auto invokeId = sessionId();
+        done->setName(QByteArray("done.invoke.") + invokeId.toUtf8());
+        done->setInvokeId(invokeId);
         d->m_parentStateMachine->submitEvent(done);
     }
 

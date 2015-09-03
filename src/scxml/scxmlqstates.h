@@ -26,7 +26,7 @@ QT_BEGIN_NAMESPACE
 namespace Scxml {
 
 template<class T>
-class InvokeScxmlFactory: public Scxml::ScxmlInvokableServiceFactory
+class InvokeScxmlFactory: public Scxml::InvokableScxmlServiceFactory
 {
 public:
     InvokeScxmlFactory(Scxml::ExecutableContent::StringId invokeLocation,
@@ -36,7 +36,7 @@ public:
                        const QVector<Scxml::ExecutableContent::StringId> &namelist,
                        bool autoforward,
                        const QVector<Param> &params)
-        : ScxmlInvokableServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist, autoforward, params)
+        : InvokableScxmlServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist, autoforward, params)
     {}
 
     Scxml::ScxmlInvokableService *invoke(StateMachine *parent) Q_DECL_OVERRIDE

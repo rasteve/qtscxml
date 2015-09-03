@@ -125,7 +125,7 @@ public:
         _event.setProperty(QStringLiteral("data"), dataValue.isUndefined() ? QJSValue(QJSValue::UndefinedValue)
                                                                            : dataValue);
         _event.setProperty(QStringLiteral("invokeid"), event.invokeId().isEmpty() ? QJSValue(QJSValue::UndefinedValue)
-                                                                                  : engine()->toScriptValue(QString::fromUtf8(event.invokeId())));
+                                                                                  : engine()->toScriptValue(event.invokeId()));
         if (!event.originType().isEmpty())
             _event.setProperty(QStringLiteral("origintype"), engine()->toScriptValue(event.originType()));
         _event.setProperty(QStringLiteral("origin"), event.origin().isEmpty() ? QJSValue(QJSValue::UndefinedValue)

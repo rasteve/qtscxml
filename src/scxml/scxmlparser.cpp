@@ -484,7 +484,7 @@ private:
     int m_firstSlotWithoutData;
 };
 
-class InvokeDynamicScxmlFactory: public ScxmlInvokableServiceFactory
+class InvokeDynamicScxmlFactory: public InvokableScxmlServiceFactory
 {
 public:
     InvokeDynamicScxmlFactory(ExecutableContent::StringId invokeLocation,
@@ -494,7 +494,7 @@ public:
                        const QVector<ExecutableContent::StringId> &namelist,
                        bool autoforward,
                        const QVector<Param> &params)
-        : ScxmlInvokableServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist, autoforward, params)
+        : InvokableScxmlServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist, autoforward, params)
     {}
 
     void setContent(const QSharedPointer<DocumentModel::ScxmlDocument> &content)

@@ -67,8 +67,8 @@ public:
     QString originType() const;
     void setOriginType(const QString &originType);
 
-    QByteArray invokeId() const;
-    void setInvokeId(const QByteArray &invokeId);
+    QString invokeId() const;
+    void setInvokeId(const QString &invokeId);
 
     QVariantList dataValues() const;
     void setDataValues(const QVariantList &dataValues);
@@ -79,7 +79,7 @@ public:
     void reset(const QByteArray &name, EventType eventType = ExternalEvent,
                QVariantList dataValues = QVariantList(), const QByteArray &sendId = QByteArray(),
                const QString &origin = QString(), const QString &originType = QString(),
-               const QByteArray &invokeId = QByteArray());
+               const QString &invokeId = QString());
     void clear();
 
     QVariant data() const;

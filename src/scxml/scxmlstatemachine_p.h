@@ -94,6 +94,7 @@ public:
 
 public: // data fields:
     QString m_sessionId;
+    bool m_isInvoked;
     DataModel *m_dataModel;
     StateMachine::BindingMethod m_dataBinding;
     ExecutableContent::ExecutionEngine *m_executionEngine;
