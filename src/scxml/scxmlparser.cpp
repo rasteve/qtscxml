@@ -1318,6 +1318,12 @@ void ScxmlParserPrivate::parse()
             // until the corresponding EndElement. Attributes are reported in attributes(),
             // namespace declarations in namespaceDeclarations().
         {
+            auto ns = m_reader->namespaceUri();
+            if (ns != scxmlNamespace) {
+                m_reader->skipCurrentElement();
+                continue;
+            }
+
             QStringRef elName = m_reader->name();
             QXmlStreamAttributes attributes = m_reader->attributes();
             if (!m_stack.isEmpty() && (m_stack.last().kind == ParserState::DataElement
@@ -1354,8 +1360,8 @@ void ScxmlParserPrivate::parse()
                     m_state = ScxmlParser::ParsingScxml;
                 }
                 if (!checkAttributes(attributes, "version|initial,datamodel,binding,name,classname")) return;
-                if (m_reader->namespaceUri() != QLatin1String("http://www.w3.org/2005/07/scxml")) {
-                    addError(QStringLiteral("default namespace must be set with xmlns=\"http://www.w3.org/2005/07/scxml\" in the scxml tag"));
+                if (m_reader->namespaceUri() != scxmlNamespace) {
+                    addError(QStringLiteral("default namespace must be set with xmlns=\"%1\" in the scxml tag").arg(scxmlNamespace));
                     return;
                 }
                 if (attributes.value(QLatin1String("version")) != QLatin1String("1.0")) {

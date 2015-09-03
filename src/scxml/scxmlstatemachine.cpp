@@ -246,6 +246,14 @@ QDebug operator<<(QDebug debug, const ScxmlError &error)
     return debug;
 }
 
+QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const QVector<ScxmlError> &errors)
+{
+    foreach (const ScxmlError &error, errors) {
+        debug << error << endl;
+    }
+    return debug;
+}
+
 TableData::~TableData()
 {}
 

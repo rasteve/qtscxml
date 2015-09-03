@@ -52,19 +52,24 @@ void tst_Parser::error_data()
     QTest::addColumn<QString>("scxmlFileName");
     QTest::addColumn<QVector<Scxml::ScxmlError> >("expectedErrors");
 
-    QVector<Scxml::ScxmlError> errors;
+    QVector<ScxmlError> errors;
     errors << ScxmlError(QString(":/tst_parser/test1.scxml"), 5, 46, QString("unknown state 'b' in target"));
     QTest::newRow("test1") << QString(":/tst_parser/test1.scxml") << errors;
+
+    QTest::newRow("namespaces 1") << QStringLiteral(":/tst_parser/namespaces1.scxml") << QVector<ScxmlError>();
 }
 
 void tst_Parser::error()
 {
     QFETCH(QString, scxmlFileName);
-    QFETCH(QVector<Scxml::ScxmlError>, expectedErrors);
+    QFETCH(QVector<ScxmlError>, expectedErrors);
 
     StateMachine *stateMachine = StateMachine::fromFile(scxmlFileName);
 
-    QVector<Scxml::ScxmlError> errors = stateMachine->errors();
+    QVector<ScxmlError> errors = stateMachine->errors();
+    if (errors.count() != expectedErrors.count()) {
+        qDebug()<<errors;
+    }
     QCOMPARE(errors.count(), expectedErrors.count());
 
     for (int i = 0; i < errors.count(); ++i) {

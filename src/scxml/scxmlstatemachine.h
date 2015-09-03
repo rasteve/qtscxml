@@ -101,6 +101,7 @@ private:
 };
 
 QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const ScxmlError &error);
+QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const QVector<ScxmlError> &errors);
 
 class Q_SCXML_EXPORT ScxmlInvokableService
 {
