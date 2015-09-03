@@ -973,17 +973,23 @@ void StateMachine::submitError(const QByteArray &type, const QString &msg, const
     submitEvent(EventBuilder::errorEvent(this, type, sendid));
 }
 
-void StateMachine::submitEvent1(const QString &event)
+void StateMachine::routeEvent(QScxmlEvent *e)
 {
-    submitEvent(event.toUtf8(), QVariantList());
-}
+    if (!e)
+        return;
 
-void StateMachine::submitEvent2(const QString &event, QVariant data)
-{
-    QVariantList dataValues;
-    if (data.isValid())
-        dataValues << data;
-    submitEvent(event.toUtf8(), dataValues);
+    if (e->origin() == QStringLiteral("#_parent")) {
+        if (auto psm = parentStateMachine()) {
+            qCDebug(scxmlLog) << "routing event" << e->name() << "from" << name() << "to parent" << psm->name();
+            psm->submitEvent(e);
+        } else {
+            qCDebug(scxmlLog) << "machine" << name() << "is not invoked, so it cannot route a message to #_parent";
+            delete e;
+        }
+    } else {
+        // FIXME: event routing to child services
+        submitEvent(e);
+    }
 }
 
 void StateMachine::submitEvent(QScxmlEvent *e)
@@ -993,16 +999,39 @@ void StateMachine::submitEvent(QScxmlEvent *e)
     if (!e)
         return;
 
-    // FIXME: event routing to services
+    foreach (ScxmlInvokableService *service, d->m_registeredServices) {
+        if (service->autoforward()) {
+            qCDebug(scxmlLog) << "auto-forwarding event" << e->name() << "from" << name() << "to service" << service->id();
+            service->submitEvent(new QScxmlEvent(*e));
+        }
+    }
 
-    QStateMachine::EventPriority priority =
-            e->eventType() == QScxmlEvent::ExternalEvent ? QStateMachine::NormalPriority
-                                                   : QStateMachine::HighPriority;
+    if (e->delay() > 0) {
+        qCDebug(scxmlLog) << name() << ": submitting event" << e->name() << "with delay" << e->delay() << "ms" << "and sendid" << e->sendId();
 
-    if (d->m_qStateMachine->isRunning())
-        d->m_qStateMachine->postEvent(e, priority);
-    else
-        d->m_qStateMachine->queueEvent(e, priority);
+        Q_ASSERT(e->eventType() == QScxmlEvent::ExternalEvent);
+        int id = d->m_qStateMachine->postDelayedEvent(e, e->delay());
+
+        qCDebug(scxmlLog) << name() << ": delayed event" << e->name() << "(" << e << ") got id:" << id;
+    } else {
+        QStateMachine::EventPriority priority =
+                e->eventType() == QScxmlEvent::ExternalEvent ? QStateMachine::NormalPriority
+                                                             : QStateMachine::HighPriority;
+
+        qCDebug(scxmlLog) << "queueing event" << e->name() << "in" << name();
+        if (d->m_qStateMachine->isRunning())
+            d->m_qStateMachine->postEvent(e, priority);
+        else
+            d->m_qStateMachine->queueEvent(e, priority);
+    }
+}
+
+void StateMachine::submitEvent(const QByteArray &event)
+{
+    QScxmlEvent *e = new QScxmlEvent;
+    e->setName(event);
+    e->setEventType(QScxmlEvent::ExternalEvent);
+    submitEvent(e);
 }
 
 void StateMachine::submitEvent(const QByteArray &event, const QVariant &data)
@@ -1030,41 +1059,6 @@ void StateMachine::submitEvent(const QByteArray &event, const QVariant &data)
     e->setDataValues(dataValues);
     e->setDataNames(dataNames);
     submitEvent(e);
-}
-
-void StateMachine::submitEvent(const QByteArray &event, const QVariantList &dataValues,
-                             const QStringList &dataNames, QScxmlEvent::EventType type,
-                             const QByteArray &sendid, const QString &origin,
-                             const QString &origintype, const QString &invokeid)
-{
-    qCDebug(scxmlLog) << name() << ": submitting event" << event;
-
-    QScxmlEvent *e = new QScxmlEvent;
-    e->setName(event);
-    e->setEventType(type);
-    e->setDataValues(dataValues);
-    e->setDataNames(dataNames);
-    e->setSendId(sendid);
-    e->setOrigin(origin);
-    e->setOriginType(origintype);
-    e->setInvokeId(invokeid);
-    submitEvent(e);
-}
-
-void StateMachine::submitDelayedEvent(int delayInMiliSecs, QScxmlEvent *e)
-{
-    Q_ASSERT(delayInMiliSecs > 0);
-    Q_D(StateMachine);
-
-    if (!e)
-        return;
-
-    qCDebug(scxmlLog) << name() << ": submitting event" << e->name() << "with delay" << delayInMiliSecs << "ms" << "and sendid" << e->sendId();
-
-    Q_ASSERT(e->eventType() == QScxmlEvent::ExternalEvent);
-    int id = d->m_qStateMachine->postDelayedEvent(e, delayInMiliSecs);
-
-    qCDebug(scxmlLog) << name() << ": delayed event" << e->name() << "(" << e << ") got id:" << id;
 }
 
 void StateMachine::cancelDelayedEvent(const QByteArray &sendid)
@@ -1117,6 +1111,8 @@ bool StateMachine::isLegalTarget(const QString &target) const
 
 bool StateMachine::isDispatchableTarget(const QString &target) const
 {
+    if (isInvoked() && target == QStringLiteral("#_parent"))
+        return true;
     return target == QStringLiteral("#_internal")
             || target == QStringLiteral("#_scxml_%1").arg(sessionId());
 }
@@ -1139,12 +1135,13 @@ void StateMachine::unregisterService(ScxmlInvokableService *service)
 void StateMachine::onFinished()
 {
     Q_D(StateMachine);
-    if (d->m_parentStateMachine) {
+    if (auto psm = d->m_parentStateMachine) {
         auto done = new QScxmlEvent;
         auto invokeId = sessionId();
         done->setName(QByteArray("done.invoke.") + invokeId.toUtf8());
         done->setInvokeId(invokeId);
-        d->m_parentStateMachine->submitEvent(done);
+        qCDebug(scxmlLog) << name() << ": submitting event" << done->name() << "to parent" << psm->name();
+        psm->submitEvent(done);
     }
 
     // The final state is also a stable state.

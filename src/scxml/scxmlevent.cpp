@@ -138,6 +138,8 @@ QScxmlEvent *EventBuilder::buildEvent()
         if (eventType == QScxmlEvent::ExternalEvent) {
             origin = QStringLiteral("#_internal");
         }
+    } else if (origin == QStringLiteral("#_parent")) {
+        // allow sending messages to the parent, independently of whether we're invoked or not.
     } else if (!table->isLegalTarget(origin)) {
         // [6.2.4] and test194.
         table->submitError(QByteArray("error.execution"),
@@ -318,6 +320,16 @@ QStringList QScxmlEvent::dataNames() const
 void QScxmlEvent::setDataNames(const QStringList &dataNames)
 {
     d->dataNames = dataNames;
+}
+
+int QScxmlEvent::delay() const
+{
+    return d->delayInMiliSecs;
+}
+
+void QScxmlEvent::setDelay(int delayInMiliSecs)
+{
+    d->delayInMiliSecs = delayInMiliSecs;
 }
 
 QScxmlEvent::EventType QScxmlEvent::eventType() const

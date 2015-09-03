@@ -118,18 +118,17 @@ public:
             if (!event)
                 return false;
 
-            if (delay.isEmpty()) {
-                table->submitEvent(event);
-            } else {
+            if (!delay.isEmpty()) {
                 int msecs = parseTime(delay);
                 if (msecs >= 0) {
-                    table->submitDelayedEvent(msecs, event);
+                    event->setDelay(msecs);
                 } else {
                     qCDebug(scxmlLog) << "failed to parse delay time" << delay;
                     return false;
                 }
             }
 
+            table->routeEvent(event);
             return true;
         }
 
@@ -198,8 +197,11 @@ public:
             qDebug() << "Executing raise step";
             Raise *raise = reinterpret_cast<Raise *>(instr);
             ip += raise->size();
-            auto event = tableData->byteArray(raise->event);
-            table->submitEvent(event, QVariantList(), QStringList(), QScxmlEvent::InternalEvent);
+            auto name = tableData->byteArray(raise->event);
+            auto event = new QScxmlEvent;
+            event->setName(name);
+            event->setEventType(QScxmlEvent::InternalEvent);
+            table->submitEvent(event);
             return true;
         }
 

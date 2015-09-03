@@ -1694,7 +1694,7 @@ void ScxmlParserPrivate::parse()
                 pNew.instruction = cancel;
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("invoke")) {
-                if (!checkAttributes(attributes, "|event,eventexpr,id,idlocation,type,typeexpr,namelist,delay,delayexpr")) return;
+                if (!checkAttributes(attributes, "|type,typeexpr,src,srcexpr,id,idlocation,namelist,autoforward")) return;
                 ParserState pNew = ParserState(ParserState::Invoke);
                 auto *invoke = m_doc->newNode<DocumentModel::Invoke>(xmlLocation());
                 DocumentModel::State *parentState = m_currentParent->asState();

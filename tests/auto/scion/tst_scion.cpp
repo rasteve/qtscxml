@@ -48,14 +48,12 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         // The following test needs manual inspection of the result. However, note that we do not support the undocumented "exmode" attribute.
         << QLatin1String("w3c-ecma/test441b.txml")
         // The following test needs manual inspection of the result.
+        << QLatin1String("w3c-ecma/test230.txml")
         << QLatin1String("w3c-ecma/test307.txml")
         // We do not (yet?) support invoke.
         << QLatin1String("w3c-ecma/test215.txml")
         << QLatin1String("w3c-ecma/test216.txml")
         << QLatin1String("w3c-ecma/test226.txml")
-        << QLatin1String("w3c-ecma/test229.txml")
-        << QLatin1String("w3c-ecma/test230.txml")
-        << QLatin1String("w3c-ecma/test232.txml")
         << QLatin1String("w3c-ecma/test233.txml")
         << QLatin1String("w3c-ecma/test234.txml")
         << QLatin1String("w3c-ecma/test235.txml")
@@ -359,10 +357,9 @@ static bool playEvent(StateMachine *stateMachine, const QJsonObject &eventDescri
     if (eventDescription.contains(QLatin1String("after"))) {
         int delay = eventDescription.value(QLatin1String("after")).toInt();
         Q_ASSERT(delay > 0);
-        stateMachine->submitDelayedEvent(delay, e);
-    } else {
-        stateMachine->submitEvent(e);
+        e->setDelay(delay);
     }
+    stateMachine->submitEvent(e);
 
     if (!MySignalSpy(stateMachine, SIGNAL(reachedStableState(bool))).fastWait()) {
         qWarning() << "State machine did not reach a stable state!";

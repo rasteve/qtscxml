@@ -69,9 +69,6 @@ BLACKLISTED = \
     test215.txml.scxml \
     test216.txml.scxml \
     test226.txml.scxml \
-    test229.txml.scxml \
-    test230.txml.scxml \
-    test232.txml.scxml \
     test233.txml.scxml \
     test234.txml.scxml \
     test235.txml.scxml \
@@ -94,6 +91,11 @@ BLACKLISTED = \
     test422.txml.scxml \
     test530.txml.scxml \
     test554.txml.scxml
+
+# needs manual inspection
+BLACKLISTED += \
+    test230.txml.scxml \
+    test307.txml.scxml \
 
 # other
 BLACKLISTED += \

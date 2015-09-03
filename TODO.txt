@@ -7,3 +7,5 @@
 - qmake review
 - fix logging
 - check all messages to have the same format
+
+- handle typeexpr,src,srcexpr attributes in <invoke>

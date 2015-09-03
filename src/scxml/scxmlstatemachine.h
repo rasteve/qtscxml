@@ -238,21 +238,11 @@ public:
     void setScxmlEventFilter(ScxmlEventFilter *newFilter);
 
     Q_INVOKABLE void submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid);
-    Q_INVOKABLE void submitEvent1(const QString &event);
-    Q_INVOKABLE void submitEvent2(const QString &event,  QVariant data);
 
-    void submitEvent(QScxmlEvent *e);
+    Q_INVOKABLE void routeEvent(QScxmlEvent *e);
+    Q_INVOKABLE void submitEvent(QScxmlEvent *e);
+    Q_INVOKABLE void submitEvent(const QByteArray &event);
     Q_INVOKABLE void submitEvent(const QByteArray &event, const QVariant &data);
-    Q_INVOKABLE void submitEvent(const QByteArray &event,
-                                 const QVariantList &dataValues = QVariantList(),
-                                 const QStringList &dataNames = QStringList(),
-                                 QScxmlEvent::EventType type = QScxmlEvent::ExternalEvent,
-                                 const QByteArray &sendid = QByteArray(),
-                                 const QString &origin = QString(),
-                                 const QString &origintype = QString(),
-                                 const QString &invokeid = QString());
-    void submitDelayedEvent(int delayInMiliSecs,
-                            QScxmlEvent *e);
     void cancelDelayedEvent(const QByteArray &event);
 
     bool isLegalTarget(const QString &target) const;

@@ -76,6 +76,9 @@ public:
     QStringList dataNames() const;
     void setDataNames(const QStringList &dataNames);
 
+    int delay() const;
+    void setDelay(int delayInMiliSecs);
+
     void reset(const QByteArray &name, EventType eventType = ExternalEvent,
                QVariantList dataValues = QVariantList(), const QByteArray &sendId = QByteArray(),
                const QString &origin = QString(), const QString &originType = QString(),
