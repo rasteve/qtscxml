@@ -100,6 +100,8 @@ class Q_SCXML_EXPORT ScxmlState: public QState
     Q_OBJECT
 
 public:
+    class Data;
+
     ScxmlState(QState *parent = 0);
     ~ScxmlState();
 
@@ -121,7 +123,6 @@ protected:
     void onExit(QEvent * event) Q_DECL_OVERRIDE;
 
 private:
-    class Data;
     Data *d;
 };
 
@@ -135,8 +136,9 @@ public:
 class Q_SCXML_EXPORT ScxmlFinalState: public QFinalState
 {
     Q_OBJECT
-    class Data;
 public:
+    class Data;
+
     ScxmlFinalState(QState *parent = 0);
     ~ScxmlFinalState();
 

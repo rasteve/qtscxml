@@ -19,7 +19,7 @@
 #include "scxmlstatemachine_p.h"
 #include "executablecontent_p.h"
 #include "scxmlevent_p.h"
-#include "scxmlqstates.h"
+#include "scxmlqstates_p.h"
 
 #include <QAbstractState>
 #include <QAbstractTransition>
@@ -87,6 +87,7 @@ protected: // overrides for QStateMachinePrivate:
     void processedPendingEvents(bool didChange) Q_DECL_OVERRIDE;
     void beginMacrostep() Q_DECL_OVERRIDE;
     void endMacrostep(bool didChange) Q_DECL_OVERRIDE;
+    void exitInterpreter() Q_DECL_OVERRIDE;
 
     void emitStateFinished(QState *forState, QFinalState *guiltyState) Q_DECL_OVERRIDE;
     void startupHook() Q_DECL_OVERRIDE;
@@ -747,6 +748,35 @@ void Internal::MyQStateMachinePrivate::endMacrostep(bool didChange)
                       << m_table->activeStates() << ")";
 }
 
+void Internal::MyQStateMachinePrivate::exitInterpreter()
+{
+    foreach (QAbstractState *s, configuration) {
+        ExecutableContent::ContainerId onExitInstructions = ExecutableContent::NoInstruction;
+        if (ScxmlFinalState *finalState = qobject_cast<ScxmlFinalState *>(s)) {
+            StateMachinePrivate::get(m_table)->m_executionEngine->execute(finalState->doneData(), QVariant());
+            onExitInstructions = ScxmlFinalState::Data::get(finalState)->onExitInstructions;
+        } else if (ScxmlState *state = qobject_cast<ScxmlState *>(s)) {
+            onExitInstructions = ScxmlState::Data::get(state)->onExitInstructions;
+        }
+
+        if (onExitInstructions != ExecutableContent::NoInstruction)
+            StateMachinePrivate::get(m_table)->m_executionEngine->execute(onExitInstructions);
+
+        if (ScxmlFinalState *finalState = qobject_cast<ScxmlFinalState *>(s)) {
+            if (finalState->parent() == m_table->qStateMachine()) {
+                auto psm = m_table->parentStateMachine();
+                if (psm) {
+                    auto done = new QScxmlEvent;
+                    done->setName(QByteArray("done.invoke.") + m_table->sessionId().toUtf8());
+                    done->setInvokeId(m_table->sessionId());
+                    qCDebug(scxmlLog) << "submitting event" << done->name() << "to" << psm->name();
+                    psm->submitEvent(done);
+                }
+            }
+        }
+    }
+}
+
 void Internal::MyQStateMachinePrivate::emitStateFinished(QState *forState, QFinalState *guiltyState)
 {
     Q_Q(MyQStateMachine);
@@ -1092,15 +1122,6 @@ void StateMachine::unregisterService(ScxmlInvokableService *service)
 
 void StateMachine::onFinished()
 {
-    auto psm = parentStateMachine();
-    if (psm) {
-        auto done = new QScxmlEvent;
-        done->setName(QByteArray("done.invoke.") + sessionId().toUtf8());
-        done->setInvokeId(sessionId());
-        qCDebug(scxmlLog) << "submitting event" << done->name() << "to" << psm->name();
-        psm->submitEvent(done);
-    }
-
     // The final state is also a stable state.
     emit reachedStableState(true);
 }

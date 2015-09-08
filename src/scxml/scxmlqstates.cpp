@@ -16,7 +16,7 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include "scxmlqstates.h"
+#include "scxmlqstates_p.h"
 #include "scxmlstatemachine_p.h"
 
 #define DUMP_EVENT
@@ -200,27 +200,6 @@ void ScxmlTransition::setConditionalExpression(EvaluatorId evaluator)
     d->conditionalExp = evaluator;
 }
 
-class ScxmlState::Data
-{
-public:
-    Data(ScxmlState *state)
-        : m_state(state)
-        , initInstructions(ExecutableContent::NoInstruction)
-        , onEntryInstructions(ExecutableContent::NoInstruction)
-        , onExitInstructions(ExecutableContent::NoInstruction)
-    {}
-
-    ~Data()
-    { qDeleteAll(invokableServiceFactories); }
-
-    ScxmlState *m_state;
-    ExecutableContent::ContainerId initInstructions;
-    ExecutableContent::ContainerId onEntryInstructions;
-    ExecutableContent::ContainerId onExitInstructions;
-    QVector<ScxmlInvokableServiceFactory *> invokableServiceFactories;
-    QVector<ScxmlInvokableService *> invokedServices;
-};
-
 ScxmlState::ScxmlState(QState *parent)
     : QState(parent)
     , d(new ScxmlState::Data(this))
@@ -287,29 +266,14 @@ void ScxmlState::onExit(QEvent *event)
 {
     emit willExit();
     auto sm = stateMachine();
+    StateMachinePrivate::get(sm)->m_executionEngine->execute(d->onExitInstructions);
+    QState::onExit(event);
     foreach (ScxmlInvokableService *service, d->invokedServices) {
         sm->unregisterService(service);
         delete service;
     }
     d->invokedServices.clear();
-
-    StateMachinePrivate::get(sm)->m_executionEngine->execute(d->onExitInstructions);
-    QState::onExit(event);
 }
-
-class ScxmlFinalState::Data
-{
-public:
-    Data()
-        : doneData(ExecutableContent::NoInstruction)
-        , onEntryInstructions(ExecutableContent::NoInstruction)
-        , onExitInstructions(ExecutableContent::NoInstruction)
-    {}
-
-    ExecutableContent::ContainerId doneData;
-    ExecutableContent::ContainerId onEntryInstructions;
-    ExecutableContent::ContainerId onExitInstructions;
-};
 
 ScxmlFinalState::ScxmlFinalState(QState *parent)
     : QFinalState(parent)
