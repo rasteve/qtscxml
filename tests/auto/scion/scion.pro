@@ -1,9 +1,7 @@
 QT = core gui qml testlib scxml
-CONFIG += testcase
-
-TARGET = tst_scion
-CONFIG += console
+CONFIG += testcase c++11 console
 CONFIG -= app_bundle
+TARGET = tst_scion
 
 TEMPLATE = app
 

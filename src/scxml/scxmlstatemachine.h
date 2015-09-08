@@ -165,12 +165,9 @@ public:
                                  Scxml::ExecutableContent::StringId idPrefix,
                                  Scxml::ExecutableContent::StringId idlocation,
                                  const QVector<Scxml::ExecutableContent::StringId> &namelist,
-                                 bool autoforward,
+                                 bool doAutoforward,
                                  const QVector<Param> &params,
-                                 ExecutableContent::ContainerId finalize)
-        : ScxmlInvokableServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist,
-                                       autoforward, params, finalize)
-    {}
+                                 ExecutableContent::ContainerId finalize);
 
 protected:
     ScxmlInvokableService *finishInvoke(StateMachine *child, StateMachine *parent);

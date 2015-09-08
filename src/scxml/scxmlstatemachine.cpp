@@ -435,6 +435,19 @@ ExecutableContent::ContainerId ScxmlInvokableServiceFactory::finalizeContent() c
 ScxmlEventFilter::~ScxmlEventFilter()
 {}
 
+InvokableScxmlServiceFactory::InvokableScxmlServiceFactory(
+        ExecutableContent::StringId invokeLocation,
+        ExecutableContent::StringId id,
+        ExecutableContent::StringId idPrefix,
+        ExecutableContent::StringId idlocation,
+        const QVector<ExecutableContent::StringId> &namelist,
+        bool doAutoforward,
+        const QVector<ScxmlInvokableServiceFactory::Param> &params,
+        ExecutableContent::ContainerId finalize)
+    : ScxmlInvokableServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist,
+                                   doAutoforward, params, finalize)
+{}
+
 ScxmlInvokableService *InvokableScxmlServiceFactory::finishInvoke(StateMachine *child, StateMachine *parent)
 {
     bool ok = false;
