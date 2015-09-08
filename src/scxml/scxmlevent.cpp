@@ -123,7 +123,7 @@ QScxmlEvent *EventBuilder::buildEvent()
     QByteArray sendid = id;
     if (!idLocation.isEmpty()) {
         sendid = generateId();
-        table->dataModel()->setStringProperty(idLocation, QString::fromUtf8(sendid), tableData->string(instructionLocation), &ok);
+        table->dataModel()->setProperty(idLocation, QString::fromUtf8(sendid), tableData->string(instructionLocation), &ok);
         if (!ok)
             return Q_NULLPTR;
     }

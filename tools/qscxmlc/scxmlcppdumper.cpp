@@ -348,7 +348,7 @@ protected:
                         }
                         line += QStringLiteral(" %1").arg(addString(name));
                     }
-                    line += QStringLiteral(" }");
+                    line += QStringLiteral(" }, ");
                 }
                 line += QStringLiteral("%1, ").arg(invoke->autoforward ? QStringLiteral("true") : QStringLiteral("false"));
                 if (invoke->params.isEmpty()) {

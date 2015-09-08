@@ -1060,7 +1060,8 @@ bool ParserState::validChild(ParserState::Kind parent, ParserState::Kind child)
         return isExecutableContent(child);
         break;
     case ParserState::Invoke:
-        return child == ParserState::Content || child == ParserState::Finalize;
+        return child == ParserState::Content || child == ParserState::Finalize
+                || child == ParserState::Param;
     case ParserState::Script:
     case ParserState::None:
         break;

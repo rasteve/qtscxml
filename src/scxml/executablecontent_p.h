@@ -103,6 +103,7 @@ struct Q_SCXML_EXPORT Instruction
         Log,
         JavaScript,
         Assign,
+        Initialize,
         If,
         Foreach,
         Cancel,
@@ -209,6 +210,14 @@ struct Q_SCXML_EXPORT Assign: Instruction
 
     static InstructionType kind() { return Instruction::Assign; }
     int size() const { return sizeof(Assign) / sizeof(qint32); }
+};
+
+struct Q_SCXML_EXPORT Initialize: Instruction
+{
+    EvaluatorId expression;
+
+    static InstructionType kind() { return Instruction::Initialize; }
+    int size() const { return sizeof(Initialize) / sizeof(qint32); }
 };
 
 struct Q_SCXML_EXPORT If: Instruction

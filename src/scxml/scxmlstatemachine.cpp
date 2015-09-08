@@ -49,7 +49,7 @@ public:
     {
         stateMachine->setSessionId(id);
         stateMachine->setParentStateMachine(parent);
-        stateMachine->init();
+        stateMachine->init(data);
         stateMachine->start();
     }
 
@@ -364,7 +364,7 @@ QString ScxmlInvokableServiceFactory::calculateId(StateMachine *parent, bool *ok
     if (d->idlocation != ExecutableContent::NoString) {
         auto idloc = table->string(d->idlocation);
         auto ctxt = table->string(d->invokeLocation);
-        parent->dataModel()->setStringProperty(idloc, id, ctxt, ok);
+        parent->dataModel()->setProperty(idloc, id, ctxt, ok);
         if (!*ok)
             return QString();
     }
@@ -921,11 +921,11 @@ static bool loopOnSubStates(QState *startState,
     return true;
 }
 
-bool StateMachine::init()
+bool StateMachine::init(const QVariantMap &initialDataValues)
 {
     Q_D(StateMachine);
 
-    dataModel()->setup();
+    dataModel()->setup(initialDataValues);
     executeInitialSetup();
 
     bool res = true;

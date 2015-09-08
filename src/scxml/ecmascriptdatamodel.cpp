@@ -227,6 +227,9 @@ public:
         stateMachine()->submitError(QByteArray("error.execution"), msg.arg(name, context), sendid);
     }
 
+public:
+    QStringList initialDataNames;
+
 private: // Uses private API
     static void setReadonlyProperty(QJSValue *object, const QString& name, const QJSValue& value)
     {
@@ -315,17 +318,24 @@ EcmaScriptDataModel::~EcmaScriptDataModel()
     delete d;
 }
 
-void EcmaScriptDataModel::setup()
+void EcmaScriptDataModel::setup(const QVariantMap &initialDataValues)
 {
     d->setupDataModel();
 
     bool ok;
-    QJSValue v(QJSValue::UndefinedValue); // See B.2.1, and test456.
+    QJSValue undefined(QJSValue::UndefinedValue); // See B.2.1, and test456.
     int count;
     ExecutableContent::StringId *names = stateMachine()->tableData()->dataNames(&count);
-    for (int i = 0; i < count; ++i)
-        d->setProperty(d->string(names[i]), v, QStringLiteral("<data>"), &ok);
-
+    for (int i = 0; i < count; ++i) {
+        auto name = d->string(names[i]);
+        QJSValue v = undefined;
+        QVariantMap::const_iterator it = initialDataValues.find(name);
+        if (it != initialDataValues.end()) {
+            v = d->engine()->toScriptValue(it.value());
+        }
+        d->setProperty(name, v, QStringLiteral("<data>"), &ok);
+    }
+    d->initialDataNames = initialDataValues.keys();
 }
 
 QString EcmaScriptDataModel::evaluateToString(EvaluatorId id, bool *ok)
@@ -375,6 +385,18 @@ void EcmaScriptDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
                              QStringLiteral("%1 in %2 does not exist").arg(dest, d->string(info.context)),
                              sendid);
     }
+}
+
+void EcmaScriptDataModel::evaluateInitialization(EvaluatorId id, bool *ok)
+{
+    const AssignmentInfo &info = stateMachine()->tableData()->assignmentInfo(id);
+    QString dest = d->string(info.dest);
+    if (d->initialDataNames.contains(dest)) {
+        *ok = true; // silently ignore the <data> tag
+        return;
+    }
+
+    evaluateAssignment(id, ok);
 }
 
 bool EcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body)
@@ -436,10 +458,11 @@ bool EcmaScriptDataModel::hasProperty(const QString &name) const
     return d->hasProperty(name);
 }
 
-void EcmaScriptDataModel::setStringProperty(const QString &name, const QString &value, const QString &context, bool *ok)
+void EcmaScriptDataModel::setProperty(const QString &name, const QVariant &value, const QString &context, bool *ok)
 {
     Q_ASSERT(hasProperty(name));
-    d->setProperty(name, QJSValue(value), context, ok);
+    QJSValue v = d->engine()->toScriptValue(value);
+    d->setProperty(name, v, context, ok);
 }
 
 EcmaScriptDataModel *EcmaScriptDataModel::asEcmaScriptDataModel()

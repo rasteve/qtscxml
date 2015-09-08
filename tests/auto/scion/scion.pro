@@ -60,6 +60,7 @@ QMAKE_EXTRA_COMPILERS += scxml_moc_source
 SCXMLS_DIR += $$absolute_path($$PWD/../../3rdparty/scion-tests/scxml-test-framework/test)
 ALLSCXMLS = $$files($$SCXMLS_DIR/*.scxml, true)
 
+# For a better explanation about the "blacklisted" tests, see tst_scion.cpp
 # <invoke>
 BLACKLISTED = \
     test187.txml.scxml \
@@ -67,19 +68,9 @@ BLACKLISTED = \
     test215.txml.scxml \
     test216.txml.scxml \
     test226.txml.scxml \
-    test238.txml.scxml \
-    test239.txml.scxml \
-    test240.txml.scxml \
-    test241.txml.scxml \
-    test242.txml.scxml \
-    test243.txml.scxml \
-    test244.txml.scxml \
-    test245.txml.scxml \
-    test247.txml.scxml \
     test250.txml.scxml \
     test252.txml.scxml \
     test253.txml.scxml \
-    test276.txml.scxml \
     test338.txml.scxml \
     test422.txml.scxml \
     test530.txml.scxml \
@@ -92,6 +83,9 @@ BLACKLISTED += \
 
 # other
 BLACKLISTED += \
+    test239.txml.scxml \
+    test242.txml.scxml \
+    test276.txml.scxml \
     test301.txml.scxml \
     test441a.txml.scxml \
     test441b.txml.scxml \

@@ -31,20 +31,21 @@ public:
     NullDataModel();
     ~NullDataModel();
 
-    void setup() Q_DECL_OVERRIDE;
+    void setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;
 
     QString evaluateToString(EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
     bool evaluateToBool(EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
     QVariant evaluateToVariant(EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
     void evaluateToVoid(EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
     void evaluateAssignment(EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
+    void evaluateInitialization(EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
     bool evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body) Q_DECL_OVERRIDE;
 
     void setEvent(const QScxmlEvent &event) Q_DECL_OVERRIDE;
 
     QVariant property(const QString &name) const Q_DECL_OVERRIDE;
     bool hasProperty(const QString &name) const Q_DECL_OVERRIDE;
-    void setStringProperty(const QString &name, const QString &value, const QString &context, bool *ok) Q_DECL_OVERRIDE;
+    void setProperty(const QString &name, const QVariant &value, const QString &context, bool *ok) Q_DECL_OVERRIDE;
 
     virtual NullDataModel *asNullDataModel() Q_DECL_OVERRIDE;
 

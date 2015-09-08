@@ -97,8 +97,9 @@ NullDataModel::~NullDataModel()
     delete d;
 }
 
-void NullDataModel::setup()
+void NullDataModel::setup(const QVariantMap &initialDataValues)
 {
+    Q_UNUSED(initialDataValues);
 }
 
 QString NullDataModel::evaluateToString(EvaluatorId id, bool *ok)
@@ -138,6 +139,13 @@ void NullDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
     Q_UNREACHABLE();
 }
 
+void NullDataModel::evaluateInitialization(EvaluatorId id, bool *ok)
+{
+    Q_UNUSED(id);
+    Q_UNUSED(ok);
+    Q_UNREACHABLE();
+}
+
 bool NullDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body)
 {
     Q_UNUSED(id);
@@ -164,7 +172,7 @@ bool NullDataModel::hasProperty(const QString &name) const
     return false;
 }
 
-void NullDataModel::setStringProperty(const QString &name, const QString &value, const QString &context, bool *ok)
+void NullDataModel::setProperty(const QString &name, const QVariant &value, const QString &context, bool *ok)
 {
     Q_UNUSED(name);
     Q_UNUSED(value);

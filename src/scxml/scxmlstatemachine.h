@@ -224,7 +224,7 @@ public:
     StateMachine *parentStateMachine() const;
     void setParentStateMachine(StateMachine *parent);
 
-    Q_INVOKABLE bool init();
+    bool init(const QVariantMap &initialDataValues = QVariantMap());
 
     bool isRunning() const;
 

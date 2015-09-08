@@ -238,6 +238,15 @@ public:
             return ok;
         }
 
+        case Instruction::Initialize: {
+            qDebug() << "Executing initialize step";
+            Initialize *init = reinterpret_cast<Initialize *>(instr);
+            ip += init->size();
+            bool ok = true;
+            dataModel->evaluateInitialization(init->expression, &ok);
+            return ok;
+        }
+
         case Instruction::DoneData: {
             qDebug() << "Executing DoneData step";
             DoneData *doneData = reinterpret_cast<DoneData *>(instr);
@@ -403,7 +412,7 @@ void Builder::generate(const QVector<DocumentModel::DataElement *> &dataElements
         auto ctxt = createContext(QStringLiteral("data"), QStringLiteral("expr"), el->expr);
         auto evaluator = addDataElement(el->id, el->expr, ctxt);
         if (evaluator != NoEvaluator) {
-            auto instr = m_instructions.add<ExecutableContent::Assign>();
+            auto instr = m_instructions.add<ExecutableContent::Initialize>();
             instr->expression = evaluator;
         }
     }

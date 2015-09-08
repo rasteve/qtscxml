@@ -80,21 +80,22 @@ public:
     StateMachine *stateMachine() const;
     void setTable(StateMachine *stateMachine);
 
-    virtual void setup() = 0;
+    virtual void setup(const QVariantMap &initialDataValues) = 0;
 
     virtual QString evaluateToString(EvaluatorId id, bool *ok) = 0;
     virtual bool evaluateToBool(EvaluatorId id, bool *ok) = 0;
     virtual QVariant evaluateToVariant(EvaluatorId id, bool *ok) = 0;
     virtual void evaluateToVoid(EvaluatorId id, bool *ok) = 0;
     virtual void evaluateAssignment(EvaluatorId id, bool *ok) = 0;
+    virtual void evaluateInitialization(EvaluatorId id, bool *ok) = 0;
     virtual bool evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body) = 0;
 
     virtual void setEvent(const QScxmlEvent &event) = 0;
 
     virtual QVariant property(const QString &name) const = 0;
     virtual bool hasProperty(const QString &name) const = 0;
-    virtual void setStringProperty(const QString &name, const QString &value, const QString &context,
-                                   bool *ok) = 0;
+    virtual void setProperty(const QString &name, const QVariant &value, const QString &context,
+                             bool *ok) = 0;
 
     virtual NullDataModel *asNullDataModel();
     virtual EcmaScriptDataModel *asEcmaScriptDataModel();
