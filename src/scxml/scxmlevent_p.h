@@ -140,8 +140,7 @@ public:
 
     QByteArray name;
     QScxmlEvent::EventType eventType;
-    QVariantList dataValues; // extra data
-    QStringList dataNames; // extra data
+    QVariant data; // extra data
     QByteArray sendid; // if set, or id of <send> if failure
     QString origin; // uri to answer by setting the target of send, empty for internal and platform events
     QString originType; // type to answer by setting the type of send, empty for internal and platform events

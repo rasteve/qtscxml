@@ -26,15 +26,14 @@ using namespace Scxml;
 QEvent::Type QScxmlEvent::scxmlEventType = (QEvent::Type) QEvent::registerEventType();
 QEvent::Type QScxmlEvent::ignoreEventType = (QEvent::Type) QEvent::registerEventType();
 
-static bool evaluate(const ExecutableContent::Param &param, StateMachine *table, QVariantList &dataValues, QStringList &dataNames)
+static bool evaluate(const ExecutableContent::Param &param, StateMachine *table, QVariantMap &keyValues)
 {
     auto dataModel = table->dataModel();
     auto tableData = table->tableData();
     if (param.expr != NoEvaluator) {
         bool success = false;
         auto v = dataModel->evaluateToVariant(param.expr, &success);
-        dataValues.append(v);
-        dataNames.append(tableData->string(param.name));
+        keyValues.insert(tableData->string(param.name), v);
         return success;
     }
 
@@ -48,8 +47,7 @@ static bool evaluate(const ExecutableContent::Param &param, StateMachine *table,
     }
 
     if (dataModel->hasProperty(loc)) {
-        dataValues.append(dataModel->property(loc));
-        dataNames.append(tableData->string(param.name));
+        keyValues.insert(tableData->string(param.name), dataModel->property(loc));
         return true;
     } else {
         table->submitError(QByteArray("error.execution"),
@@ -60,14 +58,14 @@ static bool evaluate(const ExecutableContent::Param &param, StateMachine *table,
     }
 }
 
-static bool evaluate(const ExecutableContent::Array<ExecutableContent::Param> *params, StateMachine *table, QVariantList &dataValues, QStringList &dataNames)
+static bool evaluate(const ExecutableContent::Array<ExecutableContent::Param> *params, StateMachine *table, QVariantMap &keyValues)
 {
     if (!params)
         return true;
 
     auto paramPtr = params->const_data();
     for (qint32 i = 0; i != params->count; ++i, ++paramPtr) {
-        if (!evaluate(*paramPtr, table, dataValues, dataNames))
+        if (!evaluate(*paramPtr, table, keyValues))
             return false;
     }
 
@@ -88,35 +86,31 @@ QScxmlEvent *EventBuilder::buildEvent()
         ok = true; // ignore failure.
     }
 
-    QVariantList dataValues;
-    QStringList dataNames;
+    QVariant data;
     if ((!params || params->count == 0) && (!namelist || namelist->count == 0)) {
-        QVariant data;
-        if (contentExpr != NoEvaluator) {
-            data = dataModel->evaluateToString(contentExpr, &ok);
-        } else {
+        if (contentExpr == NoEvaluator) {
             data = contents;
-        }
-        if (ok) {
-            dataValues.append(data);
         } else {
+            data = dataModel->evaluateToString(contentExpr, &ok);
+        }
+        if (!ok) {
             // expr evaluation failure results in the data property of the event being set to null. See e.g. test528.
-            dataValues = QVariantList() << QVariant(QMetaType::VoidStar, 0);
+            data = QVariant(QMetaType::VoidStar, 0);
         }
     } else {
-        if (evaluate(params, table, dataValues, dataNames)) {
+        QVariantMap keyValues;
+        if (evaluate(params, table, keyValues)) {
             if (namelist) {
                 for (qint32 i = 0; i < namelist->count; ++i) {
                     QString name = tableData->string(namelist->const_data()[i]);
-                    dataNames << name;
-                    dataValues << dataModel->property(name);
+                    keyValues.insert(name, dataModel->property(name));
                 }
             }
+            data = keyValues;
         } else {
             // If the evaluation of the <param> tags fails, set _event.data to an empty string.
             // See test343.
-            dataValues = QVariantList() << QVariant(QMetaType::VoidStar, 0);
-            dataNames.clear();
+            data = QVariant(QMetaType::VoidStar, 0);
         }
     }
 
@@ -185,8 +179,7 @@ QScxmlEvent *EventBuilder::buildEvent()
     QScxmlEvent *event = new QScxmlEvent;
     event->setName(eventName);
     event->setEventType(eventType);
-    event->setDataValues(dataValues);
-    event->setDataNames(dataNames);
+    event->setData(data);
     event->setSendId(sendid);
     event->setOrigin(origin);
     event->setOriginType(origintype);
@@ -216,19 +209,6 @@ QString QScxmlEvent::scxmlType() const
     return QLatin1String("external");
 }
 
-void QScxmlEvent::reset(const QByteArray &name, QScxmlEvent::EventType eventType, QVariantList dataValues,
-                       const QByteArray &sendid, const QString &origin,
-                       const QString &origintype, const QString &invokeid)
-{
-    d->name = name;
-    d->eventType = eventType;
-    d->sendid = sendid;
-    d->origin = origin;
-    d->originType = origintype;
-    d->invokeId = invokeid;
-    d->dataValues = dataValues;
-}
-
 void QScxmlEvent::clear()
 {
     d->name = QByteArray();
@@ -237,7 +217,7 @@ void QScxmlEvent::clear()
     d->origin = QString();
     d->originType = QString();
     d->invokeId = QString();
-    d->dataValues = QVariantList();
+    d->data = QVariantMap();
 }
 
 QScxmlEvent &QScxmlEvent::operator=(const QScxmlEvent &other)
@@ -302,26 +282,6 @@ void QScxmlEvent::setInvokeId(const QString &invokeid)
     d->invokeId = invokeid;
 }
 
-QVariantList QScxmlEvent::dataValues() const
-{
-    return d->dataValues;
-}
-
-void QScxmlEvent::setDataValues(const QVariantList &dataValues)
-{
-    d->dataValues = dataValues;
-}
-
-QStringList QScxmlEvent::dataNames() const
-{
-    return d->dataNames;
-}
-
-void QScxmlEvent::setDataNames(const QStringList &dataNames)
-{
-    d->dataNames = dataNames;
-}
-
 int QScxmlEvent::delay() const
 {
     return d->delayInMiliSecs;
@@ -342,3 +302,17 @@ void QScxmlEvent::setEventType(const EventType &type)
     d->eventType = type;
 }
 
+QVariant QScxmlEvent::data() const
+{
+    return d->data;
+}
+
+void QScxmlEvent::setData(const QVariant &data)
+{
+    d->data = data;
+}
+
+void QScxmlEvent::makeIgnorable()
+{
+    t = ignoreEventType;
+}

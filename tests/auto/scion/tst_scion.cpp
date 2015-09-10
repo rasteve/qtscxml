@@ -306,20 +306,10 @@ static bool playEvent(StateMachine *stateMachine, const QJsonObject &eventDescri
             return false;
         }
     }
-    QVariantList dataValues;
-    QStringList dataNames;
+    QVariant data;
     // remove ifs and rely on defaults?
     if (event.contains(QLatin1String("data"))) {
-        QJsonValue dataVal = event.value(QLatin1String("data"));
-        if (dataVal.isObject()) {
-            QJsonObject dataObj = dataVal.toObject();
-            for (QJsonObject::const_iterator i = dataObj.constBegin(); i != dataObj.constEnd(); ++i) {
-                dataNames.append(i.key());
-                dataValues.append(i.value().toVariant());
-            }
-        } else {
-            dataValues.append(dataVal.toVariant());
-        }
+        data = event.value(QLatin1String("data")).toVariant();
     }
     QByteArray sendid;
     if (event.contains(QLatin1String("sendid")))
@@ -336,8 +326,7 @@ static bool playEvent(StateMachine *stateMachine, const QJsonObject &eventDescri
     QScxmlEvent *e = new QScxmlEvent;
     e->setName(eventName);
     e->setEventType(type);
-    e->setDataValues(dataValues);
-    e->setDataNames(dataNames);
+    e->setData(data);
     e->setSendId(sendid);
     e->setOrigin(origin);
     e->setOriginType(origintype);

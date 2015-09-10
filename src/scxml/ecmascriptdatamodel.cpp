@@ -121,7 +121,7 @@ public:
     void assignEvent(const QScxmlEvent &event)
     {
         QJSValue _event = engine()->newObject();
-        QJSValue dataValue = eventDataAsJSValue(event);
+        QJSValue dataValue = eventDataAsJSValue(event.data());
         _event.setProperty(QStringLiteral("data"), dataValue.isUndefined() ? QJSValue(QJSValue::UndefinedValue)
                                                                            : dataValue);
         _event.setProperty(QStringLiteral("invokeid"), event.invokeId().isEmpty() ? QJSValue(QJSValue::UndefinedValue)
@@ -140,37 +140,34 @@ public:
         setReadonlyProperty(&dataModel, QStringLiteral("_event"), _event);
     }
 
-    QJSValue eventDataAsJSValue(const QScxmlEvent &event) const
+    QJSValue eventDataAsJSValue(const QVariant &eventData) const
     {
-        if (event.dataNames().isEmpty()) {
-            if (event.dataValues().size() == 0) {
-                return QJSValue(QJSValue::UndefinedValue);
-            } else if (event.dataValues().size() == 1) {
-                auto dataValue = event.dataValues().first();
-                if (dataValue == QVariant(QMetaType::VoidStar, 0)) {
-                    return QJSValue(QJSValue::NullValue);
-                } else {
-                    QString data = dataValue.toString();
-                    QJsonParseError err;
-                    QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8(), &err);
-                    if (err.error == QJsonParseError::NoError)
-                        return engine()->toScriptValue(doc.toVariant());
-                    else
-                        return engine()->toScriptValue(data);
-                }
-            } else {
-                Q_UNREACHABLE();
-                return QJSValue(QJSValue::UndefinedValue);
-            }
-        } else {
+        if (!eventData.isValid()) {
+            return QJSValue(QJSValue::UndefinedValue);
+        }
+
+        if (eventData.canConvert<QVariantMap>()) {
+            auto keyValues = eventData.value<QVariantMap>();
             auto data = engine()->newObject();
 
-            for (int i = 0, ei = std::min(event.dataNames().size(), event.dataValues().size()); i != ei; ++i) {
-                data.setProperty(event.dataNames().at(i), engine()->toScriptValue(event.dataValues().at(i)));
+            for (QVariantMap::const_iterator it = keyValues.begin(), eit = keyValues.end(); it != eit; ++it) {
+                data.setProperty(it.key(), engine()->toScriptValue(it.value()));
             }
 
             return data;
         }
+
+        if (eventData == QVariant(QMetaType::VoidStar, 0)) {
+            return QJSValue(QJSValue::NullValue);
+        }
+
+        QString data = eventData.toString();
+        QJsonParseError err;
+        QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8(), &err);
+        if (err.error == QJsonParseError::NoError)
+            return engine()->toScriptValue(doc.toVariant());
+        else
+            return engine()->toScriptValue(data);
     }
 
     StateMachine *stateMachine() const

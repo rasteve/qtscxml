@@ -1024,28 +1024,15 @@ void StateMachine::submitEvent(const QByteArray &event)
 
 void StateMachine::submitEvent(const QByteArray &event, const QVariant &data)
 {
-    QVariantList dataValues;
-    QStringList dataNames;
     QVariant incomingData = data;
     if (incomingData.canConvert<QJSValue>()) {
         incomingData = incomingData.value<QJSValue>().toVariant();
     }
 
-    if (incomingData.type() == QVariant::Map) {
-        auto map = incomingData.toMap();
-        for (QVariantMap::const_iterator i = map.begin(), ei = map.end(); i != ei; ++i) {
-            dataValues.append(i.value());
-            dataNames.append(i.key());
-        }
-    } else {
-        dataValues.append(incomingData);
-    }
-
     QScxmlEvent *e = new QScxmlEvent;
     e->setName(event);
     e->setEventType(QScxmlEvent::ExternalEvent);
-    e->setDataValues(dataValues);
-    e->setDataNames(dataNames);
+    e->setData(incomingData);
     submitEvent(e);
 }
 
@@ -1134,27 +1121,5 @@ void StateMachine::start()
 }
 
 } // namespace Scxml
-
-QVariant QScxmlEvent::data() const
-{
-    if (d->dataNames.isEmpty()) {
-        if (d->dataValues.size() == 1) {
-            return d->dataValues.first();
-        } else {
-            return QVariant(QVariant::Invalid);
-        }
-    }
-
-    QVariantMap result;
-    for (int i = 0, ei = d->dataNames.size(); i != ei; ++i) {
-        result.insert(d->dataNames.at(i), d->dataValues.at(i));
-    }
-    return result;
-}
-
-void QScxmlEvent::makeIgnorable()
-{
-    t = ignoreEventType;
-}
 
 QT_END_NAMESPACE

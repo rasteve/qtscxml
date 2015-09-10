@@ -70,22 +70,13 @@ public:
     QString invokeId() const;
     void setInvokeId(const QString &invokeId);
 
-    QVariantList dataValues() const;
-    void setDataValues(const QVariantList &dataValues);
-
-    QStringList dataNames() const;
-    void setDataNames(const QStringList &dataNames);
-
     int delay() const;
     void setDelay(int delayInMiliSecs);
 
-    void reset(const QByteArray &name, EventType eventType = ExternalEvent,
-               QVariantList dataValues = QVariantList(), const QByteArray &sendId = QByteArray(),
-               const QString &origin = QString(), const QString &originType = QString(),
-               const QString &invokeId = QString());
     void clear();
 
     QVariant data() const;
+    void setData(const QVariant &data);
 
 protected:
     friend Scxml::Internal::MyQStateMachine;
