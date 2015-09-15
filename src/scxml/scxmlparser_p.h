@@ -32,6 +32,8 @@
 
 #include "scxmlparser.h"
 
+#include <QDir>
+#include <QFileInfo>
 #include <QSharedPointer>
 #include <QStringList>
 #include <QString>
@@ -39,7 +41,6 @@
 QT_BEGIN_NAMESPACE
 
 namespace Scxml {
-class ScxmlParser;
 
 namespace DocumentModel {
 
@@ -522,6 +523,8 @@ public:
 
 } // DocumentModel namespace
 
+namespace {
+
 struct ParserState {
     enum Kind {
         Scxml,
@@ -572,24 +575,47 @@ struct ParserState {
     static bool isExecutableContent(ParserState::Kind kind);
 };
 
-class DefaultLoader: public ScxmlParser::Loader
+class DefaultLoader: public QScxmlParser::Loader
 {
 public:
-    DefaultLoader(ScxmlParser *parser)
+    DefaultLoader(QScxmlParser *parser)
         : Loader(parser)
     {}
 
-    QByteArray load(const QString &name, const QString &baseDir, bool *ok) Q_DECL_OVERRIDE;
+    QByteArray load(const QString &name, const QString &baseDir, bool *ok) Q_DECL_OVERRIDE
+    {
+        Q_ASSERT(ok != nullptr);
+
+        *ok = false;
+        QFileInfo fInfo(name);
+        if (fInfo.isRelative())
+            fInfo = QFileInfo(QDir(baseDir).filePath(name));
+        if (!fInfo.exists()) {
+            parser()->addError(QStringLiteral("src attribute resolves to non existing file (%1)").arg(fInfo.absoluteFilePath()));
+        } else {
+            QFile f(fInfo.absoluteFilePath());
+            if (f.open(QFile::ReadOnly)) {
+                *ok = true;
+                return f.readAll();
+            } else {
+                parser()->addError(QStringLiteral("Failure opening file %1: %2")
+                                   .arg(fInfo.absoluteFilePath(), f.errorString()));
+            }
+        }
+        return QByteArray();
+    }
 };
 
-class Q_SCXML_EXPORT ScxmlParserPrivate
+} // anonymous namespace
+
+class Q_SCXML_EXPORT QScxmlParserPrivate
 {
 public:
-    static ScxmlParserPrivate *get(ScxmlParser *parser);
+    static QScxmlParserPrivate *get(QScxmlParser *parser);
 
-    ScxmlParserPrivate(ScxmlParser *parser, QXmlStreamReader *reader);
+    QScxmlParserPrivate(QScxmlParser *parser, QXmlStreamReader *reader);
 
-    ScxmlParser *parser() const;
+    QScxmlParser *parser() const;
     DocumentModel::ScxmlDocument *scxmlDocument();
 
     QString fileName() const;
@@ -598,7 +624,7 @@ public:
     void parse();
     QByteArray load(const QString &name, bool *ok) const;
 
-    ScxmlParser::State state() const;
+    QScxmlParser::State state() const;
     QVector<ScxmlError> errors() const;
 
     void addError(const QString &msg);
@@ -613,7 +639,7 @@ private:
                          QStringList optionalNames);
 
 private:
-    ScxmlParser *m_parser;
+    QScxmlParser *m_parser;
     QString m_fileName;
     QSet<QString> m_allIds;
 
@@ -621,12 +647,12 @@ private:
     DocumentModel::StateContainer *m_currentParent;
     DocumentModel::StateContainer *m_currentState;
     DefaultLoader m_defaultLoader;
-    ScxmlParser::Loader *m_loader;
+    QScxmlParser::Loader *m_loader;
     QStringList m_namespacesToIgnore;
 
     QXmlStreamReader *m_reader;
     QVector<ParserState> m_stack;
-    ScxmlParser::State m_state;
+    QScxmlParser::State m_state;
     QVector<ScxmlError> m_errors;
 };
 

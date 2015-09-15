@@ -29,22 +29,22 @@ class QXmlStreamReader;
 
 namespace Scxml {
 
-class ScxmlParserPrivate;
-class Q_SCXML_EXPORT ScxmlParser
+class QScxmlParserPrivate;
+class Q_SCXML_EXPORT QScxmlParser
 {
 public:
     class Q_SCXML_EXPORT Loader
     {
     public:
-        Loader(ScxmlParser *parser);
+        Loader(QScxmlParser *parser);
         virtual ~Loader();
         virtual QByteArray load(const QString &name, const QString &baseDir, bool *ok) = 0;
 
     protected:
-        ScxmlParser *parser() const;
+        QScxmlParser *parser() const;
 
     private:
-        ScxmlParser *m_parser;
+        QScxmlParser *m_parser;
     };
 
     enum State {
@@ -55,8 +55,8 @@ public:
     };
 
 public:
-    ScxmlParser(QXmlStreamReader *xmlReader);
-    ~ScxmlParser();
+    QScxmlParser(QXmlStreamReader *xmlReader);
+    ~QScxmlParser();
 
     QString fileName() const;
     void setFileName(const QString &fileName);
@@ -73,8 +73,8 @@ public:
     void addError(const QString &msg);
 
 private:
-    friend ScxmlParserPrivate;
-    ScxmlParserPrivate *p;
+    friend QScxmlParserPrivate;
+    QScxmlParserPrivate *p;
 };
 
 } // namespace Scxml

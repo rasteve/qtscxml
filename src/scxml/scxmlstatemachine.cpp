@@ -540,7 +540,7 @@ StateMachine *StateMachine::fromFile(const QString &fileName, QScxmlDataModel *d
 StateMachine *StateMachine::fromData(QIODevice *data, const QString &fileName, QScxmlDataModel *dataModel)
 {
     QXmlStreamReader xmlReader(data);
-    Scxml::ScxmlParser parser(&xmlReader);
+    Scxml::QScxmlParser parser(&xmlReader);
     parser.setFileName(fileName);
     parser.parse();
     auto table = parser.instantiateStateMachine();

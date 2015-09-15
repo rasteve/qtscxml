@@ -31,8 +31,6 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QFile>
-#include <QFileInfo>
-#include <QDir>
 #include <QVector>
 #include <private/qabstracttransition_p.h>
 #include <private/qmetaobjectbuilder_p.h>
@@ -49,6 +47,8 @@ namespace Scxml {
 
 static QString scxmlNamespace = QStringLiteral("http://www.w3.org/2005/07/scxml");
 static QString qtScxmlNamespace = QStringLiteral("http://theqtcompany.com/scxml/2015/06/");
+
+namespace {
 
 class ScxmlVerifier: public DocumentModel::NodeVisitor
 {
@@ -126,7 +126,7 @@ private:
                 } else {
                     error(state->xmlLocation,
                           QStringLiteral("undefined initial state '%1' for state '%2'")
-                            .arg(initialState, state->id));
+                          .arg(initialState, state->id));
                 }
             }
         }
@@ -879,31 +879,33 @@ inline ScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(StateMachine *pa
     return finishInvoke(child, parent);
 }
 
-ScxmlParser::ScxmlParser(QXmlStreamReader *reader)
-    : p(new ScxmlParserPrivate(this, reader))
+} // anonymous namespace
+
+QScxmlParser::QScxmlParser(QXmlStreamReader *reader)
+    : p(new QScxmlParserPrivate(this, reader))
 { }
 
-ScxmlParser::~ScxmlParser()
+QScxmlParser::~QScxmlParser()
 {
     delete p;
 }
 
-QString ScxmlParser::fileName() const
+QString QScxmlParser::fileName() const
 {
     return p->fileName();
 }
 
-void ScxmlParser::setFileName(const QString &fileName)
+void QScxmlParser::setFileName(const QString &fileName)
 {
     p->setFilename(fileName);
 }
 
-void ScxmlParser::parse()
+void QScxmlParser::parse()
 {
     p->parse();
 }
 
-StateMachine *ScxmlParser::instantiateStateMachine() const
+StateMachine *QScxmlParser::instantiateStateMachine() const
 {
     if (DocumentModel::ScxmlDocument *doc = p->scxmlDocument()) {
         return QStateMachineBuilder().build(doc);
@@ -914,7 +916,7 @@ StateMachine *ScxmlParser::instantiateStateMachine() const
     }
 }
 
-void ScxmlParser::instantiateDataModel(StateMachine *table) const
+void QScxmlParser::instantiateDataModel(StateMachine *table) const
 {
     QScxmlDataModel *dataModel = Q_NULLPTR;
     switch (p->scxmlDocument()->root->dataModel) {
@@ -931,17 +933,17 @@ void ScxmlParser::instantiateDataModel(StateMachine *table) const
     StateMachinePrivate::get(table)->parserData()->m_ownedDataModel.reset(dataModel);
 }
 
-ScxmlParser::State ScxmlParser::state() const
+QScxmlParser::State QScxmlParser::state() const
 {
     return p->state();
 }
 
-QVector<Scxml::ScxmlError> ScxmlParser::errors() const
+QVector<Scxml::ScxmlError> QScxmlParser::errors() const
 {
     return p->errors();
 }
 
-void ScxmlParser::addError(const QString &msg)
+void QScxmlParser::addError(const QString &msg)
 {
     p->addError(msg);
 }
@@ -1217,62 +1219,39 @@ void DocumentModel::Scxml::accept(DocumentModel::NodeVisitor *visitor)
 DocumentModel::NodeVisitor::~NodeVisitor()
 {}
 
-ScxmlParser::Loader::Loader(ScxmlParser *parser)
+QScxmlParser::Loader::Loader(QScxmlParser *parser)
     : m_parser(parser)
 {}
 
-ScxmlParser::Loader::~Loader()
+QScxmlParser::Loader::~Loader()
 {}
 
-ScxmlParser *ScxmlParser::Loader::parser() const
+QScxmlParser *QScxmlParser::Loader::parser() const
 {
     return m_parser;
 }
 
-QByteArray DefaultLoader::load(const QString &name, const QString &baseDir, bool *ok)
-{
-    Q_ASSERT(ok != nullptr);
-
-    *ok = false;
-    QFileInfo fInfo(name);
-    if (fInfo.isRelative())
-        fInfo = QFileInfo(QDir(baseDir).filePath(name));
-    if (!fInfo.exists()) {
-        parser()->addError(QStringLiteral("src attribute resolves to non existing file (%1)").arg(fInfo.absoluteFilePath()));
-    } else {
-        QFile f(fInfo.absoluteFilePath());
-        if (f.open(QFile::ReadOnly)) {
-            *ok = true;
-            return f.readAll();
-        } else {
-            parser()->addError(QStringLiteral("Failure opening file %1: %2")
-                               .arg(fInfo.absoluteFilePath(), f.errorString()));
-        }
-    }
-    return QByteArray();
-}
-
-ScxmlParserPrivate *ScxmlParserPrivate::get(ScxmlParser *parser)
+QScxmlParserPrivate *QScxmlParserPrivate::get(QScxmlParser *parser)
 {
     return parser->p;
 }
 
-ScxmlParserPrivate::ScxmlParserPrivate(ScxmlParser *parser, QXmlStreamReader *reader)
+QScxmlParserPrivate::QScxmlParserPrivate(QScxmlParser *parser, QXmlStreamReader *reader)
     : m_parser(parser)
     , m_currentParent(Q_NULLPTR)
     , m_currentState(Q_NULLPTR)
     , m_defaultLoader(parser)
     , m_loader(&m_defaultLoader)
     , m_reader(reader)
-    , m_state(ScxmlParser::StartingParsing)
+    , m_state(QScxmlParser::StartingParsing)
 {}
 
-ScxmlParser *ScxmlParserPrivate::parser() const
+QScxmlParser *QScxmlParserPrivate::parser() const
 {
     return m_parser;
 }
 
-DocumentModel::ScxmlDocument *ScxmlParserPrivate::scxmlDocument()
+DocumentModel::ScxmlDocument *QScxmlParserPrivate::scxmlDocument()
 {
     if (!m_doc)
         return Q_NULLPTR;
@@ -1287,17 +1266,17 @@ DocumentModel::ScxmlDocument *ScxmlParserPrivate::scxmlDocument()
         return Q_NULLPTR;
 }
 
-QString ScxmlParserPrivate::fileName() const
+QString QScxmlParserPrivate::fileName() const
 {
     return m_fileName;
 }
 
-void ScxmlParserPrivate::setFilename(const QString &fileName)
+void QScxmlParserPrivate::setFilename(const QString &fileName)
 {
     m_fileName = fileName;
 }
 
-void ScxmlParserPrivate::parse()
+void QScxmlParserPrivate::parse()
 {
     m_doc.reset(new DocumentModel::ScxmlDocument(fileName()));
     m_currentParent = m_doc->root;
@@ -1318,7 +1297,7 @@ void ScxmlParserPrivate::parse()
             break;
         case QXmlStreamReader::EndDocument:
             // The reader reports the end of the document.
-            if (!m_stack.isEmpty() || m_state != ScxmlParser::FinishedParsing) {
+            if (!m_stack.isEmpty() || m_state != QScxmlParser::FinishedParsing) {
                 addError(QStringLiteral("document finished without a proper scxml item"));
             }
             break;
@@ -1364,11 +1343,11 @@ void ScxmlParserPrivate::parse()
                 m_doc->root = new DocumentModel::Scxml(xmlLocation());
                 m_doc->root->xmlLocation = xmlLocation();
                 auto scxml = m_doc->root;
-                if (m_state != ScxmlParser::StartingParsing || !m_stack.isEmpty()) {
+                if (m_state != QScxmlParser::StartingParsing || !m_stack.isEmpty()) {
                     addError(xmlLocation(), QStringLiteral("found scxml tag mid stream"));
                     return;
                 } else {
-                    m_state = ScxmlParser::ParsingScxml;
+                    m_state = QScxmlParser::ParsingScxml;
                 }
                 if (!checkAttributes(attributes, "version|initial,datamodel,binding,name,classname")) return;
                 if (m_reader->namespaceUri() != scxmlNamespace) {
@@ -1645,13 +1624,13 @@ void ScxmlParserPrivate::parse()
                         addError(QStringLiteral("expr attribute in content of invoke is not supported"));
                         break;
                     }
-                    ScxmlParser p(m_reader);
+                    QScxmlParser p(m_reader);
                     p.setFileName(m_fileName);
                     p.parse();
                     i->content.reset(p.p->m_doc.take());
                     m_errors.append(p.errors());
-                    if (p.state() == ScxmlParser::ParsingError)
-                        m_state = ScxmlParser::ParsingError;
+                    if (p.state() == QScxmlParser::ParsingError)
+                        m_state = QScxmlParser::ParsingError;
                 } break;
                 default:
                     addError(QStringLiteral("unexpected parent of content %1").arg(m_stack.last().kind));
@@ -1769,10 +1748,10 @@ void ScxmlParserPrivate::parse()
             m_stack.removeLast();
             switch (p.kind) {
             case ParserState::Scxml:
-                if (m_state == ScxmlParser::ParsingScxml) {
-                    m_state = ScxmlParser::FinishedParsing;
+                if (m_state == QScxmlParser::ParsingScxml) {
+                    m_state = QScxmlParser::FinishedParsing;
                 } else {
-                    m_state = ScxmlParser::ParsingError;
+                    m_state = QScxmlParser::ParsingError;
                 }
                 return;
             case ParserState::State:
@@ -1907,46 +1886,46 @@ void ScxmlParserPrivate::parse()
     }
 }
 
-QByteArray ScxmlParserPrivate::load(const QString &name, bool *ok) const
+QByteArray QScxmlParserPrivate::load(const QString &name, bool *ok) const
 {
     return m_loader->load(name, QFileInfo(m_fileName).absolutePath(), ok);
 }
 
-ScxmlParser::State ScxmlParserPrivate::state() const
+QScxmlParser::State QScxmlParserPrivate::state() const
 {
     return m_state;
 }
 
-QVector<ScxmlError> ScxmlParserPrivate::errors() const
+QVector<ScxmlError> QScxmlParserPrivate::errors() const
 {
     return m_errors;
 }
 
-void ScxmlParserPrivate::addError(const QString &msg)
+void QScxmlParserPrivate::addError(const QString &msg)
 {
     m_errors.append(ScxmlError(m_fileName, m_reader->lineNumber(), m_reader->columnNumber(), msg));
-    m_state = ScxmlParser::ParsingError;
+    m_state = QScxmlParser::ParsingError;
 }
 
-void ScxmlParserPrivate::addError(const DocumentModel::XmlLocation &location, const QString &msg)
+void QScxmlParserPrivate::addError(const DocumentModel::XmlLocation &location, const QString &msg)
 {
     m_errors.append(ScxmlError(m_fileName, location.line, location.column, msg));
-    m_state = ScxmlParser::ParsingError;
+    m_state = QScxmlParser::ParsingError;
 }
 
-DocumentModel::AbstractState *ScxmlParserPrivate::currentParent() const
+DocumentModel::AbstractState *QScxmlParserPrivate::currentParent() const
 {
     DocumentModel::AbstractState *parent = m_currentParent->asAbstractState();
     Q_ASSERT(!m_currentParent || parent);
     return parent;
 }
 
-DocumentModel::XmlLocation ScxmlParserPrivate::xmlLocation() const
+DocumentModel::XmlLocation QScxmlParserPrivate::xmlLocation() const
 {
     return DocumentModel::XmlLocation(m_reader->lineNumber(), m_reader->columnNumber());
 }
 
-bool ScxmlParserPrivate::maybeId(const QXmlStreamAttributes &attributes, QString *id)
+bool QScxmlParserPrivate::maybeId(const QXmlStreamAttributes &attributes, QString *id)
 {
     Q_ASSERT(id);
     QString idStr = attributes.value(QLatin1String("id")).toString();
@@ -1961,7 +1940,7 @@ bool ScxmlParserPrivate::maybeId(const QXmlStreamAttributes &attributes, QString
     return true;
 }
 
-bool ScxmlParserPrivate::checkAttributes(const QXmlStreamAttributes &attributes, const char *attribStr)
+bool QScxmlParserPrivate::checkAttributes(const QXmlStreamAttributes &attributes, const char *attribStr)
 {
     QString allAttrib = QString::fromLatin1(attribStr);
     QStringList attrSplit = allAttrib.split(QLatin1Char('|'));
@@ -1980,7 +1959,7 @@ bool ScxmlParserPrivate::checkAttributes(const QXmlStreamAttributes &attributes,
     return checkAttributes(attributes, requiredNames, optionalNames);
 }
 
-bool ScxmlParserPrivate::checkAttributes(const QXmlStreamAttributes &attributes, QStringList requiredNames, QStringList optionalNames)
+bool QScxmlParserPrivate::checkAttributes(const QXmlStreamAttributes &attributes, QStringList requiredNames, QStringList optionalNames)
 {
     foreach (const QXmlStreamAttribute &attribute, attributes) {
         QStringRef ns = attribute.namespaceUri();

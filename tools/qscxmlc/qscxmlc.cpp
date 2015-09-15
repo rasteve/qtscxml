@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
         outCppFileName = outFileName + QLatin1String(".cpp");
 
     QXmlStreamReader reader(&file);
-    ScxmlParser parser(&reader);
+    QScxmlParser parser(&reader);
     parser.setFileName(file.fileName());
     parser.parse();
     if (!parser.errors().isEmpty()) {
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
         return ParseError;
     }
 
-    auto mainDoc = ScxmlParserPrivate::get(&parser)->scxmlDocument();
+    auto mainDoc = QScxmlParserPrivate::get(&parser)->scxmlDocument();
     if (mainDoc == nullptr) {
         Q_ASSERT(!parser.errors().isEmpty());
         foreach (const ScxmlError &error, parser.errors()) {

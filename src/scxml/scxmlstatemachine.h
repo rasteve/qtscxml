@@ -54,7 +54,6 @@ class QDebug;
 namespace Scxml {
 Q_SCXML_EXPORT Q_DECLARE_LOGGING_CATEGORY(scxmlLog)
 
-class ScxmlParser;
 
 namespace ExecutableContent {
 class ExecutionEngine;

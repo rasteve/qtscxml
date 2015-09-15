@@ -203,11 +203,11 @@ void TestScion::dynamic()
     QFile scxmlFile(QLatin1String(":/") + scxml);
     QVERIFY(scxmlFile.open(QIODevice::ReadOnly));
     QXmlStreamReader xmlReader(&scxmlFile);
-    ScxmlParser parser(&xmlReader);
+    QScxmlParser parser(&xmlReader);
     parser.parse();
-    if (testStatus == TestFails && parser.state() != ScxmlParser::FinishedParsing)
+    if (testStatus == TestFails && parser.state() != QScxmlParser::FinishedParsing)
         QEXPECT_FAIL("", "This is expected to fail", Abort);
-    QCOMPARE(parser.state(), ScxmlParser::FinishedParsing);
+    QCOMPARE(parser.state(), QScxmlParser::FinishedParsing);
     QVERIFY(parser.errors().isEmpty());
     scxmlFile.close();
 
