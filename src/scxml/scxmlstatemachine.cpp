@@ -517,7 +517,7 @@ StateMachinePrivate::ParserData *StateMachinePrivate::parserData()
     return m_parserData.data();
 }
 
-StateMachine *StateMachine::fromFile(const QString &fileName, DataModel *dataModel)
+StateMachine *StateMachine::fromFile(const QString &fileName, QScxmlDataModel *dataModel)
 {
     QFile scxmlFile(fileName);
     if (!scxmlFile.open(QIODevice::ReadOnly)) {
@@ -534,7 +534,7 @@ StateMachine *StateMachine::fromFile(const QString &fileName, DataModel *dataMod
     return table;
 }
 
-StateMachine *StateMachine::fromData(QIODevice *data, const QString &fileName, DataModel *dataModel)
+StateMachine *StateMachine::fromData(QIODevice *data, const QString &fileName, QScxmlDataModel *dataModel)
 {
     QXmlStreamReader xmlReader(data);
     Scxml::ScxmlParser parser(&xmlReader);
@@ -612,14 +612,14 @@ void StateMachine::setIsInvoked(bool invoked)
     d->m_isInvoked = invoked;
 }
 
-DataModel *StateMachine::dataModel() const
+QScxmlDataModel *StateMachine::dataModel() const
 {
     Q_D(const StateMachine);
 
     return d->m_dataModel;
 }
 
-void StateMachine::setDataModel(DataModel *dataModel)
+void StateMachine::setDataModel(QScxmlDataModel *dataModel)
 {
     Q_D(StateMachine);
 

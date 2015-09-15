@@ -25,11 +25,11 @@ QT_BEGIN_NAMESPACE
 
 namespace Scxml {
 
-class Q_SCXML_EXPORT NullDataModel: public DataModel
+class Q_SCXML_EXPORT QScxmlNullDataModel: public QScxmlDataModel
 {
 public:
-    NullDataModel();
-    ~NullDataModel();
+    QScxmlNullDataModel();
+    ~QScxmlNullDataModel();
 
     void setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;
 
@@ -46,8 +46,6 @@ public:
     QVariant property(const QString &name) const Q_DECL_OVERRIDE;
     bool hasProperty(const QString &name) const Q_DECL_OVERRIDE;
     void setProperty(const QString &name, const QVariant &value, const QString &context, bool *ok) Q_DECL_OVERRIDE;
-
-    virtual NullDataModel *asNullDataModel() Q_DECL_OVERRIDE;
 
 private:
     class Data;

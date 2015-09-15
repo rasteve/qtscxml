@@ -75,7 +75,7 @@ public: // types
     class ParserData
     {
     public:
-        QScopedPointer<DataModel> m_ownedDataModel;
+        QScopedPointer<QScxmlDataModel> m_ownedDataModel;
         QVector<ScxmlError> m_errors;
     };
 
@@ -95,7 +95,7 @@ public:
 public: // data fields:
     QString m_sessionId;
     bool m_isInvoked;
-    DataModel *m_dataModel;
+    QScxmlDataModel *m_dataModel;
     StateMachine::BindingMethod m_dataBinding;
     ExecutableContent::ExecutionEngine *m_executionEngine;
     TableData *m_tableData;

@@ -165,7 +165,8 @@ ScxmlTransition::~ScxmlTransition()
 bool ScxmlTransition::eventTest(QEvent *event)
 {
 #ifdef DUMP_EVENT
-    if (auto edm = stateMachine()->dataModel()->asEcmaScriptDataModel()) qCDebug(scxmlLog) << qPrintable(edm->engine()->evaluate(QLatin1String("JSON.stringify(_event)")).toString());
+    if (auto edm = dynamic_cast<QScxmlEcmaScriptDataModel *>(stateMachine()->dataModel()))
+        qCDebug(scxmlLog) << qPrintable(edm->engine()->evaluate(QLatin1String("JSON.stringify(_event)")).toString());
 #endif
 
     if (ScxmlBaseTransition::eventTest(event)) {

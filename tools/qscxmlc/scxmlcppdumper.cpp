@@ -271,7 +271,7 @@ protected:
             default:
                 Q_UNREACHABLE();
             }
-            clazz.classFields << QStringLiteral("Scxml::") + dmName + QStringLiteral("DataModel dataModel;");
+            clazz.classFields << QStringLiteral("Scxml::QScxml") + dmName + QStringLiteral("DataModel dataModel;");
         }
         return false;
     }
@@ -858,8 +858,8 @@ private:
 
         { // evaluators
             auto evaluators = td->evaluators();
-            clazz.classFields << QStringLiteral("static Scxml::EvaluatorInfo evaluators[];");
-            t << QStringLiteral("Scxml::EvaluatorInfo %1::Data::evaluators[] = {").arg(clazz.className);
+            clazz.classFields << QStringLiteral("static Scxml::QScxmlEvaluatorInfo evaluators[];");
+            t << QStringLiteral("Scxml::QScxmlEvaluatorInfo %1::Data::evaluators[] = {").arg(clazz.className);
             generateList(t, [&evaluators](int idx) -> QString {
                 if (evaluators.isEmpty() && idx == 0) // prevent generation of empty array
                     return QStringLiteral("{ -1, -1 }");
@@ -870,15 +870,15 @@ private:
                 return QStringLiteral("{ %1, %2 }").arg(eval.expr).arg(eval.context);
             });
             t << QStringLiteral("};") << QStringLiteral("");
-            clazz.dataMethods << QStringLiteral("Scxml::EvaluatorInfo evaluatorInfo(Scxml::EvaluatorId evaluatorId) const Q_DECL_OVERRIDE");
+            clazz.dataMethods << QStringLiteral("Scxml::QScxmlEvaluatorInfo evaluatorInfo(Scxml::EvaluatorId evaluatorId) const Q_DECL_OVERRIDE");
             clazz.dataMethods << QStringLiteral("{ Q_ASSERT(evaluatorId >= 0); Q_ASSERT(evaluatorId < %1); return evaluators[evaluatorId]; }").arg(evaluators.size());
             clazz.dataMethods << QString();
         }
 
         { // assignments
             auto assignments = td->assignments();
-            clazz.classFields << QStringLiteral("static Scxml::AssignmentInfo assignments[];");
-            t << QStringLiteral("Scxml::AssignmentInfo %1::Data::assignments[] = {").arg(clazz.className);
+            clazz.classFields << QStringLiteral("static Scxml::QScxmlAssignmentInfo assignments[];");
+            t << QStringLiteral("Scxml::QScxmlAssignmentInfo %1::Data::assignments[] = {").arg(clazz.className);
             generateList(t, [&assignments](int idx) -> QString {
                 if (assignments.isEmpty() && idx == 0) // prevent generation of empty array
                     return QStringLiteral("{ -1, -1, -1 }");
@@ -889,15 +889,15 @@ private:
                 return QStringLiteral("{ %1, %2, %3 }").arg(ass.dest).arg(ass.expr).arg(ass.context);
             });
             t << QStringLiteral("};") << QStringLiteral("");
-            clazz.dataMethods << QStringLiteral("Scxml::AssignmentInfo assignmentInfo(Scxml::EvaluatorId assignmentId) const Q_DECL_OVERRIDE");
+            clazz.dataMethods << QStringLiteral("Scxml::QScxmlAssignmentInfo assignmentInfo(Scxml::EvaluatorId assignmentId) const Q_DECL_OVERRIDE");
             clazz.dataMethods << QStringLiteral("{ Q_ASSERT(assignmentId >= 0); Q_ASSERT(assignmentId < %1); return assignments[assignmentId]; }").arg(assignments.size());
             clazz.dataMethods << QString();
         }
 
         { // foreaches
             auto foreaches = td->foreaches();
-            clazz.classFields << QStringLiteral("static Scxml::ForeachInfo foreaches[];");
-            t << QStringLiteral("Scxml::ForeachInfo %1::Data::foreaches[] = {").arg(clazz.className);
+            clazz.classFields << QStringLiteral("static Scxml::QScxmlForeachInfo foreaches[];");
+            t << QStringLiteral("Scxml::QScxmlForeachInfo %1::Data::foreaches[] = {").arg(clazz.className);
             generateList(t, [&foreaches](int idx) -> QString {
                 if (foreaches.isEmpty() && idx == 0) // prevent generation of empty array
                     return QStringLiteral("{ -1, -1, -1, -1 }");
@@ -908,7 +908,7 @@ private:
                 return QStringLiteral("{ %1, %2, %3, %4 }").arg(foreach.array).arg(foreach.item).arg(foreach.index).arg(foreach.context);
             });
             t << QStringLiteral("};") << QStringLiteral("");
-            clazz.dataMethods << QStringLiteral("Scxml::ForeachInfo foreachInfo(Scxml::EvaluatorId foreachId) const Q_DECL_OVERRIDE");
+            clazz.dataMethods << QStringLiteral("Scxml::QScxmlForeachInfo foreachInfo(Scxml::EvaluatorId foreachId) const Q_DECL_OVERRIDE");
             clazz.dataMethods << QStringLiteral("{ Q_ASSERT(foreachId >= 0); Q_ASSERT(foreachId < %1); return foreaches[foreachId]; }").arg(foreaches.size());
         }
     }

@@ -68,9 +68,9 @@ public:
     virtual QString string(ExecutableContent::StringId id) const = 0;
     virtual QByteArray byteArray(ExecutableContent::ByteArrayId id) const = 0;
     virtual ExecutableContent::Instructions instructions() const = 0;
-    virtual EvaluatorInfo evaluatorInfo(EvaluatorId evaluatorId) const = 0;
-    virtual AssignmentInfo assignmentInfo(EvaluatorId assignmentId) const = 0;
-    virtual ForeachInfo foreachInfo(EvaluatorId foreachId) const = 0;
+    virtual QScxmlEvaluatorInfo evaluatorInfo(EvaluatorId evaluatorId) const = 0;
+    virtual QScxmlAssignmentInfo assignmentInfo(EvaluatorId assignmentId) const = 0;
+    virtual QScxmlForeachInfo foreachInfo(EvaluatorId foreachId) const = 0;
     virtual ExecutableContent::StringId *dataNames(int *count) const = 0;
 
     virtual ExecutableContent::ContainerId initialSetup() const = 0;
@@ -193,8 +193,8 @@ public:
         LateBinding
     };
 
-    static StateMachine *fromFile(const QString &fileName, DataModel *dataModel = Q_NULLPTR);
-    static StateMachine *fromData(QIODevice *data, const QString &fileName = QString(), DataModel *dataModel = Q_NULLPTR);
+    static StateMachine *fromFile(const QString &fileName, QScxmlDataModel *dataModel = Q_NULLPTR);
+    static StateMachine *fromData(QIODevice *data, const QString &fileName = QString(), QScxmlDataModel *dataModel = Q_NULLPTR);
     QVector<ScxmlError> errors() const;
 
     StateMachine(QObject *parent = 0);
@@ -210,8 +210,8 @@ public:
     bool isInvoked() const;
     void setIsInvoked(bool invoked);
 
-    DataModel *dataModel() const;
-    void setDataModel(DataModel *dataModel);
+    QScxmlDataModel *dataModel() const;
+    void setDataModel(QScxmlDataModel *dataModel);
 
     void setDataBinding(BindingMethod b);
     BindingMethod dataBinding() const;

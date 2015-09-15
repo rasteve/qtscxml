@@ -39,7 +39,7 @@ QT_BEGIN_NAMESPACE
 
 namespace Scxml {
 
-static inline bool operator<(const EvaluatorInfo &ei1, const EvaluatorInfo &ei2)
+static inline bool operator<(const QScxmlEvaluatorInfo &ei1, const QScxmlEvaluatorInfo &ei2)
 {
     if (ei1.expr != ei2.expr)
         return ei1.expr < ei2.expr;
@@ -47,7 +47,7 @@ static inline bool operator<(const EvaluatorInfo &ei1, const EvaluatorInfo &ei2)
         return ei1.context < ei2.context;
 }
 
-static inline bool operator<(const AssignmentInfo &ai1, const AssignmentInfo &ai2)
+static inline bool operator<(const QScxmlAssignmentInfo &ai1, const QScxmlAssignmentInfo &ai2)
 {
     if (ai1.dest != ai2.dest)
         return ai1.dest < ai2.dest;
@@ -57,7 +57,7 @@ static inline bool operator<(const AssignmentInfo &ai1, const AssignmentInfo &ai
         return ai1.context < ai2.context;
 }
 
-static inline bool operator<(const ForeachInfo &fi1, const ForeachInfo &fi2)
+static inline bool operator<(const QScxmlForeachInfo &fi1, const QScxmlForeachInfo &fi2)
 {
     if (fi1.array != fi2.array) return fi1.array < fi2.array;
     if (fi1.item != fi2.item) return fi1.item < fi2.item;
@@ -264,9 +264,9 @@ public:
     QString string(ExecutableContent::StringId id) const Q_DECL_OVERRIDE;
     QByteArray byteArray(ExecutableContent::ByteArrayId id) const Q_DECL_OVERRIDE;
     ExecutableContent::Instructions instructions() const Q_DECL_OVERRIDE;
-    EvaluatorInfo evaluatorInfo(EvaluatorId evaluatorId) const Q_DECL_OVERRIDE;
-    AssignmentInfo assignmentInfo(EvaluatorId assignmentId) const Q_DECL_OVERRIDE;
-    ForeachInfo foreachInfo(EvaluatorId foreachId) const Q_DECL_OVERRIDE;
+    QScxmlEvaluatorInfo evaluatorInfo(EvaluatorId evaluatorId) const Q_DECL_OVERRIDE;
+    QScxmlAssignmentInfo assignmentInfo(EvaluatorId assignmentId) const Q_DECL_OVERRIDE;
+    QScxmlForeachInfo foreachInfo(EvaluatorId foreachId) const Q_DECL_OVERRIDE;
     ExecutableContent::StringId *dataNames(int *count) const Q_DECL_OVERRIDE;
     ExecutableContent::ContainerId initialSetup() const Q_DECL_OVERRIDE;
     QString name() const Q_DECL_OVERRIDE;
@@ -274,9 +274,9 @@ public:
     QVector<qint32> instructionTable() const;
     QVector<QString> stringTable() const;
     QVector<QByteArray> byteArrayTable() const;
-    QVector<EvaluatorInfo> evaluators() const;
-    QVector<AssignmentInfo> assignments() const;
-    QVector<ForeachInfo> foreaches() const;
+    QVector<QScxmlEvaluatorInfo> evaluators() const;
+    QVector<QScxmlAssignmentInfo> assignments() const;
+    QVector<QScxmlForeachInfo> foreaches() const;
     ExecutableContent::StringIds allDataNameIds() const;
 
 private:
@@ -284,9 +284,9 @@ private:
     QVector<QString> strings;
     QVector<QByteArray> byteArrays;
     QVector<qint32> theInstructions;
-    QVector<EvaluatorInfo> theEvaluators;
-    QVector<AssignmentInfo> theAssignments;
-    QVector<ForeachInfo> theForeaches;
+    QVector<QScxmlEvaluatorInfo> theEvaluators;
+    QVector<QScxmlAssignmentInfo> theAssignments;
+    QVector<QScxmlForeachInfo> theForeaches;
     ExecutableContent::StringIds theDataNameIds;
     EvaluatorId theInitialSetup;
     QString theName;
@@ -425,7 +425,7 @@ private:
 
     EvaluatorId addEvaluator(const QString &expr, const QString &context)
     {
-        EvaluatorInfo ei;
+        QScxmlEvaluatorInfo ei;
         ei.expr = addString(expr);
         ei.context = addString(context);
         return m_evaluators.add(ei);
@@ -433,7 +433,7 @@ private:
 
     EvaluatorId addAssignment(const QString &dest, const QString &expr, const QString &context)
     {
-        AssignmentInfo ai;
+        QScxmlAssignmentInfo ai;
         ai.dest = addString(dest);
         ai.expr = addString(expr);
         ai.context = addString(context);
@@ -442,7 +442,7 @@ private:
 
     EvaluatorId addForeach(const QString &array, const QString &item, const QString &index, const QString &context)
     {
-        ForeachInfo fi;
+        QScxmlForeachInfo fi;
         fi.array = addString(array);
         fi.item = addString(item);
         fi.index = addString(index);
@@ -461,9 +461,9 @@ private:
         return addAssignment(id, expr, context);
     }
 
-    Table<EvaluatorInfo, EvaluatorId> m_evaluators;
-    Table<AssignmentInfo, EvaluatorId> m_assignments;
-    Table<ForeachInfo, EvaluatorId> m_foreaches;
+    Table<QScxmlEvaluatorInfo, EvaluatorId> m_evaluators;
+    Table<QScxmlAssignmentInfo, EvaluatorId> m_assignments;
+    Table<QScxmlForeachInfo, EvaluatorId> m_foreaches;
     ExecutableContent::StringIds m_dataIds;
     ContainerId m_initialSetup;
     QString m_name;

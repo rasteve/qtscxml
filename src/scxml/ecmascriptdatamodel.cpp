@@ -32,10 +32,10 @@ typedef std::function<QVariant (bool *)> ToVariantEvaluator;
 typedef std::function<void (bool *)> ToVoidEvaluator;
 typedef std::function<bool (bool *, std::function<bool ()>)> ForeachEvaluator;
 
-class Scxml::EcmaScriptDataModelPrivate
+class Scxml::QScxmlEcmaScriptDataModelPrivate
 {
 public:
-    EcmaScriptDataModelPrivate(EcmaScriptDataModel *q)
+    QScxmlEcmaScriptDataModelPrivate(QScxmlEcmaScriptDataModel *q)
         : q(q)
         , jsEngine(Q_NULLPTR)
     {}
@@ -301,21 +301,21 @@ private: // Uses private API
     }
 
 private:
-    EcmaScriptDataModel *q;
+    QScxmlEcmaScriptDataModel *q;
     mutable QJSEngine *jsEngine;
     QJSValue dataModel;
 };
 
-EcmaScriptDataModel::EcmaScriptDataModel()
-    : d(new EcmaScriptDataModelPrivate(this))
+QScxmlEcmaScriptDataModel::QScxmlEcmaScriptDataModel()
+    : d(new QScxmlEcmaScriptDataModelPrivate(this))
 {}
 
-EcmaScriptDataModel::~EcmaScriptDataModel()
+QScxmlEcmaScriptDataModel::~QScxmlEcmaScriptDataModel()
 {
     delete d;
 }
 
-void EcmaScriptDataModel::setup(const QVariantMap &initialDataValues)
+void QScxmlEcmaScriptDataModel::setup(const QVariantMap &initialDataValues)
 {
     d->setupDataModel();
 
@@ -335,39 +335,39 @@ void EcmaScriptDataModel::setup(const QVariantMap &initialDataValues)
     d->initialDataNames = initialDataValues.keys();
 }
 
-QString EcmaScriptDataModel::evaluateToString(EvaluatorId id, bool *ok)
+QString QScxmlEcmaScriptDataModel::evaluateToString(EvaluatorId id, bool *ok)
 {
-    const EvaluatorInfo &info = stateMachine()->tableData()->evaluatorInfo(id);
+    const QScxmlEvaluatorInfo &info = stateMachine()->tableData()->evaluatorInfo(id);
 
     return d->evalStr(d->string(info.expr), d->string(info.context), ok);
 }
 
-bool EcmaScriptDataModel::evaluateToBool(EvaluatorId id, bool *ok)
+bool QScxmlEcmaScriptDataModel::evaluateToBool(EvaluatorId id, bool *ok)
 {
-    const EvaluatorInfo &info = stateMachine()->tableData()->evaluatorInfo(id);
+    const QScxmlEvaluatorInfo &info = stateMachine()->tableData()->evaluatorInfo(id);
 
     return d->evalBool(d->string(info.expr), d->string(info.context), ok);
 }
 
-QVariant EcmaScriptDataModel::evaluateToVariant(EvaluatorId id, bool *ok)
+QVariant QScxmlEcmaScriptDataModel::evaluateToVariant(EvaluatorId id, bool *ok)
 {
-    const EvaluatorInfo &info = stateMachine()->tableData()->evaluatorInfo(id);
+    const QScxmlEvaluatorInfo &info = stateMachine()->tableData()->evaluatorInfo(id);
 
     return d->evalJSValue(d->string(info.expr), d->string(info.context), ok).toVariant();
 }
 
-void EcmaScriptDataModel::evaluateToVoid(EvaluatorId id, bool *ok)
+void QScxmlEcmaScriptDataModel::evaluateToVoid(EvaluatorId id, bool *ok)
 {
-    const EvaluatorInfo &info = stateMachine()->tableData()->evaluatorInfo(id);
+    const QScxmlEvaluatorInfo &info = stateMachine()->tableData()->evaluatorInfo(id);
 
     d->eval(d->string(info.expr), d->string(info.context), ok);
 }
 
-void EcmaScriptDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
+void QScxmlEcmaScriptDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
 {
     Q_ASSERT(ok);
 
-    const AssignmentInfo &info = stateMachine()->tableData()->assignmentInfo(id);
+    const QScxmlAssignmentInfo &info = stateMachine()->tableData()->assignmentInfo(id);
     static QByteArray sendid;
 
     QString dest = d->string(info.dest);
@@ -384,9 +384,9 @@ void EcmaScriptDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
     }
 }
 
-void EcmaScriptDataModel::evaluateInitialization(EvaluatorId id, bool *ok)
+void QScxmlEcmaScriptDataModel::evaluateInitialization(EvaluatorId id, bool *ok)
 {
-    const AssignmentInfo &info = stateMachine()->tableData()->assignmentInfo(id);
+    const QScxmlAssignmentInfo &info = stateMachine()->tableData()->assignmentInfo(id);
     QString dest = d->string(info.dest);
     if (d->initialDataNames.contains(dest)) {
         *ok = true; // silently ignore the <data> tag
@@ -396,12 +396,12 @@ void EcmaScriptDataModel::evaluateInitialization(EvaluatorId id, bool *ok)
     evaluateAssignment(id, ok);
 }
 
-bool EcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body)
+bool QScxmlEcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body)
 {
     Q_ASSERT(ok);
     Q_ASSERT(body);
     static QByteArray sendid;
-    const ForeachInfo &info = stateMachine()->tableData()->foreachInfo(id);
+    const QScxmlForeachInfo &info = stateMachine()->tableData()->foreachInfo(id);
 
     QJSValue jsArray = d->property(d->string(info.array));
     if (!jsArray.isArray()) {
@@ -440,39 +440,34 @@ bool EcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopB
     return true;
 }
 
-void EcmaScriptDataModel::setEvent(const QScxmlEvent &event)
+void QScxmlEcmaScriptDataModel::setEvent(const QScxmlEvent &event)
 {
     d->assignEvent(event);
 }
 
-QVariant EcmaScriptDataModel::property(const QString &name) const
+QVariant QScxmlEcmaScriptDataModel::property(const QString &name) const
 {
     return d->property(name).toVariant();
 }
 
-bool EcmaScriptDataModel::hasProperty(const QString &name) const
+bool QScxmlEcmaScriptDataModel::hasProperty(const QString &name) const
 {
     return d->hasProperty(name);
 }
 
-void EcmaScriptDataModel::setProperty(const QString &name, const QVariant &value, const QString &context, bool *ok)
+void QScxmlEcmaScriptDataModel::setProperty(const QString &name, const QVariant &value, const QString &context, bool *ok)
 {
     Q_ASSERT(hasProperty(name));
     QJSValue v = d->engine()->toScriptValue(value);
     d->setProperty(name, v, context, ok);
 }
 
-EcmaScriptDataModel *EcmaScriptDataModel::asEcmaScriptDataModel()
-{
-    return this;
-}
-
-QJSEngine *EcmaScriptDataModel::engine() const
+QJSEngine *QScxmlEcmaScriptDataModel::engine() const
 {
     return d->engine();
 }
 
-void EcmaScriptDataModel::setEngine(QJSEngine *engine)
+void QScxmlEcmaScriptDataModel::setEngine(QJSEngine *engine)
 {
     d->setEngine(engine);
 }

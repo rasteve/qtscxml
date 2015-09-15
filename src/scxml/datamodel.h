@@ -35,18 +35,18 @@ class StateMachine;
 #if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
 #pragma pack(push, 4) // 4 == sizeof(qint32)
 #endif
-struct EvaluatorInfo {
+struct QScxmlEvaluatorInfo {
     ExecutableContent::StringId expr;
     ExecutableContent::StringId context;
 };
 
-struct AssignmentInfo {
+struct QScxmlAssignmentInfo {
     ExecutableContent::StringId dest;
     ExecutableContent::StringId expr;
     ExecutableContent::StringId context;
 };
 
-struct ForeachInfo {
+struct QScxmlForeachInfo {
     ExecutableContent::StringId array;
     ExecutableContent::StringId item;
     ExecutableContent::StringId index;
@@ -59,11 +59,11 @@ struct ForeachInfo {
 typedef qint32 EvaluatorId;
 enum { NoEvaluator = -1 };
 
-class NullDataModel;
-class EcmaScriptDataModel;
-class Q_SCXML_EXPORT DataModel
+class QScxmlNullDataModel;
+class QScxmlEcmaScriptDataModel;
+class Q_SCXML_EXPORT QScxmlDataModel
 {
-    Q_DISABLE_COPY(DataModel)
+    Q_DISABLE_COPY(QScxmlDataModel)
 
 public:
     class ForeachLoopBody
@@ -74,8 +74,8 @@ public:
     };
 
 public:
-    DataModel();
-    virtual ~DataModel();
+    QScxmlDataModel();
+    virtual ~QScxmlDataModel();
 
     StateMachine *stateMachine() const;
     void setTable(StateMachine *stateMachine);
@@ -96,9 +96,6 @@ public:
     virtual bool hasProperty(const QString &name) const = 0;
     virtual void setProperty(const QString &name, const QVariant &value, const QString &context,
                              bool *ok) = 0;
-
-    virtual NullDataModel *asNullDataModel();
-    virtual EcmaScriptDataModel *asEcmaScriptDataModel();
 
 private:
     class Data;

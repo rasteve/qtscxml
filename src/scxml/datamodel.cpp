@@ -20,7 +20,7 @@
 
 using namespace Scxml;
 
-class DataModel::Data
+class QScxmlDataModel::Data
 {
 public:
     Data()
@@ -30,34 +30,24 @@ public:
     StateMachine *m_stateMachine;
 };
 
-DataModel::ForeachLoopBody::~ForeachLoopBody()
+QScxmlDataModel::ForeachLoopBody::~ForeachLoopBody()
 {}
 
-DataModel::DataModel()
+QScxmlDataModel::QScxmlDataModel()
     : d(new Data)
 {}
 
-DataModel::~DataModel()
+QScxmlDataModel::~QScxmlDataModel()
 {
     delete d;
 }
 
-StateMachine *DataModel::stateMachine() const
+StateMachine *QScxmlDataModel::stateMachine() const
 {
     return d->m_stateMachine;
 }
 
-void DataModel::setTable(StateMachine *table)
+void QScxmlDataModel::setTable(StateMachine *table)
 {
     d->m_stateMachine = table;
-}
-
-NullDataModel *DataModel::asNullDataModel()
-{
-    return Q_NULLPTR;
-}
-
-EcmaScriptDataModel *DataModel::asEcmaScriptDataModel()
-{
-    return Q_NULLPTR;
 }

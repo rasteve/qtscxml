@@ -836,7 +836,7 @@ private: // Utility methods
         return QStringLiteral("%1 with %2=\"%3\"").arg(location, attrName, attrValue);
     }
 
-    DataModel *dataModel() const
+    QScxmlDataModel *dataModel() const
     { return m_table->dataModel(); }
 
 private:
@@ -859,13 +859,13 @@ inline ScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(StateMachine *pa
 
     //-----
     // FIXME: duplicated code from ScxmlParser::instantiateDataModel
-    DataModel *dataModel = Q_NULLPTR;
+    QScxmlDataModel *dataModel = Q_NULLPTR;
     switch (m_content->root->dataModel) {
     case DocumentModel::Scxml::NullDataModel:
-        dataModel = new NullDataModel;
+        dataModel = new QScxmlNullDataModel;
         break;
     case DocumentModel::Scxml::JSDataModel:
-        dataModel = new EcmaScriptDataModel;
+        dataModel = new QScxmlEcmaScriptDataModel;
         break;
     default:
         Q_UNREACHABLE();
@@ -914,13 +914,13 @@ StateMachine *ScxmlParser::instantiateStateMachine() const
 
 void ScxmlParser::instantiateDataModel(StateMachine *table) const
 {
-    DataModel *dataModel = Q_NULLPTR;
+    QScxmlDataModel *dataModel = Q_NULLPTR;
     switch (p->scxmlDocument()->root->dataModel) {
     case DocumentModel::Scxml::NullDataModel:
-        dataModel = new NullDataModel;
+        dataModel = new QScxmlNullDataModel;
         break;
     case DocumentModel::Scxml::JSDataModel:
-        dataModel = new EcmaScriptDataModel;
+        dataModel = new QScxmlEcmaScriptDataModel;
         break;
     default:
         Q_UNREACHABLE();

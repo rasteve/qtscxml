@@ -23,7 +23,7 @@
 
 using namespace Scxml;
 
-class NullDataModel::Data
+class QScxmlNullDataModel::Data
 {
     struct ResolvedEvaluatorInfo {
         bool error = false;
@@ -31,7 +31,7 @@ class NullDataModel::Data
     };
 
 public:
-    Data(NullDataModel *dataModel)
+    Data(QScxmlNullDataModel *dataModel)
         : q(dataModel)
     {}
 
@@ -60,7 +60,7 @@ public:
     ResolvedEvaluatorInfo prepare(EvaluatorId id)
     {
         auto td = q->stateMachine()->tableData();
-        const EvaluatorInfo &info = td->evaluatorInfo(id);
+        const QScxmlEvaluatorInfo &info = td->evaluatorInfo(id);
         QString expr = td->string(info.expr);
         for (int i = 0; i < expr.size(); ) {
             QChar ch = expr.at(i);
@@ -83,41 +83,41 @@ public:
     }
 
 private:
-    NullDataModel *q;
+    QScxmlNullDataModel *q;
     typedef QHash<EvaluatorId, ResolvedEvaluatorInfo> Resolved;
     Resolved resolved;
 };
 
-NullDataModel::NullDataModel()
+QScxmlNullDataModel::QScxmlNullDataModel()
     : d(new Data(this))
 {}
 
-NullDataModel::~NullDataModel()
+QScxmlNullDataModel::~QScxmlNullDataModel()
 {
     delete d;
 }
 
-void NullDataModel::setup(const QVariantMap &initialDataValues)
+void QScxmlNullDataModel::setup(const QVariantMap &initialDataValues)
 {
     Q_UNUSED(initialDataValues);
 }
 
-QString NullDataModel::evaluateToString(EvaluatorId id, bool *ok)
+QString QScxmlNullDataModel::evaluateToString(EvaluatorId id, bool *ok)
 {
     // We do implement this, because <log> is allowed in the Null data model,
     // and <log> has an expr attribute that needs "evaluation" for it to generate the log message.
     *ok = true;
     auto td = stateMachine()->tableData();
-    const EvaluatorInfo &info = td->evaluatorInfo(id);
+    const QScxmlEvaluatorInfo &info = td->evaluatorInfo(id);
     return td->string(info.expr);
 }
 
-bool NullDataModel::evaluateToBool(EvaluatorId id, bool *ok)
+bool QScxmlNullDataModel::evaluateToBool(EvaluatorId id, bool *ok)
 {
     return d->evalBool(id, ok);
 }
 
-QVariant NullDataModel::evaluateToVariant(EvaluatorId id, bool *ok)
+QVariant QScxmlNullDataModel::evaluateToVariant(EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
     Q_UNUSED(ok);
@@ -125,28 +125,28 @@ QVariant NullDataModel::evaluateToVariant(EvaluatorId id, bool *ok)
     return QVariant();
 }
 
-void NullDataModel::evaluateToVoid(EvaluatorId id, bool *ok)
+void QScxmlNullDataModel::evaluateToVoid(EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
     Q_UNUSED(ok);
     Q_UNREACHABLE();
 }
 
-void NullDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
+void QScxmlNullDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
     Q_UNUSED(ok);
     Q_UNREACHABLE();
 }
 
-void NullDataModel::evaluateInitialization(EvaluatorId id, bool *ok)
+void QScxmlNullDataModel::evaluateInitialization(EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
     Q_UNUSED(ok);
     Q_UNREACHABLE();
 }
 
-bool NullDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body)
+bool QScxmlNullDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body)
 {
     Q_UNUSED(id);
     Q_UNUSED(ok);
@@ -155,33 +155,28 @@ bool NullDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *b
     return false;
 }
 
-void NullDataModel::setEvent(const QScxmlEvent &event)
+void QScxmlNullDataModel::setEvent(const QScxmlEvent &event)
 {
     Q_UNUSED(event);
 }
 
-QVariant NullDataModel::property(const QString &name) const
+QVariant QScxmlNullDataModel::property(const QString &name) const
 {
     Q_UNUSED(name);
     return QVariant();
 }
 
-bool NullDataModel::hasProperty(const QString &name) const
+bool QScxmlNullDataModel::hasProperty(const QString &name) const
 {
     Q_UNUSED(name);
     return false;
 }
 
-void NullDataModel::setProperty(const QString &name, const QVariant &value, const QString &context, bool *ok)
+void QScxmlNullDataModel::setProperty(const QString &name, const QVariant &value, const QString &context, bool *ok)
 {
     Q_UNUSED(name);
     Q_UNUSED(value);
     Q_UNUSED(context);
     Q_UNUSED(ok);
     Q_UNREACHABLE();
-}
-
-NullDataModel *NullDataModel::asNullDataModel()
-{
-    return this;
 }

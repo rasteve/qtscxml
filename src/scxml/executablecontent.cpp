@@ -165,7 +165,7 @@ public:
         }
 
         case Instruction::Foreach: {
-            class LoopBody: public DataModel::ForeachLoopBody // If only we could put std::function in public API, we could use a lambda here. Alas....
+            class LoopBody: public QScxmlDataModel::ForeachLoopBody // If only we could put std::function in public API, we could use a lambda here. Alas....
             {
                 Data *data;
                 const Instructions loopStart;
@@ -561,17 +561,17 @@ Instructions DynamicTableData::instructions() const
     return const_cast<Instructions>(theInstructions.data());
 }
 
-EvaluatorInfo DynamicTableData::evaluatorInfo(EvaluatorId evaluatorId) const
+QScxmlEvaluatorInfo DynamicTableData::evaluatorInfo(EvaluatorId evaluatorId) const
 {
     return theEvaluators[evaluatorId];
 }
 
-AssignmentInfo DynamicTableData::assignmentInfo(EvaluatorId assignmentId) const
+QScxmlAssignmentInfo DynamicTableData::assignmentInfo(EvaluatorId assignmentId) const
 {
     return theAssignments[assignmentId];
 }
 
-ForeachInfo DynamicTableData::foreachInfo(EvaluatorId foreachId) const
+QScxmlForeachInfo DynamicTableData::foreachInfo(EvaluatorId foreachId) const
 {
     return theForeaches[foreachId];
 }
@@ -608,17 +608,17 @@ QVector<QByteArray> DynamicTableData::byteArrayTable() const
     return byteArrays;
 }
 
-QVector<EvaluatorInfo> DynamicTableData::evaluators() const
+QVector<QScxmlEvaluatorInfo> DynamicTableData::evaluators() const
 {
     return theEvaluators;
 }
 
-QVector<AssignmentInfo> DynamicTableData::assignments() const
+QVector<QScxmlAssignmentInfo> DynamicTableData::assignments() const
 {
     return theAssignments;
 }
 
-QVector<ForeachInfo> DynamicTableData::foreaches() const
+QVector<QScxmlForeachInfo> DynamicTableData::foreaches() const
 {
     return theForeaches;
 }

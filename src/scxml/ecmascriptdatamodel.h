@@ -26,12 +26,12 @@ class QJSEngine;
 
 namespace Scxml {
 
-class EcmaScriptDataModelPrivate;
-class Q_SCXML_EXPORT EcmaScriptDataModel: public DataModel
+class QScxmlEcmaScriptDataModelPrivate;
+class Q_SCXML_EXPORT QScxmlEcmaScriptDataModel: public QScxmlDataModel
 {
 public:
-    EcmaScriptDataModel();
-    ~EcmaScriptDataModel() Q_DECL_OVERRIDE;
+    QScxmlEcmaScriptDataModel();
+    ~QScxmlEcmaScriptDataModel() Q_DECL_OVERRIDE;
 
     void setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;
 
@@ -49,13 +49,11 @@ public:
     bool hasProperty(const QString &name) const Q_DECL_OVERRIDE;
     void setProperty(const QString &name, const QVariant &value, const QString &context, bool *ok) Q_DECL_OVERRIDE;
 
-    virtual EcmaScriptDataModel *asEcmaScriptDataModel() Q_DECL_OVERRIDE;
-
     QJSEngine *engine() const;
     void setEngine(QJSEngine *engine);
 
 private:
-    EcmaScriptDataModelPrivate *d;
+    QScxmlEcmaScriptDataModelPrivate *d;
 };
 
 } // Scxml namespace
