@@ -12,4 +12,6 @@ qtHaveModule(qml) {
     SUBDIRS +=  trafficlight-qml-dynamic
     SUBDIRS +=  mediaplayer-qml-static
     SUBDIRS +=  mediaplayer-qml-dynamic
+
+    SUBDIRS +=  mediaplayer-qml-cppdatamodel
 }

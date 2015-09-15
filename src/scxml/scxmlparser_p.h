@@ -338,7 +338,8 @@ struct Scxml: public StateContainer, public Node
 {
     enum DataModelType {
         NullDataModel,
-        JSDataModel
+        JSDataModel,
+        CppDataModel
     };
     enum BindingMethod {
         EarlyBinding,
@@ -349,6 +350,8 @@ struct Scxml: public StateContainer, public Node
     QString name;
     QString qtClassname;
     DataModelType dataModel;
+    QString cppDataModelClassName;
+    QString cppDataModelHeaderName;
     BindingMethod binding;
     QVector<StateOrTransition *> children;
     QVector<DataElement *> dataElements;

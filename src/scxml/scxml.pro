@@ -22,7 +22,9 @@ HEADERS += \
     scxmlevent_p.h \
     datamodel.h \
     scxmlqstates.h \
-    scxmlqstates_p.h
+    scxmlqstates_p.h \
+    cppdatamodel_p.h \
+    cppdatamodel.h
 
 SOURCES += \
     scxmlparser.cpp \
@@ -33,4 +35,5 @@ SOURCES += \
     executablecontent.cpp \
     scxmlevent.cpp \
     datamodel.cpp \
-    scxmlqstates.cpp
+    scxmlqstates.cpp \
+    cppdatamodel.cpp

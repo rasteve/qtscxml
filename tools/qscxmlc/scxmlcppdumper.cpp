@@ -74,6 +74,7 @@ struct StringListDumper {
 struct Method {
     StringListDumper initializer;
     Method(const QString &decl = QString()): decl(decl) {}
+    Method(const StringListDumper &impl): impl(impl) {}
     QString decl; // void f(int i = 0);
     StringListDumper impl; // void f(int i) { m_i = ++i; }
 };
@@ -81,6 +82,7 @@ struct Method {
 struct ClassDump {
     StringListDumper implIncludes;
     QString className;
+    QString dataModelClassName;
     StringListDumper classFields;
     StringListDumper tables;
     Method init;
@@ -93,6 +95,8 @@ struct ClassDump {
     QList<Method> publicMethods;
     StringListDumper publicSlotDeclarations;
     StringListDumper publicSlotDefinitions;
+
+    QList<Method> dataModelMethods;
 };
 
 namespace {
@@ -210,7 +214,12 @@ protected:
                               << QStringLiteral("{ return QString(); }")
                               << QString();
         }
-        clazz.init.impl << QStringLiteral("stateMachine.setDataModel(&dataModel);");
+        if (node->dataModel == Scxml::CppDataModel) {
+            setIsCppDataModel(true);
+            clazz.dataModelClassName = node->cppDataModelClassName;
+        } else {
+            clazz.init.impl << QStringLiteral("stateMachine.setDataModel(&dataModel);");
+        }
 
         QString binding;
         switch (node->binding) {
@@ -258,20 +267,21 @@ protected:
         m_parents.removeLast();
 
         { // the data model:
-            QString dmName;
             switch (node->dataModel) {
             case Scxml::NullDataModel:
-                dmName = QStringLiteral("Null");
+                clazz.classFields << QStringLiteral("Scxml::QScxmlNullDataModel dataModel;");
                 clazz.implIncludes << QStringLiteral("QtScxml/nulldatamodel.h");
                 break;
             case Scxml::JSDataModel:
-                dmName = QStringLiteral("EcmaScript");
+                clazz.classFields << QStringLiteral("Scxml::QScxmlEcmaScriptDataModel dataModel;");
                 clazz.implIncludes << QStringLiteral("QtScxml/ecmascriptdatamodel.h");
+                break;
+            case Scxml::CppDataModel:
+                clazz.implIncludes << node->cppDataModelHeaderName;
                 break;
             default:
                 Q_UNREACHABLE();
             }
-            clazz.classFields << QStringLiteral("Scxml::QScxml") + dmName + QStringLiteral("DataModel dataModel;");
         }
         return false;
     }
@@ -730,6 +740,171 @@ private:
                               << QString();
         }
 
+        { // dataIds
+            int count;
+            auto dataIds = td->dataNames(&count);
+            clazz.classFields << QStringLiteral("static Scxml::ExecutableContent::StringId dataIds[];");
+            t << QStringLiteral("Scxml::ExecutableContent::StringId %1::Data::dataIds[] = {").arg(clazz.className);
+            if (isCppDataModel()) {
+                t << QStringLiteral("-1");
+            } else  {
+                generateList(t, [&dataIds, count](int idx) -> QString {
+                    if (count == 0 && idx == 0) // prevent generation of empty array
+                        return QStringLiteral("-1");
+                    if (idx < count)
+                        return QString::number(dataIds[idx]);
+                    else
+                        return QString();
+                });
+            }
+            t << QStringLiteral("};") << QStringLiteral("");
+            clazz.dataMethods << QStringLiteral("Scxml::ExecutableContent::StringId *dataNames(int *count) const Q_DECL_OVERRIDE");
+            clazz.dataMethods << QStringLiteral("{ *count = %1; return dataIds; }").arg(count);
+            clazz.dataMethods << QString();
+        }
+
+        { // evaluators
+            auto evaluators = td->evaluators();
+            clazz.classFields << QStringLiteral("static Scxml::QScxmlEvaluatorInfo evaluators[];");
+            t << QStringLiteral("Scxml::QScxmlEvaluatorInfo %1::Data::evaluators[] = {").arg(clazz.className);
+            if (isCppDataModel()) {
+                t << QStringLiteral("{ -1, -1 }");
+            } else {
+                generateList(t, [&evaluators](int idx) -> QString {
+                    if (evaluators.isEmpty() && idx == 0) // prevent generation of empty array
+                        return QStringLiteral("{ -1, -1 }");
+                    if (idx >= evaluators.size())
+                        return QString();
+
+                    auto eval = evaluators.at(idx);
+                    return QStringLiteral("{ %1, %2 }").arg(eval.expr).arg(eval.context);
+                });
+            }
+            t << QStringLiteral("};") << QStringLiteral("");
+            clazz.dataMethods << QStringLiteral("Scxml::QScxmlEvaluatorInfo evaluatorInfo(Scxml::EvaluatorId evaluatorId) const Q_DECL_OVERRIDE");
+            clazz.dataMethods << QStringLiteral("{ Q_ASSERT(evaluatorId >= 0); Q_ASSERT(evaluatorId < %1); return evaluators[evaluatorId]; }").arg(evaluators.size());
+            clazz.dataMethods << QString();
+
+            if (isCppDataModel()) {
+                {
+                    StringListDumper stringEvals;
+                    stringEvals << QStringLiteral("QString %1::evaluateToString(Scxml::EvaluatorId id, bool *ok) {").arg(clazz.dataModelClassName)
+                              << QStringLiteral("    *ok = true;")
+                              << QStringLiteral("    switch (id) {");
+                    auto evals = stringEvaluators();
+                    for (auto it = evals.constBegin(), eit = evals.constEnd(); it != eit; ++it) {
+                        stringEvals << QStringLiteral("    case %1:").arg(it.key())
+                                  << QStringLiteral("        return [this](){ return %1; }();").arg(it.value());
+                    }
+                    stringEvals << QStringLiteral("    default:")
+                              << QStringLiteral("        Q_UNREACHABLE();")
+                              << QStringLiteral("        *ok = false;")
+                              << QStringLiteral("        return QString();")
+                              << QStringLiteral("    }");
+                    stringEvals << QStringLiteral("}");
+                    clazz.dataModelMethods.append(Method(stringEvals));
+                }
+
+                {
+                    StringListDumper boolEvals;
+                    boolEvals << QStringLiteral("bool %1::evaluateToBool(Scxml::EvaluatorId id, bool *ok) {").arg(clazz.dataModelClassName)
+                              << QStringLiteral("    *ok = true;")
+                              << QStringLiteral("    switch (id) {");
+                    auto evals = boolEvaluators();
+                    for (auto it = evals.constBegin(), eit = evals.constEnd(); it != eit; ++it) {
+                        boolEvals << QStringLiteral("    case %1:").arg(it.key())
+                                  << QStringLiteral("        return [this](){ return %1; }();").arg(it.value());
+                    }
+                    boolEvals << QStringLiteral("    default:")
+                              << QStringLiteral("        Q_UNREACHABLE();")
+                              << QStringLiteral("        *ok = false;")
+                              << QStringLiteral("        return false;")
+                              << QStringLiteral("    }");
+                    boolEvals << QStringLiteral("}");
+                    clazz.dataModelMethods.append(Method(boolEvals));
+                }
+
+                {
+                    StringListDumper variantEvals;
+                    variantEvals << QStringLiteral("QVariant %1::evaluateToVariant(Scxml::EvaluatorId id, bool *ok) {").arg(clazz.dataModelClassName)
+                                 << QStringLiteral("    *ok = true;")
+                                 << QStringLiteral("    switch (id) {");
+                    auto evals = variantEvaluators();
+                    for (auto it = evals.constBegin(), eit = evals.constEnd(); it != eit; ++it) {
+                        variantEvals << QStringLiteral("    case %1:").arg(it.key())
+                                     << QStringLiteral("        return [this](){ return %1; }();").arg(it.value());
+                    }
+                    variantEvals << QStringLiteral("    default:")
+                                 << QStringLiteral("        Q_UNREACHABLE();")
+                                 << QStringLiteral("        *ok = false;")
+                                 << QStringLiteral("        return QVariant();")
+                                 << QStringLiteral("    }");
+                    variantEvals << QStringLiteral("}");
+                    clazz.dataModelMethods.append(Method(variantEvals));
+                }
+
+                {
+                    StringListDumper voidEvals;
+                    voidEvals << QStringLiteral("void %1::evaluateToVoid(Scxml::EvaluatorId id, bool *ok) {").arg(clazz.dataModelClassName)
+                                 << QStringLiteral("    *ok = true;")
+                                 << QStringLiteral("    switch (id) {");
+                    auto evals = voidEvaluators();
+                    for (auto it = evals.constBegin(), eit = evals.constEnd(); it != eit; ++it) {
+                        voidEvals << QStringLiteral("    case %1:").arg(it.key())
+                                     << QStringLiteral("        [this](){ %1 }();").arg(it.value())
+                                     << QStringLiteral("        break;");
+                    }
+                    voidEvals << QStringLiteral("    default:")
+                                 << QStringLiteral("        Q_UNREACHABLE();")
+                                 << QStringLiteral("        *ok = false;")
+                                 << QStringLiteral("    }");
+                    voidEvals << QStringLiteral("}");
+                    clazz.dataModelMethods.append(Method(voidEvals));
+                }
+            }
+        }
+
+        { // assignments
+            auto assignments = td->assignments();
+            clazz.classFields << QStringLiteral("static Scxml::QScxmlAssignmentInfo assignments[];");
+            t << QStringLiteral("Scxml::QScxmlAssignmentInfo %1::Data::assignments[] = {").arg(clazz.className);
+            if (isCppDataModel()) {
+                t << QStringLiteral("{ -1, -1, -1 }");
+            } else {
+                generateList(t, [&assignments](int idx) -> QString {
+                    if (assignments.isEmpty() && idx == 0) // prevent generation of empty array
+                        return QStringLiteral("{ -1, -1, -1 }");
+                    if (idx >= assignments.size())
+                        return QString();
+
+                    auto ass = assignments.at(idx);
+                    return QStringLiteral("{ %1, %2, %3 }").arg(ass.dest).arg(ass.expr).arg(ass.context);
+                });
+            }
+            t << QStringLiteral("};") << QStringLiteral("");
+            clazz.dataMethods << QStringLiteral("Scxml::QScxmlAssignmentInfo assignmentInfo(Scxml::EvaluatorId assignmentId) const Q_DECL_OVERRIDE");
+            clazz.dataMethods << QStringLiteral("{ Q_ASSERT(assignmentId >= 0); Q_ASSERT(assignmentId < %1); return assignments[assignmentId]; }").arg(assignments.size());
+            clazz.dataMethods << QString();
+        }
+
+        { // foreaches
+            auto foreaches = td->foreaches();
+            clazz.classFields << QStringLiteral("static Scxml::QScxmlForeachInfo foreaches[];");
+            t << QStringLiteral("Scxml::QScxmlForeachInfo %1::Data::foreaches[] = {").arg(clazz.className);
+            generateList(t, [&foreaches](int idx) -> QString {
+                if (foreaches.isEmpty() && idx == 0) // prevent generation of empty array
+                    return QStringLiteral("{ -1, -1, -1, -1 }");
+                if (idx >= foreaches.size())
+                    return QString();
+
+                auto foreach = foreaches.at(idx);
+                return QStringLiteral("{ %1, %2, %3, %4 }").arg(foreach.array).arg(foreach.item).arg(foreach.index).arg(foreach.context);
+            });
+            t << QStringLiteral("};") << QStringLiteral("");
+            clazz.dataMethods << QStringLiteral("Scxml::QScxmlForeachInfo foreachInfo(Scxml::EvaluatorId foreachId) const Q_DECL_OVERRIDE");
+            clazz.dataMethods << QStringLiteral("{ Q_ASSERT(foreachId >= 0); Q_ASSERT(foreachId < %1); return foreaches[foreachId]; }").arg(foreaches.size());
+        }
+
         { // strings
             t << QStringLiteral("#define STR_LIT(idx, ofs, len) \\")
               << QStringLiteral("    Q_STATIC_STRING_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \\")
@@ -745,19 +920,21 @@ private:
                 if (idx >= strings.size())
                     return QString();
 
-                auto s = strings.at(idx);
+                int length = strings.at(idx).size();
                 QString str = QStringLiteral("STR_LIT(%1, %2, %3)").arg(QString::number(idx),
                                                                         QString::number(ucharCount),
-                                                                        QString::number(s.size()));
-                ucharCount += s.size() + 1;
+                                                                        QString::number(length));
+                ucharCount += length + 1;
                 return str;
             });
             t << QStringLiteral("},");
             if (strings.isEmpty()) {
                 t << QStringLiteral("QT_UNICODE_LITERAL_II(\"\")");
             } else {
-                foreach (const QString &s, strings) {
-                    t << QStringLiteral("QT_UNICODE_LITERAL_II(\"%1\") // %2").arg(toHex(s) + QStringLiteral("\\x00"), cEscape(s));
+                for (int i = 0, ei = strings.size(); i < ei; ++i) {
+                    QString s = strings.at(i);
+                    QString comment = cEscape(s);
+                    t << QStringLiteral("QT_UNICODE_LITERAL_II(\"%1\") // %2").arg(toHex(s) + QStringLiteral("\\x00"), comment);
                 }
             }
             t << QStringLiteral("};") << QStringLiteral("");
@@ -836,81 +1013,6 @@ private:
             clazz.dataMethods << QStringLiteral("}");
             clazz.dataMethods << QString();
         }
-
-        { // dataIds
-            int count;
-            auto dataIds = td->dataNames(&count);
-            clazz.classFields << QStringLiteral("static Scxml::ExecutableContent::StringId dataIds[];");
-            t << QStringLiteral("Scxml::ExecutableContent::StringId %1::Data::dataIds[] = {").arg(clazz.className);
-            generateList(t, [&dataIds, count](int idx) -> QString {
-                if (count == 0 && idx == 0) // prevent generation of empty array
-                    return QStringLiteral("-1");
-                if (idx < count)
-                    return QString::number(dataIds[idx]);
-                else
-                    return QString();
-            });
-            t << QStringLiteral("};") << QStringLiteral("");
-            clazz.dataMethods << QStringLiteral("Scxml::ExecutableContent::StringId *dataNames(int *count) const Q_DECL_OVERRIDE");
-            clazz.dataMethods << QStringLiteral("{ *count = %1; return dataIds; }").arg(count);
-            clazz.dataMethods << QString();
-        }
-
-        { // evaluators
-            auto evaluators = td->evaluators();
-            clazz.classFields << QStringLiteral("static Scxml::QScxmlEvaluatorInfo evaluators[];");
-            t << QStringLiteral("Scxml::QScxmlEvaluatorInfo %1::Data::evaluators[] = {").arg(clazz.className);
-            generateList(t, [&evaluators](int idx) -> QString {
-                if (evaluators.isEmpty() && idx == 0) // prevent generation of empty array
-                    return QStringLiteral("{ -1, -1 }");
-                if (idx >= evaluators.size())
-                    return QString();
-
-                auto eval = evaluators.at(idx);
-                return QStringLiteral("{ %1, %2 }").arg(eval.expr).arg(eval.context);
-            });
-            t << QStringLiteral("};") << QStringLiteral("");
-            clazz.dataMethods << QStringLiteral("Scxml::QScxmlEvaluatorInfo evaluatorInfo(Scxml::EvaluatorId evaluatorId) const Q_DECL_OVERRIDE");
-            clazz.dataMethods << QStringLiteral("{ Q_ASSERT(evaluatorId >= 0); Q_ASSERT(evaluatorId < %1); return evaluators[evaluatorId]; }").arg(evaluators.size());
-            clazz.dataMethods << QString();
-        }
-
-        { // assignments
-            auto assignments = td->assignments();
-            clazz.classFields << QStringLiteral("static Scxml::QScxmlAssignmentInfo assignments[];");
-            t << QStringLiteral("Scxml::QScxmlAssignmentInfo %1::Data::assignments[] = {").arg(clazz.className);
-            generateList(t, [&assignments](int idx) -> QString {
-                if (assignments.isEmpty() && idx == 0) // prevent generation of empty array
-                    return QStringLiteral("{ -1, -1, -1 }");
-                if (idx >= assignments.size())
-                    return QString();
-
-                auto ass = assignments.at(idx);
-                return QStringLiteral("{ %1, %2, %3 }").arg(ass.dest).arg(ass.expr).arg(ass.context);
-            });
-            t << QStringLiteral("};") << QStringLiteral("");
-            clazz.dataMethods << QStringLiteral("Scxml::QScxmlAssignmentInfo assignmentInfo(Scxml::EvaluatorId assignmentId) const Q_DECL_OVERRIDE");
-            clazz.dataMethods << QStringLiteral("{ Q_ASSERT(assignmentId >= 0); Q_ASSERT(assignmentId < %1); return assignments[assignmentId]; }").arg(assignments.size());
-            clazz.dataMethods << QString();
-        }
-
-        { // foreaches
-            auto foreaches = td->foreaches();
-            clazz.classFields << QStringLiteral("static Scxml::QScxmlForeachInfo foreaches[];");
-            t << QStringLiteral("Scxml::QScxmlForeachInfo %1::Data::foreaches[] = {").arg(clazz.className);
-            generateList(t, [&foreaches](int idx) -> QString {
-                if (foreaches.isEmpty() && idx == 0) // prevent generation of empty array
-                    return QStringLiteral("{ -1, -1, -1, -1 }");
-                if (idx >= foreaches.size())
-                    return QString();
-
-                auto foreach = foreaches.at(idx);
-                return QStringLiteral("{ %1, %2, %3, %4 }").arg(foreach.array).arg(foreach.item).arg(foreach.index).arg(foreach.context);
-            });
-            t << QStringLiteral("};") << QStringLiteral("");
-            clazz.dataMethods << QStringLiteral("Scxml::QScxmlForeachInfo foreachInfo(Scxml::EvaluatorId foreachId) const Q_DECL_OVERRIDE");
-            clazz.dataMethods << QStringLiteral("{ Q_ASSERT(foreachId >= 0); Q_ASSERT(foreachId < %1); return foreaches[foreachId]; }").arg(foreaches.size());
-        }
     }
 
     QString qba(const QString &bytes)
@@ -960,7 +1062,9 @@ void CppDumper::dump(TranslationUnit *unit)
     }
 
     auto headerName = QFileInfo(unit->outHFileName).fileName();
-    const QString headerGuard = headerName.toUpper().replace(QLatin1Char('.'), QLatin1Char('_'));
+    const QString headerGuard = headerName.toUpper()
+            .replace(QLatin1Char('.'), QLatin1Char('_'))
+            .replace(QLatin1Char('-'), QLatin1Char('_'));
     writeHeaderStart(headerGuard);
     writeImplStart(clazzes);
 
@@ -1099,6 +1203,13 @@ void CppDumper::writeImplBody(const ClassDump &clazz)
     cpp << endl;
 
     clazz.tables.write(cpp, QStringLiteral(""), QStringLiteral("\n"));
+
+    if (!clazz.dataModelMethods.isEmpty()) {
+        foreach (const Method &m, clazz.dataModelMethods) {
+            m.impl.write(cpp, QStringLiteral(""), QStringLiteral("\n"));
+            cpp << endl;
+        }
+    }
 }
 
 void CppDumper::writeImplEnd()

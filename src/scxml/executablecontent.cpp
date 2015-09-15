@@ -133,7 +133,7 @@ public:
         }
 
         case Instruction::JavaScript: {
-            qDebug() << "Executing javascript step";
+            qDebug() << "Executing script step";
             JavaScript *javascript = reinterpret_cast<JavaScript *>(instr);
             ip += javascript->size();
             bool ok = true;
@@ -295,6 +295,7 @@ bool ExecutionEngine::execute(ContainerId id, const QVariant &extraData)
 
 Builder::Builder()
     : m_initialSetup(ExecutableContent::NoInstruction)
+    , m_isCppDataModel(false)
 {
     m_activeSequences.reserve(4);
 }
@@ -335,8 +336,7 @@ void Builder::visit(DocumentModel::Log *node)
 void Builder::visit(DocumentModel::Script *node)
 {
     auto instr = m_instructions.add<JavaScript>();
-    auto ctxt = createContext(QStringLiteral("script"), QStringLiteral("source"), node->content);
-    instr->go = addEvaluator(node->content, ctxt);
+    instr->go = createEvaluatorVoid(QStringLiteral("script"), QStringLiteral("source"), node->content);
 }
 
 void Builder::visit(DocumentModel::Assign *node)
@@ -504,8 +504,14 @@ InstructionSequence *Builder::endSequence()
 EvaluatorId Builder::createEvaluatorString(const QString &instrName, const QString &attrName, const QString &expr)
 {
     if (!expr.isEmpty()) {
-        QString loc = createContext(instrName, attrName, expr);
-        return addEvaluator(expr, loc);
+        if (isCppDataModel()) {
+            auto id = m_evaluators.add(QScxmlEvaluatorInfo(), false);
+            m_stringEvaluators.insert(id, expr);
+            return id;
+        } else {
+            QString loc = createContext(instrName, attrName, expr);
+            return addEvaluator(expr, loc);
+        }
     }
 
     return NoEvaluator;
@@ -514,18 +520,46 @@ EvaluatorId Builder::createEvaluatorString(const QString &instrName, const QStri
 EvaluatorId Builder::createEvaluatorBool(const QString &instrName, const QString &attrName, const QString &cond)
 {
     if (!cond.isEmpty()) {
-        QString loc = createContext(instrName, attrName, cond);
-        return addEvaluator(cond, loc);
+        if (isCppDataModel()) {
+            auto id = m_evaluators.add(QScxmlEvaluatorInfo(), false);
+            m_boolEvaluators.insert(id, cond);
+            return id;
+        } else {
+            QString loc = createContext(instrName, attrName, cond);
+            return addEvaluator(cond, loc);
+        }
     }
 
     return NoEvaluator;
 }
 
-EvaluatorId Builder::createEvaluatorVariant(const QString &instrName, const QString &attrName, const QString &cond)
+EvaluatorId Builder::createEvaluatorVariant(const QString &instrName, const QString &attrName, const QString &expr)
 {
-    if (!cond.isEmpty()) {
-        QString loc = createContext(instrName, attrName, cond);
-        return addEvaluator(cond, loc);
+    if (!expr.isEmpty()) {
+        if (isCppDataModel()) {
+            auto id = m_evaluators.add(QScxmlEvaluatorInfo(), false);
+            m_variantEvaluators.insert(id, expr);
+            return id;
+        } else {
+            QString loc = createContext(instrName, attrName, expr);
+            return addEvaluator(expr, loc);
+        }
+    }
+
+    return NoEvaluator;
+}
+
+EvaluatorId Builder::createEvaluatorVoid(const QString &instrName, const QString &attrName, const QString &stuff)
+{
+    if (!stuff.isEmpty()) {
+        if (isCppDataModel()) {
+            auto id = m_evaluators.add(QScxmlEvaluatorInfo(), false);
+            m_voidEvaluators.insert(id, stuff);
+            return id;
+        } else {
+            QString loc = createContext(instrName, attrName, stuff);
+            return addEvaluator(stuff, loc);
+        }
     }
 
     return NoEvaluator;

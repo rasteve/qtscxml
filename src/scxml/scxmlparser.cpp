@@ -867,6 +867,8 @@ inline ScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(StateMachine *pa
     case DocumentModel::Scxml::JSDataModel:
         dataModel = new QScxmlEcmaScriptDataModel;
         break;
+    case DocumentModel::Scxml::CppDataModel:
+        break;
     default:
         Q_UNREACHABLE();
     }
@@ -1387,6 +1389,21 @@ void ScxmlParserPrivate::parse()
                     scxml->dataModel = DocumentModel::Scxml::NullDataModel;
                 } else if (datamodel == QLatin1String("ecmascript")) {
                     scxml->dataModel = DocumentModel::Scxml::JSDataModel;
+                } else if (datamodel.startsWith(QLatin1String("cplusplus"))) {
+                    scxml->dataModel = DocumentModel::Scxml::CppDataModel;
+                    int firstColon = datamodel.indexOf(QLatin1Char(':'));
+                    if (firstColon == -1) {
+                        scxml->cppDataModelClassName = attributes.value(QStringLiteral("name")) + QStringLiteral("DataModel");
+                        scxml->cppDataModelHeaderName = scxml->cppDataModelClassName + QStringLiteral(".h");
+                    } else {
+                        int lastColon = datamodel.lastIndexOf(QLatin1Char(':'));
+                        if (lastColon == -1) {
+                            lastColon = datamodel.length();
+                        } else {
+                            scxml->cppDataModelHeaderName = datamodel.mid(lastColon + 1).toString();
+                        }
+                        scxml->cppDataModelClassName = datamodel.mid(firstColon + 1, lastColon - firstColon - 1).toString();
+                    }
                 } else {
                     addError(QStringLiteral("Unsupported data model '%1' in scxml")
                              .arg(datamodel.toString()));

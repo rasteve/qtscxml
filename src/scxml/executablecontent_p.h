@@ -322,7 +322,8 @@ protected:
     InstructionSequence *endSequence();
     EvaluatorId createEvaluatorString(const QString &instrName, const QString &attrName, const QString &expr);
     EvaluatorId createEvaluatorBool(const QString &instrName, const QString &attrName, const QString &cond);
-    EvaluatorId createEvaluatorVariant(const QString &instrName, const QString &attrName, const QString &cond);
+    EvaluatorId createEvaluatorVariant(const QString &instrName, const QString &attrName, const QString &expr);
+    EvaluatorId createEvaluatorVoid(const QString &instrName, const QString &attrName, const QString &stuff);
 
     virtual QString createContextString(const QString &instrName) const = 0;
     virtual QString createContext(const QString &instrName, const QString &attrName, const QString &attrValue) const = 0;
@@ -341,6 +342,24 @@ protected:
     void setName(const QString &name)
     { m_name = name; }
 
+    bool isCppDataModel() const
+    { return m_isCppDataModel; }
+
+    void setIsCppDataModel(bool onoff)
+    { m_isCppDataModel = onoff; }
+
+    QMap<EvaluatorId, QString> boolEvaluators() const
+    { return m_boolEvaluators; }
+
+    QMap<EvaluatorId, QString> stringEvaluators() const
+    { return m_stringEvaluators; }
+
+    QMap<EvaluatorId, QString> variantEvaluators() const
+    { return m_variantEvaluators; }
+
+    QMap<EvaluatorId, QString> voidEvaluators() const
+    { return m_voidEvaluators; }
+
 private:
     template <typename T, typename U>
     class Table {
@@ -348,8 +367,8 @@ private:
         QMap<T, int> indexForElement;
 
     public:
-        U add(const T &s) {
-            int pos = indexForElement.value(s, -1);
+        U add(const T &s, bool uniqueOnly = true) {
+            int pos = uniqueOnly ? indexForElement.value(s, -1) : -1;
             if (pos == -1) {
                 pos = elements.size();
                 elements.append(s);
@@ -464,9 +483,14 @@ private:
     Table<QScxmlEvaluatorInfo, EvaluatorId> m_evaluators;
     Table<QScxmlAssignmentInfo, EvaluatorId> m_assignments;
     Table<QScxmlForeachInfo, EvaluatorId> m_foreaches;
+    QMap<EvaluatorId, QString> m_boolEvaluators;
+    QMap<EvaluatorId, QString> m_stringEvaluators;
+    QMap<EvaluatorId, QString> m_variantEvaluators;
+    QMap<EvaluatorId, QString> m_voidEvaluators;
     ExecutableContent::StringIds m_dataIds;
     ContainerId m_initialSetup;
     QString m_name;
+    bool m_isCppDataModel;
 };
 
 } // ExecutableContent namespace
