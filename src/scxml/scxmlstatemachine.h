@@ -98,12 +98,12 @@ private:
 QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const ScxmlError &error);
 QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const QVector<ScxmlError> &errors);
 
-class Q_SCXML_EXPORT ScxmlInvokableService
+class Q_SCXML_EXPORT QScxmlInvokableService
 {
 public:
-    ScxmlInvokableService(const QString &id, const QVariantMap &data, bool autoforward,
-                          QScxmlExecutableContent::ContainerId finalize, StateMachine *parent);
-    virtual ~ScxmlInvokableService();
+    QScxmlInvokableService(const QString &id, const QVariantMap &data, bool autoforward,
+                           QScxmlExecutableContent::ContainerId finalize, StateMachine *parent);
+    virtual ~QScxmlInvokableService();
 
     QString id() const;
     bool autoforward() const;
@@ -119,7 +119,7 @@ private:
     Data *d;
 };
 
-class Q_SCXML_EXPORT ScxmlInvokableServiceFactory
+class Q_SCXML_EXPORT QScxmlInvokableServiceFactory
 {
 public:
     struct Q_SCXML_EXPORT Param
@@ -129,7 +129,7 @@ public:
         QScxmlExecutableContent::StringId location;
     };
 
-    ScxmlInvokableServiceFactory(QScxmlExecutableContent::StringId invokeLocation,
+    QScxmlInvokableServiceFactory(QScxmlExecutableContent::StringId invokeLocation,
                                  QScxmlExecutableContent::StringId id,
                                  QScxmlExecutableContent::StringId idPrefix,
                                  QScxmlExecutableContent::StringId idlocation,
@@ -137,9 +137,9 @@ public:
                                  bool autoforward,
                                  const QVector<Param> &params,
                                  QScxmlExecutableContent::ContainerId finalizeContent);
-    virtual ~ScxmlInvokableServiceFactory();
+    virtual ~QScxmlInvokableServiceFactory();
 
-    virtual ScxmlInvokableService *invoke(StateMachine *parent) = 0;
+    virtual QScxmlInvokableService *invoke(StateMachine *parent) = 0;
 
 protected:
     QString calculateId(StateMachine *parent, bool *ok) const;
@@ -152,20 +152,20 @@ private:
     Data *d;
 };
 
-class Q_SCXML_EXPORT InvokableScxmlServiceFactory: public ScxmlInvokableServiceFactory
+class Q_SCXML_EXPORT QScxmlInvokableScxmlServiceFactory: public QScxmlInvokableServiceFactory
 {
 public:
-    InvokableScxmlServiceFactory(Scxml::QScxmlExecutableContent::StringId invokeLocation,
-                                 Scxml::QScxmlExecutableContent::StringId id,
-                                 Scxml::QScxmlExecutableContent::StringId idPrefix,
-                                 Scxml::QScxmlExecutableContent::StringId idlocation,
-                                 const QVector<Scxml::QScxmlExecutableContent::StringId> &namelist,
-                                 bool doAutoforward,
-                                 const QVector<Param> &params,
-                                 QScxmlExecutableContent::ContainerId finalize);
+    QScxmlInvokableScxmlServiceFactory(Scxml::QScxmlExecutableContent::StringId invokeLocation,
+                                       Scxml::QScxmlExecutableContent::StringId id,
+                                       Scxml::QScxmlExecutableContent::StringId idPrefix,
+                                       Scxml::QScxmlExecutableContent::StringId idlocation,
+                                       const QVector<Scxml::QScxmlExecutableContent::StringId> &namelist,
+                                       bool doAutoforward,
+                                       const QVector<Param> &params,
+                                       QScxmlExecutableContent::ContainerId finalize);
 
 protected:
-    ScxmlInvokableService *finishInvoke(StateMachine *child, StateMachine *parent);
+    QScxmlInvokableService *finishInvoke(StateMachine *child, StateMachine *parent);
 };
 
 class StateMachine;
@@ -244,8 +244,8 @@ public:
     bool isLegalTarget(const QString &target) const;
     bool isDispatchableTarget(const QString &target) const;
 
-    void registerService(ScxmlInvokableService *service);
-    void unregisterService(ScxmlInvokableService *service);
+    void registerService(QScxmlInvokableService *service);
+    void unregisterService(QScxmlInvokableService *service);
 
 Q_SIGNALS:
     void log(const QString &label, const QString &msg);

@@ -102,7 +102,7 @@ public: // data fields:
     QScxmlEvent m_event;
     Internal::MyQStateMachine *m_qStateMachine;
     ScxmlEventFilter *m_eventFilter;
-    QVector<ScxmlInvokableService *> m_registeredServices;
+    QVector<QScxmlInvokableService *> m_registeredServices;
     StateMachine *m_parentStateMachine;
 
 private:

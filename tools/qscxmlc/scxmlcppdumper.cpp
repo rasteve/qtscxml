@@ -340,7 +340,7 @@ protected:
             clazz.init.impl << stateName + QStringLiteral(".setInvokableServiceFactories({");
             for (int i = 0, ei = node->invokes.size(); i != ei; ++i) {
                 Invoke *invoke = node->invokes.at(i);
-                QString line = QStringLiteral("    new Scxml::InvokeScxmlFactory<%1>(").arg(scxmlClassName(invoke->content.data()));
+                QString line = QStringLiteral("    new Scxml::QScxmlInvokeScxmlFactory<%1>(").arg(scxmlClassName(invoke->content.data()));
                 line += QStringLiteral("%1, ").arg(Builder::createContext(QStringLiteral("invoke")));
                 line += QStringLiteral("%1, ").arg(addString(invoke->id));
                 line += QStringLiteral("%1, ").arg(addString(node->id + QStringLiteral(".session-")));

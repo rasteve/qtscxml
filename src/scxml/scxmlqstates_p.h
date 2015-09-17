@@ -44,8 +44,8 @@ public:
     QScxmlExecutableContent::ContainerId initInstructions;
     QScxmlExecutableContent::ContainerId onEntryInstructions;
     QScxmlExecutableContent::ContainerId onExitInstructions;
-    QVector<ScxmlInvokableServiceFactory *> invokableServiceFactories;
-    QVector<ScxmlInvokableService *> invokedServices;
+    QVector<QScxmlInvokableServiceFactory *> invokableServiceFactories;
+    QVector<QScxmlInvokableService *> invokedServices;
 };
 
 class QScxmlFinalState::Data

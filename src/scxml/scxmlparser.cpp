@@ -484,7 +484,7 @@ private:
     int m_firstSlotWithoutData;
 };
 
-class InvokeDynamicScxmlFactory: public InvokableScxmlServiceFactory
+class InvokeDynamicScxmlFactory: public QScxmlInvokableScxmlServiceFactory
 {
 public:
     InvokeDynamicScxmlFactory(QScxmlExecutableContent::StringId invokeLocation,
@@ -495,13 +495,13 @@ public:
                               bool autoforward,
                               const QVector<Param> &params,
                               QScxmlExecutableContent::ContainerId finalize)
-        : InvokableScxmlServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist, autoforward, params, finalize)
+        : QScxmlInvokableScxmlServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist, autoforward, params, finalize)
     {}
 
     void setContent(const QSharedPointer<DocumentModel::ScxmlDocument> &content)
     { m_content = content; }
 
-    ScxmlInvokableService *invoke(StateMachine *child) Q_DECL_OVERRIDE;
+    QScxmlInvokableService *invoke(StateMachine *child) Q_DECL_OVERRIDE;
 
 private:
     QSharedPointer<DocumentModel::ScxmlDocument> m_content;
@@ -638,13 +638,13 @@ private:
             s->setOnEntryInstructions(onEntry);
             s->setOnExitInstructions(onExit);
             if (!node->invokes.isEmpty()) {
-                QVector<ScxmlInvokableServiceFactory *> factories;
+                QVector<QScxmlInvokableServiceFactory *> factories;
                 foreach (DocumentModel::Invoke *invoke, node->invokes) {
                     auto ctxt = createContext(QStringLiteral("invoke"));
                     QVector<QScxmlExecutableContent::StringId> namelist;
                     foreach (const QString &name, invoke->namelist)
                         namelist += addString(name);
-                    QVector<ScxmlInvokableServiceFactory::Param> params;
+                    QVector<QScxmlInvokableServiceFactory::Param> params;
                     foreach (DocumentModel::Param *param, invoke->params) {
                         params.append({
                                           addString(param->name),
@@ -853,7 +853,7 @@ private:
     QSet<QString> m_stateNames;
 };
 
-inline ScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(StateMachine *parent)
+inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(StateMachine *parent)
 {
     auto child = QStateMachineBuilder().build(m_content.data());
 

@@ -104,7 +104,7 @@ void QScxmlState::setOnExitInstructions(QScxmlExecutableContent::ContainerId ins
     d->onExitInstructions = instructions;
 }
 
-void QScxmlState::setInvokableServiceFactories(const QVector<ScxmlInvokableServiceFactory *> &factories)
+void QScxmlState::setInvokableServiceFactories(const QVector<QScxmlInvokableServiceFactory *> &factories)
 {
     d->invokableServiceFactories = factories;
 }
@@ -118,8 +118,8 @@ void QScxmlState::onEntry(QEvent *event)
     QState::onEntry(event);
     auto sm = stateMachine();
     StateMachinePrivate::get(sm)->m_executionEngine->execute(d->onEntryInstructions);
-    foreach (ScxmlInvokableServiceFactory *serviceFactory, d->invokableServiceFactories) {
-        if (ScxmlInvokableService *service = serviceFactory->invoke(sm)) {
+    foreach (QScxmlInvokableServiceFactory *serviceFactory, d->invokableServiceFactories) {
+        if (QScxmlInvokableService *service = serviceFactory->invoke(sm)) {
             d->invokedServices.append(service);
             sm->registerService(service);
         }
@@ -133,7 +133,7 @@ void QScxmlState::onExit(QEvent *event)
     auto sm = stateMachine();
     StateMachinePrivate::get(sm)->m_executionEngine->execute(d->onExitInstructions);
     QState::onExit(event);
-    foreach (ScxmlInvokableService *service, d->invokedServices) {
+    foreach (QScxmlInvokableService *service, d->invokedServices) {
         sm->unregisterService(service);
         delete service;
     }

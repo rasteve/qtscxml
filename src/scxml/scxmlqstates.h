@@ -26,22 +26,22 @@ QT_BEGIN_NAMESPACE
 namespace Scxml {
 
 template<class T>
-class InvokeScxmlFactory: public Scxml::InvokableScxmlServiceFactory
+class QScxmlInvokeScxmlFactory: public Scxml::QScxmlInvokableScxmlServiceFactory
 {
 public:
-    InvokeScxmlFactory(Scxml::QScxmlExecutableContent::StringId invokeLocation,
-                       Scxml::QScxmlExecutableContent::StringId id,
-                       Scxml::QScxmlExecutableContent::StringId idPrefix,
-                       Scxml::QScxmlExecutableContent::StringId idlocation,
-                       const QVector<Scxml::QScxmlExecutableContent::StringId> &namelist,
-                       bool doAutoforward,
-                       const QVector<Param> &params,
-                       QScxmlExecutableContent::ContainerId finalize)
-        : InvokableScxmlServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist,
-                                       doAutoforward, params, finalize)
+    QScxmlInvokeScxmlFactory(Scxml::QScxmlExecutableContent::StringId invokeLocation,
+                             Scxml::QScxmlExecutableContent::StringId id,
+                             Scxml::QScxmlExecutableContent::StringId idPrefix,
+                             Scxml::QScxmlExecutableContent::StringId idlocation,
+                             const QVector<Scxml::QScxmlExecutableContent::StringId> &namelist,
+                             bool doAutoforward,
+                             const QVector<Param> &params,
+                             QScxmlExecutableContent::ContainerId finalize)
+        : QScxmlInvokableScxmlServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist,
+                                             doAutoforward, params, finalize)
     {}
 
-    Scxml::ScxmlInvokableService *invoke(StateMachine *parent) Q_DECL_OVERRIDE
+    Scxml::QScxmlInvokableService *invoke(StateMachine *parent) Q_DECL_OVERRIDE
     {
         return finishInvoke(new T, parent);
     }
@@ -68,7 +68,7 @@ public:
     void setInitInstructions(QScxmlExecutableContent::ContainerId instructions);
     void setOnEntryInstructions(QScxmlExecutableContent::ContainerId instructions);
     void setOnExitInstructions(QScxmlExecutableContent::ContainerId instructions);
-    void setInvokableServiceFactories(const QVector<ScxmlInvokableServiceFactory *>& factories);
+    void setInvokableServiceFactories(const QVector<QScxmlInvokableServiceFactory *>& factories);
 
 Q_SIGNALS:
     void didEnter();
