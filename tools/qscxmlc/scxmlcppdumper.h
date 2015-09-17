@@ -19,10 +19,10 @@
 #ifndef CPPDUMPER_H
 #define CPPDUMPER_H
 
-#include "scxmlglobals.h"
-#include "scxmlstatemachine.h"
+#include "qscxmlglobals.h"
+#include "qscxmlstatemachine.h"
 
-#include <QtScxml/private/scxmlparser_p.h>
+#include <QtScxml/private/qscxmlparser_p.h>
 
 #include <QTextStream>
 

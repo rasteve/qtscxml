@@ -16,12 +16,12 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include "scxmlparser_p.h"
-#include "scxmlstatemachine_p.h"
-#include "executablecontent_p.h"
-#include "nulldatamodel.h"
-#include "ecmascriptdatamodel.h"
-#include "scxmlqstates.h"
+#include "qscxmlparser_p.h"
+#include "qscxmlstatemachine_p.h"
+#include "qscxmlexecutablecontent_p.h"
+#include "qscxmlnulldatamodel.h"
+#include "qscxmlecmascriptdatamodel.h"
+#include "qscxmlqstates.h"
 #include <QXmlStreamReader>
 #include <QLoggingCategory>
 #include <QState>

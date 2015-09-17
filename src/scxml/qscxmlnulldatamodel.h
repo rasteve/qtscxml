@@ -19,7 +19,7 @@
 #ifndef NULLDATAMODEL_H
 #define NULLDATAMODEL_H
 
-#include <QtScxml/datamodel.h>
+#include <QtScxml/qscxmldatamodel.h>
 
 QT_BEGIN_NAMESPACE
 

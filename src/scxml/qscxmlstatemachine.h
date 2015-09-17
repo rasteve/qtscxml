@@ -19,9 +19,9 @@
 #ifndef SCXMLSTATEMACHINE_H
 #define SCXMLSTATEMACHINE_H
 
-#include <QtScxml/datamodel.h>
-#include <QtScxml/executablecontent.h>
-#include <QtScxml/scxmlevent.h>
+#include <QtScxml/qscxmldatamodel.h>
+#include <QtScxml/qscxmlexecutablecontent.h>
+#include <QtScxml/qscxmlevent.h>
 
 #include <QState>
 #include <QFinalState>

@@ -41,7 +41,7 @@
 #ifndef THEDATAMODEL_H
 #define THEDATAMODEL_H
 
-#include "cppdatamodel.h"
+#include "qscxmlcppdatamodel.h"
 
 class TheDataModel: public QScxmlCppDataModel
 {

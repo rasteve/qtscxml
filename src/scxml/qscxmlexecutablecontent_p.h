@@ -30,10 +30,10 @@
 // We mean it.
 //
 
-#include "datamodel.h"
-#include "executablecontent.h"
-#include "scxmlparser_p.h"
-#include "scxmlstatemachine.h"
+#include <QtScxml/qscxmldatamodel.h>
+#include <QtScxml/qscxmlexecutablecontent.h>
+#include <QtScxml/private/qscxmlparser_p.h>
+#include <QtScxml/qscxmlstatemachine.h>
 
 QT_BEGIN_NAMESPACE
 

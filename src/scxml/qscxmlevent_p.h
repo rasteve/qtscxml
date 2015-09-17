@@ -30,9 +30,9 @@
 // We mean it.
 //
 
-#include "scxmlevent.h"
-#include "scxmlstatemachine.h"
-#include "executablecontent_p.h"
+#include <QtScxml/qscxmlevent.h>
+#include <QtScxml/qscxmlstatemachine.h>
+#include <QtScxml/private/qscxmlexecutablecontent_p.h>
 
 #include <QAtomicInt>
 

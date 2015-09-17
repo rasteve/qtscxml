@@ -16,8 +16,8 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include "cppdatamodel_p.h"
-#include "scxmlstatemachine.h"
+#include "qscxmlcppdatamodel_p.h"
+#include "qscxmlstatemachine.h"
 
 QT_USE_NAMESPACE
 

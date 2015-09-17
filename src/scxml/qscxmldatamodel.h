@@ -19,7 +19,7 @@
 #ifndef DATAMODEL_H
 #define DATAMODEL_H
 
-#include <QtScxml/executablecontent.h>
+#include <QtScxml/qscxmlexecutablecontent.h>
 
 #include <QVariant>
 #include <QVector>

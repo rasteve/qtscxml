@@ -30,7 +30,7 @@
 // We mean it.
 //
 
-#include "scxmlparser.h"
+#include "qscxmlparser.h"
 
 #include <QDir>
 #include <QFileInfo>

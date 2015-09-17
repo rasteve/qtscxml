@@ -16,10 +16,10 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include "scxmlstatemachine_p.h"
-#include "executablecontent_p.h"
-#include "scxmlevent_p.h"
-#include "scxmlqstates_p.h"
+#include "qscxmlstatemachine_p.h"
+#include "qscxmlexecutablecontent_p.h"
+#include "qscxmlevent_p.h"
+#include "qscxmlqstates_p.h"
 
 #include <QAbstractState>
 #include <QAbstractTransition>

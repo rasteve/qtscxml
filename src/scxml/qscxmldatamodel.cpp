@@ -16,7 +16,7 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include "datamodel.h"
+#include "qscxmldatamodel.h"
 
 class QScxmlDataModel::Data
 {

@@ -19,7 +19,7 @@
 #ifndef SCXMLEVENT_H
 #define SCXMLEVENT_H
 
-#include <QtScxml/scxmlglobals.h>
+#include <QtScxml/qscxmlglobals.h>
 
 #include <QEvent>
 #include <QStringList>

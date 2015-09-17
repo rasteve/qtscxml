@@ -16,9 +16,9 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include "executablecontent_p.h"
-#include "scxmlparser_p.h"
-#include "scxmlevent_p.h"
+#include "qscxmlexecutablecontent_p.h"
+#include "qscxmlparser_p.h"
+#include "qscxmlevent_p.h"
 
 using namespace QScxmlExecutableContent;
 

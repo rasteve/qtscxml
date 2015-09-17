@@ -16,8 +16,8 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include "ecmascriptplatformproperties_p.h"
-#include "scxmlstatemachine.h"
+#include "qscxmlecmascriptplatformproperties_p.h"
+#include "qscxmlstatemachine.h"
 
 QT_BEGIN_NAMESPACE
 class QScxmlPlatformProperties::Data

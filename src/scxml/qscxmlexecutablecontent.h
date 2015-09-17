@@ -19,7 +19,7 @@
 #ifndef EXECUTABLECONTENT_H
 #define EXECUTABLECONTENT_H
 
-#include <QtScxml/scxmlglobals.h>
+#include <QtScxml/qscxmlglobals.h>
 
 #include <QVector>
 

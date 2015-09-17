@@ -30,8 +30,8 @@
 // We mean it.
 //
 
-#include "executablecontent_p.h"
-#include "scxmlstatemachine.h"
+#include <QtScxml/private/qscxmlexecutablecontent_p.h>
+#include <QtScxml/qscxmlstatemachine.h>
 
 #include <QtCore/private/qstatemachine_p.h>
 

@@ -19,7 +19,7 @@
 #ifndef SCXMLQSTATES_H
 #define SCXMLQSTATES_H
 
-#include <QtScxml/scxmlstatemachine.h>
+#include <QtScxml/qscxmlstatemachine.h>
 
 QT_BEGIN_NAMESPACE
 

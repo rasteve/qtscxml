@@ -16,44 +16,47 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#ifndef ECMASCRIPTDATAMODEL_H
-#define ECMASCRIPTDATAMODEL_H
+#ifndef CPPDATAMODEL_H
+#define CPPDATAMODEL_H
 
-#include "datamodel.h"
+#include <QtScxml/qscxmldatamodel.h>
+
+#define Q_SCXML_DATAMODEL \
+    public: \
+        QString evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE; \
+        bool evaluateToBool(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE; \
+        QVariant evaluateToVariant(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE; \
+        void evaluateToVoid(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
 
 QT_BEGIN_NAMESPACE
-class QJSEngine;
 
-class QScxmlEcmaScriptDataModelPrivate;
-class Q_SCXML_EXPORT QScxmlEcmaScriptDataModel: public QScxmlDataModel
+class QScxmlCppDataModelPrivate;
+class Q_SCXML_EXPORT QScxmlCppDataModel: public QScxmlDataModel
 {
 public:
-    QScxmlEcmaScriptDataModel();
-    ~QScxmlEcmaScriptDataModel() Q_DECL_OVERRIDE;
+    QScxmlCppDataModel();
+    ~QScxmlCppDataModel();
 
     void setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;
 
-    QString evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
-    bool evaluateToBool(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
-    QVariant evaluateToVariant(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
-    void evaluateToVoid(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
     void evaluateAssignment(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
     void evaluateInitialization(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
     bool evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) Q_DECL_OVERRIDE;
 
     void setEvent(const QScxmlEvent &event) Q_DECL_OVERRIDE;
+    const QScxmlEvent &event() const;
 
     QVariant property(const QString &name) const Q_DECL_OVERRIDE;
     bool hasProperty(const QString &name) const Q_DECL_OVERRIDE;
-    void setProperty(const QString &name, const QVariant &value, const QString &context, bool *ok) Q_DECL_OVERRIDE;
+    void setProperty(const QString &name, const QVariant &value, const QString &context,
+                     bool *ok) Q_DECL_OVERRIDE;
 
-    QJSEngine *engine() const;
-    void setEngine(QJSEngine *engine);
+    bool In(const QString &stateName) const;
 
 private:
-    QScxmlEcmaScriptDataModelPrivate *d;
+    QScxmlCppDataModelPrivate *data;
 };
 
 QT_END_NAMESPACE
 
-#endif // ECMASCRIPTDATAMODEL_H
+#endif // CPPDATAMODEL_H

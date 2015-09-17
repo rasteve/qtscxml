@@ -16,7 +16,7 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include <QtScxml/private/executablecontent_p.h>
+#include <QtScxml/private/qscxmlexecutablecontent_p.h>
 #include "scxmlcppdumper.h"
 
 #include <algorithm>
@@ -152,7 +152,7 @@ static QString toHex(const QString &str)
 }
 
 const char *headerStart =
-        "#include <QtScxml/scxmlstatemachine.h>\n"
+        "#include <QScxmlStateMachine>\n"
         "\n";
 
 using namespace DocumentModel;
@@ -232,8 +232,7 @@ protected:
             Q_UNREACHABLE();
         }
         clazz.init.impl << QStringLiteral("stateMachine.setDataBinding(QScxmlStateMachine::%1Binding);").arg(binding);
-
-        clazz.implIncludes << QStringLiteral("QtScxml/executablecontent.h");
+        clazz.implIncludes << QStringLiteral("qscxmlexecutablecontent.h");
         clazz.init.impl << QStringLiteral("stateMachine.setTableData(this);");
 
         foreach (AbstractState *s, node->initialStates) {
@@ -268,11 +267,11 @@ protected:
             switch (node->dataModel) {
             case Scxml::NullDataModel:
                 clazz.classFields << QStringLiteral("QScxmlNullDataModel dataModel;");
-                clazz.implIncludes << QStringLiteral("QtScxml/nulldatamodel.h");
+                clazz.implIncludes << QStringLiteral("QScxmlNullDataModel.h");
                 break;
             case Scxml::JSDataModel:
                 clazz.classFields << QStringLiteral("QScxmlEcmaScriptDataModel dataModel;");
-                clazz.implIncludes << QStringLiteral("QtScxml/ecmascriptdatamodel.h");
+                clazz.implIncludes << QStringLiteral("QScxmlEcmaScriptDataModel");
                 break;
             case Scxml::CppDataModel:
                 clazz.implIncludes << node->cppDataModelHeaderName;
@@ -1153,7 +1152,7 @@ void CppDumper::writeImplStart(const QVector<ClassDump> &allClazzes)
     auto headerName = QFileInfo(m_translationUnit->outHFileName).fileName();
     cpp << l("#include \"") << headerName << l("\"") << endl;
     cpp << endl
-        << QStringLiteral("#include <QtScxml/scxmlqstates.h>") << endl;
+        << QStringLiteral("#include <qscxmlqstates.h>") << endl;
     if (!includes.isEmpty()) {
         includes.write(cpp, QStringLiteral("#include <"), QStringLiteral(">\n"));
         cpp << endl;

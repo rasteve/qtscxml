@@ -16,9 +16,9 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include "ecmascriptdatamodel.h"
-#include "ecmascriptplatformproperties_p.h"
-#include "executablecontent_p.h"
+#include "qscxmlecmascriptdatamodel.h"
+#include "qscxmlecmascriptplatformproperties_p.h"
+#include "qscxmlexecutablecontent_p.h"
 
 #include <QJsonDocument>
 #include <QtQml/private/qjsvalue_p.h>

@@ -16,8 +16,8 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include "executablecontent_p.h"
-#include "scxmlevent_p.h"
+#include "qscxmlexecutablecontent_p.h"
+#include "qscxmlevent_p.h"
 
 QT_USE_NAMESPACE
 

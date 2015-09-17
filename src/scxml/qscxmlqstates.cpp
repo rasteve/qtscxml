@@ -16,12 +16,12 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include "scxmlqstates_p.h"
-#include "scxmlstatemachine_p.h"
+#include "qscxmlqstates_p.h"
+#include "qscxmlstatemachine_p.h"
 
 #define DUMP_EVENT
 #ifdef DUMP_EVENT
-#include "ecmascriptdatamodel.h"
+#include "qscxmlecmascriptdatamodel.h"
 #endif
 
 QT_BEGIN_NAMESPACE

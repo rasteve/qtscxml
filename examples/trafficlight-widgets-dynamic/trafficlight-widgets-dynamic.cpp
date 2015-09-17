@@ -40,8 +40,7 @@
 
 #include "../trafficlight-common/trafficlight.h"
 
-#include <QtScxml/scxmlparser.h>
-#include <QtScxml/nulldatamodel.h>
+#include <QScxmlNullDataModel>
 
 #include <QApplication>
 

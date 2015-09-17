@@ -30,7 +30,7 @@
 // We mean it.
 //
 
-#include "scxmlglobals.h"
+#include "qscxmlglobals.h"
 
 #include <QJSValue>
 #include <QObject>

@@ -16,10 +16,10 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include "nulldatamodel.h"
-#include "scxmlevent.h"
+#include "qscxmlnulldatamodel.h"
+#include "qscxmlevent.h"
 
-#include "scxmlstatemachine.h"
+#include "qscxmlstatemachine.h"
 
 class QScxmlNullDataModel::Data
 {

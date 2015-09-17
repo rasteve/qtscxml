@@ -8,32 +8,32 @@ CONFIG  += $$MODULE_CONFIG
 DEFINES += QT_NO_CAST_FROM_ASCII
 
 HEADERS += \
-    scxmlparser.h \
-    scxmlparser_p.h \
-    scxmlstatemachine.h \
-    scxmlstatemachine_p.h \
-    scxmlglobals.h \
-    nulldatamodel.h \
-    ecmascriptdatamodel.h \
-    ecmascriptplatformproperties_p.h \
-    executablecontent.h \
-    executablecontent_p.h \
-    scxmlevent.h \
-    scxmlevent_p.h \
-    datamodel.h \
-    scxmlqstates.h \
-    scxmlqstates_p.h \
-    cppdatamodel_p.h \
-    cppdatamodel.h
+    qscxmlparser.h \
+    qscxmlparser_p.h \
+    qscxmlstatemachine.h \
+    qscxmlstatemachine_p.h \
+    qscxmlglobals.h \
+    qscxmlnulldatamodel.h \
+    qscxmlecmascriptdatamodel.h \
+    qscxmlecmascriptplatformproperties_p.h \
+    qscxmlexecutablecontent.h \
+    qscxmlexecutablecontent_p.h \
+    qscxmlevent.h \
+    qscxmlevent_p.h \
+    qscxmldatamodel.h \
+    qscxmlqstates.h \
+    qscxmlqstates_p.h \
+    qscxmlcppdatamodel_p.h \
+    qscxmlcppdatamodel.h
 
 SOURCES += \
-    scxmlparser.cpp \
-    scxmlstatemachine.cpp \
-    nulldatamodel.cpp \
-    ecmascriptdatamodel.cpp \
-    ecmascriptplatformproperties.cpp \
-    executablecontent.cpp \
-    scxmlevent.cpp \
-    datamodel.cpp \
-    scxmlqstates.cpp \
-    cppdatamodel.cpp
+    qscxmlparser.cpp \
+    qscxmlstatemachine.cpp \
+    qscxmlnulldatamodel.cpp \
+    qscxmlecmascriptdatamodel.cpp \
+    qscxmlecmascriptplatformproperties.cpp \
+    qscxmlexecutablecontent.cpp \
+    qscxmlevent.cpp \
+    qscxmldatamodel.cpp \
+    qscxmlqstates.cpp \
+    qscxmlcppdatamodel.cpp

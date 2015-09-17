@@ -19,8 +19,8 @@
 #ifndef CPPDATAMODEL_P_H
 #define CPPDATAMODEL_P_H
 
-#include "cppdatamodel.h"
-#include "QScxmlEvent"
+#include <QtScxml/qscxmlcppdatamodel.h>
+#include <QtScxml/qscxmlevent.h>
 
 QT_BEGIN_NAMESPACE
 
