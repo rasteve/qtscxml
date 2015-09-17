@@ -55,10 +55,6 @@ namespace Scxml {
 Q_SCXML_EXPORT Q_DECLARE_LOGGING_CATEGORY(scxmlLog)
 
 
-namespace ExecutableContent {
-class ExecutionEngine;
-}
-
 class Q_SCXML_EXPORT TableData
 {
 public:

@@ -21,16 +21,11 @@
 
 #include <QtScxml/scxmlglobals.h>
 
-#include <QByteArray>
-#include <QString>
-#include <QVariant>
+#include <QVector>
 
 QT_BEGIN_NAMESPACE
 
 namespace Scxml {
-
-class StateMachine;
-
 namespace ExecutableContent {
 
 typedef int ContainerId;
@@ -41,19 +36,6 @@ enum { NoString = -1 };
 typedef qint32 ByteArrayId;
 enum { NoByteArray = -1 };
 typedef qint32 *Instructions;
-
-class Q_SCXML_EXPORT ExecutionEngine
-{
-public:
-    ExecutionEngine(StateMachine *table);
-    ~ExecutionEngine();
-
-    bool execute(ContainerId ip, const QVariant &extraData = QVariant());
-
-private:
-    class Data;
-    Data *data;
-};
 
 } // ExecutableContent namespace
 } // namespace Scxml

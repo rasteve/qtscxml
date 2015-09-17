@@ -59,238 +59,222 @@ static int parseTime(const QString &t, bool *ok = 0)
     return negative ? -value : value;
 }
 
-class ExecutionEngine::Data
-{
-public:
-    Data(StateMachine *table)
-        : table(table)
-    {}
-
-    bool step(Instructions &ip)
-    {
-        auto dataModel = table->dataModel();
-        auto tableData = table->tableData();
-
-        auto instr = reinterpret_cast<Instruction *>(ip);
-        switch (instr->instructionType) {
-        case Instruction::Sequence: {
-            qDebug() << "Executing sequence step";
-            InstructionSequence *sequence = reinterpret_cast<InstructionSequence *>(instr);
-            ip = sequence->instructions();
-            Instructions end = ip + sequence->entryCount;
-            while (ip < end) {
-                if (!step(ip)) {
-                    ip = end;
-                    qDebug() << "Finished sequence step UNsuccessfully";
-                    return false;
-                }
-            }
-            qDebug() << "Finished sequence step successfully";
-            return true;
-        }
-
-        case Instruction::Sequences: {
-            qDebug() << "Executing sequences step";
-            InstructionSequences *sequences = reinterpret_cast<InstructionSequences *>(instr);
-            ip += sequences->size();
-            for (int i = 0; i != sequences->sequenceCount; ++i) {
-                Instructions sequence = sequences->at(i);
-                step(sequence);
-            }
-            qDebug() << "Finished sequences step";
-            return true;
-        }
-
-        case Instruction::Send: {
-            qDebug() << "Executing send step";
-            Send *send = reinterpret_cast<Send *>(instr);
-            ip += send->size();
-
-            QString delay = tableData->string(send->delay);
-            if (send->delayexpr != NoEvaluator) {
-                bool ok = false;
-                delay = table->dataModel()->evaluateToString(send->delayexpr, &ok);
-                if (!ok)
-                    return false;
-            }
-
-            QScxmlEvent *event = EventBuilder(table, *send).buildEvent();
-            if (!event)
-                return false;
-
-            if (!delay.isEmpty()) {
-                int msecs = parseTime(delay);
-                if (msecs >= 0) {
-                    event->setDelay(msecs);
-                } else {
-                    qCDebug(scxmlLog) << "failed to parse delay time" << delay;
-                    return false;
-                }
-            }
-
-            table->routeEvent(event);
-            return true;
-        }
-
-        case Instruction::JavaScript: {
-            qDebug() << "Executing script step";
-            JavaScript *javascript = reinterpret_cast<JavaScript *>(instr);
-            ip += javascript->size();
-            bool ok = true;
-            dataModel->evaluateToVoid(javascript->go, &ok);
-            return ok;
-        }
-
-        case Instruction::If: {
-            qDebug() << "Executing if step";
-            If *_if = reinterpret_cast<If *>(instr);
-            ip += _if->size();
-            auto blocks = _if->blocks();
-            for (qint32 i = 0; i < _if->conditions.count; ++i) {
-                bool ok = true;
-                if (dataModel->evaluateToBool(_if->conditions.at(i), &ok) && ok) {
-                    Instructions block = blocks->at(i);
-                    bool res = step(block);
-                    qDebug()<<"Finished if step";
-                    return res;
-                }
-            }
-
-            if (_if->conditions.count < blocks->sequenceCount) {
-                Instructions block = blocks->at(_if->conditions.count);
-                return step(block);
-            }
-
-            return true;
-        }
-
-        case Instruction::Foreach: {
-            class LoopBody: public QScxmlDataModel::ForeachLoopBody // If only we could put std::function in public API, we could use a lambda here. Alas....
-            {
-                Data *data;
-                const Instructions loopStart;
-
-            public:
-                LoopBody(Data *data, const Instructions loopStart)
-                    : data(data)
-                    , loopStart(loopStart)
-                {}
-
-                bool run() Q_DECL_OVERRIDE
-                {
-                    Instructions ip = loopStart;
-                    return data->step(ip);
-                }
-            };
-
-            qDebug() << "Executing foreach step";
-            Foreach *foreach = reinterpret_cast<Foreach *>(instr);
-            Instructions loopStart = foreach->blockstart();
-            ip += foreach->size();
-            bool ok = true;
-            LoopBody body(this, loopStart);
-            bool evenMoreOk = dataModel->evaluateForeach(foreach->doIt, &ok, &body);
-            return ok && evenMoreOk;
-        }
-
-        case Instruction::Raise: {
-            qDebug() << "Executing raise step";
-            Raise *raise = reinterpret_cast<Raise *>(instr);
-            ip += raise->size();
-            auto name = tableData->byteArray(raise->event);
-            auto event = new QScxmlEvent;
-            event->setName(name);
-            event->setEventType(QScxmlEvent::InternalEvent);
-            table->submitEvent(event);
-            return true;
-        }
-
-        case Instruction::Log: {
-            qDebug() << "Executing log step";
-            Log *log = reinterpret_cast<Log *>(instr);
-            ip += log->size();
-            bool ok = true;
-            QString str = dataModel->evaluateToString(log->expr, &ok);
-            if (ok)
-                table->doLog(tableData->string(log->label), str);
-            return ok;
-        }
-
-        case Instruction::Cancel: {
-            qDebug() << "Executing cancel step";
-            Cancel *cancel = reinterpret_cast<Cancel *>(instr);
-            ip += cancel->size();
-            QByteArray e = tableData->byteArray(cancel->sendid);
-            bool ok = true;
-            if (cancel->sendidexpr != NoEvaluator)
-                e = dataModel->evaluateToString(cancel->sendidexpr, &ok).toUtf8();
-            if (ok && !e.isEmpty())
-                table->cancelDelayedEvent(e);
-            return ok;
-        }
-
-        case Instruction::Assign: {
-            qDebug() << "Executing assign step";
-            Assign *assign = reinterpret_cast<Assign *>(instr);
-            ip += assign->size();
-            bool ok = true;
-            dataModel->evaluateAssignment(assign->expression, &ok);
-            return ok;
-        }
-
-        case Instruction::Initialize: {
-            qDebug() << "Executing initialize step";
-            Initialize *init = reinterpret_cast<Initialize *>(instr);
-            ip += init->size();
-            bool ok = true;
-            dataModel->evaluateInitialization(init->expression, &ok);
-            return ok;
-        }
-
-        case Instruction::DoneData: {
-            qDebug() << "Executing DoneData step";
-            DoneData *doneData = reinterpret_cast<DoneData *>(instr);
-
-            QString eventName = QStringLiteral("done.state.") + extraData.toString();
-            EventBuilder event(table, eventName, doneData);
-            qDebug() << "submitting event" << eventName;
-            table->submitEvent(event());
-            return true;
-        }
-
-        default:
-            Q_UNREACHABLE();
-            return false;
-        }
-    }
-
-    StateMachine *table;
-    QVariant extraData;
-};
-
 ExecutionEngine::ExecutionEngine(StateMachine *table)
-    : data(new Data(table))
+    : table(table)
 {
     Q_ASSERT(table);
 }
 
-ExecutionEngine::~ExecutionEngine()
-{
-    delete data;
-}
-
 bool ExecutionEngine::execute(ContainerId id, const QVariant &extraData)
 {
-    Q_ASSERT(data->table);
+    Q_ASSERT(table);
 
     if (id == NoInstruction)
         return true;
 
-    qint32 *ip = data->table->tableData()->instructions() + id;
-    data->extraData = extraData;
-    bool result = data->step(ip);
-    data->extraData = QVariant();
+    qint32 *ip = table->tableData()->instructions() + id;
+    this->extraData = extraData;
+    bool result = step(ip);
+    this->extraData = QVariant();
     return result;
+}
+
+bool ExecutionEngine::step(Instructions &ip)
+{
+    auto dataModel = table->dataModel();
+    auto tableData = table->tableData();
+
+    auto instr = reinterpret_cast<Instruction *>(ip);
+    switch (instr->instructionType) {
+    case Instruction::Sequence: {
+        qDebug() << "Executing sequence step";
+        InstructionSequence *sequence = reinterpret_cast<InstructionSequence *>(instr);
+        ip = sequence->instructions();
+        Instructions end = ip + sequence->entryCount;
+        while (ip < end) {
+            if (!step(ip)) {
+                ip = end;
+                qDebug() << "Finished sequence step UNsuccessfully";
+                return false;
+            }
+        }
+        qDebug() << "Finished sequence step successfully";
+        return true;
+    }
+
+    case Instruction::Sequences: {
+        qDebug() << "Executing sequences step";
+        InstructionSequences *sequences = reinterpret_cast<InstructionSequences *>(instr);
+        ip += sequences->size();
+        for (int i = 0; i != sequences->sequenceCount; ++i) {
+            Instructions sequence = sequences->at(i);
+            step(sequence);
+        }
+        qDebug() << "Finished sequences step";
+        return true;
+    }
+
+    case Instruction::Send: {
+        qDebug() << "Executing send step";
+        Send *send = reinterpret_cast<Send *>(instr);
+        ip += send->size();
+
+        QString delay = tableData->string(send->delay);
+        if (send->delayexpr != NoEvaluator) {
+            bool ok = false;
+            delay = table->dataModel()->evaluateToString(send->delayexpr, &ok);
+            if (!ok)
+                return false;
+        }
+
+        QScxmlEvent *event = EventBuilder(table, *send).buildEvent();
+        if (!event)
+            return false;
+
+        if (!delay.isEmpty()) {
+            int msecs = parseTime(delay);
+            if (msecs >= 0) {
+                event->setDelay(msecs);
+            } else {
+                qCDebug(scxmlLog) << "failed to parse delay time" << delay;
+                return false;
+            }
+        }
+
+        table->routeEvent(event);
+        return true;
+    }
+
+    case Instruction::JavaScript: {
+        qDebug() << "Executing script step";
+        JavaScript *javascript = reinterpret_cast<JavaScript *>(instr);
+        ip += javascript->size();
+        bool ok = true;
+        dataModel->evaluateToVoid(javascript->go, &ok);
+        return ok;
+    }
+
+    case Instruction::If: {
+        qDebug() << "Executing if step";
+        If *_if = reinterpret_cast<If *>(instr);
+        ip += _if->size();
+        auto blocks = _if->blocks();
+        for (qint32 i = 0; i < _if->conditions.count; ++i) {
+            bool ok = true;
+            if (dataModel->evaluateToBool(_if->conditions.at(i), &ok) && ok) {
+                Instructions block = blocks->at(i);
+                bool res = step(block);
+                qDebug()<<"Finished if step";
+                return res;
+            }
+        }
+
+        if (_if->conditions.count < blocks->sequenceCount) {
+            Instructions block = blocks->at(_if->conditions.count);
+            return step(block);
+        }
+
+        return true;
+    }
+
+    case Instruction::Foreach: {
+        class LoopBody: public QScxmlDataModel::ForeachLoopBody // If only we could put std::function in public API, we could use a lambda here. Alas....
+        {
+            ExecutionEngine *engine;
+            const Instructions loopStart;
+
+        public:
+            LoopBody(ExecutionEngine *engine, const Instructions loopStart)
+                : engine(engine)
+                , loopStart(loopStart)
+            {}
+
+            bool run() Q_DECL_OVERRIDE
+            {
+                Instructions ip = loopStart;
+                return engine->step(ip);
+            }
+        };
+
+        qDebug() << "Executing foreach step";
+        Foreach *foreach = reinterpret_cast<Foreach *>(instr);
+        Instructions loopStart = foreach->blockstart();
+        ip += foreach->size();
+        bool ok = true;
+        LoopBody body(this, loopStart);
+        bool evenMoreOk = dataModel->evaluateForeach(foreach->doIt, &ok, &body);
+        return ok && evenMoreOk;
+    }
+
+    case Instruction::Raise: {
+        qDebug() << "Executing raise step";
+        Raise *raise = reinterpret_cast<Raise *>(instr);
+        ip += raise->size();
+        auto name = tableData->byteArray(raise->event);
+        auto event = new QScxmlEvent;
+        event->setName(name);
+        event->setEventType(QScxmlEvent::InternalEvent);
+        table->submitEvent(event);
+        return true;
+    }
+
+    case Instruction::Log: {
+        qDebug() << "Executing log step";
+        Log *log = reinterpret_cast<Log *>(instr);
+        ip += log->size();
+        bool ok = true;
+        QString str = dataModel->evaluateToString(log->expr, &ok);
+        if (ok)
+            table->doLog(tableData->string(log->label), str);
+        return ok;
+    }
+
+    case Instruction::Cancel: {
+        qDebug() << "Executing cancel step";
+        Cancel *cancel = reinterpret_cast<Cancel *>(instr);
+        ip += cancel->size();
+        QByteArray e = tableData->byteArray(cancel->sendid);
+        bool ok = true;
+        if (cancel->sendidexpr != NoEvaluator)
+            e = dataModel->evaluateToString(cancel->sendidexpr, &ok).toUtf8();
+        if (ok && !e.isEmpty())
+            table->cancelDelayedEvent(e);
+        return ok;
+    }
+
+    case Instruction::Assign: {
+        qDebug() << "Executing assign step";
+        Assign *assign = reinterpret_cast<Assign *>(instr);
+        ip += assign->size();
+        bool ok = true;
+        dataModel->evaluateAssignment(assign->expression, &ok);
+        return ok;
+    }
+
+    case Instruction::Initialize: {
+        qDebug() << "Executing initialize step";
+        Initialize *init = reinterpret_cast<Initialize *>(instr);
+        ip += init->size();
+        bool ok = true;
+        dataModel->evaluateInitialization(init->expression, &ok);
+        return ok;
+    }
+
+    case Instruction::DoneData: {
+        qDebug() << "Executing DoneData step";
+        DoneData *doneData = reinterpret_cast<DoneData *>(instr);
+
+        QString eventName = QStringLiteral("done.state.") + extraData.toString();
+        EventBuilder event(table, eventName, doneData);
+        qDebug() << "submitting event" << eventName;
+        table->submitEvent(event());
+        return true;
+    }
+
+    default:
+        Q_UNREACHABLE();
+        return false;
+    }
 }
 
 Builder::Builder()

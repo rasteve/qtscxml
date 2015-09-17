@@ -493,6 +493,22 @@ private:
     bool m_isCppDataModel;
 };
 
+class ExecutionEngine
+{
+    Q_DISABLE_COPY(ExecutionEngine)
+
+public:
+    ExecutionEngine(StateMachine *table);
+
+    bool execute(ContainerId ip, const QVariant &extraData = QVariant());
+
+private:
+    bool step(Instructions &ip);
+
+    StateMachine *table;
+    QVariant extraData;
+};
+
 } // ExecutableContent namespace
 } // namespace Scxml
 
