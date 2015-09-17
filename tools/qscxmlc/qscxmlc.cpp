@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
     parser.setFileName(file.fileName());
     parser.parse();
     if (!parser.errors().isEmpty()) {
-        foreach (const ScxmlError &error, parser.errors()) {
+        foreach (const QScxmlError &error, parser.errors()) {
             errs << error.toString() << endl;
         }
         return ParseError;
@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
     auto mainDoc = QScxmlParserPrivate::get(&parser)->scxmlDocument();
     if (mainDoc == nullptr) {
         Q_ASSERT(!parser.errors().isEmpty());
-        foreach (const ScxmlError &error, parser.errors()) {
+        foreach (const QScxmlError &error, parser.errors()) {
             errs << error.toString() << endl;
         }
         return ScxmlVerificationError;

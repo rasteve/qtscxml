@@ -256,7 +256,7 @@ struct Q_SCXML_EXPORT Cancel: Instruction
 #pragma pack(pop)
 #endif
 
-class Q_SCXML_EXPORT DynamicTableData: public QObject, public TableData
+class Q_SCXML_EXPORT DynamicTableData: public QObject, public QScxmlTableData
 {
     Q_OBJECT
 

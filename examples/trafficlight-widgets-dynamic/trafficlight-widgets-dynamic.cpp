@@ -52,7 +52,7 @@ int main(int argc, char **argv)
     auto machine = Scxml::StateMachine::fromFile(QStringLiteral(":statemachine.scxml"));
     if (!machine->errors().isEmpty()) {
         QTextStream errs(stderr, QIODevice::WriteOnly);
-        foreach (const Scxml::ScxmlError &error, machine->errors()) {
+        foreach (const Scxml::QScxmlError &error, machine->errors()) {
             errs << error.toString();
         }
 

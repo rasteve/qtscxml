@@ -34,7 +34,7 @@
 #include <QtScxml/scxmlparser.h>
 #include <QtScxml/scxmlstatemachine.h>
 
-Q_DECLARE_METATYPE(Scxml::ScxmlError);
+Q_DECLARE_METATYPE(Scxml::QScxmlError);
 
 using namespace Scxml;
 
@@ -50,31 +50,31 @@ private Q_SLOTS:
 void tst_Parser::error_data()
 {
     QTest::addColumn<QString>("scxmlFileName");
-    QTest::addColumn<QVector<Scxml::ScxmlError> >("expectedErrors");
+    QTest::addColumn<QVector<Scxml::QScxmlError> >("expectedErrors");
 
-    QVector<ScxmlError> errors;
-    errors << ScxmlError(QString(":/tst_parser/test1.scxml"), 5, 46, QString("unknown state 'b' in target"));
+    QVector<QScxmlError> errors;
+    errors << QScxmlError(QString(":/tst_parser/test1.scxml"), 5, 46, QString("unknown state 'b' in target"));
     QTest::newRow("test1") << QString(":/tst_parser/test1.scxml") << errors;
 
-    QTest::newRow("namespaces 1") << QStringLiteral(":/tst_parser/namespaces1.scxml") << QVector<ScxmlError>();
+    QTest::newRow("namespaces 1") << QStringLiteral(":/tst_parser/namespaces1.scxml") << QVector<QScxmlError>();
 }
 
 void tst_Parser::error()
 {
     QFETCH(QString, scxmlFileName);
-    QFETCH(QVector<ScxmlError>, expectedErrors);
+    QFETCH(QVector<QScxmlError>, expectedErrors);
 
     StateMachine *stateMachine = StateMachine::fromFile(scxmlFileName);
 
-    QVector<ScxmlError> errors = stateMachine->errors();
+    QVector<QScxmlError> errors = stateMachine->errors();
     if (errors.count() != expectedErrors.count()) {
         qDebug()<<errors;
     }
     QCOMPARE(errors.count(), expectedErrors.count());
 
     for (int i = 0; i < errors.count(); ++i) {
-        ScxmlError error = errors.at(i);
-        ScxmlError expectedError = expectedErrors.at(i);
+        QScxmlError error = errors.at(i);
+        QScxmlError expectedError = expectedErrors.at(i);
         QCOMPARE(error.fileName(), expectedError.fileName());
         QCOMPARE(error.line(), expectedError.line());
         QCOMPARE(error.column(), expectedError.column());

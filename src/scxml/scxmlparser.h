@@ -69,7 +69,7 @@ public:
     void instantiateDataModel(StateMachine *table) const;
 
     State state() const;
-    QVector<ScxmlError> errors() const;
+    QVector<QScxmlError> errors() const;
     void addError(const QString &msg);
 
 private:

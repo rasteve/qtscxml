@@ -135,7 +135,7 @@ StateMachinePrivate *WrappedQStateMachine::stateMachinePrivate()
 }
 } // Internal namespace
 
-class ScxmlError::ScxmlErrorPrivate
+class QScxmlError::ScxmlErrorPrivate
 {
 public:
     ScxmlErrorPrivate()
@@ -149,11 +149,11 @@ public:
     QString description;
 };
 
-ScxmlError::ScxmlError()
+QScxmlError::QScxmlError()
     : d(Q_NULLPTR)
 {}
 
-ScxmlError::ScxmlError(const QString &fileName, int line, int column, const QString &description)
+QScxmlError::QScxmlError(const QString &fileName, int line, int column, const QString &description)
     : d(new ScxmlErrorPrivate)
 {
     d->fileName = fileName;
@@ -162,13 +162,13 @@ ScxmlError::ScxmlError(const QString &fileName, int line, int column, const QStr
     d->description = description;
 }
 
-ScxmlError::ScxmlError(const ScxmlError &other)
+QScxmlError::QScxmlError(const QScxmlError &other)
     : d(Q_NULLPTR)
 {
     *this = other;
 }
 
-ScxmlError &ScxmlError::operator=(const ScxmlError &other)
+QScxmlError &QScxmlError::operator=(const QScxmlError &other)
 {
     if (other.d) {
         if (!d)
@@ -184,38 +184,38 @@ ScxmlError &ScxmlError::operator=(const ScxmlError &other)
     return *this;
 }
 
-ScxmlError::~ScxmlError()
+QScxmlError::~QScxmlError()
 {
     delete d;
     d = Q_NULLPTR;
 }
 
-bool ScxmlError::isValid() const
+bool QScxmlError::isValid() const
 {
     return d != Q_NULLPTR;
 }
 
-QString ScxmlError::fileName() const
+QString QScxmlError::fileName() const
 {
     return isValid() ? d->fileName : QString();
 }
 
-int ScxmlError::line() const
+int QScxmlError::line() const
 {
     return isValid() ? d->line : -1;
 }
 
-int ScxmlError::column() const
+int QScxmlError::column() const
 {
     return isValid() ? d->column : -1;
 }
 
-QString ScxmlError::description() const
+QString QScxmlError::description() const
 {
     return isValid() ? d->description : QString();
 }
 
-QString ScxmlError::toString() const
+QString QScxmlError::toString() const
 {
     QString str;
     if (!isValid())
@@ -235,21 +235,21 @@ QString ScxmlError::toString() const
     return str;
 }
 
-QDebug operator<<(QDebug debug, const ScxmlError &error)
+QDebug operator<<(QDebug debug, const QScxmlError &error)
 {
     debug << error.toString();
     return debug;
 }
 
-QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const QVector<ScxmlError> &errors)
+QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const QVector<QScxmlError> &errors)
 {
-    foreach (const ScxmlError &error, errors) {
+    foreach (const QScxmlError &error, errors) {
         debug << error << endl;
     }
     return debug;
 }
 
-TableData::~TableData()
+QScxmlTableData::~QScxmlTableData()
 {}
 
 class QScxmlInvokableService::Data
@@ -524,8 +524,8 @@ StateMachine *StateMachine::fromFile(const QString &fileName, QScxmlDataModel *d
 {
     QFile scxmlFile(fileName);
     if (!scxmlFile.open(QIODevice::ReadOnly)) {
-        QVector<ScxmlError> errors({
-                                ScxmlError(scxmlFile.fileName(), 0, 0, QStringLiteral("cannot open for reading"))
+        QVector<QScxmlError> errors({
+                                QScxmlError(scxmlFile.fileName(), 0, 0, QStringLiteral("cannot open for reading"))
                             });
         auto table = new StateMachine;
         StateMachinePrivate::get(table)->parserData()->m_errors = errors;
@@ -552,10 +552,10 @@ StateMachine *StateMachine::fromData(QIODevice *data, const QString &fileName, Q
     return table;
 }
 
-QVector<ScxmlError> StateMachine::errors() const
+QVector<QScxmlError> StateMachine::errors() const
 {
     Q_D(const StateMachine);
-    return d->m_parserData ? d->m_parserData->m_errors : QVector<ScxmlError>();
+    return d->m_parserData ? d->m_parserData->m_errors : QVector<QScxmlError>();
 }
 
 StateMachine::StateMachine(QObject *parent)
@@ -637,14 +637,14 @@ StateMachine::BindingMethod StateMachine::dataBinding() const
     return d->m_dataBinding;
 }
 
-TableData *StateMachine::tableData() const
+QScxmlTableData *StateMachine::tableData() const
 {
     Q_D(const StateMachine);
 
     return d->m_tableData;
 }
 
-void StateMachine::setTableData(TableData *tableData)
+void StateMachine::setTableData(QScxmlTableData *tableData)
 {
     Q_D(StateMachine);
 

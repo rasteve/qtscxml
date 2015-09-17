@@ -76,7 +76,7 @@ public: // types
     {
     public:
         QScopedPointer<QScxmlDataModel> m_ownedDataModel;
-        QVector<ScxmlError> m_errors;
+        QVector<QScxmlError> m_errors;
     };
 
 public:
@@ -98,7 +98,7 @@ public: // data fields:
     QScxmlDataModel *m_dataModel;
     StateMachine::BindingMethod m_dataBinding;
     QScxmlExecutableContent::ExecutionEngine *m_executionEngine;
-    TableData *m_tableData;
+    QScxmlTableData *m_tableData;
     QScxmlEvent m_event;
     Internal::WrappedQStateMachine *m_qStateMachine;
     ScxmlEventFilter *m_eventFilter;

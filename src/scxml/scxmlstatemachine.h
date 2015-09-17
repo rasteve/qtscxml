@@ -55,10 +55,10 @@ namespace Scxml {
 Q_SCXML_EXPORT Q_DECLARE_LOGGING_CATEGORY(scxmlLog)
 
 
-class Q_SCXML_EXPORT TableData
+class Q_SCXML_EXPORT QScxmlTableData
 {
 public:
-    virtual ~TableData();
+    virtual ~QScxmlTableData();
 
     virtual QString string(QScxmlExecutableContent::StringId id) const = 0;
     virtual QByteArray byteArray(QScxmlExecutableContent::ByteArrayId id) const = 0;
@@ -72,14 +72,14 @@ public:
     virtual QString name() const = 0;
 };
 
-class Q_SCXML_EXPORT ScxmlError
+class Q_SCXML_EXPORT QScxmlError
 {
 public:
-    ScxmlError();
-    ScxmlError(const QString &fileName, int line, int column, const QString &description);
-    ScxmlError(const ScxmlError &);
-    ScxmlError &operator=(const ScxmlError &);
-    ~ScxmlError();
+    QScxmlError();
+    QScxmlError(const QString &fileName, int line, int column, const QString &description);
+    QScxmlError(const QScxmlError &);
+    QScxmlError &operator=(const QScxmlError &);
+    ~QScxmlError();
 
     bool isValid() const;
 
@@ -95,8 +95,8 @@ private:
     ScxmlErrorPrivate *d;
 };
 
-QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const ScxmlError &error);
-QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const QVector<ScxmlError> &errors);
+QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const QScxmlError &error);
+QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const QVector<QScxmlError> &errors);
 
 class Q_SCXML_EXPORT QScxmlInvokableService
 {
@@ -190,7 +190,7 @@ public:
 
     static StateMachine *fromFile(const QString &fileName, QScxmlDataModel *dataModel = Q_NULLPTR);
     static StateMachine *fromData(QIODevice *data, const QString &fileName = QString(), QScxmlDataModel *dataModel = Q_NULLPTR);
-    QVector<ScxmlError> errors() const;
+    QVector<QScxmlError> errors() const;
 
     StateMachine(QObject *parent = 0);
     StateMachine(StateMachinePrivate &dd, QObject *parent);
@@ -208,8 +208,8 @@ public:
     void setDataBinding(BindingMethod b);
     BindingMethod dataBinding() const;
 
-    TableData *tableData() const;
-    void setTableData(TableData *tableData);
+    QScxmlTableData *tableData() const;
+    void setTableData(QScxmlTableData *tableData);
 
     void doLog(const QString &label, const QString &msg);
 
@@ -267,7 +267,7 @@ private:
 
 } // namespace Scxml
 
-Q_DECLARE_TYPEINFO(Scxml::ScxmlError, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(Scxml::QScxmlError, Q_MOVABLE_TYPE);
 QT_END_NAMESPACE
 
 #endif // SCXMLSTATEMACHINE_H

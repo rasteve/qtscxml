@@ -625,7 +625,7 @@ public:
     QByteArray load(const QString &name, bool *ok) const;
 
     QScxmlParser::State state() const;
-    QVector<ScxmlError> errors() const;
+    QVector<QScxmlError> errors() const;
 
     void addError(const QString &msg);
     void addError(const DocumentModel::XmlLocation &location, const QString &msg);
@@ -653,7 +653,7 @@ private:
     QXmlStreamReader *m_reader;
     QVector<ParserState> m_stack;
     QScxmlParser::State m_state;
-    QVector<ScxmlError> m_errors;
+    QVector<QScxmlError> m_errors;
 };
 
 } // namespace Scxml

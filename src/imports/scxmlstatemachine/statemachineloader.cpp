@@ -89,7 +89,7 @@ bool StateMachineLoader::parse(const QUrl &filename)
         return true;
     } else {
         qmlInfo(this) << QStringLiteral("Something went wrong while parsing '%1':").arg(filename.fileName()) << endl;
-        foreach (const Scxml::ScxmlError &msg, m_stateMachine->errors()) {
+        foreach (const Scxml::QScxmlError &msg, m_stateMachine->errors()) {
             qmlInfo(this) << msg.toString();
         }
 

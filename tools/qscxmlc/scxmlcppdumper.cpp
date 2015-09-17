@@ -1166,7 +1166,7 @@ void CppDumper::writeImplStart(const QVector<ClassDump> &allClazzes)
 
 void CppDumper::writeImplBody(const ClassDump &clazz)
 {
-    cpp << l("struct ") << clazz.className << l("::Data: private Scxml::TableData");
+    cpp << l("struct ") << clazz.className << l("::Data: private Scxml::QScxmlTableData");
     if (!clazz.signalMethods.isEmpty()) {
         cpp << QStringLiteral(", public Scxml::ScxmlEventFilter");
     }

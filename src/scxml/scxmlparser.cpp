@@ -938,7 +938,7 @@ QScxmlParser::State QScxmlParser::state() const
     return p->state();
 }
 
-QVector<Scxml::ScxmlError> QScxmlParser::errors() const
+QVector<Scxml::QScxmlError> QScxmlParser::errors() const
 {
     return p->errors();
 }
@@ -1896,20 +1896,20 @@ QScxmlParser::State QScxmlParserPrivate::state() const
     return m_state;
 }
 
-QVector<ScxmlError> QScxmlParserPrivate::errors() const
+QVector<QScxmlError> QScxmlParserPrivate::errors() const
 {
     return m_errors;
 }
 
 void QScxmlParserPrivate::addError(const QString &msg)
 {
-    m_errors.append(ScxmlError(m_fileName, m_reader->lineNumber(), m_reader->columnNumber(), msg));
+    m_errors.append(QScxmlError(m_fileName, m_reader->lineNumber(), m_reader->columnNumber(), msg));
     m_state = QScxmlParser::ParsingError;
 }
 
 void QScxmlParserPrivate::addError(const DocumentModel::XmlLocation &location, const QString &msg)
 {
-    m_errors.append(ScxmlError(m_fileName, location.line, location.column, msg));
+    m_errors.append(QScxmlError(m_fileName, location.line, location.column, msg));
     m_state = QScxmlParser::ParsingError;
 }
 
