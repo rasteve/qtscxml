@@ -23,17 +23,15 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace Scxml {
-
 template<class T>
-class QScxmlInvokeScxmlFactory: public Scxml::QScxmlInvokableScxmlServiceFactory
+class QScxmlInvokeScxmlFactory: public QScxmlInvokableScxmlServiceFactory
 {
 public:
-    QScxmlInvokeScxmlFactory(Scxml::QScxmlExecutableContent::StringId invokeLocation,
-                             Scxml::QScxmlExecutableContent::StringId id,
-                             Scxml::QScxmlExecutableContent::StringId idPrefix,
-                             Scxml::QScxmlExecutableContent::StringId idlocation,
-                             const QVector<Scxml::QScxmlExecutableContent::StringId> &namelist,
+    QScxmlInvokeScxmlFactory(QScxmlExecutableContent::StringId invokeLocation,
+                             QScxmlExecutableContent::StringId id,
+                             QScxmlExecutableContent::StringId idPrefix,
+                             QScxmlExecutableContent::StringId idlocation,
+                             const QVector<QScxmlExecutableContent::StringId> &namelist,
                              bool doAutoforward,
                              const QVector<Param> &params,
                              QScxmlExecutableContent::ContainerId finalize)
@@ -41,7 +39,7 @@ public:
                                              doAutoforward, params, finalize)
     {}
 
-    Scxml::QScxmlInvokableService *invoke(QScxmlStateMachine *parent) Q_DECL_OVERRIDE
+    QScxmlInvokableService *invoke(QScxmlStateMachine *parent) Q_DECL_OVERRIDE
     {
         return finishInvoke(new T, parent);
     }
@@ -163,7 +161,7 @@ public:
     QScxmlStateMachine *stateMachine() const;
 
     void setInstructionsOnTransition(QScxmlExecutableContent::ContainerId instructions);
-    void setConditionalExpression(EvaluatorId evaluator);
+    void setConditionalExpression(QScxmlExecutableContent::EvaluatorId evaluator);
 
 protected:
     void onTransition(QEvent *event) Q_DECL_OVERRIDE;
@@ -171,8 +169,6 @@ protected:
 private:
     Data *d;
 };
-
-} // Scxml namespace
 
 QT_END_NAMESPACE
 

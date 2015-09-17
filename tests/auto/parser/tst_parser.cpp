@@ -34,9 +34,7 @@
 #include <QtScxml/scxmlparser.h>
 #include <QtScxml/scxmlstatemachine.h>
 
-Q_DECLARE_METATYPE(Scxml::QScxmlError);
-
-using namespace Scxml;
+Q_DECLARE_METATYPE(QScxmlError);
 
 class tst_Parser: public QObject
 {
@@ -50,7 +48,7 @@ private Q_SLOTS:
 void tst_Parser::error_data()
 {
     QTest::addColumn<QString>("scxmlFileName");
-    QTest::addColumn<QVector<Scxml::QScxmlError> >("expectedErrors");
+    QTest::addColumn<QVector<QScxmlError> >("expectedErrors");
 
     QVector<QScxmlError> errors;
     errors << QScxmlError(QString(":/tst_parser/test1.scxml"), 5, 46, QString("unknown state 'b' in target"));

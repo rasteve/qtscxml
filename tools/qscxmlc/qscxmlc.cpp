@@ -23,8 +23,6 @@
 #include <QFile>
 #include <QFileInfo>
 
-using namespace Scxml;
-
 enum {
     NoError = 0,
     CommandLineArgumentsError = -1,

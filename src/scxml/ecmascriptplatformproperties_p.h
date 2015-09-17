@@ -37,23 +37,21 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace Scxml {
-
 class QScxmlStateMachine;
-class PlatformProperties: public QObject
+class QScxmlPlatformProperties: public QObject
 {
     Q_OBJECT
 
-    PlatformProperties(QObject *parent);
+    QScxmlPlatformProperties(QObject *parent);
 
     Q_PROPERTY(QString marks READ marks CONSTANT)
 
 public:
-    static PlatformProperties *create(QJSEngine *engine, QScxmlStateMachine *stateMachine);
-    ~PlatformProperties();
+    static QScxmlPlatformProperties *create(QJSEngine *engine, QScxmlStateMachine *stateMachine);
+    ~QScxmlPlatformProperties();
 
     QJSEngine *engine() const;
-    QtNS::Scxml::QScxmlStateMachine *stateMachine() const;
+    QScxmlStateMachine *stateMachine() const;
     QJSValue jsValue() const;
 
     QString marks() const;
@@ -64,8 +62,6 @@ private:
     class Data;
     Data *data;
 };
-
-} // Scxml namespace
 
 QT_END_NAMESPACE
 

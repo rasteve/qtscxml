@@ -23,8 +23,6 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace Scxml {
-
 class QScxmlState::Data
 {
 public:
@@ -63,8 +61,6 @@ public:
     QScxmlExecutableContent::ContainerId onEntryInstructions;
     QScxmlExecutableContent::ContainerId onExitInstructions;
 };
-
-} // Scxml namespace
 
 QT_END_NAMESPACE
 

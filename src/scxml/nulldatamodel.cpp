@@ -21,8 +21,6 @@
 
 #include "scxmlstatemachine.h"
 
-using namespace Scxml;
-
 class QScxmlNullDataModel::Data
 {
     struct ResolvedEvaluatorInfo {
@@ -35,7 +33,7 @@ public:
         : q(dataModel)
     {}
 
-    bool evalBool(EvaluatorId id, bool *ok)
+    bool evalBool(QScxmlExecutableContent::EvaluatorId id, bool *ok)
     {
         Q_ASSERT(ok);
 
@@ -57,10 +55,10 @@ public:
         return q->stateMachine()->isActive(info.str);
     }
 
-    ResolvedEvaluatorInfo prepare(EvaluatorId id)
+    ResolvedEvaluatorInfo prepare(QScxmlExecutableContent::EvaluatorId id)
     {
         auto td = q->stateMachine()->tableData();
-        const QScxmlEvaluatorInfo &info = td->evaluatorInfo(id);
+        const QScxmlExecutableContent::EvaluatorInfo &info = td->evaluatorInfo(id);
         QString expr = td->string(info.expr);
         for (int i = 0; i < expr.size(); ) {
             QChar ch = expr.at(i);
@@ -84,7 +82,7 @@ public:
 
 private:
     QScxmlNullDataModel *q;
-    typedef QHash<EvaluatorId, ResolvedEvaluatorInfo> Resolved;
+    typedef QHash<QScxmlExecutableContent::EvaluatorId, ResolvedEvaluatorInfo> Resolved;
     Resolved resolved;
 };
 
@@ -102,22 +100,22 @@ void QScxmlNullDataModel::setup(const QVariantMap &initialDataValues)
     Q_UNUSED(initialDataValues);
 }
 
-QString QScxmlNullDataModel::evaluateToString(EvaluatorId id, bool *ok)
+QString QScxmlNullDataModel::evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
     // We do implement this, because <log> is allowed in the Null data model,
     // and <log> has an expr attribute that needs "evaluation" for it to generate the log message.
     *ok = true;
     auto td = stateMachine()->tableData();
-    const QScxmlEvaluatorInfo &info = td->evaluatorInfo(id);
+    const QScxmlExecutableContent::EvaluatorInfo &info = td->evaluatorInfo(id);
     return td->string(info.expr);
 }
 
-bool QScxmlNullDataModel::evaluateToBool(EvaluatorId id, bool *ok)
+bool QScxmlNullDataModel::evaluateToBool(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
     return d->evalBool(id, ok);
 }
 
-QVariant QScxmlNullDataModel::evaluateToVariant(EvaluatorId id, bool *ok)
+QVariant QScxmlNullDataModel::evaluateToVariant(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
     Q_UNUSED(ok);
@@ -125,28 +123,28 @@ QVariant QScxmlNullDataModel::evaluateToVariant(EvaluatorId id, bool *ok)
     return QVariant();
 }
 
-void QScxmlNullDataModel::evaluateToVoid(EvaluatorId id, bool *ok)
+void QScxmlNullDataModel::evaluateToVoid(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
     Q_UNUSED(ok);
     Q_UNREACHABLE();
 }
 
-void QScxmlNullDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
+void QScxmlNullDataModel::evaluateAssignment(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
     Q_UNUSED(ok);
     Q_UNREACHABLE();
 }
 
-void QScxmlNullDataModel::evaluateInitialization(EvaluatorId id, bool *ok)
+void QScxmlNullDataModel::evaluateInitialization(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
     Q_UNUSED(ok);
     Q_UNREACHABLE();
 }
 
-bool QScxmlNullDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body)
+bool QScxmlNullDataModel::evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body)
 {
     Q_UNUSED(id);
     Q_UNUSED(ok);

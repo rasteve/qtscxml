@@ -20,7 +20,8 @@
 #include "scxmlstatemachine.h"
 
 QT_USE_NAMESPACE
-using namespace Scxml;
+
+using namespace QScxmlExecutableContent;
 
 QScxmlCppDataModel::QScxmlCppDataModel()
     : data(new QScxmlCppDataModelPrivate)

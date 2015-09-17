@@ -23,14 +23,12 @@
 
 #define Q_SCXML_DATAMODEL \
     public: \
-        QString evaluateToString(Scxml::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE; \
-        bool evaluateToBool(Scxml::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE; \
-        QVariant evaluateToVariant(Scxml::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE; \
-        void evaluateToVoid(Scxml::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
+        QString evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE; \
+        bool evaluateToBool(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE; \
+        QVariant evaluateToVariant(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE; \
+        void evaluateToVoid(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
 
 QT_BEGIN_NAMESPACE
-
-namespace Scxml {
 
 class QScxmlCppDataModelPrivate;
 class Q_SCXML_EXPORT QScxmlCppDataModel: public QScxmlDataModel
@@ -41,9 +39,9 @@ public:
 
     void setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;
 
-    void evaluateAssignment(EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
-    void evaluateInitialization(EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
-    bool evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body) Q_DECL_OVERRIDE;
+    void evaluateAssignment(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
+    void evaluateInitialization(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
+    bool evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) Q_DECL_OVERRIDE;
 
     void setEvent(const QScxmlEvent &event) Q_DECL_OVERRIDE;
     const QScxmlEvent &event() const;
@@ -58,8 +56,6 @@ public:
 private:
     QScxmlCppDataModelPrivate *data;
 };
-
-} // Scxml namespace
 
 QT_END_NAMESPACE
 

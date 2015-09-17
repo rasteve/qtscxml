@@ -37,8 +37,7 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace Scxml {
-namespace Internal {
+namespace QScxmlInternal {
 class WrappedQStateMachinePrivate;
 class WrappedQStateMachine: public QStateMachine
 {
@@ -86,7 +85,7 @@ public:
     static QScxmlStateMachinePrivate *get(QScxmlStateMachine *t)
     { return t->d_func(); }
 
-    void setQStateMachine(Internal::WrappedQStateMachine *stateMachine);
+    void setQStateMachine(QScxmlInternal::WrappedQStateMachine *stateMachine);
 
     QAbstractState *stateByScxmlName(const QString &scxmlName);
 
@@ -100,15 +99,14 @@ public: // data fields:
     QScxmlExecutableContent::ExecutionEngine *m_executionEngine;
     QScxmlTableData *m_tableData;
     QScxmlEvent m_event;
-    Internal::WrappedQStateMachine *m_qStateMachine;
-    ScxmlEventFilter *m_eventFilter;
+    QScxmlInternal::WrappedQStateMachine *m_qStateMachine;
+    QScxmlEventFilter *m_eventFilter;
     QVector<QScxmlInvokableService *> m_registeredServices;
     QScxmlStateMachine *m_parentStateMachine;
 
 private:
     QScopedPointer<ParserData> m_parserData; // used when created by StateMachine::fromFile.
 };
-} // Scxml namespace
 
 QT_END_NAMESPACE
 

@@ -26,8 +26,6 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace Scxml {
-
 class QScxmlBaseTransition::Data
 {
 public:
@@ -76,7 +74,7 @@ void QScxmlState::setAsInitialStateFor(QScxmlStateMachine *stateMachine)
 }
 
 QScxmlStateMachine *QScxmlState::stateMachine() const {
-    return qobject_cast<Internal::WrappedQStateMachine *>(machine())->stateTable();
+    return qobject_cast<QScxmlInternal::WrappedQStateMachine *>(machine())->stateTable();
 }
 
 bool QScxmlState::init()
@@ -170,7 +168,7 @@ void QScxmlFinalState::setAsInitialStateFor(QScxmlStateMachine *stateMachine)
 }
 
 QScxmlStateMachine *QScxmlFinalState::stateMachine() const {
-    return qobject_cast<Internal::WrappedQStateMachine *>(machine())->stateTable();
+    return qobject_cast<QScxmlInternal::WrappedQStateMachine *>(machine())->stateTable();
 }
 
 bool QScxmlFinalState::init()
@@ -178,12 +176,12 @@ bool QScxmlFinalState::init()
     return true;
 }
 
-Scxml::QScxmlExecutableContent::ContainerId QScxmlFinalState::doneData() const
+QScxmlExecutableContent::ContainerId QScxmlFinalState::doneData() const
 {
     return d->doneData;
 }
 
-void QScxmlFinalState::setDoneData(Scxml::QScxmlExecutableContent::ContainerId doneData)
+void QScxmlFinalState::setDoneData(QScxmlExecutableContent::ContainerId doneData)
 {
     d->doneData = doneData;
 }
@@ -232,10 +230,10 @@ QScxmlBaseTransition::~QScxmlBaseTransition()
 }
 
 QScxmlStateMachine *QScxmlBaseTransition::stateMachine() const {
-    if (Internal::WrappedQStateMachine *t = qobject_cast<Internal::WrappedQStateMachine *>(parent()))
+    if (QScxmlInternal::WrappedQStateMachine *t = qobject_cast<QScxmlInternal::WrappedQStateMachine *>(parent()))
         return t->stateTable();
     if (QState *s = sourceState())
-        return qobject_cast<Internal::WrappedQStateMachine *>(s->machine())->stateTable();
+        return qobject_cast<QScxmlInternal::WrappedQStateMachine *>(s->machine())->stateTable();
     qCWarning(scxmlLog) << "could not find Scxml::StateMachine in " << transitionLocation();
     return 0;
 }
@@ -298,11 +296,11 @@ class QScxmlTransition::Data
 {
 public:
     Data()
-        : conditionalExp(NoEvaluator)
+        : conditionalExp(QScxmlExecutableContent::NoEvaluator)
         , instructionsOnTransition(QScxmlExecutableContent::NoInstruction)
     {}
 
-    EvaluatorId conditionalExp;
+    QScxmlExecutableContent::EvaluatorId conditionalExp;
     QScxmlExecutableContent::ContainerId instructionsOnTransition;
 };
 
@@ -340,7 +338,7 @@ bool QScxmlTransition::eventTest(QEvent *event)
 
     if (QScxmlBaseTransition::eventTest(event)) {
         bool ok = true;
-        if (d->conditionalExp != NoEvaluator)
+        if (d->conditionalExp != QScxmlExecutableContent::NoEvaluator)
             return stateMachine()->dataModel()->evaluateToBool(d->conditionalExp, &ok) && ok;
         return true;
     }
@@ -355,9 +353,9 @@ void QScxmlTransition::onTransition(QEvent *)
 
 QScxmlStateMachine *QScxmlTransition::stateMachine() const {
     // work around a bug in QStateMachine
-    if (Internal::WrappedQStateMachine *t = qobject_cast<Internal::WrappedQStateMachine *>(sourceState()))
+    if (QScxmlInternal::WrappedQStateMachine *t = qobject_cast<QScxmlInternal::WrappedQStateMachine *>(sourceState()))
         return t->stateTable();
-    return qobject_cast<Internal::WrappedQStateMachine *>(machine())->stateTable();
+    return qobject_cast<QScxmlInternal::WrappedQStateMachine *>(machine())->stateTable();
 }
 
 void QScxmlTransition::setInstructionsOnTransition(QScxmlExecutableContent::ContainerId instructions)
@@ -365,11 +363,9 @@ void QScxmlTransition::setInstructionsOnTransition(QScxmlExecutableContent::Cont
     d->instructionsOnTransition = instructions;
 }
 
-void QScxmlTransition::setConditionalExpression(EvaluatorId evaluator)
+void QScxmlTransition::setConditionalExpression(QScxmlExecutableContent::EvaluatorId evaluator)
 {
     d->conditionalExp = evaluator;
 }
-
-} // Scxml namespace
 
 QT_END_NAMESPACE

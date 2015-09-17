@@ -20,8 +20,7 @@
 #include "scxmlparser_p.h"
 #include "scxmlevent_p.h"
 
-using namespace Scxml;
-using namespace Scxml::QScxmlExecutableContent;
+using namespace QScxmlExecutableContent;
 
 static int parseTime(const QString &t, bool *ok = 0)
 {
@@ -489,7 +488,7 @@ EvaluatorId Builder::createEvaluatorString(const QString &instrName, const QStri
 {
     if (!expr.isEmpty()) {
         if (isCppDataModel()) {
-            auto id = m_evaluators.add(QScxmlEvaluatorInfo(), false);
+            auto id = m_evaluators.add(EvaluatorInfo(), false);
             m_stringEvaluators.insert(id, expr);
             return id;
         } else {
@@ -505,7 +504,7 @@ EvaluatorId Builder::createEvaluatorBool(const QString &instrName, const QString
 {
     if (!cond.isEmpty()) {
         if (isCppDataModel()) {
-            auto id = m_evaluators.add(QScxmlEvaluatorInfo(), false);
+            auto id = m_evaluators.add(EvaluatorInfo(), false);
             m_boolEvaluators.insert(id, cond);
             return id;
         } else {
@@ -521,7 +520,7 @@ EvaluatorId Builder::createEvaluatorVariant(const QString &instrName, const QStr
 {
     if (!expr.isEmpty()) {
         if (isCppDataModel()) {
-            auto id = m_evaluators.add(QScxmlEvaluatorInfo(), false);
+            auto id = m_evaluators.add(EvaluatorInfo(), false);
             m_variantEvaluators.insert(id, expr);
             return id;
         } else {
@@ -537,7 +536,7 @@ EvaluatorId Builder::createEvaluatorVoid(const QString &instrName, const QString
 {
     if (!stuff.isEmpty()) {
         if (isCppDataModel()) {
-            auto id = m_evaluators.add(QScxmlEvaluatorInfo(), false);
+            auto id = m_evaluators.add(EvaluatorInfo(), false);
             m_voidEvaluators.insert(id, stuff);
             return id;
         } else {
@@ -579,17 +578,17 @@ Instructions DynamicTableData::instructions() const
     return const_cast<Instructions>(theInstructions.data());
 }
 
-QScxmlEvaluatorInfo DynamicTableData::evaluatorInfo(EvaluatorId evaluatorId) const
+EvaluatorInfo DynamicTableData::evaluatorInfo(EvaluatorId evaluatorId) const
 {
     return theEvaluators[evaluatorId];
 }
 
-QScxmlAssignmentInfo DynamicTableData::assignmentInfo(EvaluatorId assignmentId) const
+AssignmentInfo DynamicTableData::assignmentInfo(EvaluatorId assignmentId) const
 {
     return theAssignments[assignmentId];
 }
 
-QScxmlForeachInfo DynamicTableData::foreachInfo(EvaluatorId foreachId) const
+ForeachInfo DynamicTableData::foreachInfo(EvaluatorId foreachId) const
 {
     return theForeaches[foreachId];
 }
@@ -626,17 +625,17 @@ QVector<QByteArray> DynamicTableData::byteArrayTable() const
     return byteArrays;
 }
 
-QVector<QScxmlEvaluatorInfo> DynamicTableData::evaluators() const
+QVector<EvaluatorInfo> DynamicTableData::evaluators() const
 {
     return theEvaluators;
 }
 
-QVector<QScxmlAssignmentInfo> DynamicTableData::assignments() const
+QVector<AssignmentInfo> DynamicTableData::assignments() const
 {
     return theAssignments;
 }
 
-QVector<QScxmlForeachInfo> DynamicTableData::foreaches() const
+QVector<ForeachInfo> DynamicTableData::foreaches() const
 {
     return theForeaches;
 }

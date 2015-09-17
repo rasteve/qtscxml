@@ -27,8 +27,6 @@
 QT_BEGIN_NAMESPACE
 class QXmlStreamReader;
 
-namespace Scxml {
-
 class QScxmlParserPrivate;
 class Q_SCXML_EXPORT QScxmlParser
 {
@@ -76,8 +74,6 @@ private:
     friend QScxmlParserPrivate;
     QScxmlParserPrivate *p;
 };
-
-} // namespace Scxml
 
 QT_END_NAMESPACE
 

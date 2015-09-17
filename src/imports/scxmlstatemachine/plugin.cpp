@@ -23,7 +23,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class ScxmlStateMachinePlugin : public QQmlExtensionPlugin
+class QScxmlStateMachinePlugin : public QQmlExtensionPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.qt-project.Qt.Scxml/1.0")
@@ -31,7 +31,7 @@ class ScxmlStateMachinePlugin : public QQmlExtensionPlugin
 public:
     void registerTypes(const char *uri)
     {
-        qmlRegisterType<StateMachineLoader>(uri, 1, 0, "StateMachineLoader");
+        qmlRegisterType<QScxmlStateMachineLoader>(uri, 1, 0, "StateMachineLoader");
         qmlProtectModule(uri, 1);
     }
 };

@@ -37,9 +37,9 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace Scxml {
+namespace QScxmlExecutableContent {
 
-static inline bool operator<(const QScxmlEvaluatorInfo &ei1, const QScxmlEvaluatorInfo &ei2)
+static inline bool operator<(const EvaluatorInfo &ei1, const EvaluatorInfo &ei2)
 {
     if (ei1.expr != ei2.expr)
         return ei1.expr < ei2.expr;
@@ -47,7 +47,7 @@ static inline bool operator<(const QScxmlEvaluatorInfo &ei1, const QScxmlEvaluat
         return ei1.context < ei2.context;
 }
 
-static inline bool operator<(const QScxmlAssignmentInfo &ai1, const QScxmlAssignmentInfo &ai2)
+static inline bool operator<(const AssignmentInfo &ai1, const AssignmentInfo &ai2)
 {
     if (ai1.dest != ai2.dest)
         return ai1.dest < ai2.dest;
@@ -57,15 +57,13 @@ static inline bool operator<(const QScxmlAssignmentInfo &ai1, const QScxmlAssign
         return ai1.context < ai2.context;
 }
 
-static inline bool operator<(const QScxmlForeachInfo &fi1, const QScxmlForeachInfo &fi2)
+static inline bool operator<(const ForeachInfo &fi1, const ForeachInfo &fi2)
 {
     if (fi1.array != fi2.array) return fi1.array < fi2.array;
     if (fi1.item != fi2.item) return fi1.item < fi2.item;
     if (fi1.index != fi2.index) return fi1.index < fi2.index;
     return fi1.context < fi2.context;
 }
-
-namespace QScxmlExecutableContent {
 
 #if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
 #pragma pack(push, 4) // 4 == sizeof(qint32)
@@ -261,33 +259,33 @@ class Q_SCXML_EXPORT DynamicTableData: public QObject, public QScxmlTableData
     Q_OBJECT
 
 public:
-    QString string(QScxmlExecutableContent::StringId id) const Q_DECL_OVERRIDE;
-    QByteArray byteArray(QScxmlExecutableContent::ByteArrayId id) const Q_DECL_OVERRIDE;
-    QScxmlExecutableContent::Instructions instructions() const Q_DECL_OVERRIDE;
-    QScxmlEvaluatorInfo evaluatorInfo(EvaluatorId evaluatorId) const Q_DECL_OVERRIDE;
-    QScxmlAssignmentInfo assignmentInfo(EvaluatorId assignmentId) const Q_DECL_OVERRIDE;
-    QScxmlForeachInfo foreachInfo(EvaluatorId foreachId) const Q_DECL_OVERRIDE;
-    QScxmlExecutableContent::StringId *dataNames(int *count) const Q_DECL_OVERRIDE;
-    QScxmlExecutableContent::ContainerId initialSetup() const Q_DECL_OVERRIDE;
+    QString string(StringId id) const Q_DECL_OVERRIDE;
+    QByteArray byteArray(ByteArrayId id) const Q_DECL_OVERRIDE;
+    Instructions instructions() const Q_DECL_OVERRIDE;
+    EvaluatorInfo evaluatorInfo(EvaluatorId evaluatorId) const Q_DECL_OVERRIDE;
+    AssignmentInfo assignmentInfo(EvaluatorId assignmentId) const Q_DECL_OVERRIDE;
+    ForeachInfo foreachInfo(EvaluatorId foreachId) const Q_DECL_OVERRIDE;
+    StringId *dataNames(int *count) const Q_DECL_OVERRIDE;
+    ContainerId initialSetup() const Q_DECL_OVERRIDE;
     QString name() const Q_DECL_OVERRIDE;
 
     QVector<qint32> instructionTable() const;
     QVector<QString> stringTable() const;
     QVector<QByteArray> byteArrayTable() const;
-    QVector<QScxmlEvaluatorInfo> evaluators() const;
-    QVector<QScxmlAssignmentInfo> assignments() const;
-    QVector<QScxmlForeachInfo> foreaches() const;
-    QScxmlExecutableContent::StringIds allDataNameIds() const;
+    QVector<EvaluatorInfo> evaluators() const;
+    QVector<AssignmentInfo> assignments() const;
+    QVector<ForeachInfo> foreaches() const;
+    StringIds allDataNameIds() const;
 
 private:
     friend class Builder;
     QVector<QString> strings;
     QVector<QByteArray> byteArrays;
     QVector<qint32> theInstructions;
-    QVector<QScxmlEvaluatorInfo> theEvaluators;
-    QVector<QScxmlAssignmentInfo> theAssignments;
-    QVector<QScxmlForeachInfo> theForeaches;
-    QScxmlExecutableContent::StringIds theDataNameIds;
+    QVector<EvaluatorInfo> theEvaluators;
+    QVector<AssignmentInfo> theAssignments;
+    QVector<ForeachInfo> theForeaches;
+    StringIds theDataNameIds;
     EvaluatorId theInitialSetup;
     QString theName;
 };
@@ -444,7 +442,7 @@ private:
 
     EvaluatorId addEvaluator(const QString &expr, const QString &context)
     {
-        QScxmlEvaluatorInfo ei;
+        EvaluatorInfo ei;
         ei.expr = addString(expr);
         ei.context = addString(context);
         return m_evaluators.add(ei);
@@ -452,7 +450,7 @@ private:
 
     EvaluatorId addAssignment(const QString &dest, const QString &expr, const QString &context)
     {
-        QScxmlAssignmentInfo ai;
+        AssignmentInfo ai;
         ai.dest = addString(dest);
         ai.expr = addString(expr);
         ai.context = addString(context);
@@ -461,7 +459,7 @@ private:
 
     EvaluatorId addForeach(const QString &array, const QString &item, const QString &index, const QString &context)
     {
-        QScxmlForeachInfo fi;
+        ForeachInfo fi;
         fi.array = addString(array);
         fi.item = addString(item);
         fi.index = addString(index);
@@ -480,14 +478,14 @@ private:
         return addAssignment(id, expr, context);
     }
 
-    Table<QScxmlEvaluatorInfo, EvaluatorId> m_evaluators;
-    Table<QScxmlAssignmentInfo, EvaluatorId> m_assignments;
-    Table<QScxmlForeachInfo, EvaluatorId> m_foreaches;
+    Table<EvaluatorInfo, EvaluatorId> m_evaluators;
+    Table<AssignmentInfo, EvaluatorId> m_assignments;
+    Table<ForeachInfo, EvaluatorId> m_foreaches;
     QMap<EvaluatorId, QString> m_boolEvaluators;
     QMap<EvaluatorId, QString> m_stringEvaluators;
     QMap<EvaluatorId, QString> m_variantEvaluators;
     QMap<EvaluatorId, QString> m_voidEvaluators;
-    QScxmlExecutableContent::StringIds m_dataIds;
+    StringIds m_dataIds;
     ContainerId m_initialSetup;
     QString m_name;
     bool m_isCppDataModel;
@@ -509,8 +507,7 @@ private:
     QVariant extraData;
 };
 
-} // ExecutableContent namespace
-} // namespace Scxml
+} // QScxmlExecutableContent namespace
 
 QT_END_NAMESPACE
 

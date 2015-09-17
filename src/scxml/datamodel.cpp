@@ -18,8 +18,6 @@
 
 #include "datamodel.h"
 
-using namespace Scxml;
-
 class QScxmlDataModel::Data
 {
 public:

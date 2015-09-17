@@ -24,15 +24,11 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace Scxml {
-
 class Q_SCXML_EXPORT QScxmlCppDataModelPrivate
 {
 public:
     QScxmlEvent event;
 };
-
-} // Scxml namespace
 
 QT_END_NAMESPACE
 

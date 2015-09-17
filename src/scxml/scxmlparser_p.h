@@ -40,8 +40,6 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace Scxml {
-
 namespace DocumentModel {
 
 struct XmlLocation
@@ -655,8 +653,6 @@ private:
     QScxmlParser::State m_state;
     QVector<QScxmlError> m_errors;
 };
-
-} // namespace Scxml
 
 QT_END_NAMESPACE
 

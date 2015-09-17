@@ -25,16 +25,16 @@
 
 QT_BEGIN_NAMESPACE
 
-class StateMachineLoader: public QObject
+class QScxmlStateMachineLoader: public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QUrl filename READ filename WRITE setFilename NOTIFY filenameChanged)
-    Q_PROPERTY(Scxml::QScxmlStateMachine* stateMachine READ stateMachine DESIGNABLE false NOTIFY stateMachineChanged)
+    Q_PROPERTY(QScxmlStateMachine* stateMachine READ stateMachine DESIGNABLE false NOTIFY stateMachineChanged)
 
 public:
-    explicit StateMachineLoader(QObject *parent = 0);
+    explicit QScxmlStateMachineLoader(QObject *parent = 0);
 
-    Scxml::QScxmlStateMachine *stateMachine() const;
+    QScxmlStateMachine *stateMachine() const;
 
     QUrl filename();
     void setFilename(const QUrl &filename);
@@ -48,7 +48,7 @@ private:
 
 private:
     QUrl m_filename;
-    Scxml::QScxmlStateMachine *m_stateMachine;
+    QScxmlStateMachine *m_stateMachine;
 };
 
 QT_END_NAMESPACE

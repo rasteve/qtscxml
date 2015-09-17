@@ -43,7 +43,6 @@ enum {
 } // anonymous namespace
 
 QT_BEGIN_NAMESPACE
-namespace Scxml {
 
 static QString scxmlNamespace = QStringLiteral("http://www.w3.org/2005/07/scxml");
 static QString qtScxmlNamespace = QStringLiteral("http://theqtcompany.com/scxml/2015/06/");
@@ -317,7 +316,7 @@ private:
 };
 
 class QStateMachineBuilder;
-class DynamicStateMachine: public QScxmlStateMachine, public Scxml::ScxmlEventFilter
+class DynamicStateMachine: public QScxmlStateMachine, public QScxmlEventFilter
 {
     // Manually expanded from Q_OBJECT macro:
 public:
@@ -456,7 +455,7 @@ public:
     ~DynamicStateMachine()
     { if (m_metaObject) free(m_metaObject); }
 
-    bool handle(QScxmlEvent *event, Scxml::QScxmlStateMachine *stateMachine) Q_DECL_OVERRIDE {
+    bool handle(QScxmlEvent *event, QScxmlStateMachine *stateMachine) Q_DECL_OVERRIDE {
         Q_UNUSED(stateMachine);
 
         if (event->originType() != QStringLiteral("qt:signal")) {
@@ -938,7 +937,7 @@ QScxmlParser::State QScxmlParser::state() const
     return p->state();
 }
 
-QVector<Scxml::QScxmlError> QScxmlParser::errors() const
+QVector<QScxmlError> QScxmlParser::errors() const
 {
     return p->errors();
 }
@@ -948,7 +947,7 @@ void QScxmlParser::addError(const QString &msg)
     p->addError(msg);
 }
 
-bool Scxml::ParserState::collectChars() {
+bool ParserState::collectChars() {
     switch (kind) {
     case Content:
     case Data:
@@ -1073,7 +1072,7 @@ bool ParserState::validChild(ParserState::Kind parent, ParserState::Kind child)
     return false;
 }
 
-bool Scxml::ParserState::isExecutableContent(Scxml::ParserState::Kind kind) {
+bool ParserState::isExecutableContent(ParserState::Kind kind) {
     switch (kind) {
     case Raise:
     case Send:
@@ -1985,5 +1984,4 @@ bool QScxmlParserPrivate::checkAttributes(const QXmlStreamAttributes &attributes
     return true;
 }
 
-} // namespace Scxml
 QT_END_NAMESPACE

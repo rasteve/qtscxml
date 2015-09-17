@@ -27,10 +27,8 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace Scxml {
-namespace Internal {
+namespace QScxmlInternal {
 class WrappedQStateMachine;
-}
 }
 
 class QScxmlEventPrivate;
@@ -79,7 +77,7 @@ public:
     void setData(const QVariant &data);
 
 protected:
-    friend Scxml::Internal::WrappedQStateMachine;
+    friend QScxmlInternal::WrappedQStateMachine;
     static QEvent::Type scxmlEventType;
     static QEvent::Type ignoreEventType;
     void makeIgnorable();

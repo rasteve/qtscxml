@@ -25,23 +25,23 @@
 #include <QQmlFile>
 #include <QBuffer>
 
-StateMachineLoader::StateMachineLoader(QObject *parent)
+QScxmlStateMachineLoader::QScxmlStateMachineLoader(QObject *parent)
     : QObject(parent)
     , m_stateMachine(Q_NULLPTR)
 {
 }
 
-QT_PREPEND_NAMESPACE(Scxml::QScxmlStateMachine) *StateMachineLoader::stateMachine() const
+QT_PREPEND_NAMESPACE(QScxmlStateMachine) *QScxmlStateMachineLoader::stateMachine() const
 {
     return m_stateMachine;
 }
 
-QUrl StateMachineLoader::filename()
+QUrl QScxmlStateMachineLoader::filename()
 {
     return m_filename;
 }
 
-void StateMachineLoader::setFilename(const QUrl &filename)
+void QScxmlStateMachineLoader::setFilename(const QUrl &filename)
 {
     if (!filename.isValid())
         return;
@@ -63,7 +63,7 @@ void StateMachineLoader::setFilename(const QUrl &filename)
     }
 }
 
-bool StateMachineLoader::parse(const QUrl &filename)
+bool QScxmlStateMachineLoader::parse(const QUrl &filename)
 {
     if (!QQmlFile::isSynchronous(filename)) {
         qmlInfo(this) << QStringLiteral("ERROR: cannot open '%1' for reading: only synchronous file access is supported.").arg(filename.fileName());
@@ -79,7 +79,7 @@ bool StateMachineLoader::parse(const QUrl &filename)
     QByteArray data(scxmlFile.dataByteArray());
     QBuffer buf(&data);
     Q_ASSERT(buf.open(QIODevice::ReadOnly));
-    m_stateMachine = Scxml::QScxmlStateMachine::fromData(&buf);
+    m_stateMachine = QScxmlStateMachine::fromData(&buf);
     m_stateMachine->setParent(this);
     m_stateMachine->init();
 
@@ -89,7 +89,7 @@ bool StateMachineLoader::parse(const QUrl &filename)
         return true;
     } else {
         qmlInfo(this) << QStringLiteral("Something went wrong while parsing '%1':").arg(filename.fileName()) << endl;
-        foreach (const Scxml::QScxmlError &msg, m_stateMachine->errors()) {
+        foreach (const QScxmlError &msg, m_stateMachine->errors()) {
             qmlInfo(this) << msg.toString();
         }
 

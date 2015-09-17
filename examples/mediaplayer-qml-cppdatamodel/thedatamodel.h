@@ -43,7 +43,7 @@
 
 #include "cppdatamodel.h"
 
-class TheDataModel: public Scxml::QScxmlCppDataModel
+class TheDataModel: public QScxmlCppDataModel
 {
     Q_SCXML_DATAMODEL
 

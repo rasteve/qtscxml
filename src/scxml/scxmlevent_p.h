@@ -38,24 +38,22 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace Scxml {
-
 class EventBuilder
 {
     QScxmlStateMachine* table;
     QScxmlExecutableContent::StringId instructionLocation;
     QByteArray event;
-    EvaluatorId eventexpr;
+    QScxmlExecutableContent::EvaluatorId eventexpr;
     QString contents;
-    EvaluatorId contentExpr;
+    QScxmlExecutableContent::EvaluatorId contentExpr;
     const QScxmlExecutableContent::Array<QScxmlExecutableContent::Param> *params;
     QScxmlEvent::EventType eventType;
     QByteArray id;
     QString idLocation;
     QString target;
-    EvaluatorId targetexpr;
+    QScxmlExecutableContent::EvaluatorId targetexpr;
     QString type;
-    EvaluatorId typeexpr;
+    QScxmlExecutableContent::EvaluatorId typeexpr;
     const QScxmlExecutableContent::Array<QScxmlExecutableContent::StringId> *namelist;
 
     static QAtomicInt idCounter;
@@ -72,12 +70,12 @@ class EventBuilder
     void init() // Because stupid VS2012 can't cope with non-static field initializers.
     {
         table = Q_NULLPTR;
-        eventexpr = NoEvaluator;
-        contentExpr = NoEvaluator;
+        eventexpr = QScxmlExecutableContent::NoEvaluator;
+        contentExpr = QScxmlExecutableContent::NoEvaluator;
         params = Q_NULLPTR;
         eventType = QScxmlEvent::ExternalEvent;
-        targetexpr = NoEvaluator;
-        typeexpr = NoEvaluator;
+        targetexpr = QScxmlExecutableContent::NoEvaluator;
+        typeexpr = QScxmlExecutableContent::NoEvaluator;
         namelist = Q_NULLPTR;
     }
 
@@ -127,8 +125,6 @@ public:
         return event();
     }
 };
-
-} // Scxml namespace
 
 class QScxmlEventPrivate
 {

@@ -21,7 +21,7 @@
 
 QT_USE_NAMESPACE
 
-using namespace Scxml;
+using namespace QScxmlExecutableContent;
 
 QEvent::Type QScxmlEvent::scxmlEventType = (QEvent::Type) QEvent::registerEventType();
 QEvent::Type QScxmlEvent::ignoreEventType = (QEvent::Type) QEvent::registerEventType();

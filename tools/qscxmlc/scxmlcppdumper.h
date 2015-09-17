@@ -27,7 +27,6 @@
 #include <QTextStream>
 
 QT_BEGIN_NAMESPACE
-namespace Scxml {
 
 struct ClassDump;
 
@@ -83,7 +82,6 @@ private:
     TranslationUnit *m_translationUnit;
 };
 
-} // namespace Scxml
 QT_END_NAMESPACE
 
 #endif // CPPDUMPER_H

@@ -51,9 +51,7 @@ class QXmlStreamWriter;
 class QTextStream;
 class QDebug;
 
-namespace Scxml {
 Q_SCXML_EXPORT Q_DECLARE_LOGGING_CATEGORY(scxmlLog)
-
 
 class Q_SCXML_EXPORT QScxmlTableData
 {
@@ -63,9 +61,9 @@ public:
     virtual QString string(QScxmlExecutableContent::StringId id) const = 0;
     virtual QByteArray byteArray(QScxmlExecutableContent::ByteArrayId id) const = 0;
     virtual QScxmlExecutableContent::Instructions instructions() const = 0;
-    virtual QScxmlEvaluatorInfo evaluatorInfo(EvaluatorId evaluatorId) const = 0;
-    virtual QScxmlAssignmentInfo assignmentInfo(EvaluatorId assignmentId) const = 0;
-    virtual QScxmlForeachInfo foreachInfo(EvaluatorId foreachId) const = 0;
+    virtual QScxmlExecutableContent::EvaluatorInfo evaluatorInfo(QScxmlExecutableContent::EvaluatorId evaluatorId) const = 0;
+    virtual QScxmlExecutableContent::AssignmentInfo assignmentInfo(QScxmlExecutableContent::EvaluatorId assignmentId) const = 0;
+    virtual QScxmlExecutableContent::ForeachInfo foreachInfo(QScxmlExecutableContent::EvaluatorId foreachId) const = 0;
     virtual QScxmlExecutableContent::StringId *dataNames(int *count) const = 0;
 
     virtual QScxmlExecutableContent::ContainerId initialSetup() const = 0;
@@ -125,18 +123,18 @@ public:
     struct Q_SCXML_EXPORT Param
     {
         QScxmlExecutableContent::StringId name;
-        EvaluatorId expr;
+        QScxmlExecutableContent::EvaluatorId expr;
         QScxmlExecutableContent::StringId location;
     };
 
     QScxmlInvokableServiceFactory(QScxmlExecutableContent::StringId invokeLocation,
-                                 QScxmlExecutableContent::StringId id,
-                                 QScxmlExecutableContent::StringId idPrefix,
-                                 QScxmlExecutableContent::StringId idlocation,
-                                 const QVector<QScxmlExecutableContent::StringId> &namelist,
-                                 bool autoforward,
-                                 const QVector<Param> &params,
-                                 QScxmlExecutableContent::ContainerId finalizeContent);
+                                  QScxmlExecutableContent::StringId id,
+                                  QScxmlExecutableContent::StringId idPrefix,
+                                  QScxmlExecutableContent::StringId idlocation,
+                                  const QVector<QScxmlExecutableContent::StringId> &namelist,
+                                  bool autoforward,
+                                  const QVector<Param> &params,
+                                  QScxmlExecutableContent::ContainerId finalizeContent);
     virtual ~QScxmlInvokableServiceFactory();
 
     virtual QScxmlInvokableService *invoke(QScxmlStateMachine *parent) = 0;
@@ -155,11 +153,11 @@ private:
 class Q_SCXML_EXPORT QScxmlInvokableScxmlServiceFactory: public QScxmlInvokableServiceFactory
 {
 public:
-    QScxmlInvokableScxmlServiceFactory(Scxml::QScxmlExecutableContent::StringId invokeLocation,
-                                       Scxml::QScxmlExecutableContent::StringId id,
-                                       Scxml::QScxmlExecutableContent::StringId idPrefix,
-                                       Scxml::QScxmlExecutableContent::StringId idlocation,
-                                       const QVector<Scxml::QScxmlExecutableContent::StringId> &namelist,
+    QScxmlInvokableScxmlServiceFactory(QScxmlExecutableContent::StringId invokeLocation,
+                                       QScxmlExecutableContent::StringId id,
+                                       QScxmlExecutableContent::StringId idPrefix,
+                                       QScxmlExecutableContent::StringId idlocation,
+                                       const QVector<QScxmlExecutableContent::StringId> &namelist,
                                        bool doAutoforward,
                                        const QVector<Param> &params,
                                        QScxmlExecutableContent::ContainerId finalize);
@@ -169,10 +167,10 @@ protected:
 };
 
 class QScxmlStateMachine;
-class Q_SCXML_EXPORT ScxmlEventFilter
+class Q_SCXML_EXPORT QScxmlEventFilter
 {
 public:
-    virtual ~ScxmlEventFilter();
+    virtual ~QScxmlEventFilter();
     virtual bool handle(QScxmlEvent *event, QScxmlStateMachine *stateMachine) = 0;
 };
 
@@ -231,8 +229,8 @@ public:
                                     const QObject *receiver, const char *method,
                                     Qt::ConnectionType type = Qt::AutoConnection);
 
-    ScxmlEventFilter *scxmlEventFilter() const;
-    void setScxmlEventFilter(ScxmlEventFilter *newFilter);
+    QScxmlEventFilter *scxmlEventFilter() const;
+    void setScxmlEventFilter(QScxmlEventFilter *newFilter);
 
     Q_INVOKABLE void submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid);
 
@@ -263,9 +261,7 @@ protected:
     void executeInitialSetup();
 };
 
-} // namespace Scxml
-
-Q_DECLARE_TYPEINFO(Scxml::QScxmlError, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(QScxmlError, Q_MOVABLE_TYPE);
 QT_END_NAMESPACE
 
 #endif // SCXMLSTATEMACHINE_H

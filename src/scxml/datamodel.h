@@ -28,29 +28,28 @@ QT_BEGIN_NAMESPACE
 
 class QScxmlEvent;
 
-namespace Scxml {
-
 class QScxmlStateMachine;
 
+namespace QScxmlExecutableContent {
 #if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
 #pragma pack(push, 4) // 4 == sizeof(qint32)
 #endif
-struct QScxmlEvaluatorInfo {
-    QScxmlExecutableContent::StringId expr;
-    QScxmlExecutableContent::StringId context;
+struct EvaluatorInfo {
+    StringId expr;
+    StringId context;
 };
 
-struct QScxmlAssignmentInfo {
-    QScxmlExecutableContent::StringId dest;
-    QScxmlExecutableContent::StringId expr;
-    QScxmlExecutableContent::StringId context;
+struct AssignmentInfo {
+    StringId dest;
+    StringId expr;
+    StringId context;
 };
 
-struct QScxmlForeachInfo {
-    QScxmlExecutableContent::StringId array;
-    QScxmlExecutableContent::StringId item;
-    QScxmlExecutableContent::StringId index;
-    QScxmlExecutableContent::StringId context;
+struct ForeachInfo {
+    StringId array;
+    StringId item;
+    StringId index;
+    StringId context;
 };
 #if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
 #pragma pack(pop)
@@ -58,6 +57,7 @@ struct QScxmlForeachInfo {
 
 typedef qint32 EvaluatorId;
 enum { NoEvaluator = -1 };
+} // QScxmlExecutableContent namespace
 
 class QScxmlNullDataModel;
 class QScxmlEcmaScriptDataModel;
@@ -82,13 +82,13 @@ public:
 
     virtual void setup(const QVariantMap &initialDataValues) = 0;
 
-    virtual QString evaluateToString(EvaluatorId id, bool *ok) = 0;
-    virtual bool evaluateToBool(EvaluatorId id, bool *ok) = 0;
-    virtual QVariant evaluateToVariant(EvaluatorId id, bool *ok) = 0;
-    virtual void evaluateToVoid(EvaluatorId id, bool *ok) = 0;
-    virtual void evaluateAssignment(EvaluatorId id, bool *ok) = 0;
-    virtual void evaluateInitialization(EvaluatorId id, bool *ok) = 0;
-    virtual bool evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body) = 0;
+    virtual QString evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
+    virtual bool evaluateToBool(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
+    virtual QVariant evaluateToVariant(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
+    virtual void evaluateToVoid(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
+    virtual void evaluateAssignment(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
+    virtual void evaluateInitialization(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
+    virtual bool evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) = 0;
 
     virtual void setEvent(const QScxmlEvent &event) = 0;
 
@@ -101,8 +101,6 @@ private:
     class Data;
     Data *d;
 };
-
-} // namespace Scxml
 
 QT_END_NAMESPACE
 

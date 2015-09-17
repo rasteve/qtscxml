@@ -74,7 +74,7 @@ private:
     LightWidget *m_green;
 };
 
-TrafficLight::TrafficLight(Scxml::QScxmlStateMachine *machine, QWidget *parent)
+TrafficLight::TrafficLight(QScxmlStateMachine *machine, QWidget *parent)
     : QWidget(parent)
     , m_machine(machine)
 {

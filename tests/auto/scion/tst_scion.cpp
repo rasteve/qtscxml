@@ -26,7 +26,7 @@
 #include "scxml/scion.h"
 #include "scxml/compiled_tests.h"
 
-Q_DECLARE_METATYPE(std::function<Scxml::QScxmlStateMachine *()>);
+Q_DECLARE_METATYPE(std::function<QScxmlStateMachine *()>);
 
 enum { SpyWaitTime = 8000 };
 
@@ -118,8 +118,6 @@ public:
     }
 };
 
-using namespace Scxml;
-
 class TestScion: public QObject
 {
     Q_OBJECT
@@ -153,7 +151,7 @@ void TestScion::generateData()
     QTest::addColumn<QString>("scxml");
     QTest::addColumn<QString>("json");
     QTest::addColumn<TestStatus>("testStatus");
-    QTest::addColumn<std::function<Scxml::QScxmlStateMachine *()>>("creator");
+    QTest::addColumn<std::function<QScxmlStateMachine *()>>("creator");
 
     const int nrOfTests = sizeof(testBases) / sizeof(const char *);
     for (int i = 0; i < nrOfTests; ++i) {
@@ -184,7 +182,7 @@ void TestScion::dynamic()
     QFETCH(QString, scxml);
     QFETCH(QString, json);
     QFETCH(TestStatus, testStatus);
-    QFETCH(std::function<Scxml::QScxmlStateMachine *()>, creator);
+    QFETCH(std::function<QScxmlStateMachine *()>, creator);
 
 //    fprintf(stderr, "\n\n%s\n%s\n\n", qPrintable(scxml), qPrintable(json));
 
@@ -246,7 +244,7 @@ void TestScion::compiled()
     QFETCH(QString, scxml);
     QFETCH(QString, json);
     QFETCH(TestStatus, testStatus);
-    QFETCH(std::function<Scxml::QScxmlStateMachine *()>, creator);
+    QFETCH(std::function<QScxmlStateMachine *()>, creator);
 
     if (testStatus == TestCrashes)
         QSKIP("Test is marked as a crasher");
@@ -258,7 +256,7 @@ void TestScion::compiled()
     auto testDescription = QJsonDocument::fromJson(jsonFile.readAll());
     jsonFile.close();
 
-    QScopedPointer<Scxml::QScxmlStateMachine> table(creator());
+    QScopedPointer<QScxmlStateMachine> table(creator());
     if (table == Q_NULLPTR && testStatus == TestFails) {
         QEXPECT_FAIL("", "This is expected to fail", Abort);
     }

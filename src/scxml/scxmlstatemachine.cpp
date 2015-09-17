@@ -35,7 +35,6 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace Scxml {
 Q_LOGGING_CATEGORY(scxmlLog, "scxml.table")
 
 namespace {
@@ -66,7 +65,7 @@ private:
 };
 } // anonymous namespace
 
-namespace Internal {
+namespace QScxmlInternal {
 class WrappedQStateMachinePrivate: public QStateMachinePrivate
 {
     Q_DECLARE_PUBLIC(WrappedQStateMachine)
@@ -386,7 +385,7 @@ QVariantMap QScxmlInvokableServiceFactory::calculateData(QScxmlStateMachine *par
     foreach (const Param &param, d->params) {
         auto name = tableData->string(param.name);
 
-        if (param.expr != NoEvaluator) {
+        if (param.expr != QScxmlExecutableContent::NoEvaluator) {
             *ok = false;
             auto v = dataModel->evaluateToVariant(param.expr, ok);
             if (!*ok)
@@ -436,7 +435,7 @@ QScxmlExecutableContent::ContainerId QScxmlInvokableServiceFactory::finalizeCont
     return d->finalize;
 }
 
-ScxmlEventFilter::~ScxmlEventFilter()
+QScxmlEventFilter::~QScxmlEventFilter()
 {}
 
 QScxmlInvokableScxmlServiceFactory::QScxmlInvokableScxmlServiceFactory(
@@ -485,7 +484,7 @@ QScxmlStateMachinePrivate::~QScxmlStateMachinePrivate()
     delete m_executionEngine;
 }
 
-void QScxmlStateMachinePrivate::setQStateMachine(Internal::WrappedQStateMachine *stateMachine)
+void QScxmlStateMachinePrivate::setQStateMachine(QScxmlInternal::WrappedQStateMachine *stateMachine)
 {
     m_qStateMachine = stateMachine;
 }
@@ -540,7 +539,7 @@ QScxmlStateMachine *QScxmlStateMachine::fromFile(const QString &fileName, QScxml
 QScxmlStateMachine *QScxmlStateMachine::fromData(QIODevice *data, const QString &fileName, QScxmlDataModel *dataModel)
 {
     QXmlStreamReader xmlReader(data);
-    Scxml::QScxmlParser parser(&xmlReader);
+    QScxmlParser parser(&xmlReader);
     parser.setFileName(fileName);
     parser.parse();
     auto table = parser.instantiateStateMachine();
@@ -563,7 +562,7 @@ QScxmlStateMachine::QScxmlStateMachine(QObject *parent)
 {
     Q_D(QScxmlStateMachine);
     d->m_executionEngine = new QScxmlExecutableContent::ExecutionEngine(this);
-    d->setQStateMachine(new Internal::WrappedQStateMachine(this));
+    d->setQStateMachine(new QScxmlInternal::WrappedQStateMachine(this));
     connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::onFinished);
     connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::finished);
 }
@@ -669,7 +668,7 @@ void QScxmlStateMachine::setParentStateMachine(QScxmlStateMachine *parent)
     d->m_parentStateMachine = parent;
 }
 
-void Internal::WrappedQStateMachine::beginSelectTransitions(QEvent *event)
+void QScxmlInternal::WrappedQStateMachine::beginSelectTransitions(QEvent *event)
 {
     Q_D(WrappedQStateMachine);
 
@@ -704,7 +703,7 @@ void Internal::WrappedQStateMachine::beginSelectTransitions(QEvent *event)
     }
 }
 
-void Internal::WrappedQStateMachine::beginMicrostep(QEvent *event)
+void QScxmlInternal::WrappedQStateMachine::beginMicrostep(QEvent *event)
 {
     Q_D(WrappedQStateMachine);
 
@@ -712,7 +711,7 @@ void Internal::WrappedQStateMachine::beginMicrostep(QEvent *event)
                       << "with event" << stateMachinePrivate()->m_event.name() << "from event type" << event->type();
 }
 
-void Internal::WrappedQStateMachine::endMicrostep(QEvent *event)
+void QScxmlInternal::WrappedQStateMachine::endMicrostep(QEvent *event)
 {
     Q_D(WrappedQStateMachine);
     Q_UNUSED(event);
@@ -722,30 +721,30 @@ void Internal::WrappedQStateMachine::endMicrostep(QEvent *event)
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
 
-void Internal::WrappedQStateMachinePrivate::noMicrostep()
+void QScxmlInternal::WrappedQStateMachinePrivate::noMicrostep()
 {
     qCDebug(scxmlLog) << m_table->tableData()->name() << " had no transition, stays in state (" << m_table->activeStates() << ")";
 }
 
-void Internal::WrappedQStateMachinePrivate::processedPendingEvents(bool didChange)
+void QScxmlInternal::WrappedQStateMachinePrivate::processedPendingEvents(bool didChange)
 {
     qCDebug(scxmlLog) << m_table->tableData()->name() << " finishedPendingEvents " << didChange << " in state ("
                       << m_table->activeStates() << ")";
     emit m_table->reachedStableState(didChange);
 }
 
-void Internal::WrappedQStateMachinePrivate::beginMacrostep()
+void QScxmlInternal::WrappedQStateMachinePrivate::beginMacrostep()
 {
 }
 
-void Internal::WrappedQStateMachinePrivate::endMacrostep(bool didChange)
+void QScxmlInternal::WrappedQStateMachinePrivate::endMacrostep(bool didChange)
 {
     qCDebug(scxmlLog) << m_table->tableData()->name() << " endMacrostep " << didChange << " in state ("
                       << m_table->activeStates() << ")";
 }
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-void Internal::WrappedQStateMachinePrivate::exitInterpreter()
+void QScxmlInternal::WrappedQStateMachinePrivate::exitInterpreter()
 {
     Q_Q(WrappedQStateMachine);
 
@@ -777,7 +776,7 @@ void Internal::WrappedQStateMachinePrivate::exitInterpreter()
 }
 #endif // QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 
-void Internal::WrappedQStateMachinePrivate::emitStateFinished(QState *forState, QFinalState *guiltyState)
+void QScxmlInternal::WrappedQStateMachinePrivate::emitStateFinished(QState *forState, QFinalState *guiltyState)
 {
     Q_Q(WrappedQStateMachine);
 
@@ -790,7 +789,7 @@ void Internal::WrappedQStateMachinePrivate::emitStateFinished(QState *forState, 
     QStateMachinePrivate::emitStateFinished(forState, guiltyState);
 }
 
-void Internal::WrappedQStateMachinePrivate::startupHook()
+void QScxmlInternal::WrappedQStateMachinePrivate::startupHook()
 {
     Q_Q(WrappedQStateMachine);
 
@@ -799,7 +798,7 @@ void Internal::WrappedQStateMachinePrivate::startupHook()
 
 #endif // QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
 
-int Internal::WrappedQStateMachinePrivate::eventIdForDelayedEvent(const QByteArray &scxmlEventId)
+int QScxmlInternal::WrappedQStateMachinePrivate::eventIdForDelayedEvent(const QByteArray &scxmlEventId)
 {
     QMutexLocker locker(&delayedEventsMutex);
 
@@ -861,13 +860,13 @@ QMetaObject::Connection QScxmlStateMachine::connect(const QString &scxmlStateNam
     return QObject::connect(state, signal, receiver, method, type);
 }
 
-ScxmlEventFilter *QScxmlStateMachine::scxmlEventFilter() const
+QScxmlEventFilter *QScxmlStateMachine::scxmlEventFilter() const
 {
     Q_D(const QScxmlStateMachine);
     return d->m_eventFilter;
 }
 
-void QScxmlStateMachine::setScxmlEventFilter(ScxmlEventFilter *newFilter)
+void QScxmlStateMachine::setScxmlEventFilter(QScxmlEventFilter *newFilter)
 {
     Q_D(QScxmlStateMachine);
     d->m_eventFilter = newFilter;
@@ -1048,7 +1047,7 @@ void QScxmlStateMachine::cancelDelayedEvent(const QByteArray &sendid)
         d->m_qStateMachine->cancelDelayedEvent(id);
 }
 
-void Internal::WrappedQStateMachine::queueEvent(QScxmlEvent *event, EventPriority priority)
+void QScxmlInternal::WrappedQStateMachine::queueEvent(QScxmlEvent *event, EventPriority priority)
 {
     Q_D(WrappedQStateMachine);
 
@@ -1059,7 +1058,7 @@ void Internal::WrappedQStateMachine::queueEvent(QScxmlEvent *event, EventPriorit
     d->m_queuedEvents->append(WrappedQStateMachinePrivate::QueuedEvent(event, priority));
 }
 
-void Internal::WrappedQStateMachine::submitQueuedEvents()
+void QScxmlInternal::WrappedQStateMachine::submitQueuedEvents()
 {
     Q_D(WrappedQStateMachine);
 
@@ -1073,7 +1072,7 @@ void Internal::WrappedQStateMachine::submitQueuedEvents()
     }
 }
 
-int Internal::WrappedQStateMachine::eventIdForDelayedEvent(const QByteArray &scxmlEventId)
+int QScxmlInternal::WrappedQStateMachine::eventIdForDelayedEvent(const QByteArray &scxmlEventId)
 {
     Q_D(WrappedQStateMachine);
     return d->eventIdForDelayedEvent(scxmlEventId);
@@ -1119,7 +1118,5 @@ void QScxmlStateMachine::start()
 
     d->m_qStateMachine->start();
 }
-
-} // namespace Scxml
 
 QT_END_NAMESPACE

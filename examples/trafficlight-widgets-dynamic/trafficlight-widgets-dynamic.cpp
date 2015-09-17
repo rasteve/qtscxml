@@ -49,10 +49,10 @@ int main(int argc, char **argv)
 {
     QApplication app(argc, argv);
 
-    auto machine = Scxml::QScxmlStateMachine::fromFile(QStringLiteral(":statemachine.scxml"));
+    auto machine = QScxmlStateMachine::fromFile(QStringLiteral(":statemachine.scxml"));
     if (!machine->errors().isEmpty()) {
         QTextStream errs(stderr, QIODevice::WriteOnly);
-        foreach (const Scxml::QScxmlError &error, machine->errors()) {
+        foreach (const QScxmlError &error, machine->errors()) {
             errs << error.toString();
         }
 
