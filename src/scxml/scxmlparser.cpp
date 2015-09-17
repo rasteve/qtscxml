@@ -591,24 +591,24 @@ private:
         QAbstractState *newState = Q_NULLPTR;
         switch (node->type) {
         case DocumentModel::State::Normal: {
-            auto s = new ScxmlState(currentParent());
+            auto s = new QScxmlState(currentParent());
             newState = s;
             foreach (DocumentModel::AbstractState *initialState, node->initialStates) {
                 m_initialStates.append(qMakePair(s, initialState));
             }
         } break;
         case DocumentModel::State::Parallel: {
-            auto s = new ScxmlState(currentParent());
+            auto s = new QScxmlState(currentParent());
             s->setChildMode(QState::ParallelStates);
             newState = s;
         } break;
         case DocumentModel::State::Initial: {
-            auto s = new ScxmlState(currentParent());
+            auto s = new QScxmlState(currentParent());
             currentParent()->setInitialState(s);
             newState = s;
         } break;
         case DocumentModel::State::Final: {
-            auto s = new ScxmlFinalState(currentParent());
+            auto s = new QScxmlFinalState(currentParent());
             newState = s;
             s->setDoneData(generate(node->doneData));
         } break;
@@ -624,7 +624,7 @@ private:
 
         if (!node->dataElements.isEmpty()) {
             if (m_bindLate) {
-                qobject_cast<ScxmlState *>(newState)->setInitInstructions(startNewSequence());
+                qobject_cast<QScxmlState *>(newState)->setInitInstructions(startNewSequence());
                 generate(node->dataElements);
                 endSequence();
             } else {
@@ -634,7 +634,7 @@ private:
 
         QScxmlExecutableContent::ContainerId onEntry = generate(node->onEntry);
         QScxmlExecutableContent::ContainerId onExit = generate(node->onExit);
-        if (ScxmlState *s = qobject_cast<ScxmlState *>(newState)) {
+        if (QScxmlState *s = qobject_cast<QScxmlState *>(newState)) {
             s->setOnEntryInstructions(onEntry);
             s->setOnExitInstructions(onExit);
             if (!node->invokes.isEmpty()) {
@@ -671,7 +671,7 @@ private:
                 }
                 s->setInvokableServiceFactories(factories);
             }
-        } else if (ScxmlFinalState *f = qobject_cast<ScxmlFinalState *>(newState)) {
+        } else if (QScxmlFinalState *f = qobject_cast<QScxmlFinalState *>(newState)) {
             f->setOnEntryInstructions(onEntry);
             f->setOnExitInstructions(onExit);
         } else {
@@ -689,7 +689,7 @@ private:
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
         auto events = toUtf8(node->events);
         m_eventSlots.unite(events.toSet());
-        auto newTransition = new ScxmlTransition(events);
+        auto newTransition = new QScxmlTransition(events);
         if (QHistoryState *parent = qobject_cast<QHistoryState*>(m_parents.last())) {
             parent->setDefaultTransition(newTransition);
         } else {

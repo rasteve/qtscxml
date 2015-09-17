@@ -25,12 +25,12 @@ QT_BEGIN_NAMESPACE
 
 namespace Scxml {
 
-class ScxmlState::Data
+class QScxmlState::Data
 {
 public:
-    static Data *get(ScxmlState *s) { return s->d; }
+    static Data *get(QScxmlState *s) { return s->d; }
 
-    Data(ScxmlState *state)
+    Data(QScxmlState *state)
         : m_state(state)
         , initInstructions(QScxmlExecutableContent::NoInstruction)
         , onEntryInstructions(QScxmlExecutableContent::NoInstruction)
@@ -40,7 +40,7 @@ public:
     ~Data()
     { qDeleteAll(invokableServiceFactories); }
 
-    ScxmlState *m_state;
+    QScxmlState *m_state;
     QScxmlExecutableContent::ContainerId initInstructions;
     QScxmlExecutableContent::ContainerId onEntryInstructions;
     QScxmlExecutableContent::ContainerId onExitInstructions;
@@ -48,10 +48,10 @@ public:
     QVector<ScxmlInvokableService *> invokedServices;
 };
 
-class ScxmlFinalState::Data
+class QScxmlFinalState::Data
 {
 public:
-    static Data *get(ScxmlFinalState *s) { return s->d; }
+    static Data *get(QScxmlFinalState *s) { return s->d; }
 
     Data()
         : doneData(QScxmlExecutableContent::NoInstruction)

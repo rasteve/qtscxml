@@ -47,44 +47,18 @@ public:
     }
 };
 
-class Q_SCXML_EXPORT ScxmlBaseTransition : public QAbstractTransition
-{
-    Q_OBJECT
-    class Data;
-
-public:
-    ScxmlBaseTransition(QState * sourceState = Q_NULLPTR,
-                        const QList<QByteArray> &eventSelector = QList<QByteArray>());
-    ScxmlBaseTransition(QAbstractTransitionPrivate &dd, QState *parent,
-                        const QList<QByteArray> &eventSelector = QList<QByteArray>());
-    ~ScxmlBaseTransition();
-
-    StateMachine *stateMachine() const;
-    QString transitionLocation() const;
-
-    bool eventTest(QEvent *event) Q_DECL_OVERRIDE;
-    virtual bool clear();
-    virtual bool init();
-
-protected:
-    void onTransition(QEvent *event) Q_DECL_OVERRIDE;
-
-private:
-    Data *d;
-};
-
-class Q_SCXML_EXPORT ScxmlState: public QState
+class Q_SCXML_EXPORT QScxmlState: public QState
 {
     Q_OBJECT
 
 public:
     class Data;
 
-    ScxmlState(QState *parent = Q_NULLPTR);
-    ScxmlState(StateMachine *parent);
-    ~ScxmlState();
+    QScxmlState(QState *parent = Q_NULLPTR);
+    QScxmlState(StateMachine *parent);
+    ~QScxmlState();
 
-    void setAsInitialStateFor(ScxmlState *state);
+    void setAsInitialStateFor(QScxmlState *state);
     void setAsInitialStateFor(StateMachine *stateMachine);
 
     StateMachine *stateMachine() const;
@@ -108,24 +82,24 @@ private:
     Data *d;
 };
 
-class Q_SCXML_EXPORT ScxmlInitialState: public ScxmlState
+class Q_SCXML_EXPORT QScxmlInitialState: public QScxmlState
 {
     Q_OBJECT
 public:
-    ScxmlInitialState(QState *theParent);
+    QScxmlInitialState(QState *theParent);
 };
 
-class Q_SCXML_EXPORT ScxmlFinalState: public QFinalState
+class Q_SCXML_EXPORT QScxmlFinalState: public QFinalState
 {
     Q_OBJECT
 public:
     class Data;
 
-    ScxmlFinalState(QState *parent = Q_NULLPTR);
-    ScxmlFinalState(StateMachine *parent);
-    ~ScxmlFinalState();
+    QScxmlFinalState(QState *parent = Q_NULLPTR);
+    QScxmlFinalState(StateMachine *parent);
+    ~QScxmlFinalState();
 
-    void setAsInitialStateFor(ScxmlState *state);
+    void setAsInitialStateFor(QScxmlState *state);
     void setAsInitialStateFor(StateMachine *stateMachine);
 
     StateMachine *stateMachine() const;
@@ -145,18 +119,44 @@ private:
     Data *d;
 };
 
-class Q_SCXML_EXPORT ScxmlTransition : public ScxmlBaseTransition
+class Q_SCXML_EXPORT QScxmlBaseTransition: public QAbstractTransition
 {
     Q_OBJECT
     class Data;
 
 public:
-    ScxmlTransition(QState * sourceState = Q_NULLPTR,
-                    const QList<QByteArray> &eventSelector = QList<QByteArray>());
-    ScxmlTransition(const QList<QByteArray> &eventSelector);
-    ~ScxmlTransition();
+    QScxmlBaseTransition(QState * sourceState = Q_NULLPTR,
+                         const QList<QByteArray> &eventSelector = QList<QByteArray>());
+    QScxmlBaseTransition(QAbstractTransitionPrivate &dd, QState *parent,
+                         const QList<QByteArray> &eventSelector = QList<QByteArray>());
+    ~QScxmlBaseTransition();
 
-    void addTransitionTo(ScxmlState *state);
+    StateMachine *stateMachine() const;
+    QString transitionLocation() const;
+
+    bool eventTest(QEvent *event) Q_DECL_OVERRIDE;
+    virtual bool clear();
+    virtual bool init();
+
+protected:
+    void onTransition(QEvent *event) Q_DECL_OVERRIDE;
+
+private:
+    Data *d;
+};
+
+class Q_SCXML_EXPORT QScxmlTransition: public QScxmlBaseTransition
+{
+    Q_OBJECT
+    class Data;
+
+public:
+    QScxmlTransition(QState * sourceState = Q_NULLPTR,
+                     const QList<QByteArray> &eventSelector = QList<QByteArray>());
+    QScxmlTransition(const QList<QByteArray> &eventSelector);
+    ~QScxmlTransition();
+
+    void addTransitionTo(QScxmlState *state);
     void addTransitionTo(StateMachine *stateMachine);
 
     bool eventTest(QEvent *event) Q_DECL_OVERRIDE;

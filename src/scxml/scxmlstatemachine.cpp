@@ -490,7 +490,7 @@ void StateMachinePrivate::setQStateMachine(Internal::MyQStateMachine *stateMachi
     m_qStateMachine = stateMachine;
 }
 
-static ScxmlState *findState(const QString &scxmlName, QStateMachine *parent)
+static QScxmlState *findState(const QString &scxmlName, QStateMachine *parent)
 {
     QList<QObject *> worklist;
     worklist.reserve(parent->children().size() + parent->configuration().size());
@@ -498,7 +498,7 @@ static ScxmlState *findState(const QString &scxmlName, QStateMachine *parent)
 
     while (!worklist.isEmpty()) {
         QObject *obj = worklist.takeLast();
-        if (ScxmlState *state = qobject_cast<ScxmlState *>(obj)) {
+        if (QScxmlState *state = qobject_cast<QScxmlState *>(obj)) {
             if (state->objectName() == scxmlName)
                 return state;
         }
@@ -751,17 +751,17 @@ void Internal::MyQStateMachinePrivate::exitInterpreter()
 
     foreach (QAbstractState *s, configuration) {
         QScxmlExecutableContent::ContainerId onExitInstructions = QScxmlExecutableContent::NoInstruction;
-        if (ScxmlFinalState *finalState = qobject_cast<ScxmlFinalState *>(s)) {
+        if (QScxmlFinalState *finalState = qobject_cast<QScxmlFinalState *>(s)) {
             StateMachinePrivate::get(m_table)->m_executionEngine->execute(finalState->doneData(), QVariant());
-            onExitInstructions = ScxmlFinalState::Data::get(finalState)->onExitInstructions;
-        } else if (ScxmlState *state = qobject_cast<ScxmlState *>(s)) {
-            onExitInstructions = ScxmlState::Data::get(state)->onExitInstructions;
+            onExitInstructions = QScxmlFinalState::Data::get(finalState)->onExitInstructions;
+        } else if (QScxmlState *state = qobject_cast<QScxmlState *>(s)) {
+            onExitInstructions = QScxmlState::Data::get(state)->onExitInstructions;
         }
 
         if (onExitInstructions != QScxmlExecutableContent::NoInstruction)
             StateMachinePrivate::get(m_table)->m_executionEngine->execute(onExitInstructions);
 
-        if (ScxmlFinalState *finalState = qobject_cast<ScxmlFinalState *>(s)) {
+        if (QScxmlFinalState *finalState = qobject_cast<QScxmlFinalState *>(s)) {
             if (finalState->parent() == q) {
                 auto psm = m_table->parentStateMachine();
                 if (psm) {
@@ -781,7 +781,7 @@ void Internal::MyQStateMachinePrivate::emitStateFinished(QState *forState, QFina
 {
     Q_Q(MyQStateMachine);
 
-    if (ScxmlFinalState *finalState = qobject_cast<ScxmlFinalState *>(guiltyState)) {
+    if (QScxmlFinalState *finalState = qobject_cast<QScxmlFinalState *>(guiltyState)) {
         if (!q->isRunning())
             return;
         StateMachinePrivate::get(m_table)->m_executionEngine->execute(finalState->doneData(), forState->objectName());
@@ -857,7 +857,7 @@ QMetaObject::Connection StateMachine::connect(const QString &scxmlStateName, con
                                             Qt::ConnectionType type)
 {
     Q_D(StateMachine);
-    ScxmlState *state = findState(scxmlStateName, d->m_qStateMachine);
+    QScxmlState *state = findState(scxmlStateName, d->m_qStateMachine);
     return QObject::connect(state, signal, receiver, method, type);
 }
 
@@ -930,20 +930,20 @@ bool StateMachine::init(const QVariantMap &initialDataValues)
 
     bool res = true;
     loopOnSubStates(d->m_qStateMachine, std::function<bool(QState *)>(), [&res](QState *state) {
-        if (ScxmlState *s = qobject_cast<ScxmlState *>(state))
+        if (QScxmlState *s = qobject_cast<QScxmlState *>(state))
             if (!s->init())
                 res = false;
-        if (ScxmlFinalState *s = qobject_cast<ScxmlFinalState *>(state))
+        if (QScxmlFinalState *s = qobject_cast<QScxmlFinalState *>(state))
             if (!s->init())
                 res = false;
         foreach (QAbstractTransition *t, state->transitions()) {
-            if (ScxmlTransition *scTransition = qobject_cast<ScxmlTransition *>(t))
+            if (QScxmlTransition *scTransition = qobject_cast<QScxmlTransition *>(t))
                 if (!scTransition->init())
                     res = false;
         }
     });
     foreach (QAbstractTransition *t, d->m_qStateMachine->transitions()) {
-        if (ScxmlTransition *scTransition = qobject_cast<ScxmlTransition *>(t))
+        if (QScxmlTransition *scTransition = qobject_cast<QScxmlTransition *>(t))
             if (!scTransition->init())
                 res = false;
     }

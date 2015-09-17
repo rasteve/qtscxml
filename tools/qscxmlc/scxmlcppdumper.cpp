@@ -299,9 +299,9 @@ protected:
 
         // Declaration:
         if (node->type == State::Final) {
-            clazz.classFields << QStringLiteral("Scxml::ScxmlFinalState ") + stateName + QLatin1Char(';');
+            clazz.classFields << QStringLiteral("Scxml::QScxmlFinalState ") + stateName + QLatin1Char(';');
         } else {
-            clazz.classFields << QStringLiteral("Scxml::ScxmlState ") + stateName + QLatin1Char(';');
+            clazz.classFields << QStringLiteral("Scxml::QScxmlState ") + stateName + QLatin1Char(';');
         }
 
         // Initializer:
@@ -403,7 +403,7 @@ protected:
         m_knownEvents.unite(node->events.toSet());
 
         // Declaration:
-        clazz.classFields << QStringLiteral("Scxml::ScxmlTransition ") + tName + QLatin1Char(';');
+        clazz.classFields << QStringLiteral("Scxml::QScxmlTransition ") + tName + QLatin1Char(';');
 
         // Initializer:
 #if QT_VERSION < QT_VERSION_CHECK(5, 6, 0) // QTBUG-46703 work-around. See bug report why it's a bad one.

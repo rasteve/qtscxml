@@ -28,20 +28,197 @@ QT_BEGIN_NAMESPACE
 
 namespace Scxml {
 
-class ScxmlBaseTransition::Data
+class QScxmlBaseTransition::Data
 {
 public:
     QList<QByteArray> eventSelector;
 };
 
-ScxmlBaseTransition::ScxmlBaseTransition(QState *sourceState, const QList<QByteArray> &eventSelector)
+static QList<QByteArray> filterEmpty(const QList<QByteArray> &events) {
+    QList<QByteArray> res;
+    int oldI = 0;
+    for (int i = 0; i < events.size(); ++i) {
+        if (events.at(i).isEmpty()) {
+            res.append(events.mid(oldI, i - oldI));
+            oldI = i + 1;
+        }
+    }
+    if (oldI > 0) {
+        res.append(events.mid(oldI));
+        return res;
+    }
+    return events;
+}
+
+QScxmlState::QScxmlState(QState *parent)
+    : QState(parent)
+    , d(new QScxmlState::Data(this))
+{}
+
+QScxmlState::QScxmlState(StateMachine *parent)
+    : QState(StateMachinePrivate::get(parent)->m_qStateMachine)
+    , d(new QScxmlState::Data(this))
+{}
+
+QScxmlState::~QScxmlState()
+{
+    delete d;
+}
+
+void QScxmlState::setAsInitialStateFor(QScxmlState *state)
+{
+    state->setInitialState(this);
+}
+
+void QScxmlState::setAsInitialStateFor(StateMachine *stateMachine)
+{
+    StateMachinePrivate::get(stateMachine)->m_qStateMachine->setInitialState(this);
+}
+
+StateMachine *QScxmlState::stateMachine() const {
+    return qobject_cast<Internal::MyQStateMachine *>(machine())->stateTable();
+}
+
+bool QScxmlState::init()
+{
+    return true;
+}
+
+QString QScxmlState::stateLocation() const
+{
+    return QStringLiteral("State %1").arg(objectName());
+}
+
+void QScxmlState::setInitInstructions(QScxmlExecutableContent::ContainerId instructions)
+{
+    d->initInstructions = instructions;
+}
+
+void QScxmlState::setOnEntryInstructions(QScxmlExecutableContent::ContainerId instructions)
+{
+    d->onEntryInstructions = instructions;
+}
+
+void QScxmlState::setOnExitInstructions(QScxmlExecutableContent::ContainerId instructions)
+{
+    d->onExitInstructions = instructions;
+}
+
+void QScxmlState::setInvokableServiceFactories(const QVector<ScxmlInvokableServiceFactory *> &factories)
+{
+    d->invokableServiceFactories = factories;
+}
+
+void QScxmlState::onEntry(QEvent *event)
+{
+    if (d->initInstructions != QScxmlExecutableContent::NoInstruction) {
+        StateMachinePrivate::get(stateMachine())->m_executionEngine->execute(d->initInstructions);
+        d->initInstructions = QScxmlExecutableContent::NoInstruction;
+    }
+    QState::onEntry(event);
+    auto sm = stateMachine();
+    StateMachinePrivate::get(sm)->m_executionEngine->execute(d->onEntryInstructions);
+    foreach (ScxmlInvokableServiceFactory *serviceFactory, d->invokableServiceFactories) {
+        if (ScxmlInvokableService *service = serviceFactory->invoke(sm)) {
+            d->invokedServices.append(service);
+            sm->registerService(service);
+        }
+    }
+    emit didEnter();
+}
+
+void QScxmlState::onExit(QEvent *event)
+{
+    emit willExit();
+    auto sm = stateMachine();
+    StateMachinePrivate::get(sm)->m_executionEngine->execute(d->onExitInstructions);
+    QState::onExit(event);
+    foreach (ScxmlInvokableService *service, d->invokedServices) {
+        sm->unregisterService(service);
+        delete service;
+    }
+    d->invokedServices.clear();
+}
+
+QScxmlInitialState::QScxmlInitialState(QState *theParent)
+    : QScxmlState(theParent)
+{}
+
+QScxmlFinalState::QScxmlFinalState(QState *parent)
+    : QFinalState(parent)
+    , d(new Data)
+{}
+
+QScxmlFinalState::QScxmlFinalState(StateMachine *parent)
+    : QFinalState(StateMachinePrivate::get(parent)->m_qStateMachine)
+    , d(new Data)
+{}
+
+QScxmlFinalState::~QScxmlFinalState()
+{
+    delete d;
+}
+
+void QScxmlFinalState::setAsInitialStateFor(QScxmlState *state)
+{
+    state->setInitialState(this);
+}
+
+void QScxmlFinalState::setAsInitialStateFor(StateMachine *stateMachine)
+{
+    StateMachinePrivate::get(stateMachine)->m_qStateMachine->setInitialState(this);
+}
+
+StateMachine *QScxmlFinalState::stateMachine() const {
+    return qobject_cast<Internal::MyQStateMachine *>(machine())->stateTable();
+}
+
+bool QScxmlFinalState::init()
+{
+    return true;
+}
+
+Scxml::QScxmlExecutableContent::ContainerId QScxmlFinalState::doneData() const
+{
+    return d->doneData;
+}
+
+void QScxmlFinalState::setDoneData(Scxml::QScxmlExecutableContent::ContainerId doneData)
+{
+    d->doneData = doneData;
+}
+
+void QScxmlFinalState::setOnEntryInstructions(QScxmlExecutableContent::ContainerId instructions)
+{
+    d->onEntryInstructions = instructions;
+}
+
+void QScxmlFinalState::setOnExitInstructions(QScxmlExecutableContent::ContainerId instructions)
+{
+    d->onExitInstructions = instructions;
+}
+
+void QScxmlFinalState::onEntry(QEvent *event)
+{
+    QFinalState::onEntry(event);
+    auto smp = StateMachinePrivate::get(stateMachine());
+    smp->m_executionEngine->execute(d->onEntryInstructions);
+}
+
+void QScxmlFinalState::onExit(QEvent *event)
+{
+    QFinalState::onExit(event);
+    StateMachinePrivate::get(stateMachine())->m_executionEngine->execute(d->onExitInstructions);
+}
+
+QScxmlBaseTransition::QScxmlBaseTransition(QState *sourceState, const QList<QByteArray> &eventSelector)
     : QAbstractTransition(sourceState)
     , d(new Data)
 {
     d->eventSelector = eventSelector;
 }
 
-ScxmlBaseTransition::ScxmlBaseTransition(QAbstractTransitionPrivate &dd, QState *parent,
+QScxmlBaseTransition::QScxmlBaseTransition(QAbstractTransitionPrivate &dd, QState *parent,
                                          const QList<QByteArray> &eventSelector)
     : QAbstractTransition(dd, parent)
     , d(new Data)
@@ -49,12 +226,12 @@ ScxmlBaseTransition::ScxmlBaseTransition(QAbstractTransitionPrivate &dd, QState 
     d->eventSelector = eventSelector;
 }
 
-ScxmlBaseTransition::~ScxmlBaseTransition()
+QScxmlBaseTransition::~QScxmlBaseTransition()
 {
     delete d;
 }
 
-StateMachine *ScxmlBaseTransition::stateMachine() const {
+StateMachine *QScxmlBaseTransition::stateMachine() const {
     if (Internal::MyQStateMachine *t = qobject_cast<Internal::MyQStateMachine *>(parent()))
         return t->stateTable();
     if (QState *s = sourceState())
@@ -63,16 +240,16 @@ StateMachine *ScxmlBaseTransition::stateMachine() const {
     return 0;
 }
 
-QString ScxmlBaseTransition::transitionLocation() const {
+QString QScxmlBaseTransition::transitionLocation() const {
     if (QState *state = sourceState()) {
         QString stateName = state->objectName();
-        int transitionIndex = state->transitions().indexOf(const_cast<ScxmlBaseTransition *>(this));
+        int transitionIndex = state->transitions().indexOf(const_cast<QScxmlBaseTransition *>(this));
         return QStringLiteral("transition #%1 in state %2").arg(transitionIndex).arg(stateName);
     }
     return QStringLiteral("unbound transition @%1").arg((size_t)(void*)this);
 }
 
-bool ScxmlBaseTransition::eventTest(QEvent *event)
+bool QScxmlBaseTransition::eventTest(QEvent *event)
 {
     if (d->eventSelector.isEmpty())
         return true;
@@ -102,40 +279,22 @@ bool ScxmlBaseTransition::eventTest(QEvent *event)
     return selected;
 }
 
-bool ScxmlBaseTransition::clear()
+bool QScxmlBaseTransition::clear()
 {
     return true;
 }
 
-bool ScxmlBaseTransition::init()
+bool QScxmlBaseTransition::init()
 {
     return true;
 }
 
-void ScxmlBaseTransition::onTransition(QEvent *event)
+void QScxmlBaseTransition::onTransition(QEvent *event)
 {
     Q_UNUSED(event);
 }
 
-/////////////
-
-static QList<QByteArray> filterEmpty(const QList<QByteArray> &events) {
-    QList<QByteArray> res;
-    int oldI = 0;
-    for (int i = 0; i < events.size(); ++i) {
-        if (events.at(i).isEmpty()) {
-            res.append(events.mid(oldI, i - oldI));
-            oldI = i + 1;
-        }
-    }
-    if (oldI > 0) {
-        res.append(events.mid(oldI));
-        return res;
-    }
-    return events;
-}
-
-class ScxmlTransition::Data
+class QScxmlTransition::Data
 {
 public:
     Data()
@@ -147,39 +306,39 @@ public:
     QScxmlExecutableContent::ContainerId instructionsOnTransition;
 };
 
-ScxmlTransition::ScxmlTransition(QState *sourceState, const QList<QByteArray> &eventSelector)
-    : ScxmlBaseTransition(sourceState, filterEmpty(eventSelector))
+QScxmlTransition::QScxmlTransition(QState *sourceState, const QList<QByteArray> &eventSelector)
+    : QScxmlBaseTransition(sourceState, filterEmpty(eventSelector))
     , d(new Data)
 {}
 
-ScxmlTransition::ScxmlTransition(const QList<QByteArray> &eventSelector)
-    : ScxmlBaseTransition(Q_NULLPTR, filterEmpty(eventSelector))
+QScxmlTransition::QScxmlTransition(const QList<QByteArray> &eventSelector)
+    : QScxmlBaseTransition(Q_NULLPTR, filterEmpty(eventSelector))
     , d(new Data)
 {}
 
-ScxmlTransition::~ScxmlTransition()
+QScxmlTransition::~QScxmlTransition()
 {
     delete d;
 }
 
-void ScxmlTransition::addTransitionTo(ScxmlState *state)
+void QScxmlTransition::addTransitionTo(QScxmlState *state)
 {
     state->addTransition(this);
 }
 
-void ScxmlTransition::addTransitionTo(StateMachine *stateMachine)
+void QScxmlTransition::addTransitionTo(StateMachine *stateMachine)
 {
     StateMachinePrivate::get(stateMachine)->m_qStateMachine->addTransition(this);
 }
 
-bool ScxmlTransition::eventTest(QEvent *event)
+bool QScxmlTransition::eventTest(QEvent *event)
 {
 #ifdef DUMP_EVENT
     if (auto edm = dynamic_cast<QScxmlEcmaScriptDataModel *>(stateMachine()->dataModel()))
         qCDebug(scxmlLog) << qPrintable(edm->engine()->evaluate(QLatin1String("JSON.stringify(_event)")).toString());
 #endif
 
-    if (ScxmlBaseTransition::eventTest(event)) {
+    if (QScxmlBaseTransition::eventTest(event)) {
         bool ok = true;
         if (d->conditionalExp != NoEvaluator)
             return stateMachine()->dataModel()->evaluateToBool(d->conditionalExp, &ok) && ok;
@@ -189,187 +348,26 @@ bool ScxmlTransition::eventTest(QEvent *event)
     return false;
 }
 
-void ScxmlTransition::onTransition(QEvent *)
+void QScxmlTransition::onTransition(QEvent *)
 {
     StateMachinePrivate::get(stateMachine())->m_executionEngine->execute(d->instructionsOnTransition);
 }
 
-StateMachine *ScxmlTransition::stateMachine() const {
+StateMachine *QScxmlTransition::stateMachine() const {
     // work around a bug in QStateMachine
     if (Internal::MyQStateMachine *t = qobject_cast<Internal::MyQStateMachine *>(sourceState()))
         return t->stateTable();
     return qobject_cast<Internal::MyQStateMachine *>(machine())->stateTable();
 }
 
-void ScxmlTransition::setInstructionsOnTransition(QScxmlExecutableContent::ContainerId instructions)
+void QScxmlTransition::setInstructionsOnTransition(QScxmlExecutableContent::ContainerId instructions)
 {
     d->instructionsOnTransition = instructions;
 }
 
-void ScxmlTransition::setConditionalExpression(EvaluatorId evaluator)
+void QScxmlTransition::setConditionalExpression(EvaluatorId evaluator)
 {
     d->conditionalExp = evaluator;
-}
-
-ScxmlState::ScxmlState(QState *parent)
-    : QState(parent)
-    , d(new ScxmlState::Data(this))
-{}
-
-ScxmlState::ScxmlState(StateMachine *parent)
-    : QState(StateMachinePrivate::get(parent)->m_qStateMachine)
-    , d(new ScxmlState::Data(this))
-{}
-
-ScxmlState::~ScxmlState()
-{
-    delete d;
-}
-
-void ScxmlState::setAsInitialStateFor(ScxmlState *state)
-{
-    state->setInitialState(this);
-}
-
-void ScxmlState::setAsInitialStateFor(StateMachine *stateMachine)
-{
-    StateMachinePrivate::get(stateMachine)->m_qStateMachine->setInitialState(this);
-}
-
-StateMachine *ScxmlState::stateMachine() const {
-    return qobject_cast<Internal::MyQStateMachine *>(machine())->stateTable();
-}
-
-bool ScxmlState::init()
-{
-    return true;
-}
-
-QString ScxmlState::stateLocation() const
-{
-    return QStringLiteral("State %1").arg(objectName());
-}
-
-void ScxmlState::setInitInstructions(QScxmlExecutableContent::ContainerId instructions)
-{
-    d->initInstructions = instructions;
-}
-
-void ScxmlState::setOnEntryInstructions(QScxmlExecutableContent::ContainerId instructions)
-{
-    d->onEntryInstructions = instructions;
-}
-
-void ScxmlState::setOnExitInstructions(QScxmlExecutableContent::ContainerId instructions)
-{
-    d->onExitInstructions = instructions;
-}
-
-void ScxmlState::setInvokableServiceFactories(const QVector<ScxmlInvokableServiceFactory *> &factories)
-{
-    d->invokableServiceFactories = factories;
-}
-
-void ScxmlState::onEntry(QEvent *event)
-{
-    if (d->initInstructions != QScxmlExecutableContent::NoInstruction) {
-        StateMachinePrivate::get(stateMachine())->m_executionEngine->execute(d->initInstructions);
-        d->initInstructions = QScxmlExecutableContent::NoInstruction;
-    }
-    QState::onEntry(event);
-    auto sm = stateMachine();
-    StateMachinePrivate::get(sm)->m_executionEngine->execute(d->onEntryInstructions);
-    foreach (ScxmlInvokableServiceFactory *serviceFactory, d->invokableServiceFactories) {
-        if (ScxmlInvokableService *service = serviceFactory->invoke(sm)) {
-            d->invokedServices.append(service);
-            sm->registerService(service);
-        }
-    }
-    emit didEnter();
-}
-
-void ScxmlState::onExit(QEvent *event)
-{
-    emit willExit();
-    auto sm = stateMachine();
-    StateMachinePrivate::get(sm)->m_executionEngine->execute(d->onExitInstructions);
-    QState::onExit(event);
-    foreach (ScxmlInvokableService *service, d->invokedServices) {
-        sm->unregisterService(service);
-        delete service;
-    }
-    d->invokedServices.clear();
-}
-
-ScxmlInitialState::ScxmlInitialState(QState *theParent)
-    : ScxmlState(theParent)
-{}
-
-ScxmlFinalState::ScxmlFinalState(QState *parent)
-    : QFinalState(parent)
-    , d(new Data)
-{}
-
-ScxmlFinalState::ScxmlFinalState(StateMachine *parent)
-    : QFinalState(StateMachinePrivate::get(parent)->m_qStateMachine)
-    , d(new Data)
-{}
-
-ScxmlFinalState::~ScxmlFinalState()
-{
-    delete d;
-}
-
-void ScxmlFinalState::setAsInitialStateFor(ScxmlState *state)
-{
-    state->setInitialState(this);
-}
-
-void ScxmlFinalState::setAsInitialStateFor(StateMachine *stateMachine)
-{
-    StateMachinePrivate::get(stateMachine)->m_qStateMachine->setInitialState(this);
-}
-
-StateMachine *ScxmlFinalState::stateMachine() const {
-    return qobject_cast<Internal::MyQStateMachine *>(machine())->stateTable();
-}
-
-bool ScxmlFinalState::init()
-{
-    return true;
-}
-
-Scxml::QScxmlExecutableContent::ContainerId ScxmlFinalState::doneData() const
-{
-    return d->doneData;
-}
-
-void ScxmlFinalState::setDoneData(Scxml::QScxmlExecutableContent::ContainerId doneData)
-{
-    d->doneData = doneData;
-}
-
-void ScxmlFinalState::setOnEntryInstructions(QScxmlExecutableContent::ContainerId instructions)
-{
-    d->onEntryInstructions = instructions;
-}
-
-void ScxmlFinalState::setOnExitInstructions(QScxmlExecutableContent::ContainerId instructions)
-{
-    d->onExitInstructions = instructions;
-}
-
-void ScxmlFinalState::onEntry(QEvent *event)
-{
-    QFinalState::onEntry(event);
-    auto smp = StateMachinePrivate::get(stateMachine());
-    smp->m_executionEngine->execute(d->onEntryInstructions);
-}
-
-void ScxmlFinalState::onExit(QEvent *event)
-{
-    QFinalState::onExit(event);
-    StateMachinePrivate::get(stateMachine())->m_executionEngine->execute(d->onExitInstructions);
 }
 
 } // Scxml namespace
