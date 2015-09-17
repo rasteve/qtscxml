@@ -30,7 +30,7 @@ class QScxmlEvent;
 
 namespace Scxml {
 
-class StateMachine;
+class QScxmlStateMachine;
 
 #if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
 #pragma pack(push, 4) // 4 == sizeof(qint32)
@@ -77,8 +77,8 @@ public:
     QScxmlDataModel();
     virtual ~QScxmlDataModel();
 
-    StateMachine *stateMachine() const;
-    void setTable(StateMachine *stateMachine);
+    QScxmlStateMachine *stateMachine() const;
+    void setTable(QScxmlStateMachine *stateMachine);
 
     virtual void setup(const QVariantMap &initialDataValues) = 0;
 

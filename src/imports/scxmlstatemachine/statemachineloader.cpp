@@ -31,7 +31,7 @@ StateMachineLoader::StateMachineLoader(QObject *parent)
 {
 }
 
-QT_PREPEND_NAMESPACE(Scxml::StateMachine) *StateMachineLoader::stateMachine() const
+QT_PREPEND_NAMESPACE(Scxml::QScxmlStateMachine) *StateMachineLoader::stateMachine() const
 {
     return m_stateMachine;
 }
@@ -79,7 +79,7 @@ bool StateMachineLoader::parse(const QUrl &filename)
     QByteArray data(scxmlFile.dataByteArray());
     QBuffer buf(&data);
     Q_ASSERT(buf.open(QIODevice::ReadOnly));
-    m_stateMachine = Scxml::StateMachine::fromData(&buf);
+    m_stateMachine = Scxml::QScxmlStateMachine::fromData(&buf);
     m_stateMachine->setParent(this);
     m_stateMachine->init();
 

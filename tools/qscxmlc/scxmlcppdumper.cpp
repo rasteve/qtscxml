@@ -233,7 +233,7 @@ protected:
         default:
             Q_UNREACHABLE();
         }
-        clazz.init.impl << QStringLiteral("stateMachine.setDataBinding(Scxml::StateMachine::%1Binding);").arg(binding);
+        clazz.init.impl << QStringLiteral("stateMachine.setDataBinding(Scxml::QScxmlStateMachine::%1Binding);").arg(binding);
 
         clazz.implIncludes << QStringLiteral("QtScxml/executablecontent.h");
         clazz.init.impl << QStringLiteral("stateMachine.setTableData(this);");
@@ -634,7 +634,7 @@ private:
         if (!m_signals.isEmpty()) {
             clazz.init.impl << QStringLiteral("stateMachine.setScxmlEventFilter(this);");
             auto &dm = clazz.dataMethods;
-            dm << QStringLiteral("bool handle(QScxmlEvent *event, Scxml::StateMachine *stateMachine) Q_DECL_OVERRIDE {")
+            dm << QStringLiteral("bool handle(QScxmlEvent *event, Scxml::QScxmlStateMachine *stateMachine) Q_DECL_OVERRIDE {")
                << QStringLiteral("    if (event->originType() != QStringLiteral(\"qt:signal\")) { return true; }")
                << QStringLiteral("    %1 *m = qobject_cast<%1 *>(stateMachine);").arg(clazz.className);
             foreach (const QString &s, m_signals) {
@@ -1100,7 +1100,7 @@ void CppDumper::writeHeaderStart(const QString &headerGuard)
 
 void CppDumper::writeClass(const ClassDump &clazz)
 {
-    h << l("class ") << clazz.className << QStringLiteral(": public Scxml::StateMachine\n{") << endl;
+    h << l("class ") << clazz.className << QStringLiteral(": public Scxml::QScxmlStateMachine\n{") << endl;
     h << QLatin1String("    Q_OBJECT\n");
     clazz.properties.write(h, QStringLiteral("    "), QStringLiteral("\n"));
     h << QLatin1String("\npublic:\n");
@@ -1190,7 +1190,7 @@ void CppDumper::writeImplBody(const ClassDump &clazz)
     cpp << l("};") << endl
         << endl;
     cpp << clazz.className << l("::") << clazz.className << l("(QObject *parent)") << endl
-        << l("    : Scxml::StateMachine(parent)") << endl
+        << l("    : Scxml::QScxmlStateMachine(parent)") << endl
         << l("    , data(new Data(*this))") << endl
         << l("{ qRegisterMetaType<QAbstractState *>(); }") << endl
         << endl;

@@ -28,7 +28,7 @@ public:
         : m_table(Q_NULLPTR)
     {}
 
-    StateMachine *m_table;
+    QScxmlStateMachine *m_table;
     QJSValue m_jsValue;
 };
 } // Scxml namespace
@@ -41,7 +41,7 @@ PlatformProperties::PlatformProperties(QObject *parent)
     , data(new Data)
 {}
 
-PlatformProperties *PlatformProperties::create(QJSEngine *engine, StateMachine *table)
+PlatformProperties *PlatformProperties::create(QJSEngine *engine, QScxmlStateMachine *table)
 {
     PlatformProperties *pp = new PlatformProperties(engine);
     pp->data->m_table = table;
@@ -59,7 +59,7 @@ QJSEngine *PlatformProperties::engine() const
     return qobject_cast<QJSEngine *>(parent());
 }
 
-StateMachine *PlatformProperties::stateMachine() const
+QScxmlStateMachine *PlatformProperties::stateMachine() const
 {
     return data->m_table;
 }

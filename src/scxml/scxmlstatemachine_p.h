@@ -46,10 +46,10 @@ class WrappedQStateMachine: public QStateMachine
     Q_DECLARE_PRIVATE(WrappedQStateMachine)
 
 public:
-    WrappedQStateMachine(StateMachine *parent);
-    WrappedQStateMachine(WrappedQStateMachinePrivate &dd, StateMachine *parent);
+    WrappedQStateMachine(QScxmlStateMachine *parent);
+    WrappedQStateMachine(WrappedQStateMachinePrivate &dd, QScxmlStateMachine *parent);
 
-    StateMachine *stateTable() const;
+    QScxmlStateMachine *stateTable() const;
 
     void queueEvent(QScxmlEvent *event, QStateMachine::EventPriority priority);
     void submitQueuedEvents();
@@ -61,13 +61,13 @@ protected:
     void endMicrostep(QEvent *event) Q_DECL_OVERRIDE;
 
 private:
-    StateMachinePrivate *stateMachinePrivate();
+    QScxmlStateMachinePrivate *stateMachinePrivate();
 };
 } // Internal namespace
 
-class StateMachinePrivate: public QObjectPrivate
+class QScxmlStateMachinePrivate: public QObjectPrivate
 {
-    Q_DECLARE_PUBLIC(StateMachine)
+    Q_DECLARE_PUBLIC(QScxmlStateMachine)
 
     static QAtomicInt m_sessionIdCounter;
 
@@ -80,10 +80,10 @@ public: // types
     };
 
 public:
-    StateMachinePrivate();
-    ~StateMachinePrivate();
+    QScxmlStateMachinePrivate();
+    ~QScxmlStateMachinePrivate();
 
-    static StateMachinePrivate *get(StateMachine *t)
+    static QScxmlStateMachinePrivate *get(QScxmlStateMachine *t)
     { return t->d_func(); }
 
     void setQStateMachine(Internal::WrappedQStateMachine *stateMachine);
@@ -96,14 +96,14 @@ public: // data fields:
     QString m_sessionId;
     bool m_isInvoked;
     QScxmlDataModel *m_dataModel;
-    StateMachine::BindingMethod m_dataBinding;
+    QScxmlStateMachine::BindingMethod m_dataBinding;
     QScxmlExecutableContent::ExecutionEngine *m_executionEngine;
     QScxmlTableData *m_tableData;
     QScxmlEvent m_event;
     Internal::WrappedQStateMachine *m_qStateMachine;
     ScxmlEventFilter *m_eventFilter;
     QVector<QScxmlInvokableService *> m_registeredServices;
-    StateMachine *m_parentStateMachine;
+    QScxmlStateMachine *m_parentStateMachine;
 
 private:
     QScopedPointer<ParserData> m_parserData; // used when created by StateMachine::fromFile.

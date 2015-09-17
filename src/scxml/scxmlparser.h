@@ -65,8 +65,8 @@ public:
     void setLoader(Loader *newLoader);
 
     void parse();
-    StateMachine *instantiateStateMachine() const;
-    void instantiateDataModel(StateMachine *table) const;
+    QScxmlStateMachine *instantiateStateMachine() const;
+    void instantiateDataModel(QScxmlStateMachine *table) const;
 
     State state() const;
     QVector<QScxmlError> errors() const;

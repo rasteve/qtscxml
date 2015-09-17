@@ -102,13 +102,13 @@ class Q_SCXML_EXPORT QScxmlInvokableService
 {
 public:
     QScxmlInvokableService(const QString &id, const QVariantMap &data, bool autoforward,
-                           QScxmlExecutableContent::ContainerId finalize, StateMachine *parent);
+                           QScxmlExecutableContent::ContainerId finalize, QScxmlStateMachine *parent);
     virtual ~QScxmlInvokableService();
 
     QString id() const;
     bool autoforward() const;
     QVariantMap data() const;
-    StateMachine *parent() const;
+    QScxmlStateMachine *parent() const;
 
     virtual void submitEvent(QScxmlEvent *event) = 0;
 
@@ -139,11 +139,11 @@ public:
                                  QScxmlExecutableContent::ContainerId finalizeContent);
     virtual ~QScxmlInvokableServiceFactory();
 
-    virtual QScxmlInvokableService *invoke(StateMachine *parent) = 0;
+    virtual QScxmlInvokableService *invoke(QScxmlStateMachine *parent) = 0;
 
 protected:
-    QString calculateId(StateMachine *parent, bool *ok) const;
-    QVariantMap calculateData(StateMachine *parent, bool *ok) const;
+    QString calculateId(QScxmlStateMachine *parent, bool *ok) const;
+    QVariantMap calculateData(QScxmlStateMachine *parent, bool *ok) const;
     bool autoforward() const;
     QScxmlExecutableContent::ContainerId finalizeContent() const;
 
@@ -165,20 +165,21 @@ public:
                                        QScxmlExecutableContent::ContainerId finalize);
 
 protected:
-    QScxmlInvokableService *finishInvoke(StateMachine *child, StateMachine *parent);
+    QScxmlInvokableService *finishInvoke(QScxmlStateMachine *child, QScxmlStateMachine *parent);
 };
 
-class StateMachine;
+class QScxmlStateMachine;
 class Q_SCXML_EXPORT ScxmlEventFilter
 {
 public:
     virtual ~ScxmlEventFilter();
-    virtual bool handle(QScxmlEvent *event, StateMachine *stateMachine) = 0;
+    virtual bool handle(QScxmlEvent *event, QScxmlStateMachine *stateMachine) = 0;
 };
 
-class StateMachinePrivate;
-class Q_SCXML_EXPORT StateMachine: public QObject
+class QScxmlStateMachinePrivate;
+class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
 {
+    Q_DECLARE_PRIVATE(QScxmlStateMachine)
     Q_OBJECT
     Q_ENUMS(BindingMethod)
 
@@ -188,12 +189,12 @@ public:
         LateBinding
     };
 
-    static StateMachine *fromFile(const QString &fileName, QScxmlDataModel *dataModel = Q_NULLPTR);
-    static StateMachine *fromData(QIODevice *data, const QString &fileName = QString(), QScxmlDataModel *dataModel = Q_NULLPTR);
+    static QScxmlStateMachine *fromFile(const QString &fileName, QScxmlDataModel *dataModel = Q_NULLPTR);
+    static QScxmlStateMachine *fromData(QIODevice *data, const QString &fileName = QString(), QScxmlDataModel *dataModel = Q_NULLPTR);
     QVector<QScxmlError> errors() const;
 
-    StateMachine(QObject *parent = 0);
-    StateMachine(StateMachinePrivate &dd, QObject *parent);
+    QScxmlStateMachine(QObject *parent = 0);
+    QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *parent);
 
     QString sessionId() const;
     void setSessionId(const QString &id);
@@ -213,8 +214,8 @@ public:
 
     void doLog(const QString &label, const QString &msg);
 
-    StateMachine *parentStateMachine() const;
-    void setParentStateMachine(StateMachine *parent);
+    QScxmlStateMachine *parentStateMachine() const;
+    void setParentStateMachine(QScxmlStateMachine *parent);
 
     bool init(const QVariantMap &initialDataValues = QVariantMap());
 
@@ -260,9 +261,6 @@ private Q_SLOTS:
 
 protected:
     void executeInitialSetup();
-
-private:
-    Q_DECLARE_PRIVATE(StateMachine)
 };
 
 } // namespace Scxml

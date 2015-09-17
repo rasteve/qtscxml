@@ -59,7 +59,7 @@ static int parseTime(const QString &t, bool *ok = 0)
     return negative ? -value : value;
 }
 
-ExecutionEngine::ExecutionEngine(StateMachine *table)
+ExecutionEngine::ExecutionEngine(QScxmlStateMachine *table)
     : table(table)
 {
     Q_ASSERT(table);

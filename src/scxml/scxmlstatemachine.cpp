@@ -42,8 +42,8 @@ namespace {
 class InvokableScxml: public QScxmlInvokableService
 {
 public:
-    InvokableScxml(StateMachine *stateMachine, const QString &id, const QVariantMap &data,
-                   bool autoforward, QScxmlExecutableContent::ContainerId finalize, StateMachine *parent)
+    InvokableScxml(QScxmlStateMachine *stateMachine, const QString &id, const QVariantMap &data,
+                   bool autoforward, QScxmlExecutableContent::ContainerId finalize, QScxmlStateMachine *parent)
         : QScxmlInvokableService(id, data, autoforward, finalize, parent)
         , m_stateMachine(stateMachine)
     {
@@ -62,7 +62,7 @@ public:
     }
 
 private:
-    StateMachine *m_stateMachine;
+    QScxmlStateMachine *m_stateMachine;
 };
 } // anonymous namespace
 
@@ -72,7 +72,7 @@ class WrappedQStateMachinePrivate: public QStateMachinePrivate
     Q_DECLARE_PUBLIC(WrappedQStateMachine)
 
 public:
-    WrappedQStateMachinePrivate(StateMachine *table)
+    WrappedQStateMachinePrivate(QScxmlStateMachine *table)
         : m_table(table)
         , m_queuedEvents(Q_NULLPTR)
     {}
@@ -97,7 +97,7 @@ protected: // overrides for QStateMachinePrivate:
 #endif // QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
 
 public: // fields
-    StateMachine *m_table;
+    QScxmlStateMachine *m_table;
 
     struct QueuedEvent
     {
@@ -112,26 +112,26 @@ public: // fields
     QVector<QueuedEvent> *m_queuedEvents;
 };
 
-WrappedQStateMachine::WrappedQStateMachine(StateMachine *parent)
+WrappedQStateMachine::WrappedQStateMachine(QScxmlStateMachine *parent)
     : QStateMachine(*new WrappedQStateMachinePrivate(parent), parent)
 {}
 
-WrappedQStateMachine::WrappedQStateMachine(WrappedQStateMachinePrivate &dd, StateMachine *parent)
+WrappedQStateMachine::WrappedQStateMachine(WrappedQStateMachinePrivate &dd, QScxmlStateMachine *parent)
     : QStateMachine(dd, parent)
 {}
 
-StateMachine *WrappedQStateMachine::stateTable() const
+QScxmlStateMachine *WrappedQStateMachine::stateTable() const
 {
     Q_D(const WrappedQStateMachine);
 
     return d->m_table;
 }
 
-StateMachinePrivate *WrappedQStateMachine::stateMachinePrivate()
+QScxmlStateMachinePrivate *WrappedQStateMachine::stateMachinePrivate()
 {
     Q_D(WrappedQStateMachine);
 
-    return StateMachinePrivate::get(d->m_table);
+    return QScxmlStateMachinePrivate::get(d->m_table);
 }
 } // Internal namespace
 
@@ -256,7 +256,7 @@ class QScxmlInvokableService::Data
 {
 public:
     Data(const QString &id, const QVariantMap &data, bool autoforward,
-         QScxmlExecutableContent::ContainerId finalize, StateMachine *parent)
+         QScxmlExecutableContent::ContainerId finalize, QScxmlStateMachine *parent)
         : id(id)
         , data(data)
         , autoforward(autoforward)
@@ -267,7 +267,7 @@ public:
     QString id;
     QVariantMap data;
     bool autoforward;
-    StateMachine *parent;
+    QScxmlStateMachine *parent;
     QScxmlExecutableContent::ContainerId finalize;
 };
 
@@ -275,7 +275,7 @@ QScxmlInvokableService::QScxmlInvokableService(const QString &id,
                                              const QVariantMap &data,
                                              bool autoforward,
                                              QScxmlExecutableContent::ContainerId finalize,
-                                             StateMachine *parent)
+                                             QScxmlStateMachine *parent)
     : d(new Data(id, data, autoforward, finalize, parent))
 {}
 
@@ -299,14 +299,14 @@ QVariantMap QScxmlInvokableService::data() const
     return d->data;
 }
 
-StateMachine *QScxmlInvokableService::parent() const
+QScxmlStateMachine *QScxmlInvokableService::parent() const
 {
     return d->parent;
 }
 
 void QScxmlInvokableService::finalize()
 {
-    auto smp = StateMachinePrivate::get(parent());
+    auto smp = QScxmlStateMachinePrivate::get(parent());
     smp->m_executionEngine->execute(d->finalize);
 }
 
@@ -352,7 +352,7 @@ QScxmlInvokableServiceFactory::~QScxmlInvokableServiceFactory()
     delete d;
 }
 
-QString QScxmlInvokableServiceFactory::calculateId(StateMachine *parent, bool *ok) const
+QString QScxmlInvokableServiceFactory::calculateId(QScxmlStateMachine *parent, bool *ok) const
 {
     Q_ASSERT(ok);
     *ok = true;
@@ -362,7 +362,7 @@ QString QScxmlInvokableServiceFactory::calculateId(StateMachine *parent, bool *o
         return table->string(d->id);
     }
 
-    QString id = StateMachine::generateSessionId(table->string(d->idPrefix));
+    QString id = QScxmlStateMachine::generateSessionId(table->string(d->idPrefix));
 
     if (d->idlocation != QScxmlExecutableContent::NoString) {
         auto idloc = table->string(d->idlocation);
@@ -375,7 +375,7 @@ QString QScxmlInvokableServiceFactory::calculateId(StateMachine *parent, bool *o
     return id;
 }
 
-QVariantMap QScxmlInvokableServiceFactory::calculateData(StateMachine *parent, bool *ok) const
+QVariantMap QScxmlInvokableServiceFactory::calculateData(QScxmlStateMachine *parent, bool *ok) const
 {
     Q_ASSERT(ok);
 
@@ -452,7 +452,7 @@ QScxmlInvokableScxmlServiceFactory::QScxmlInvokableScxmlServiceFactory(
                                    doAutoforward, params, finalize)
 {}
 
-QScxmlInvokableService *QScxmlInvokableScxmlServiceFactory::finishInvoke(StateMachine *child, StateMachine *parent)
+QScxmlInvokableService *QScxmlInvokableScxmlServiceFactory::finishInvoke(QScxmlStateMachine *child, QScxmlStateMachine *parent)
 {
     bool ok = false;
     auto id = calculateId(parent, &ok);
@@ -465,14 +465,14 @@ QScxmlInvokableService *QScxmlInvokableScxmlServiceFactory::finishInvoke(StateMa
     return new InvokableScxml(child, id, data, autoforward(), finalizeContent(), parent);
 }
 
-QAtomicInt StateMachinePrivate::m_sessionIdCounter = QAtomicInt(0);
+QAtomicInt QScxmlStateMachinePrivate::m_sessionIdCounter = QAtomicInt(0);
 
-StateMachinePrivate::StateMachinePrivate()
+QScxmlStateMachinePrivate::QScxmlStateMachinePrivate()
     : QObjectPrivate()
-    , m_sessionId(StateMachine::generateSessionId(QStringLiteral("session-")))
+    , m_sessionId(QScxmlStateMachine::generateSessionId(QStringLiteral("session-")))
     , m_isInvoked(false)
     , m_dataModel(Q_NULLPTR)
-    , m_dataBinding(StateMachine::EarlyBinding)
+    , m_dataBinding(QScxmlStateMachine::EarlyBinding)
     , m_executionEngine(Q_NULLPTR)
     , m_tableData(Q_NULLPTR)
     , m_qStateMachine(Q_NULLPTR)
@@ -480,12 +480,12 @@ StateMachinePrivate::StateMachinePrivate()
     , m_parentStateMachine(Q_NULLPTR)
 {}
 
-StateMachinePrivate::~StateMachinePrivate()
+QScxmlStateMachinePrivate::~QScxmlStateMachinePrivate()
 {
     delete m_executionEngine;
 }
 
-void StateMachinePrivate::setQStateMachine(Internal::WrappedQStateMachine *stateMachine)
+void QScxmlStateMachinePrivate::setQStateMachine(Internal::WrappedQStateMachine *stateMachine)
 {
     m_qStateMachine = stateMachine;
 }
@@ -508,36 +508,36 @@ static QScxmlState *findState(const QString &scxmlName, QStateMachine *parent)
     return Q_NULLPTR;
 }
 
-QAbstractState *StateMachinePrivate::stateByScxmlName(const QString &scxmlName)
+QAbstractState *QScxmlStateMachinePrivate::stateByScxmlName(const QString &scxmlName)
 {
     return findState(scxmlName, m_qStateMachine);
 }
 
-StateMachinePrivate::ParserData *StateMachinePrivate::parserData()
+QScxmlStateMachinePrivate::ParserData *QScxmlStateMachinePrivate::parserData()
 {
     if (m_parserData.isNull())
         m_parserData.reset(new ParserData);
     return m_parserData.data();
 }
 
-StateMachine *StateMachine::fromFile(const QString &fileName, QScxmlDataModel *dataModel)
+QScxmlStateMachine *QScxmlStateMachine::fromFile(const QString &fileName, QScxmlDataModel *dataModel)
 {
     QFile scxmlFile(fileName);
     if (!scxmlFile.open(QIODevice::ReadOnly)) {
         QVector<QScxmlError> errors({
                                 QScxmlError(scxmlFile.fileName(), 0, 0, QStringLiteral("cannot open for reading"))
                             });
-        auto table = new StateMachine;
-        StateMachinePrivate::get(table)->parserData()->m_errors = errors;
+        auto table = new QScxmlStateMachine;
+        QScxmlStateMachinePrivate::get(table)->parserData()->m_errors = errors;
         return table;
     }
 
-    StateMachine *table = fromData(&scxmlFile, fileName, dataModel);
+    QScxmlStateMachine *table = fromData(&scxmlFile, fileName, dataModel);
     scxmlFile.close();
     return table;
 }
 
-StateMachine *StateMachine::fromData(QIODevice *data, const QString &fileName, QScxmlDataModel *dataModel)
+QScxmlStateMachine *QScxmlStateMachine::fromData(QIODevice *data, const QString &fileName, QScxmlDataModel *dataModel)
 {
     QXmlStreamReader xmlReader(data);
     Scxml::QScxmlParser parser(&xmlReader);
@@ -552,120 +552,120 @@ StateMachine *StateMachine::fromData(QIODevice *data, const QString &fileName, Q
     return table;
 }
 
-QVector<QScxmlError> StateMachine::errors() const
+QVector<QScxmlError> QScxmlStateMachine::errors() const
 {
-    Q_D(const StateMachine);
+    Q_D(const QScxmlStateMachine);
     return d->m_parserData ? d->m_parserData->m_errors : QVector<QScxmlError>();
 }
 
-StateMachine::StateMachine(QObject *parent)
-    : QObject(*new StateMachinePrivate, parent)
+QScxmlStateMachine::QScxmlStateMachine(QObject *parent)
+    : QObject(*new QScxmlStateMachinePrivate, parent)
 {
-    Q_D(StateMachine);
+    Q_D(QScxmlStateMachine);
     d->m_executionEngine = new QScxmlExecutableContent::ExecutionEngine(this);
     d->setQStateMachine(new Internal::WrappedQStateMachine(this));
-    connect(d->m_qStateMachine, &QStateMachine::finished, this, &StateMachine::onFinished);
-    connect(d->m_qStateMachine, &QStateMachine::finished, this, &StateMachine::finished);
+    connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::onFinished);
+    connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::finished);
 }
 
-StateMachine::StateMachine(StateMachinePrivate &dd, QObject *parent)
+QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *parent)
     : QObject(dd, parent)
 {
-    Q_D(StateMachine);
+    Q_D(QScxmlStateMachine);
     d->m_executionEngine = new QScxmlExecutableContent::ExecutionEngine(this);
-    connect(d->m_qStateMachine, &QStateMachine::finished, this, &StateMachine::onFinished);
-    connect(d->m_qStateMachine, &QStateMachine::finished, this, &StateMachine::finished);
+    connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::onFinished);
+    connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::finished);
 }
 
-QString StateMachine::sessionId() const
+QString QScxmlStateMachine::sessionId() const
 {
-    Q_D(const StateMachine);
+    Q_D(const QScxmlStateMachine);
 
     return d->m_sessionId;
 }
 
-void StateMachine::setSessionId(const QString &id)
+void QScxmlStateMachine::setSessionId(const QString &id)
 {
-    Q_D(StateMachine);
+    Q_D(QScxmlStateMachine);
     d->m_sessionId = id;
 }
 
-QString StateMachine::generateSessionId(const QString &prefix)
+QString QScxmlStateMachine::generateSessionId(const QString &prefix)
 {
-    int id = ++StateMachinePrivate::m_sessionIdCounter;
+    int id = ++QScxmlStateMachinePrivate::m_sessionIdCounter;
     return prefix + QString::number(id);
 }
 
-bool StateMachine::isInvoked() const
+bool QScxmlStateMachine::isInvoked() const
 {
-    Q_D(const StateMachine);
+    Q_D(const QScxmlStateMachine);
     return d->m_isInvoked;
 }
 
-void StateMachine::setIsInvoked(bool invoked)
+void QScxmlStateMachine::setIsInvoked(bool invoked)
 {
-    Q_D(StateMachine);
+    Q_D(QScxmlStateMachine);
     d->m_isInvoked = invoked;
 }
 
-QScxmlDataModel *StateMachine::dataModel() const
+QScxmlDataModel *QScxmlStateMachine::dataModel() const
 {
-    Q_D(const StateMachine);
+    Q_D(const QScxmlStateMachine);
 
     return d->m_dataModel;
 }
 
-void StateMachine::setDataModel(QScxmlDataModel *dataModel)
+void QScxmlStateMachine::setDataModel(QScxmlDataModel *dataModel)
 {
-    Q_D(StateMachine);
+    Q_D(QScxmlStateMachine);
 
     d->m_dataModel = dataModel;
     dataModel->setTable(this);
 }
 
-void StateMachine::setDataBinding(StateMachine::BindingMethod b)
+void QScxmlStateMachine::setDataBinding(QScxmlStateMachine::BindingMethod b)
 {
-    Q_D(StateMachine);
+    Q_D(QScxmlStateMachine);
 
     d->m_dataBinding = b;
 }
 
-StateMachine::BindingMethod StateMachine::dataBinding() const
+QScxmlStateMachine::BindingMethod QScxmlStateMachine::dataBinding() const
 {
-    Q_D(const StateMachine);
+    Q_D(const QScxmlStateMachine);
 
     return d->m_dataBinding;
 }
 
-QScxmlTableData *StateMachine::tableData() const
+QScxmlTableData *QScxmlStateMachine::tableData() const
 {
-    Q_D(const StateMachine);
+    Q_D(const QScxmlStateMachine);
 
     return d->m_tableData;
 }
 
-void StateMachine::setTableData(QScxmlTableData *tableData)
+void QScxmlStateMachine::setTableData(QScxmlTableData *tableData)
 {
-    Q_D(StateMachine);
+    Q_D(QScxmlStateMachine);
 
     d->m_tableData = tableData;
 }
 
-void StateMachine::doLog(const QString &label, const QString &msg)
+void QScxmlStateMachine::doLog(const QString &label, const QString &msg)
 {
     qCDebug(scxmlLog) << label << ":" << msg;
     emit log(label, msg);
 }
 
-StateMachine *StateMachine::parentStateMachine() const
+QScxmlStateMachine *QScxmlStateMachine::parentStateMachine() const
 {
-    Q_D(const StateMachine);
+    Q_D(const QScxmlStateMachine);
     return d->m_parentStateMachine;
 }
 
-void StateMachine::setParentStateMachine(StateMachine *parent)
+void QScxmlStateMachine::setParentStateMachine(QScxmlStateMachine *parent)
 {
-    Q_D(StateMachine);
+    Q_D(QScxmlStateMachine);
     d->m_parentStateMachine = parent;
 }
 
@@ -752,14 +752,14 @@ void Internal::WrappedQStateMachinePrivate::exitInterpreter()
     foreach (QAbstractState *s, configuration) {
         QScxmlExecutableContent::ContainerId onExitInstructions = QScxmlExecutableContent::NoInstruction;
         if (QScxmlFinalState *finalState = qobject_cast<QScxmlFinalState *>(s)) {
-            StateMachinePrivate::get(m_table)->m_executionEngine->execute(finalState->doneData(), QVariant());
+            QScxmlStateMachinePrivate::get(m_table)->m_executionEngine->execute(finalState->doneData(), QVariant());
             onExitInstructions = QScxmlFinalState::Data::get(finalState)->onExitInstructions;
         } else if (QScxmlState *state = qobject_cast<QScxmlState *>(s)) {
             onExitInstructions = QScxmlState::Data::get(state)->onExitInstructions;
         }
 
         if (onExitInstructions != QScxmlExecutableContent::NoInstruction)
-            StateMachinePrivate::get(m_table)->m_executionEngine->execute(onExitInstructions);
+            QScxmlStateMachinePrivate::get(m_table)->m_executionEngine->execute(onExitInstructions);
 
         if (QScxmlFinalState *finalState = qobject_cast<QScxmlFinalState *>(s)) {
             if (finalState->parent() == q) {
@@ -784,7 +784,7 @@ void Internal::WrappedQStateMachinePrivate::emitStateFinished(QState *forState, 
     if (QScxmlFinalState *finalState = qobject_cast<QScxmlFinalState *>(guiltyState)) {
         if (!q->isRunning())
             return;
-        StateMachinePrivate::get(m_table)->m_executionEngine->execute(finalState->doneData(), forState->objectName());
+        QScxmlStateMachinePrivate::get(m_table)->m_executionEngine->execute(finalState->doneData(), forState->objectName());
     }
 
     QStateMachinePrivate::emitStateFinished(forState, guiltyState);
@@ -815,9 +815,9 @@ int Internal::WrappedQStateMachinePrivate::eventIdForDelayedEvent(const QByteArr
     return -1;
 }
 
-QStringList StateMachine::activeStates(bool compress)
+QStringList QScxmlStateMachine::activeStates(bool compress)
 {
-    Q_D(StateMachine);
+    Q_D(QScxmlStateMachine);
 
     QSet<QAbstractState *> config = QStateMachinePrivate::get(d->m_qStateMachine)->configuration;
     if (compress)
@@ -834,9 +834,9 @@ QStringList StateMachine::activeStates(bool compress)
     return res;
 }
 
-bool StateMachine::isActive(const QString &scxmlStateName) const
+bool QScxmlStateMachine::isActive(const QString &scxmlStateName) const
 {
-    Q_D(const StateMachine);
+    Q_D(const QScxmlStateMachine);
     QSet<QAbstractState *> config = QStateMachinePrivate::get(d->m_qStateMachine)->configuration;
     foreach (QAbstractState *s, config) {
         if (s->objectName() == scxmlStateName) {
@@ -846,36 +846,36 @@ bool StateMachine::isActive(const QString &scxmlStateName) const
     return false;
 }
 
-bool StateMachine::hasState(const QString &scxmlStateName) const
+bool QScxmlStateMachine::hasState(const QString &scxmlStateName) const
 {
-    Q_D(const StateMachine);
+    Q_D(const QScxmlStateMachine);
     return findState(scxmlStateName, d->m_qStateMachine) != Q_NULLPTR;
 }
 
-QMetaObject::Connection StateMachine::connect(const QString &scxmlStateName, const char *signal,
+QMetaObject::Connection QScxmlStateMachine::connect(const QString &scxmlStateName, const char *signal,
                                             const QObject *receiver, const char *method,
                                             Qt::ConnectionType type)
 {
-    Q_D(StateMachine);
+    Q_D(QScxmlStateMachine);
     QScxmlState *state = findState(scxmlStateName, d->m_qStateMachine);
     return QObject::connect(state, signal, receiver, method, type);
 }
 
-ScxmlEventFilter *StateMachine::scxmlEventFilter() const
+ScxmlEventFilter *QScxmlStateMachine::scxmlEventFilter() const
 {
-    Q_D(const StateMachine);
+    Q_D(const QScxmlStateMachine);
     return d->m_eventFilter;
 }
 
-void StateMachine::setScxmlEventFilter(ScxmlEventFilter *newFilter)
+void QScxmlStateMachine::setScxmlEventFilter(ScxmlEventFilter *newFilter)
 {
-    Q_D(StateMachine);
+    Q_D(QScxmlStateMachine);
     d->m_eventFilter = newFilter;
 }
 
-void StateMachine::executeInitialSetup()
+void QScxmlStateMachine::executeInitialSetup()
 {
-    Q_D(const StateMachine);
+    Q_D(const QScxmlStateMachine);
     d->m_executionEngine->execute(tableData()->initialSetup());
 }
 
@@ -921,9 +921,9 @@ static bool loopOnSubStates(QState *startState,
     return true;
 }
 
-bool StateMachine::init(const QVariantMap &initialDataValues)
+bool QScxmlStateMachine::init(const QVariantMap &initialDataValues)
 {
-    Q_D(StateMachine);
+    Q_D(QScxmlStateMachine);
 
     dataModel()->setup(initialDataValues);
     executeInitialSetup();
@@ -950,25 +950,25 @@ bool StateMachine::init(const QVariantMap &initialDataValues)
     return res;
 }
 
-bool StateMachine::isRunning() const
+bool QScxmlStateMachine::isRunning() const
 {
-    Q_D(const StateMachine);
+    Q_D(const QScxmlStateMachine);
 
     return d->m_qStateMachine->isRunning();
 }
 
-QString StateMachine::name() const
+QString QScxmlStateMachine::name() const
 {
     return tableData()->name();
 }
 
-void StateMachine::submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid)
+void QScxmlStateMachine::submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid)
 {
     qCDebug(scxmlLog) << "machine" << name() << "had error" << type << ":" << msg;
     submitEvent(EventBuilder::errorEvent(this, type, sendid));
 }
 
-void StateMachine::routeEvent(QScxmlEvent *e)
+void QScxmlStateMachine::routeEvent(QScxmlEvent *e)
 {
     if (!e)
         return;
@@ -987,9 +987,9 @@ void StateMachine::routeEvent(QScxmlEvent *e)
     }
 }
 
-void StateMachine::submitEvent(QScxmlEvent *e)
+void QScxmlStateMachine::submitEvent(QScxmlEvent *e)
 {
-    Q_D(StateMachine);
+    Q_D(QScxmlStateMachine);
 
     if (!e)
         return;
@@ -1014,7 +1014,7 @@ void StateMachine::submitEvent(QScxmlEvent *e)
     }
 }
 
-void StateMachine::submitEvent(const QByteArray &event)
+void QScxmlStateMachine::submitEvent(const QByteArray &event)
 {
     QScxmlEvent *e = new QScxmlEvent;
     e->setName(event);
@@ -1022,7 +1022,7 @@ void StateMachine::submitEvent(const QByteArray &event)
     submitEvent(e);
 }
 
-void StateMachine::submitEvent(const QByteArray &event, const QVariant &data)
+void QScxmlStateMachine::submitEvent(const QByteArray &event, const QVariant &data)
 {
     QVariant incomingData = data;
     if (incomingData.canConvert<QJSValue>()) {
@@ -1036,9 +1036,9 @@ void StateMachine::submitEvent(const QByteArray &event, const QVariant &data)
     submitEvent(e);
 }
 
-void StateMachine::cancelDelayedEvent(const QByteArray &sendid)
+void QScxmlStateMachine::cancelDelayedEvent(const QByteArray &sendid)
 {
-    Q_D(StateMachine);
+    Q_D(QScxmlStateMachine);
 
     int id = d->m_qStateMachine->eventIdForDelayedEvent(sendid);
 
@@ -1079,12 +1079,12 @@ int Internal::WrappedQStateMachine::eventIdForDelayedEvent(const QByteArray &scx
     return d->eventIdForDelayedEvent(scxmlEventId);
 }
 
-bool StateMachine::isLegalTarget(const QString &target) const
+bool QScxmlStateMachine::isLegalTarget(const QString &target) const
 {
     return target.startsWith(QLatin1Char('#'));
 }
 
-bool StateMachine::isDispatchableTarget(const QString &target) const
+bool QScxmlStateMachine::isDispatchableTarget(const QString &target) const
 {
     if (isInvoked() && target == QStringLiteral("#_parent"))
         return true;
@@ -1092,30 +1092,30 @@ bool StateMachine::isDispatchableTarget(const QString &target) const
             || target == QStringLiteral("#_scxml_%1").arg(sessionId());
 }
 
-void StateMachine::registerService(QScxmlInvokableService *service)
+void QScxmlStateMachine::registerService(QScxmlInvokableService *service)
 {
-    Q_D(StateMachine);
+    Q_D(QScxmlStateMachine);
     Q_ASSERT(!d->m_registeredServices.contains(service));
     d->m_registeredServices.append(service);
 }
 
-void StateMachine::unregisterService(QScxmlInvokableService *service)
+void QScxmlStateMachine::unregisterService(QScxmlInvokableService *service)
 {
-    Q_D(StateMachine);
+    Q_D(QScxmlStateMachine);
     int idx =  d->m_registeredServices.indexOf(service);
     Q_ASSERT(idx >= 0);
     d->m_registeredServices.remove(idx);
 }
 
-void StateMachine::onFinished()
+void QScxmlStateMachine::onFinished()
 {
     // The final state is also a stable state.
     emit reachedStableState(true);
 }
 
-void StateMachine::start()
+void QScxmlStateMachine::start()
 {
-    Q_D(StateMachine);
+    Q_D(QScxmlStateMachine);
 
     d->m_qStateMachine->start();
 }

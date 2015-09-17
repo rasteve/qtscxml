@@ -105,7 +105,7 @@ for (f,ALLSCXMLS) {
         sn ~=s/[^a-zA-Z_0-9]/_/
 
         inc_list += "$${LITERAL_HASH}include \"scxml/$${sn}_$${hn}.h\""
-        func_list += "    []()->Scxml::StateMachine*{return new $${sn}::$${cn};},"
+        func_list += "    []()->Scxml::QScxmlStateMachine*{return new $${sn}::$${cn};},"
 
         base = $$relative_path($$f,$$absolute_path($$SCXMLS_DIR))
         tn = $$base
@@ -123,7 +123,7 @@ for (f,ALLSCXMLS) {
     }
 }
 
-contents = $$inc_list "std::function<Scxml::StateMachine *()> creators[] = {" $$func_list "};"
+contents = $$inc_list "std::function<Scxml::QScxmlStateMachine *()> creators[] = {" $$func_list "};"
 write_file("scxml/compiled_tests.h", contents)|error("Aborting.")
 
 contents = "const char *testBases[] = {" $$testBases "};"

@@ -498,14 +498,14 @@ class ExecutionEngine
     Q_DISABLE_COPY(ExecutionEngine)
 
 public:
-    ExecutionEngine(StateMachine *table);
+    ExecutionEngine(QScxmlStateMachine *table);
 
     bool execute(ContainerId ip, const QVariant &extraData = QVariant());
 
 private:
     bool step(Instructions &ip);
 
-    StateMachine *table;
+    QScxmlStateMachine *table;
     QVariant extraData;
 };
 

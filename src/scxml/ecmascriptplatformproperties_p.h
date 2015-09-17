@@ -39,7 +39,7 @@ QT_BEGIN_NAMESPACE
 
 namespace Scxml {
 
-class StateMachine;
+class QScxmlStateMachine;
 class PlatformProperties: public QObject
 {
     Q_OBJECT
@@ -49,11 +49,11 @@ class PlatformProperties: public QObject
     Q_PROPERTY(QString marks READ marks CONSTANT)
 
 public:
-    static PlatformProperties *create(QJSEngine *engine, StateMachine *stateMachine);
+    static PlatformProperties *create(QJSEngine *engine, QScxmlStateMachine *stateMachine);
     ~PlatformProperties();
 
     QJSEngine *engine() const;
-    StateMachine *stateMachine() const;
+    QtNS::Scxml::QScxmlStateMachine *stateMachine() const;
     QJSValue jsValue() const;
 
     QString marks() const;

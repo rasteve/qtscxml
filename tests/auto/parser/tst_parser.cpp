@@ -64,7 +64,7 @@ void tst_Parser::error()
     QFETCH(QString, scxmlFileName);
     QFETCH(QVector<QScxmlError>, expectedErrors);
 
-    StateMachine *stateMachine = StateMachine::fromFile(scxmlFileName);
+    QScxmlStateMachine *stateMachine = QScxmlStateMachine::fromFile(scxmlFileName);
 
     QVector<QScxmlError> errors = stateMachine->errors();
     if (errors.count() != expectedErrors.count()) {

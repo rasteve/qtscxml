@@ -41,7 +41,7 @@ public:
                                              doAutoforward, params, finalize)
     {}
 
-    Scxml::QScxmlInvokableService *invoke(StateMachine *parent) Q_DECL_OVERRIDE
+    Scxml::QScxmlInvokableService *invoke(QScxmlStateMachine *parent) Q_DECL_OVERRIDE
     {
         return finishInvoke(new T, parent);
     }
@@ -55,13 +55,13 @@ public:
     class Data;
 
     QScxmlState(QState *parent = Q_NULLPTR);
-    QScxmlState(StateMachine *parent);
+    QScxmlState(QScxmlStateMachine *parent);
     ~QScxmlState();
 
     void setAsInitialStateFor(QScxmlState *state);
-    void setAsInitialStateFor(StateMachine *stateMachine);
+    void setAsInitialStateFor(QScxmlStateMachine *stateMachine);
 
-    StateMachine *stateMachine() const;
+    QScxmlStateMachine *stateMachine() const;
     virtual bool init();
     QString stateLocation() const;
 
@@ -96,13 +96,13 @@ public:
     class Data;
 
     QScxmlFinalState(QState *parent = Q_NULLPTR);
-    QScxmlFinalState(StateMachine *parent);
+    QScxmlFinalState(QScxmlStateMachine *parent);
     ~QScxmlFinalState();
 
     void setAsInitialStateFor(QScxmlState *state);
-    void setAsInitialStateFor(StateMachine *stateMachine);
+    void setAsInitialStateFor(QScxmlStateMachine *stateMachine);
 
-    StateMachine *stateMachine() const;
+    QScxmlStateMachine *stateMachine() const;
     virtual bool init();
 
     QScxmlExecutableContent::ContainerId doneData() const;
@@ -131,7 +131,7 @@ public:
                          const QList<QByteArray> &eventSelector = QList<QByteArray>());
     ~QScxmlBaseTransition();
 
-    StateMachine *stateMachine() const;
+    QScxmlStateMachine *stateMachine() const;
     QString transitionLocation() const;
 
     bool eventTest(QEvent *event) Q_DECL_OVERRIDE;
@@ -157,10 +157,10 @@ public:
     ~QScxmlTransition();
 
     void addTransitionTo(QScxmlState *state);
-    void addTransitionTo(StateMachine *stateMachine);
+    void addTransitionTo(QScxmlStateMachine *stateMachine);
 
     bool eventTest(QEvent *event) Q_DECL_OVERRIDE;
-    StateMachine *stateMachine() const;
+    QScxmlStateMachine *stateMachine() const;
 
     void setInstructionsOnTransition(QScxmlExecutableContent::ContainerId instructions);
     void setConditionalExpression(EvaluatorId evaluator);

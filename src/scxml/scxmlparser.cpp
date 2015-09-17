@@ -317,7 +317,7 @@ private:
 };
 
 class QStateMachineBuilder;
-class DynamicStateMachine: public StateMachine, public Scxml::ScxmlEventFilter
+class DynamicStateMachine: public QScxmlStateMachine, public Scxml::ScxmlEventFilter
 {
     // Manually expanded from Q_OBJECT macro:
 public:
@@ -328,7 +328,7 @@ public:
 
     int qt_metacall(QMetaObject::Call _c, int _id, void **_a) Q_DECL_OVERRIDE
     {
-        _id = StateMachine::qt_metacall(_c, _id, _a);
+        _id = QScxmlStateMachine::qt_metacall(_c, _id, _a);
         if (_id < 0)
             return _id;
         int ownMethodCount = m_metaObject->methodCount() - m_metaObject->methodOffset();
@@ -370,7 +370,7 @@ private:
             DynamicStateMachine *_t = static_cast<DynamicStateMachine *>(_o);
             void *_v = _a[0];
             if (_id >= 0 && _id < _t->m_propertyNamesByIndex.size()) {
-                *reinterpret_cast<QAbstractState**>(_v) = StateMachinePrivate::get(_t)->stateByScxmlName(_t->m_propertyNamesByIndex.at(_id));
+                *reinterpret_cast<QAbstractState**>(_v) = QScxmlStateMachinePrivate::get(_t)->stateByScxmlName(_t->m_propertyNamesByIndex.at(_id));
             }
         }
     }
@@ -386,7 +386,7 @@ private:
         // Temporarily wire up the QMetaObject, because qobject_cast needs it while building MyQStateMachine.
         QMetaObjectBuilder b;
         b.setClassName("DynamicStateMachine");
-        b.setSuperClass(&StateMachine::staticMetaObject);
+        b.setSuperClass(&QScxmlStateMachine::staticMetaObject);
         b.setStaticMetacallFunction(qt_static_metacall);
         m_metaObject = b.toMetaObject();
 
@@ -406,7 +406,7 @@ private:
         // Build the real one.
         QMetaObjectBuilder b;
         b.setClassName("DynamicStateMachine");
-        b.setSuperClass(&StateMachine::staticMetaObject);
+        b.setSuperClass(&QScxmlStateMachine::staticMetaObject);
         b.setStaticMetacallFunction(qt_static_metacall);
 
         // signals
@@ -456,7 +456,7 @@ public:
     ~DynamicStateMachine()
     { if (m_metaObject) free(m_metaObject); }
 
-    bool handle(QScxmlEvent *event, Scxml::StateMachine *stateMachine) Q_DECL_OVERRIDE {
+    bool handle(QScxmlEvent *event, Scxml::QScxmlStateMachine *stateMachine) Q_DECL_OVERRIDE {
         Q_UNUSED(stateMachine);
 
         if (event->originType() != QStringLiteral("qt:signal")) {
@@ -501,7 +501,7 @@ public:
     void setContent(const QSharedPointer<DocumentModel::ScxmlDocument> &content)
     { m_content = content; }
 
-    QScxmlInvokableService *invoke(StateMachine *child) Q_DECL_OVERRIDE;
+    QScxmlInvokableService *invoke(QScxmlStateMachine *child) Q_DECL_OVERRIDE;
 
 private:
     QSharedPointer<DocumentModel::ScxmlDocument> m_content;
@@ -516,7 +516,7 @@ public:
         , m_bindLate(false)
     {}
 
-    StateMachine *build(DocumentModel::ScxmlDocument *doc)
+    QScxmlStateMachine *build(DocumentModel::ScxmlDocument *doc)
     {
         m_table = Q_NULLPTR;
         m_parents.reserve(32);
@@ -550,10 +550,10 @@ private:
 
         switch (node->binding) {
         case DocumentModel::Scxml::EarlyBinding:
-            m_table->setDataBinding(StateMachine::EarlyBinding);
+            m_table->setDataBinding(QScxmlStateMachine::EarlyBinding);
             break;
         case DocumentModel::Scxml::LateBinding:
-            m_table->setDataBinding(StateMachine::LateBinding);
+            m_table->setDataBinding(QScxmlStateMachine::LateBinding);
             m_bindLate = true;
             break;
         default:
@@ -562,7 +562,7 @@ private:
 
         setName(node->name);
 
-        m_parents.append(StateMachinePrivate::get(m_table)->m_qStateMachine);
+        m_parents.append(QScxmlStateMachinePrivate::get(m_table)->m_qStateMachine);
         visit(node->children);
 
         m_dataElements.append(node->dataElements);
@@ -580,7 +580,7 @@ private:
 
         foreach (auto initialState, node->initialStates) {
             Q_ASSERT(initialState);
-            m_initialStates.append(qMakePair(StateMachinePrivate::get(m_table)->m_qStateMachine, initialState));
+            m_initialStates.append(qMakePair(QScxmlStateMachinePrivate::get(m_table)->m_qStateMachine, initialState));
         }
 
         return false;
@@ -853,7 +853,7 @@ private:
     QSet<QString> m_stateNames;
 };
 
-inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(StateMachine *parent)
+inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(QScxmlStateMachine *parent)
 {
     auto child = QStateMachineBuilder().build(m_content.data());
 
@@ -873,7 +873,7 @@ inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(StateMachine *p
         Q_UNREACHABLE();
     }
     child->setDataModel(dataModel);
-    StateMachinePrivate::get(child)->parserData()->m_ownedDataModel.reset(dataModel);
+    QScxmlStateMachinePrivate::get(child)->parserData()->m_ownedDataModel.reset(dataModel);
     //-----
 
     return finishInvoke(child, parent);
@@ -905,18 +905,18 @@ void QScxmlParser::parse()
     p->parse();
 }
 
-StateMachine *QScxmlParser::instantiateStateMachine() const
+QScxmlStateMachine *QScxmlParser::instantiateStateMachine() const
 {
     if (DocumentModel::ScxmlDocument *doc = p->scxmlDocument()) {
         return QStateMachineBuilder().build(doc);
     } else {
-        auto table = new StateMachine;
-        StateMachinePrivate::get(table)->parserData()->m_errors = errors();
+        auto table = new QScxmlStateMachine;
+        QScxmlStateMachinePrivate::get(table)->parserData()->m_errors = errors();
         return table;
     }
 }
 
-void QScxmlParser::instantiateDataModel(StateMachine *table) const
+void QScxmlParser::instantiateDataModel(QScxmlStateMachine *table) const
 {
     QScxmlDataModel *dataModel = Q_NULLPTR;
     switch (p->scxmlDocument()->root->dataModel) {
@@ -930,7 +930,7 @@ void QScxmlParser::instantiateDataModel(StateMachine *table) const
         Q_UNREACHABLE();
     }
     table->setDataModel(dataModel);
-    StateMachinePrivate::get(table)->parserData()->m_ownedDataModel.reset(dataModel);
+    QScxmlStateMachinePrivate::get(table)->parserData()->m_ownedDataModel.reset(dataModel);
 }
 
 QScxmlParser::State QScxmlParser::state() const

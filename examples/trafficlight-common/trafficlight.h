@@ -50,13 +50,13 @@ class TrafficLight : public QWidget
     Q_OBJECT
 
 public:
-    TrafficLight(Scxml::StateMachine *machine, QWidget *parent = 0);
+    TrafficLight(Scxml::QScxmlStateMachine *machine, QWidget *parent = 0);
 
 public slots:
     void toggleWorking(bool pause);
 
 private:
-    Scxml::StateMachine *m_machine;
+    Scxml::QScxmlStateMachine *m_machine;
 };
 
 class LightWidget: public QWidget

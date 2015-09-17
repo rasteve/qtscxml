@@ -27,7 +27,7 @@ public:
         : m_stateMachine(Q_NULLPTR)
     {}
 
-    StateMachine *m_stateMachine;
+    QScxmlStateMachine *m_stateMachine;
 };
 
 QScxmlDataModel::ForeachLoopBody::~ForeachLoopBody()
@@ -42,12 +42,12 @@ QScxmlDataModel::~QScxmlDataModel()
     delete d;
 }
 
-StateMachine *QScxmlDataModel::stateMachine() const
+QScxmlStateMachine *QScxmlDataModel::stateMachine() const
 {
     return d->m_stateMachine;
 }
 
-void QScxmlDataModel::setTable(StateMachine *table)
+void QScxmlDataModel::setTable(QScxmlStateMachine *table)
 {
     d->m_stateMachine = table;
 }

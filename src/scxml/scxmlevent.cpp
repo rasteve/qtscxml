@@ -26,7 +26,8 @@ using namespace Scxml;
 QEvent::Type QScxmlEvent::scxmlEventType = (QEvent::Type) QEvent::registerEventType();
 QEvent::Type QScxmlEvent::ignoreEventType = (QEvent::Type) QEvent::registerEventType();
 
-static bool evaluate(const QScxmlExecutableContent::Param &param, StateMachine *table, QVariantMap &keyValues)
+static bool evaluate(const QScxmlExecutableContent::Param &param, QScxmlStateMachine *table,
+                     QVariantMap &keyValues)
 {
     auto dataModel = table->dataModel();
     auto tableData = table->tableData();
@@ -58,7 +59,8 @@ static bool evaluate(const QScxmlExecutableContent::Param &param, StateMachine *
     }
 }
 
-static bool evaluate(const QScxmlExecutableContent::Array<QScxmlExecutableContent::Param> *params, StateMachine *table, QVariantMap &keyValues)
+static bool evaluate(const QScxmlExecutableContent::Array<QScxmlExecutableContent::Param> *params,
+                     QScxmlStateMachine *table, QVariantMap &keyValues)
 {
     if (!params)
         return true;

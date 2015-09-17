@@ -170,7 +170,7 @@ public:
             return engine()->toScriptValue(data);
     }
 
-    StateMachine *stateMachine() const
+    QScxmlStateMachine *stateMachine() const
     { return q->stateMachine(); }
 
     QJSEngine *engine() const
@@ -188,7 +188,7 @@ public:
     QString string(QScxmlExecutableContent::StringId id) const
     { return stateMachine()->tableData()->string(id); }
 
-    StateMachine::BindingMethod dataBinding() const
+    QScxmlStateMachine::BindingMethod dataBinding() const
     { return stateMachine()->dataBinding(); }
 
     bool hasProperty(const QString &name) const
