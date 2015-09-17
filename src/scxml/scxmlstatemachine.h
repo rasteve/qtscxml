@@ -199,9 +199,6 @@ public:
     StateMachine(QObject *parent = 0);
     StateMachine(StateMachinePrivate &dd, QObject *parent);
 
-    /// If this state machine is backed by a QStateMachine, that QStateMachine is returned. Otherwise, a null-pointer is returned.
-    QStateMachine *qStateMachine() const;
-
     QString sessionId() const;
     void setSessionId(const QString &id);
     static QString generateSessionId(const QString &prefix);

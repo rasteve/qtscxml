@@ -239,7 +239,7 @@ protected:
         clazz.init.impl << QStringLiteral("stateMachine.setTableData(this);");
 
         foreach (AbstractState *s, node->initialStates) {
-            clazz.init.impl << QStringLiteral("stateMachine.qStateMachine()->setInitialState(&state_") + mangledName(s) + QStringLiteral(");");
+            clazz.init.impl << QStringLiteral("state_%1.setAsInitialStateFor(&stateMachine);").arg(mangledName(s));
         }
 
         // visit the kids:
@@ -435,9 +435,9 @@ protected:
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
         if (m_parents.last()->asHistoryState()) {
-            clazz.init.impl << parentStateMemberName() + QStringLiteral(".setDefaultTransition(&") + tName + QStringLiteral(");");
+            clazz.init.impl << QStringLiteral("%1.setDefaultTransition(&%2);").arg(parentStateMemberName(), tName);
         } else {
-            clazz.init.impl << parentStateMemberName() + QStringLiteral(".addTransition(&") + tName + QStringLiteral(");");
+            clazz.init.impl << QStringLiteral("%1.addTransitionTo(&%2);").arg(tName, parentStateMemberName());
         }
 #else // QTBUG-46703: no default transition for QHistoryState yet...
         clazz.init.impl << parentName + QStringLiteral(".addTransition(&") + tName + QStringLiteral(");");
@@ -605,7 +605,7 @@ private:
         if (State *parentState = node->parent->asState()) {
             init += QStringLiteral("&state_") + mangledName(parentState);
         } else {
-            init += QStringLiteral("stateMachine.qStateMachine()");
+            init += QStringLiteral("&stateMachine");
         }
         init += QLatin1Char(')');
         return init;
@@ -686,7 +686,7 @@ private:
         else if (HistoryState *h = parent->asHistoryState())
             return QStringLiteral("state_") + mangledName(h);
         else if (parent->asScxml())
-            return QStringLiteral("(*stateMachine.qStateMachine())");
+            return QStringLiteral("stateMachine");
         else
             Q_UNIMPLEMENTED();
         return QString();

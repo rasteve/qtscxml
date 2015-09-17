@@ -162,6 +162,16 @@ ScxmlTransition::~ScxmlTransition()
     delete d;
 }
 
+void ScxmlTransition::addTransitionTo(ScxmlState *state)
+{
+    state->addTransition(this);
+}
+
+void ScxmlTransition::addTransitionTo(StateMachine *stateMachine)
+{
+    StateMachinePrivate::get(stateMachine)->m_qStateMachine->addTransition(this);
+}
+
 bool ScxmlTransition::eventTest(QEvent *event)
 {
 #ifdef DUMP_EVENT
@@ -206,9 +216,24 @@ ScxmlState::ScxmlState(QState *parent)
     , d(new ScxmlState::Data(this))
 {}
 
+ScxmlState::ScxmlState(StateMachine *parent)
+    : QState(StateMachinePrivate::get(parent)->m_qStateMachine)
+    , d(new ScxmlState::Data(this))
+{}
+
 ScxmlState::~ScxmlState()
 {
     delete d;
+}
+
+void ScxmlState::setAsInitialStateFor(ScxmlState *state)
+{
+    state->setInitialState(this);
+}
+
+void ScxmlState::setAsInitialStateFor(StateMachine *stateMachine)
+{
+    StateMachinePrivate::get(stateMachine)->m_qStateMachine->setInitialState(this);
 }
 
 StateMachine *ScxmlState::stateMachine() const {
@@ -276,14 +301,33 @@ void ScxmlState::onExit(QEvent *event)
     d->invokedServices.clear();
 }
 
+ScxmlInitialState::ScxmlInitialState(QState *theParent)
+    : ScxmlState(theParent)
+{}
+
 ScxmlFinalState::ScxmlFinalState(QState *parent)
     : QFinalState(parent)
+    , d(new Data)
+{}
+
+ScxmlFinalState::ScxmlFinalState(StateMachine *parent)
+    : QFinalState(StateMachinePrivate::get(parent)->m_qStateMachine)
     , d(new Data)
 {}
 
 ScxmlFinalState::~ScxmlFinalState()
 {
     delete d;
+}
+
+void ScxmlFinalState::setAsInitialStateFor(ScxmlState *state)
+{
+    state->setInitialState(this);
+}
+
+void ScxmlFinalState::setAsInitialStateFor(StateMachine *stateMachine)
+{
+    StateMachinePrivate::get(stateMachine)->m_qStateMachine->setInitialState(this);
 }
 
 StateMachine *ScxmlFinalState::stateMachine() const {

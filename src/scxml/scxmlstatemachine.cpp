@@ -577,13 +577,6 @@ StateMachine::StateMachine(StateMachinePrivate &dd, QObject *parent)
     connect(d->m_qStateMachine, &QStateMachine::finished, this, &StateMachine::finished);
 }
 
-QStateMachine *StateMachine::qStateMachine() const
-{
-    Q_D(const StateMachine);
-
-    return d->m_qStateMachine;
-}
-
 QString StateMachine::sessionId() const
 {
     Q_D(const StateMachine);
@@ -754,6 +747,8 @@ void Internal::MyQStateMachinePrivate::endMacrostep(bool didChange)
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 void Internal::MyQStateMachinePrivate::exitInterpreter()
 {
+    Q_Q(MyQStateMachine);
+
     foreach (QAbstractState *s, configuration) {
         ExecutableContent::ContainerId onExitInstructions = ExecutableContent::NoInstruction;
         if (ScxmlFinalState *finalState = qobject_cast<ScxmlFinalState *>(s)) {
@@ -767,7 +762,7 @@ void Internal::MyQStateMachinePrivate::exitInterpreter()
             StateMachinePrivate::get(m_table)->m_executionEngine->execute(onExitInstructions);
 
         if (ScxmlFinalState *finalState = qobject_cast<ScxmlFinalState *>(s)) {
-            if (finalState->parent() == m_table->qStateMachine()) {
+            if (finalState->parent() == q) {
                 auto psm = m_table->parentStateMachine();
                 if (psm) {
                     auto done = new QScxmlEvent;
