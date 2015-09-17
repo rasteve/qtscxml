@@ -29,7 +29,7 @@ QT_BEGIN_NAMESPACE
 
 namespace Scxml {
 namespace Internal {
-class MyQStateMachine;
+class WrappedQStateMachine;
 }
 }
 
@@ -79,7 +79,7 @@ public:
     void setData(const QVariant &data);
 
 protected:
-    friend Scxml::Internal::MyQStateMachine;
+    friend Scxml::Internal::WrappedQStateMachine;
     static QEvent::Type scxmlEventType;
     static QEvent::Type ignoreEventType;
     void makeIgnorable();

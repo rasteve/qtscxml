@@ -76,7 +76,7 @@ void QScxmlState::setAsInitialStateFor(StateMachine *stateMachine)
 }
 
 StateMachine *QScxmlState::stateMachine() const {
-    return qobject_cast<Internal::MyQStateMachine *>(machine())->stateTable();
+    return qobject_cast<Internal::WrappedQStateMachine *>(machine())->stateTable();
 }
 
 bool QScxmlState::init()
@@ -170,7 +170,7 @@ void QScxmlFinalState::setAsInitialStateFor(StateMachine *stateMachine)
 }
 
 StateMachine *QScxmlFinalState::stateMachine() const {
-    return qobject_cast<Internal::MyQStateMachine *>(machine())->stateTable();
+    return qobject_cast<Internal::WrappedQStateMachine *>(machine())->stateTable();
 }
 
 bool QScxmlFinalState::init()
@@ -232,10 +232,10 @@ QScxmlBaseTransition::~QScxmlBaseTransition()
 }
 
 StateMachine *QScxmlBaseTransition::stateMachine() const {
-    if (Internal::MyQStateMachine *t = qobject_cast<Internal::MyQStateMachine *>(parent()))
+    if (Internal::WrappedQStateMachine *t = qobject_cast<Internal::WrappedQStateMachine *>(parent()))
         return t->stateTable();
     if (QState *s = sourceState())
-        return qobject_cast<Internal::MyQStateMachine *>(s->machine())->stateTable();
+        return qobject_cast<Internal::WrappedQStateMachine *>(s->machine())->stateTable();
     qCWarning(scxmlLog) << "could not find Scxml::StateMachine in " << transitionLocation();
     return 0;
 }
@@ -355,9 +355,9 @@ void QScxmlTransition::onTransition(QEvent *)
 
 StateMachine *QScxmlTransition::stateMachine() const {
     // work around a bug in QStateMachine
-    if (Internal::MyQStateMachine *t = qobject_cast<Internal::MyQStateMachine *>(sourceState()))
+    if (Internal::WrappedQStateMachine *t = qobject_cast<Internal::WrappedQStateMachine *>(sourceState()))
         return t->stateTable();
-    return qobject_cast<Internal::MyQStateMachine *>(machine())->stateTable();
+    return qobject_cast<Internal::WrappedQStateMachine *>(machine())->stateTable();
 }
 
 void QScxmlTransition::setInstructionsOnTransition(QScxmlExecutableContent::ContainerId instructions)

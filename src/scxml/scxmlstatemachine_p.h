@@ -39,15 +39,15 @@ QT_BEGIN_NAMESPACE
 
 namespace Scxml {
 namespace Internal {
-class MyQStateMachinePrivate;
-class MyQStateMachine: public QStateMachine
+class WrappedQStateMachinePrivate;
+class WrappedQStateMachine: public QStateMachine
 {
     Q_OBJECT
-    Q_DECLARE_PRIVATE(MyQStateMachine)
+    Q_DECLARE_PRIVATE(WrappedQStateMachine)
 
 public:
-    MyQStateMachine(StateMachine *parent);
-    MyQStateMachine(MyQStateMachinePrivate &dd, StateMachine *parent);
+    WrappedQStateMachine(StateMachine *parent);
+    WrappedQStateMachine(WrappedQStateMachinePrivate &dd, StateMachine *parent);
 
     StateMachine *stateTable() const;
 
@@ -86,7 +86,7 @@ public:
     static StateMachinePrivate *get(StateMachine *t)
     { return t->d_func(); }
 
-    void setQStateMachine(Internal::MyQStateMachine *stateMachine);
+    void setQStateMachine(Internal::WrappedQStateMachine *stateMachine);
 
     QAbstractState *stateByScxmlName(const QString &scxmlName);
 
@@ -100,7 +100,7 @@ public: // data fields:
     QScxmlExecutableContent::ExecutionEngine *m_executionEngine;
     TableData *m_tableData;
     QScxmlEvent m_event;
-    Internal::MyQStateMachine *m_qStateMachine;
+    Internal::WrappedQStateMachine *m_qStateMachine;
     ScxmlEventFilter *m_eventFilter;
     QVector<QScxmlInvokableService *> m_registeredServices;
     StateMachine *m_parentStateMachine;
