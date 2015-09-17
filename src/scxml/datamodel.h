@@ -36,21 +36,21 @@ class StateMachine;
 #pragma pack(push, 4) // 4 == sizeof(qint32)
 #endif
 struct QScxmlEvaluatorInfo {
-    ExecutableContent::StringId expr;
-    ExecutableContent::StringId context;
+    QScxmlExecutableContent::StringId expr;
+    QScxmlExecutableContent::StringId context;
 };
 
 struct QScxmlAssignmentInfo {
-    ExecutableContent::StringId dest;
-    ExecutableContent::StringId expr;
-    ExecutableContent::StringId context;
+    QScxmlExecutableContent::StringId dest;
+    QScxmlExecutableContent::StringId expr;
+    QScxmlExecutableContent::StringId context;
 };
 
 struct QScxmlForeachInfo {
-    ExecutableContent::StringId array;
-    ExecutableContent::StringId item;
-    ExecutableContent::StringId index;
-    ExecutableContent::StringId context;
+    QScxmlExecutableContent::StringId array;
+    QScxmlExecutableContent::StringId item;
+    QScxmlExecutableContent::StringId index;
+    QScxmlExecutableContent::StringId context;
 };
 #if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
 #pragma pack(pop)

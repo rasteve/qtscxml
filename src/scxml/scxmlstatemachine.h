@@ -60,15 +60,15 @@ class Q_SCXML_EXPORT TableData
 public:
     virtual ~TableData();
 
-    virtual QString string(ExecutableContent::StringId id) const = 0;
-    virtual QByteArray byteArray(ExecutableContent::ByteArrayId id) const = 0;
-    virtual ExecutableContent::Instructions instructions() const = 0;
+    virtual QString string(QScxmlExecutableContent::StringId id) const = 0;
+    virtual QByteArray byteArray(QScxmlExecutableContent::ByteArrayId id) const = 0;
+    virtual QScxmlExecutableContent::Instructions instructions() const = 0;
     virtual QScxmlEvaluatorInfo evaluatorInfo(EvaluatorId evaluatorId) const = 0;
     virtual QScxmlAssignmentInfo assignmentInfo(EvaluatorId assignmentId) const = 0;
     virtual QScxmlForeachInfo foreachInfo(EvaluatorId foreachId) const = 0;
-    virtual ExecutableContent::StringId *dataNames(int *count) const = 0;
+    virtual QScxmlExecutableContent::StringId *dataNames(int *count) const = 0;
 
-    virtual ExecutableContent::ContainerId initialSetup() const = 0;
+    virtual QScxmlExecutableContent::ContainerId initialSetup() const = 0;
     virtual QString name() const = 0;
 };
 
@@ -102,7 +102,7 @@ class Q_SCXML_EXPORT ScxmlInvokableService
 {
 public:
     ScxmlInvokableService(const QString &id, const QVariantMap &data, bool autoforward,
-                          ExecutableContent::ContainerId finalize, StateMachine *parent);
+                          QScxmlExecutableContent::ContainerId finalize, StateMachine *parent);
     virtual ~ScxmlInvokableService();
 
     QString id() const;
@@ -124,19 +124,19 @@ class Q_SCXML_EXPORT ScxmlInvokableServiceFactory
 public:
     struct Q_SCXML_EXPORT Param
     {
-        ExecutableContent::StringId name;
+        QScxmlExecutableContent::StringId name;
         EvaluatorId expr;
-        ExecutableContent::StringId location;
+        QScxmlExecutableContent::StringId location;
     };
 
-    ScxmlInvokableServiceFactory(ExecutableContent::StringId invokeLocation,
-                                 ExecutableContent::StringId id,
-                                 ExecutableContent::StringId idPrefix,
-                                 ExecutableContent::StringId idlocation,
-                                 const QVector<ExecutableContent::StringId> &namelist,
+    ScxmlInvokableServiceFactory(QScxmlExecutableContent::StringId invokeLocation,
+                                 QScxmlExecutableContent::StringId id,
+                                 QScxmlExecutableContent::StringId idPrefix,
+                                 QScxmlExecutableContent::StringId idlocation,
+                                 const QVector<QScxmlExecutableContent::StringId> &namelist,
                                  bool autoforward,
                                  const QVector<Param> &params,
-                                 ExecutableContent::ContainerId finalizeContent);
+                                 QScxmlExecutableContent::ContainerId finalizeContent);
     virtual ~ScxmlInvokableServiceFactory();
 
     virtual ScxmlInvokableService *invoke(StateMachine *parent) = 0;
@@ -145,7 +145,7 @@ protected:
     QString calculateId(StateMachine *parent, bool *ok) const;
     QVariantMap calculateData(StateMachine *parent, bool *ok) const;
     bool autoforward() const;
-    ExecutableContent::ContainerId finalizeContent() const;
+    QScxmlExecutableContent::ContainerId finalizeContent() const;
 
 private:
     class Data;
@@ -155,14 +155,14 @@ private:
 class Q_SCXML_EXPORT InvokableScxmlServiceFactory: public ScxmlInvokableServiceFactory
 {
 public:
-    InvokableScxmlServiceFactory(Scxml::ExecutableContent::StringId invokeLocation,
-                                 Scxml::ExecutableContent::StringId id,
-                                 Scxml::ExecutableContent::StringId idPrefix,
-                                 Scxml::ExecutableContent::StringId idlocation,
-                                 const QVector<Scxml::ExecutableContent::StringId> &namelist,
+    InvokableScxmlServiceFactory(Scxml::QScxmlExecutableContent::StringId invokeLocation,
+                                 Scxml::QScxmlExecutableContent::StringId id,
+                                 Scxml::QScxmlExecutableContent::StringId idPrefix,
+                                 Scxml::QScxmlExecutableContent::StringId idlocation,
+                                 const QVector<Scxml::QScxmlExecutableContent::StringId> &namelist,
                                  bool doAutoforward,
                                  const QVector<Param> &params,
-                                 ExecutableContent::ContainerId finalize);
+                                 QScxmlExecutableContent::ContainerId finalize);
 
 protected:
     ScxmlInvokableService *finishInvoke(StateMachine *child, StateMachine *parent);

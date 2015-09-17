@@ -97,7 +97,7 @@ public: // data fields:
     bool m_isInvoked;
     QScxmlDataModel *m_dataModel;
     StateMachine::BindingMethod m_dataBinding;
-    ExecutableContent::ExecutionEngine *m_executionEngine;
+    QScxmlExecutableContent::ExecutionEngine *m_executionEngine;
     TableData *m_tableData;
     QScxmlEvent m_event;
     Internal::MyQStateMachine *m_qStateMachine;

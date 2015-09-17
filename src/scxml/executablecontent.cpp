@@ -21,7 +21,7 @@
 #include "scxmlevent_p.h"
 
 using namespace Scxml;
-using namespace Scxml::ExecutableContent;
+using namespace Scxml::QScxmlExecutableContent;
 
 static int parseTime(const QString &t, bool *ok = 0)
 {
@@ -278,7 +278,7 @@ bool ExecutionEngine::step(Instructions &ip)
 }
 
 Builder::Builder()
-    : m_initialSetup(ExecutableContent::NoInstruction)
+    : m_initialSetup(QScxmlExecutableContent::NoInstruction)
     , m_isCppDataModel(false)
 {
     m_activeSequences.reserve(4);
@@ -396,7 +396,7 @@ void Builder::generate(const QVector<DocumentModel::DataElement *> &dataElements
         auto ctxt = createContext(QStringLiteral("data"), QStringLiteral("expr"), el->expr);
         auto evaluator = addDataElement(el->id, el->expr, ctxt);
         if (evaluator != NoEvaluator) {
-            auto instr = m_instructions.add<ExecutableContent::Initialize>();
+            auto instr = m_instructions.add<QScxmlExecutableContent::Initialize>();
             instr->expression = evaluator;
         }
     }

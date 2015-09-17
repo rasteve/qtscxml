@@ -26,7 +26,7 @@
 QT_BEGIN_NAMESPACE
 
 namespace Scxml {
-namespace ExecutableContent {
+namespace QScxmlExecutableContent {
 
 typedef int ContainerId;
 enum { NoInstruction = -1 };

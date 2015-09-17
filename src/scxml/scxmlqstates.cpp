@@ -140,11 +140,11 @@ class ScxmlTransition::Data
 public:
     Data()
         : conditionalExp(NoEvaluator)
-        , instructionsOnTransition(ExecutableContent::NoInstruction)
+        , instructionsOnTransition(QScxmlExecutableContent::NoInstruction)
     {}
 
     EvaluatorId conditionalExp;
-    ExecutableContent::ContainerId instructionsOnTransition;
+    QScxmlExecutableContent::ContainerId instructionsOnTransition;
 };
 
 ScxmlTransition::ScxmlTransition(QState *sourceState, const QList<QByteArray> &eventSelector)
@@ -201,7 +201,7 @@ StateMachine *ScxmlTransition::stateMachine() const {
     return qobject_cast<Internal::MyQStateMachine *>(machine())->stateTable();
 }
 
-void ScxmlTransition::setInstructionsOnTransition(ExecutableContent::ContainerId instructions)
+void ScxmlTransition::setInstructionsOnTransition(QScxmlExecutableContent::ContainerId instructions)
 {
     d->instructionsOnTransition = instructions;
 }
@@ -250,17 +250,17 @@ QString ScxmlState::stateLocation() const
     return QStringLiteral("State %1").arg(objectName());
 }
 
-void ScxmlState::setInitInstructions(ExecutableContent::ContainerId instructions)
+void ScxmlState::setInitInstructions(QScxmlExecutableContent::ContainerId instructions)
 {
     d->initInstructions = instructions;
 }
 
-void ScxmlState::setOnEntryInstructions(ExecutableContent::ContainerId instructions)
+void ScxmlState::setOnEntryInstructions(QScxmlExecutableContent::ContainerId instructions)
 {
     d->onEntryInstructions = instructions;
 }
 
-void ScxmlState::setOnExitInstructions(ExecutableContent::ContainerId instructions)
+void ScxmlState::setOnExitInstructions(QScxmlExecutableContent::ContainerId instructions)
 {
     d->onExitInstructions = instructions;
 }
@@ -272,9 +272,9 @@ void ScxmlState::setInvokableServiceFactories(const QVector<ScxmlInvokableServic
 
 void ScxmlState::onEntry(QEvent *event)
 {
-    if (d->initInstructions != ExecutableContent::NoInstruction) {
+    if (d->initInstructions != QScxmlExecutableContent::NoInstruction) {
         StateMachinePrivate::get(stateMachine())->m_executionEngine->execute(d->initInstructions);
-        d->initInstructions = ExecutableContent::NoInstruction;
+        d->initInstructions = QScxmlExecutableContent::NoInstruction;
     }
     QState::onEntry(event);
     auto sm = stateMachine();
@@ -339,22 +339,22 @@ bool ScxmlFinalState::init()
     return true;
 }
 
-Scxml::ExecutableContent::ContainerId ScxmlFinalState::doneData() const
+Scxml::QScxmlExecutableContent::ContainerId ScxmlFinalState::doneData() const
 {
     return d->doneData;
 }
 
-void ScxmlFinalState::setDoneData(Scxml::ExecutableContent::ContainerId doneData)
+void ScxmlFinalState::setDoneData(Scxml::QScxmlExecutableContent::ContainerId doneData)
 {
     d->doneData = doneData;
 }
 
-void ScxmlFinalState::setOnEntryInstructions(ExecutableContent::ContainerId instructions)
+void ScxmlFinalState::setOnEntryInstructions(QScxmlExecutableContent::ContainerId instructions)
 {
     d->onEntryInstructions = instructions;
 }
 
-void ScxmlFinalState::setOnExitInstructions(ExecutableContent::ContainerId instructions)
+void ScxmlFinalState::setOnExitInstructions(QScxmlExecutableContent::ContainerId instructions)
 {
     d->onExitInstructions = instructions;
 }

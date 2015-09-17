@@ -185,7 +185,7 @@ public:
     void setEngine(QJSEngine *engine)
     { jsEngine = engine; }
 
-    QString string(ExecutableContent::StringId id) const
+    QString string(QScxmlExecutableContent::StringId id) const
     { return stateMachine()->tableData()->string(id); }
 
     StateMachine::BindingMethod dataBinding() const
@@ -322,7 +322,7 @@ void QScxmlEcmaScriptDataModel::setup(const QVariantMap &initialDataValues)
     bool ok;
     QJSValue undefined(QJSValue::UndefinedValue); // See B.2.1, and test456.
     int count;
-    ExecutableContent::StringId *names = stateMachine()->tableData()->dataNames(&count);
+    QScxmlExecutableContent::StringId *names = stateMachine()->tableData()->dataNames(&count);
     for (int i = 0; i < count; ++i) {
         auto name = d->string(names[i]);
         QJSValue v = undefined;

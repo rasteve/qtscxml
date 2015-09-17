@@ -169,7 +169,7 @@ enum class Evaluator
     Script
 };
 
-class DumperVisitor: public ExecutableContent::Builder
+class DumperVisitor: public QScxmlExecutableContent::Builder
 {
     Q_DISABLE_COPY(DumperVisitor)
 
@@ -249,7 +249,7 @@ protected:
 
         m_dataElements.append(node->dataElements);
         if (node->script || !m_dataElements.isEmpty() || !node->initialSetup.isEmpty()) {
-            clazz.dataMethods << QStringLiteral("Scxml::ExecutableContent::ContainerId initialSetup() const Q_DECL_OVERRIDE")
+            clazz.dataMethods << QStringLiteral("Scxml::QScxmlExecutableContent::ContainerId initialSetup() const Q_DECL_OVERRIDE")
                               << QStringLiteral("{ return %1; }").arg(startNewSequence())
                               << QString();
             generate(m_dataElements);
@@ -259,8 +259,8 @@ protected:
             visit(&node->initialSetup);
             endSequence();
         } else {
-            clazz.dataMethods << QStringLiteral("Scxml::ExecutableContent::ContainerId initialSetup() const Q_DECL_OVERRIDE")
-                              << QStringLiteral("{ return Scxml::ExecutableContent::NoInstruction; }")
+            clazz.dataMethods << QStringLiteral("Scxml::QScxmlExecutableContent::ContainerId initialSetup() const Q_DECL_OVERRIDE")
+                              << QStringLiteral("{ return Scxml::QScxmlExecutableContent::NoInstruction; }")
                               << QString();
         }
 
@@ -374,7 +374,7 @@ protected:
                     line += QStringLiteral("}, ");
                 }
                 if (invoke->finalize.isEmpty()) {
-                    line += QStringLiteral("Scxml::ExecutableContent::NoInstruction");
+                    line += QStringLiteral("Scxml::QScxmlExecutableContent::NoInstruction");
                 } else {
                     line += QString::number(startNewSequence());
                     visit(&invoke->finalize);
@@ -528,7 +528,7 @@ protected:
             }
         }
 
-        return ExecutableContent::Builder::visit(node);
+        return QScxmlExecutableContent::Builder::visit(node);
     }
 
 private:
@@ -720,7 +720,7 @@ private:
     {
         StringListDumper &t = clazz.tables;
         clazz.classFields << QString();
-        QScopedPointer<ExecutableContent::DynamicTableData> td(tableData());
+        QScopedPointer<QScxmlExecutableContent::DynamicTableData> td(tableData());
 
         { // instructions
             clazz.classFields << QStringLiteral("static qint32 theInstructions[];");
@@ -735,7 +735,7 @@ private:
                     return QString();
             });
             t << QStringLiteral("};") << QStringLiteral("");
-            clazz.dataMethods << QStringLiteral("Scxml::ExecutableContent::Instructions instructions() const Q_DECL_OVERRIDE")
+            clazz.dataMethods << QStringLiteral("Scxml::QScxmlExecutableContent::Instructions instructions() const Q_DECL_OVERRIDE")
                               << QStringLiteral("{ return theInstructions; }")
                               << QString();
         }
@@ -743,8 +743,8 @@ private:
         { // dataIds
             int count;
             auto dataIds = td->dataNames(&count);
-            clazz.classFields << QStringLiteral("static Scxml::ExecutableContent::StringId dataIds[];");
-            t << QStringLiteral("Scxml::ExecutableContent::StringId %1::Data::dataIds[] = {").arg(clazz.className);
+            clazz.classFields << QStringLiteral("static Scxml::QScxmlExecutableContent::StringId dataIds[];");
+            t << QStringLiteral("Scxml::QScxmlExecutableContent::StringId %1::Data::dataIds[] = {").arg(clazz.className);
             if (isCppDataModel()) {
                 t << QStringLiteral("-1");
             } else  {
@@ -758,7 +758,7 @@ private:
                 });
             }
             t << QStringLiteral("};") << QStringLiteral("");
-            clazz.dataMethods << QStringLiteral("Scxml::ExecutableContent::StringId *dataNames(int *count) const Q_DECL_OVERRIDE");
+            clazz.dataMethods << QStringLiteral("Scxml::QScxmlExecutableContent::StringId *dataNames(int *count) const Q_DECL_OVERRIDE");
             clazz.dataMethods << QStringLiteral("{ *count = %1; return dataIds; }").arg(count);
             clazz.dataMethods << QString();
         }
@@ -944,10 +944,10 @@ private:
                               << QStringLiteral("    qunicodechar stringdata[%1];").arg(ucharCount + 1)
                               << QStringLiteral("} strings;");
 
-            clazz.dataMethods << QStringLiteral("QString string(Scxml::ExecutableContent::StringId id) const Q_DECL_OVERRIDE Q_DECL_FINAL");
+            clazz.dataMethods << QStringLiteral("QString string(Scxml::QScxmlExecutableContent::StringId id) const Q_DECL_OVERRIDE Q_DECL_FINAL");
             clazz.dataMethods << QStringLiteral("{");
-            clazz.dataMethods << QStringLiteral("    Q_ASSERT(id >= Scxml::ExecutableContent::NoString); Q_ASSERT(id < %1);").arg(strings.size());
-            clazz.dataMethods << QStringLiteral("    if (id == Scxml::ExecutableContent::NoString) return QString();");
+            clazz.dataMethods << QStringLiteral("    Q_ASSERT(id >= Scxml::QScxmlExecutableContent::NoString); Q_ASSERT(id < %1);").arg(strings.size());
+            clazz.dataMethods << QStringLiteral("    if (id == Scxml::QScxmlExecutableContent::NoString) return QString();");
             if (translationUnit->useCxx11) {
                 clazz.dataMethods << QStringLiteral("    return QString({static_cast<QStringData*>(strings.data + id)});");
             } else {
@@ -999,10 +999,10 @@ private:
                               << QStringLiteral("    char stringdata[%1];").arg(charCount + 1)
                               << QStringLiteral("} byteArrays;");
 
-            clazz.dataMethods << QStringLiteral("QByteArray byteArray(Scxml::ExecutableContent::ByteArrayId id) const Q_DECL_OVERRIDE Q_DECL_FINAL");
+            clazz.dataMethods << QStringLiteral("QByteArray byteArray(Scxml::QScxmlExecutableContent::ByteArrayId id) const Q_DECL_OVERRIDE Q_DECL_FINAL");
             clazz.dataMethods << QStringLiteral("{");
-            clazz.dataMethods << QStringLiteral("    Q_ASSERT(id >= Scxml::ExecutableContent::NoByteArray); Q_ASSERT(id < %1);").arg(byteArrays.size());
-            clazz.dataMethods << QStringLiteral("    if (id == Scxml::ExecutableContent::NoByteArray) return QByteArray();");
+            clazz.dataMethods << QStringLiteral("    Q_ASSERT(id >= Scxml::QScxmlExecutableContent::NoByteArray); Q_ASSERT(id < %1);").arg(byteArrays.size());
+            clazz.dataMethods << QStringLiteral("    if (id == Scxml::QScxmlExecutableContent::NoByteArray) return QByteArray();");
             if (translationUnit->useCxx11) {
                 clazz.dataMethods << QStringLiteral("    return QByteArray({byteArrays.data + id});");
             } else {

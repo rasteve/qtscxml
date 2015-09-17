@@ -29,14 +29,14 @@ template<class T>
 class InvokeScxmlFactory: public Scxml::InvokableScxmlServiceFactory
 {
 public:
-    InvokeScxmlFactory(Scxml::ExecutableContent::StringId invokeLocation,
-                       Scxml::ExecutableContent::StringId id,
-                       Scxml::ExecutableContent::StringId idPrefix,
-                       Scxml::ExecutableContent::StringId idlocation,
-                       const QVector<Scxml::ExecutableContent::StringId> &namelist,
+    InvokeScxmlFactory(Scxml::QScxmlExecutableContent::StringId invokeLocation,
+                       Scxml::QScxmlExecutableContent::StringId id,
+                       Scxml::QScxmlExecutableContent::StringId idPrefix,
+                       Scxml::QScxmlExecutableContent::StringId idlocation,
+                       const QVector<Scxml::QScxmlExecutableContent::StringId> &namelist,
                        bool doAutoforward,
                        const QVector<Param> &params,
-                       ExecutableContent::ContainerId finalize)
+                       QScxmlExecutableContent::ContainerId finalize)
         : InvokableScxmlServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist,
                                        doAutoforward, params, finalize)
     {}
@@ -91,9 +91,9 @@ public:
     virtual bool init();
     QString stateLocation() const;
 
-    void setInitInstructions(ExecutableContent::ContainerId instructions);
-    void setOnEntryInstructions(ExecutableContent::ContainerId instructions);
-    void setOnExitInstructions(ExecutableContent::ContainerId instructions);
+    void setInitInstructions(QScxmlExecutableContent::ContainerId instructions);
+    void setOnEntryInstructions(QScxmlExecutableContent::ContainerId instructions);
+    void setOnExitInstructions(QScxmlExecutableContent::ContainerId instructions);
     void setInvokableServiceFactories(const QVector<ScxmlInvokableServiceFactory *>& factories);
 
 Q_SIGNALS:
@@ -131,11 +131,11 @@ public:
     StateMachine *stateMachine() const;
     virtual bool init();
 
-    ExecutableContent::ContainerId doneData() const;
-    void setDoneData(ExecutableContent::ContainerId doneData);
+    QScxmlExecutableContent::ContainerId doneData() const;
+    void setDoneData(QScxmlExecutableContent::ContainerId doneData);
 
-    void setOnEntryInstructions(ExecutableContent::ContainerId instructions);
-    void setOnExitInstructions(ExecutableContent::ContainerId instructions);
+    void setOnEntryInstructions(QScxmlExecutableContent::ContainerId instructions);
+    void setOnExitInstructions(QScxmlExecutableContent::ContainerId instructions);
 
 protected:
     void onEntry(QEvent * event) Q_DECL_OVERRIDE;
@@ -162,7 +162,7 @@ public:
     bool eventTest(QEvent *event) Q_DECL_OVERRIDE;
     StateMachine *stateMachine() const;
 
-    void setInstructionsOnTransition(ExecutableContent::ContainerId instructions);
+    void setInstructionsOnTransition(QScxmlExecutableContent::ContainerId instructions);
     void setConditionalExpression(EvaluatorId evaluator);
 
 protected:

@@ -32,18 +32,18 @@ public:
 
     Data(ScxmlState *state)
         : m_state(state)
-        , initInstructions(ExecutableContent::NoInstruction)
-        , onEntryInstructions(ExecutableContent::NoInstruction)
-        , onExitInstructions(ExecutableContent::NoInstruction)
+        , initInstructions(QScxmlExecutableContent::NoInstruction)
+        , onEntryInstructions(QScxmlExecutableContent::NoInstruction)
+        , onExitInstructions(QScxmlExecutableContent::NoInstruction)
     {}
 
     ~Data()
     { qDeleteAll(invokableServiceFactories); }
 
     ScxmlState *m_state;
-    ExecutableContent::ContainerId initInstructions;
-    ExecutableContent::ContainerId onEntryInstructions;
-    ExecutableContent::ContainerId onExitInstructions;
+    QScxmlExecutableContent::ContainerId initInstructions;
+    QScxmlExecutableContent::ContainerId onEntryInstructions;
+    QScxmlExecutableContent::ContainerId onExitInstructions;
     QVector<ScxmlInvokableServiceFactory *> invokableServiceFactories;
     QVector<ScxmlInvokableService *> invokedServices;
 };
@@ -54,14 +54,14 @@ public:
     static Data *get(ScxmlFinalState *s) { return s->d; }
 
     Data()
-        : doneData(ExecutableContent::NoInstruction)
-        , onEntryInstructions(ExecutableContent::NoInstruction)
-        , onExitInstructions(ExecutableContent::NoInstruction)
+        : doneData(QScxmlExecutableContent::NoInstruction)
+        , onEntryInstructions(QScxmlExecutableContent::NoInstruction)
+        , onExitInstructions(QScxmlExecutableContent::NoInstruction)
     {}
 
-    ExecutableContent::ContainerId doneData;
-    ExecutableContent::ContainerId onEntryInstructions;
-    ExecutableContent::ContainerId onExitInstructions;
+    QScxmlExecutableContent::ContainerId doneData;
+    QScxmlExecutableContent::ContainerId onEntryInstructions;
+    QScxmlExecutableContent::ContainerId onExitInstructions;
 };
 
 } // Scxml namespace

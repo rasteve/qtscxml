@@ -43,12 +43,12 @@ namespace Scxml {
 class EventBuilder
 {
     StateMachine* table;
-    ExecutableContent::StringId instructionLocation;
+    QScxmlExecutableContent::StringId instructionLocation;
     QByteArray event;
     EvaluatorId eventexpr;
     QString contents;
     EvaluatorId contentExpr;
-    const ExecutableContent::Array<ExecutableContent::Param> *params;
+    const QScxmlExecutableContent::Array<QScxmlExecutableContent::Param> *params;
     QScxmlEvent::EventType eventType;
     QByteArray id;
     QString idLocation;
@@ -56,7 +56,7 @@ class EventBuilder
     EvaluatorId targetexpr;
     QString type;
     EvaluatorId typeexpr;
-    const ExecutableContent::Array<ExecutableContent::StringId> *namelist;
+    const QScxmlExecutableContent::Array<QScxmlExecutableContent::StringId> *namelist;
 
     static QAtomicInt idCounter;
     QByteArray generateId() const
@@ -82,7 +82,7 @@ class EventBuilder
     }
 
 public:
-    EventBuilder(StateMachine *table, const QString &eventName, const ExecutableContent::DoneData *doneData)
+    EventBuilder(StateMachine *table, const QString &eventName, const QScxmlExecutableContent::DoneData *doneData)
     {
         init();
         this->table = table;
@@ -94,7 +94,7 @@ public:
         params = &doneData->params;
     }
 
-    EventBuilder(StateMachine *table, ExecutableContent::Send &send)
+    EventBuilder(StateMachine *table, QScxmlExecutableContent::Send &send)
     {
         init();
         this->table = table;

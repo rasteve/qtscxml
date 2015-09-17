@@ -43,7 +43,7 @@ class InvokableScxml: public ScxmlInvokableService
 {
 public:
     InvokableScxml(StateMachine *stateMachine, const QString &id, const QVariantMap &data,
-                   bool autoforward, ExecutableContent::ContainerId finalize, StateMachine *parent)
+                   bool autoforward, QScxmlExecutableContent::ContainerId finalize, StateMachine *parent)
         : ScxmlInvokableService(id, data, autoforward, finalize, parent)
         , m_stateMachine(stateMachine)
     {
@@ -256,7 +256,7 @@ class ScxmlInvokableService::Data
 {
 public:
     Data(const QString &id, const QVariantMap &data, bool autoforward,
-         ExecutableContent::ContainerId finalize, StateMachine *parent)
+         QScxmlExecutableContent::ContainerId finalize, StateMachine *parent)
         : id(id)
         , data(data)
         , autoforward(autoforward)
@@ -268,13 +268,13 @@ public:
     QVariantMap data;
     bool autoforward;
     StateMachine *parent;
-    ExecutableContent::ContainerId finalize;
+    QScxmlExecutableContent::ContainerId finalize;
 };
 
 ScxmlInvokableService::ScxmlInvokableService(const QString &id,
                                              const QVariantMap &data,
                                              bool autoforward,
-                                             ExecutableContent::ContainerId finalize,
+                                             QScxmlExecutableContent::ContainerId finalize,
                                              StateMachine *parent)
     : d(new Data(id, data, autoforward, finalize, parent))
 {}
@@ -313,11 +313,11 @@ void ScxmlInvokableService::finalize()
 class ScxmlInvokableServiceFactory::Data
 {
 public:
-    Data(ExecutableContent::StringId invokeLocation, ExecutableContent::StringId id,
-         ExecutableContent::StringId idPrefix, ExecutableContent::StringId idlocation,
-         const QVector<ExecutableContent::StringId> &namelist, bool autoforward,
+    Data(QScxmlExecutableContent::StringId invokeLocation, QScxmlExecutableContent::StringId id,
+         QScxmlExecutableContent::StringId idPrefix, QScxmlExecutableContent::StringId idlocation,
+         const QVector<QScxmlExecutableContent::StringId> &namelist, bool autoforward,
          const QVector<ScxmlInvokableServiceFactory::Param> &params,
-         ExecutableContent::ContainerId finalize)
+         QScxmlExecutableContent::ContainerId finalize)
         : invokeLocation(invokeLocation)
         , id(id)
         , idPrefix(idPrefix)
@@ -328,22 +328,22 @@ public:
         , finalize(finalize)
     {}
 
-    ExecutableContent::StringId invokeLocation;
-    ExecutableContent::StringId id;
-    ExecutableContent::StringId idPrefix;
-    ExecutableContent::StringId idlocation;
-    QVector<ExecutableContent::StringId> namelist;
+    QScxmlExecutableContent::StringId invokeLocation;
+    QScxmlExecutableContent::StringId id;
+    QScxmlExecutableContent::StringId idPrefix;
+    QScxmlExecutableContent::StringId idlocation;
+    QVector<QScxmlExecutableContent::StringId> namelist;
     bool autoforward;
     QVector<ScxmlInvokableServiceFactory::Param> params;
-    ExecutableContent::ContainerId finalize;
+    QScxmlExecutableContent::ContainerId finalize;
 
 };
 
 ScxmlInvokableServiceFactory::ScxmlInvokableServiceFactory(
-        ExecutableContent::StringId invokeLocation,  ExecutableContent::StringId id,
-        ExecutableContent::StringId idPrefix, ExecutableContent::StringId idlocation,
-        const QVector<ExecutableContent::StringId> &namelist, bool autoforward,
-        const QVector<Param> &params, ExecutableContent::ContainerId finalize)
+        QScxmlExecutableContent::StringId invokeLocation,  QScxmlExecutableContent::StringId id,
+        QScxmlExecutableContent::StringId idPrefix, QScxmlExecutableContent::StringId idlocation,
+        const QVector<QScxmlExecutableContent::StringId> &namelist, bool autoforward,
+        const QVector<Param> &params, QScxmlExecutableContent::ContainerId finalize)
     : d(new Data(invokeLocation, id, idPrefix, idlocation, namelist, autoforward, params, finalize))
 {}
 
@@ -358,13 +358,13 @@ QString ScxmlInvokableServiceFactory::calculateId(StateMachine *parent, bool *ok
     *ok = true;
     auto table = parent->tableData();
 
-    if (d->id != ExecutableContent::NoString) {
+    if (d->id != QScxmlExecutableContent::NoString) {
         return table->string(d->id);
     }
 
     QString id = StateMachine::generateSessionId(table->string(d->idPrefix));
 
-    if (d->idlocation != ExecutableContent::NoString) {
+    if (d->idlocation != QScxmlExecutableContent::NoString) {
         auto idloc = table->string(d->idlocation);
         auto ctxt = table->string(d->invokeLocation);
         parent->dataModel()->setProperty(idloc, id, ctxt, ok);
@@ -394,7 +394,7 @@ QVariantMap ScxmlInvokableServiceFactory::calculateData(StateMachine *parent, bo
             result.insert(name, v);
         } else {
             QString loc;
-            if (param.location != ExecutableContent::NoString) {
+            if (param.location != QScxmlExecutableContent::NoString) {
                 loc = tableData->string(param.location);
             }
 
@@ -409,9 +409,9 @@ QVariantMap ScxmlInvokableServiceFactory::calculateData(StateMachine *parent, bo
         }
     }
 
-    foreach (ExecutableContent::StringId locid, d->namelist) {
+    foreach (QScxmlExecutableContent::StringId locid, d->namelist) {
         QString loc;
-        if (locid != ExecutableContent::NoString) {
+        if (locid != QScxmlExecutableContent::NoString) {
             loc = tableData->string(locid);
         }
         if (loc.isEmpty()) {
@@ -431,7 +431,7 @@ bool ScxmlInvokableServiceFactory::autoforward() const
     return d->autoforward;
 }
 
-ExecutableContent::ContainerId ScxmlInvokableServiceFactory::finalizeContent() const
+QScxmlExecutableContent::ContainerId ScxmlInvokableServiceFactory::finalizeContent() const
 {
     return d->finalize;
 }
@@ -440,14 +440,14 @@ ScxmlEventFilter::~ScxmlEventFilter()
 {}
 
 InvokableScxmlServiceFactory::InvokableScxmlServiceFactory(
-        ExecutableContent::StringId invokeLocation,
-        ExecutableContent::StringId id,
-        ExecutableContent::StringId idPrefix,
-        ExecutableContent::StringId idlocation,
-        const QVector<ExecutableContent::StringId> &namelist,
+        QScxmlExecutableContent::StringId invokeLocation,
+        QScxmlExecutableContent::StringId id,
+        QScxmlExecutableContent::StringId idPrefix,
+        QScxmlExecutableContent::StringId idlocation,
+        const QVector<QScxmlExecutableContent::StringId> &namelist,
         bool doAutoforward,
         const QVector<ScxmlInvokableServiceFactory::Param> &params,
-        ExecutableContent::ContainerId finalize)
+        QScxmlExecutableContent::ContainerId finalize)
     : ScxmlInvokableServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist,
                                    doAutoforward, params, finalize)
 {}
@@ -562,7 +562,7 @@ StateMachine::StateMachine(QObject *parent)
     : QObject(*new StateMachinePrivate, parent)
 {
     Q_D(StateMachine);
-    d->m_executionEngine = new ExecutableContent::ExecutionEngine(this);
+    d->m_executionEngine = new QScxmlExecutableContent::ExecutionEngine(this);
     d->setQStateMachine(new Internal::MyQStateMachine(this));
     connect(d->m_qStateMachine, &QStateMachine::finished, this, &StateMachine::onFinished);
     connect(d->m_qStateMachine, &QStateMachine::finished, this, &StateMachine::finished);
@@ -572,7 +572,7 @@ StateMachine::StateMachine(StateMachinePrivate &dd, QObject *parent)
     : QObject(dd, parent)
 {
     Q_D(StateMachine);
-    d->m_executionEngine = new ExecutableContent::ExecutionEngine(this);
+    d->m_executionEngine = new QScxmlExecutableContent::ExecutionEngine(this);
     connect(d->m_qStateMachine, &QStateMachine::finished, this, &StateMachine::onFinished);
     connect(d->m_qStateMachine, &QStateMachine::finished, this, &StateMachine::finished);
 }
@@ -750,7 +750,7 @@ void Internal::MyQStateMachinePrivate::exitInterpreter()
     Q_Q(MyQStateMachine);
 
     foreach (QAbstractState *s, configuration) {
-        ExecutableContent::ContainerId onExitInstructions = ExecutableContent::NoInstruction;
+        QScxmlExecutableContent::ContainerId onExitInstructions = QScxmlExecutableContent::NoInstruction;
         if (ScxmlFinalState *finalState = qobject_cast<ScxmlFinalState *>(s)) {
             StateMachinePrivate::get(m_table)->m_executionEngine->execute(finalState->doneData(), QVariant());
             onExitInstructions = ScxmlFinalState::Data::get(finalState)->onExitInstructions;
@@ -758,7 +758,7 @@ void Internal::MyQStateMachinePrivate::exitInterpreter()
             onExitInstructions = ScxmlState::Data::get(state)->onExitInstructions;
         }
 
-        if (onExitInstructions != ExecutableContent::NoInstruction)
+        if (onExitInstructions != QScxmlExecutableContent::NoInstruction)
             StateMachinePrivate::get(m_table)->m_executionEngine->execute(onExitInstructions);
 
         if (ScxmlFinalState *finalState = qobject_cast<ScxmlFinalState *>(s)) {

@@ -487,14 +487,14 @@ private:
 class InvokeDynamicScxmlFactory: public InvokableScxmlServiceFactory
 {
 public:
-    InvokeDynamicScxmlFactory(ExecutableContent::StringId invokeLocation,
-                              ExecutableContent::StringId id,
-                              ExecutableContent::StringId idPrefix,
-                              ExecutableContent::StringId idlocation,
-                              const QVector<ExecutableContent::StringId> &namelist,
+    InvokeDynamicScxmlFactory(QScxmlExecutableContent::StringId invokeLocation,
+                              QScxmlExecutableContent::StringId id,
+                              QScxmlExecutableContent::StringId idPrefix,
+                              QScxmlExecutableContent::StringId idlocation,
+                              const QVector<QScxmlExecutableContent::StringId> &namelist,
                               bool autoforward,
                               const QVector<Param> &params,
-                              ExecutableContent::ContainerId finalize)
+                              QScxmlExecutableContent::ContainerId finalize)
         : InvokableScxmlServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist, autoforward, params, finalize)
     {}
 
@@ -507,7 +507,7 @@ private:
     QSharedPointer<DocumentModel::ScxmlDocument> m_content;
 };
 
-class QStateMachineBuilder: public ExecutableContent::Builder
+class QStateMachineBuilder: public QScxmlExecutableContent::Builder
 {
 public:
     QStateMachineBuilder()
@@ -527,7 +527,7 @@ public:
         wireTransitions();
         applyInitialStates();
 
-        ExecutableContent::DynamicTableData *td = tableData();
+        QScxmlExecutableContent::DynamicTableData *td = tableData();
         td->setParent(m_table);
         m_table->setTableData(td);
         m_table->initDynamicParts(m_eventSignals, m_eventSlots, m_stateNames);
@@ -542,7 +542,7 @@ public:
 
 private:
     using NodeVisitor::visit;
-    using ExecutableContent::Builder::createContext;
+    using QScxmlExecutableContent::Builder::createContext;
 
     bool visit(DocumentModel::Scxml *node) Q_DECL_OVERRIDE
     {
@@ -632,8 +632,8 @@ private:
             }
         }
 
-        ExecutableContent::ContainerId onEntry = generate(node->onEntry);
-        ExecutableContent::ContainerId onExit = generate(node->onExit);
+        QScxmlExecutableContent::ContainerId onEntry = generate(node->onEntry);
+        QScxmlExecutableContent::ContainerId onExit = generate(node->onExit);
         if (ScxmlState *s = qobject_cast<ScxmlState *>(newState)) {
             s->setOnEntryInstructions(onEntry);
             s->setOnExitInstructions(onExit);
@@ -641,7 +641,7 @@ private:
                 QVector<ScxmlInvokableServiceFactory *> factories;
                 foreach (DocumentModel::Invoke *invoke, node->invokes) {
                     auto ctxt = createContext(QStringLiteral("invoke"));
-                    QVector<ExecutableContent::StringId> namelist;
+                    QVector<QScxmlExecutableContent::StringId> namelist;
                     foreach (const QString &name, invoke->namelist)
                         namelist += addString(name);
                     QVector<ScxmlInvokableServiceFactory::Param> params;
@@ -652,7 +652,7 @@ private:
                                           addString(param->location)
                                       });
                     }
-                    ExecutableContent::ContainerId finalize = ExecutableContent::NoInstruction;
+                    QScxmlExecutableContent::ContainerId finalize = QScxmlExecutableContent::NoInstruction;
                     if (!invoke->finalize.isEmpty()) {
                         finalize = startNewSequence();
                         visit(&invoke->finalize);
@@ -768,7 +768,7 @@ private:
             m_eventSignals.insert(node->event.toUtf8());
         }
 
-        return ExecutableContent::Builder::visit(node);
+        return QScxmlExecutableContent::Builder::visit(node);
     }
 
 private: // Utility methods
