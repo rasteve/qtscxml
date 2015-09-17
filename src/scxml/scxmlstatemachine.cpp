@@ -87,11 +87,14 @@ protected: // overrides for QStateMachinePrivate:
     void processedPendingEvents(bool didChange) Q_DECL_OVERRIDE;
     void beginMacrostep() Q_DECL_OVERRIDE;
     void endMacrostep(bool didChange) Q_DECL_OVERRIDE;
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     void exitInterpreter() Q_DECL_OVERRIDE;
+#endif // QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 
     void emitStateFinished(QState *forState, QFinalState *guiltyState) Q_DECL_OVERRIDE;
     void startupHook() Q_DECL_OVERRIDE;
-#endif
+#endif // QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
 
 public: // fields
     StateMachine *m_table;
@@ -748,6 +751,7 @@ void Internal::MyQStateMachinePrivate::endMacrostep(bool didChange)
                       << m_table->activeStates() << ")";
 }
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 void Internal::MyQStateMachinePrivate::exitInterpreter()
 {
     foreach (QAbstractState *s, configuration) {
@@ -776,6 +780,7 @@ void Internal::MyQStateMachinePrivate::exitInterpreter()
         }
     }
 }
+#endif // QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 
 void Internal::MyQStateMachinePrivate::emitStateFinished(QState *forState, QFinalState *guiltyState)
 {
