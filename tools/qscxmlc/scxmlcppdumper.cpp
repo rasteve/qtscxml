@@ -794,7 +794,7 @@ private:
                     auto evals = stringEvaluators();
                     for (auto it = evals.constBegin(), eit = evals.constEnd(); it != eit; ++it) {
                         stringEvals << QStringLiteral("    case %1:").arg(it.key())
-                                  << QStringLiteral("        return [this](){ return %1; }();").arg(it.value());
+                                  << QStringLiteral("        return [this]()->QString{ return %1; }();").arg(it.value());
                     }
                     stringEvals << QStringLiteral("    default:")
                               << QStringLiteral("        Q_UNREACHABLE();")
@@ -813,7 +813,7 @@ private:
                     auto evals = boolEvaluators();
                     for (auto it = evals.constBegin(), eit = evals.constEnd(); it != eit; ++it) {
                         boolEvals << QStringLiteral("    case %1:").arg(it.key())
-                                  << QStringLiteral("        return [this](){ return %1; }();").arg(it.value());
+                                  << QStringLiteral("        return [this]()->bool{ return %1; }();").arg(it.value());
                     }
                     boolEvals << QStringLiteral("    default:")
                               << QStringLiteral("        Q_UNREACHABLE();")
@@ -832,7 +832,7 @@ private:
                     auto evals = variantEvaluators();
                     for (auto it = evals.constBegin(), eit = evals.constEnd(); it != eit; ++it) {
                         variantEvals << QStringLiteral("    case %1:").arg(it.key())
-                                     << QStringLiteral("        return [this](){ return %1; }();").arg(it.value());
+                                     << QStringLiteral("        return [this]()->QVariant{ return %1; }();").arg(it.value());
                     }
                     variantEvals << QStringLiteral("    default:")
                                  << QStringLiteral("        Q_UNREACHABLE();")
@@ -851,7 +851,7 @@ private:
                     auto evals = voidEvaluators();
                     for (auto it = evals.constBegin(), eit = evals.constEnd(); it != eit; ++it) {
                         voidEvals << QStringLiteral("    case %1:").arg(it.key())
-                                     << QStringLiteral("        [this](){ %1 }();").arg(it.value())
+                                     << QStringLiteral("        [this]()->void{ %1 }();").arg(it.value())
                                      << QStringLiteral("        break;");
                     }
                     voidEvals << QStringLiteral("    default:")
@@ -1100,7 +1100,7 @@ void CppDumper::writeHeaderStart(const QString &headerGuard)
 
 void CppDumper::writeClass(const ClassDump &clazz)
 {
-    h << l("class ") << clazz.className << l(" : public Scxml::StateMachine\n{") << endl;
+    h << l("class ") << clazz.className << QStringLiteral(": public Scxml::StateMachine\n{") << endl;
     h << QLatin1String("    Q_OBJECT\n");
     clazz.properties.write(h, QStringLiteral("    "), QStringLiteral("\n"));
     h << QLatin1String("\npublic:\n");
@@ -1122,7 +1122,8 @@ void CppDumper::writeClass(const ClassDump &clazz)
     }
 
     if (!clazz.publicSlotDeclarations.isEmpty()) {
-        h << "\npublic slots:\n";
+        h << endl
+          << QStringLiteral("public slots:") << endl;
         clazz.publicSlotDeclarations.write(h, QStringLiteral("    "), QStringLiteral("\n"));
     }
 
@@ -1136,10 +1137,11 @@ void CppDumper::writeClass(const ClassDump &clazz)
 
 void CppDumper::writeHeaderEnd(const QString &headerGuard)
 {
-    if (!m_translationUnit->namespaceName.isEmpty())
-        h << l("} // namespace ") << m_translationUnit->namespaceName << endl;
-    h << endl
-      << QStringLiteral("#endif // ") << headerGuard << endl;
+    if (!m_translationUnit->namespaceName.isEmpty()) {
+        h << QStringLiteral("} // %1 namespace ").arg(m_translationUnit->namespaceName) << endl
+          << endl;
+    }
+    h << QStringLiteral("#endif // ") << headerGuard << endl;
 }
 
 void CppDumper::writeImplStart(const QVector<ClassDump> &allClazzes)
@@ -1205,17 +1207,24 @@ void CppDumper::writeImplBody(const ClassDump &clazz)
     clazz.tables.write(cpp, QStringLiteral(""), QStringLiteral("\n"));
 
     if (!clazz.dataModelMethods.isEmpty()) {
+        bool first = true;
         foreach (const Method &m, clazz.dataModelMethods) {
+            if (first) {
+                first = false;
+            } else {
+                cpp << endl;
+            }
             m.impl.write(cpp, QStringLiteral(""), QStringLiteral("\n"));
-            cpp << endl;
         }
     }
 }
 
 void CppDumper::writeImplEnd()
 {
-    if (!m_translationUnit->namespaceName.isEmpty())
-        cpp << l("} // namespace ") << m_translationUnit->namespaceName << endl;
+    if (!m_translationUnit->namespaceName.isEmpty()) {
+        cpp << endl
+            << QStringLiteral("} // %1 namespace").arg(m_translationUnit->namespaceName) << endl;
+    }
 }
 
 } // namespace Scxml
