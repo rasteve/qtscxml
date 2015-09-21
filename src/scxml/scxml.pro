@@ -21,6 +21,7 @@ HEADERS += \
     qscxmlevent.h \
     qscxmlevent_p.h \
     qscxmldatamodel.h \
+    qscxmldatamodel_p.h \
     qscxmlqstates.h \
     qscxmlqstates_p.h \
     qscxmlcppdatamodel_p.h \

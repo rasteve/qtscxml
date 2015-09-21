@@ -17,6 +17,7 @@
  ****************************************************************************/
 
 #include "qscxmlparser_p.h"
+#include "qscxmldatamodel_p.h"
 #include "qscxmlstatemachine_p.h"
 #include "qscxmlexecutablecontent_p.h"
 #include "qscxmlnulldatamodel.h"
@@ -856,24 +857,7 @@ inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(QScxmlStateMach
 {
     auto child = QStateMachineBuilder().build(m_content.data());
 
-    //-----
-    // FIXME: duplicated code from ScxmlParser::instantiateDataModel
-    QScxmlDataModel *dataModel = Q_NULLPTR;
-    switch (m_content->root->dataModel) {
-    case DocumentModel::Scxml::NullDataModel:
-        dataModel = new QScxmlNullDataModel;
-        break;
-    case DocumentModel::Scxml::JSDataModel:
-        dataModel = new QScxmlEcmaScriptDataModel;
-        break;
-    case DocumentModel::Scxml::CppDataModel:
-        break;
-    default:
-        Q_UNREACHABLE();
-    }
-    child->setDataModel(dataModel);
-    QScxmlStateMachinePrivate::get(child)->parserData()->m_ownedDataModel.reset(dataModel);
-    //-----
+    QScxmlDataModelPrivate::instantiateDataModel(m_content->root->dataModel, child);
 
     return finishInvoke(child, parent);
 }
@@ -917,19 +901,10 @@ QScxmlStateMachine *QScxmlParser::instantiateStateMachine() const
 
 void QScxmlParser::instantiateDataModel(QScxmlStateMachine *table) const
 {
-    QScxmlDataModel *dataModel = Q_NULLPTR;
-    switch (p->scxmlDocument()->root->dataModel) {
-    case DocumentModel::Scxml::NullDataModel:
-        dataModel = new QScxmlNullDataModel;
-        break;
-    case DocumentModel::Scxml::JSDataModel:
-        dataModel = new QScxmlEcmaScriptDataModel;
-        break;
-    default:
-        Q_UNREACHABLE();
+    QScxmlDataModel *dm = QScxmlDataModelPrivate::instantiateDataModel(p->scxmlDocument()->root->dataModel, table);
+    if (dm == Q_NULLPTR) {
+        qWarning() << "No data-model instantiated!";
     }
-    table->setDataModel(dataModel);
-    QScxmlStateMachinePrivate::get(table)->parserData()->m_ownedDataModel.reset(dataModel);
 }
 
 QScxmlParser::State QScxmlParser::state() const

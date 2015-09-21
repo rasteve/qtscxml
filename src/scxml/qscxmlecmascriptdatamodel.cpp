@@ -75,7 +75,7 @@ public:
         Q_ASSERT(ok);
         Q_ASSERT(engine());
 
-        // FIXME: copy QJSEngine::evaluate and handle the case of v4->catchException() "our way"
+        // TODO: copy QJSEngine::evaluate and handle the case of v4->catchException() "our way"
 
         QJSValue v = engine()->evaluate(QStringLiteral("'use strict'; ") + script, QStringLiteral("<expr>"), 0);
         if (v.isError()) {

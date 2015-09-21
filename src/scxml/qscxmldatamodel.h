@@ -61,6 +61,7 @@ enum { NoEvaluator = -1 };
 
 class QScxmlNullDataModel;
 class QScxmlEcmaScriptDataModel;
+class QScxmlDataModelPrivate;
 class Q_SCXML_EXPORT QScxmlDataModel
 {
     Q_DISABLE_COPY(QScxmlDataModel)
@@ -98,8 +99,7 @@ public:
                              bool *ok) = 0;
 
 private:
-    class Data;
-    Data *d;
+    QScxmlDataModelPrivate *d;
 };
 
 QT_END_NAMESPACE

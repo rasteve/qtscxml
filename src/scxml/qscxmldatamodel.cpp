@@ -16,23 +16,18 @@
  ** from Digia Plc.
  ****************************************************************************/
 
-#include "qscxmldatamodel.h"
+#include "qscxmldatamodel_p.h"
+#include "qscxmlnulldatamodel.h"
+#include "qscxmlecmascriptdatamodel.h"
+#include "qscxmlstatemachine_p.h"
 
-class QScxmlDataModel::Data
-{
-public:
-    Data()
-        : m_stateMachine(Q_NULLPTR)
-    {}
-
-    QScxmlStateMachine *m_stateMachine;
-};
+QT_USE_NAMESPACE
 
 QScxmlDataModel::ForeachLoopBody::~ForeachLoopBody()
 {}
 
 QScxmlDataModel::QScxmlDataModel()
-    : d(new Data)
+    : d(new QScxmlDataModelPrivate)
 {}
 
 QScxmlDataModel::~QScxmlDataModel()
@@ -48,4 +43,26 @@ QScxmlStateMachine *QScxmlDataModel::stateMachine() const
 void QScxmlDataModel::setTable(QScxmlStateMachine *table)
 {
     d->m_stateMachine = table;
+}
+
+QScxmlDataModel *QScxmlDataModelPrivate::instantiateDataModel(
+        DocumentModel::Scxml::DataModelType type, QScxmlStateMachine *stateMachine)
+{
+    QScxmlDataModel *dataModel = Q_NULLPTR;
+    switch (type) {
+    case DocumentModel::Scxml::NullDataModel:
+        dataModel = new QScxmlNullDataModel;
+        break;
+    case DocumentModel::Scxml::JSDataModel:
+        dataModel = new QScxmlEcmaScriptDataModel;
+        break;
+    case DocumentModel::Scxml::CppDataModel:
+        break;
+    default:
+        Q_UNREACHABLE();
+    }
+    stateMachine->setDataModel(dataModel);
+    QScxmlStateMachinePrivate::get(stateMachine)->parserData()->m_ownedDataModel.reset(dataModel);
+
+    return dataModel;
 }
