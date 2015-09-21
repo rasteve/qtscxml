@@ -77,7 +77,7 @@ public:
     void setData(const QVariant &data);
 
 protected:
-    friend QScxmlInternal::WrappedQStateMachine;
+    friend class QScxmlInternal::WrappedQStateMachine;
     static QEvent::Type scxmlEventType;
     static QEvent::Type ignoreEventType;
     void makeIgnorable();

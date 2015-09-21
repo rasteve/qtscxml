@@ -71,7 +71,7 @@ public:
     void addError(const QString &msg);
 
 private:
-    friend QScxmlParserPrivate;
+    friend class QScxmlParserPrivate;
     QScxmlParserPrivate *p;
 };
 

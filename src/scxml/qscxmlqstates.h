@@ -76,7 +76,7 @@ protected:
     void onExit(QEvent * event) Q_DECL_OVERRIDE;
 
 private:
-    friend QScxmlStatePrivate;
+    friend class QScxmlStatePrivate;
     QScxmlStatePrivate *d;
 };
 

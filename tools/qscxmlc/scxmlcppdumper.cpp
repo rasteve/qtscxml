@@ -153,6 +153,8 @@ static QString toHex(const QString &str)
 
 const char *headerStart =
         "#include <QScxmlStateMachine>\n"
+        "#include <QString>\n"
+        "#include <QByteArray>\n"
         "\n";
 
 using namespace DocumentModel;
@@ -1127,7 +1129,7 @@ void CppDumper::writeClass(const ClassDump &clazz)
     h << endl
       << l("private:") << endl
       << l("    struct Data;") << endl
-      << l("    friend Data;") << endl
+      << l("    friend struct Data;") << endl
       << l("    struct Data *data;") << endl
       << l("};") << endl << endl;
 }

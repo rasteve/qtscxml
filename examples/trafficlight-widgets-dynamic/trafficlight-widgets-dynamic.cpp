@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 {
     QApplication app(argc, argv);
 
-    auto machine = QScxmlStateMachine::fromFile(QStringLiteral(":statemachine.scxml"));
+    QScxmlStateMachine *machine = QScxmlStateMachine::fromFile(QStringLiteral(":statemachine.scxml"));
     if (!machine->errors().isEmpty()) {
         QTextStream errs(stderr, QIODevice::WriteOnly);
         foreach (const QScxmlError &error, machine->errors()) {

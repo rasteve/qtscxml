@@ -1,6 +1,7 @@
 TEMPLATE = app
 
 QT += qml scxml
+CONFIG += c++11
 
 SOURCES += mediaplayer-qml-cppdatamodel.cpp \
     thedatamodel.cpp
