@@ -71,8 +71,6 @@ BLACKLISTED = \
     test250.txml.scxml \
     test252.txml.scxml \
     test253.txml.scxml \
-    test338.txml.scxml \
-    test422.txml.scxml \
     test530.txml.scxml
 
 # needs manual inspection

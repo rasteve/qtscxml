@@ -45,13 +45,12 @@ public:
     }
 };
 
+class QScxmlStatePrivate;
 class Q_SCXML_EXPORT QScxmlState: public QState
 {
     Q_OBJECT
 
 public:
-    class Data;
-
     QScxmlState(QState *parent = Q_NULLPTR);
     QScxmlState(QScxmlStateMachine *parent);
     ~QScxmlState();
@@ -77,7 +76,8 @@ protected:
     void onExit(QEvent * event) Q_DECL_OVERRIDE;
 
 private:
-    Data *d;
+    friend QScxmlStatePrivate;
+    QScxmlStatePrivate *d;
 };
 
 class Q_SCXML_EXPORT QScxmlInitialState: public QScxmlState

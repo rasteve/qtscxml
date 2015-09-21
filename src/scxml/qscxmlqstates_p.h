@@ -23,19 +23,19 @@
 
 QT_BEGIN_NAMESPACE
 
-class QScxmlState::Data
+class QScxmlStatePrivate
 {
 public:
-    static Data *get(QScxmlState *s) { return s->d; }
+    static QScxmlStatePrivate *get(QScxmlState *s) { return s->d; }
 
-    Data(QScxmlState *state)
+    QScxmlStatePrivate(QScxmlState *state)
         : m_state(state)
         , initInstructions(QScxmlExecutableContent::NoInstruction)
         , onEntryInstructions(QScxmlExecutableContent::NoInstruction)
         , onExitInstructions(QScxmlExecutableContent::NoInstruction)
     {}
 
-    ~Data()
+    ~QScxmlStatePrivate()
     { qDeleteAll(invokableServiceFactories); }
 
     QScxmlState *m_state;

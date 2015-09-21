@@ -72,13 +72,19 @@ class WrappedQStateMachinePrivate: public QStateMachinePrivate
 
 public:
     WrappedQStateMachinePrivate(QScxmlStateMachine *table)
-        : m_table(table)
+        : m_stateMachine(table)
         , m_queuedEvents(Q_NULLPTR)
     {}
     ~WrappedQStateMachinePrivate()
     { delete m_queuedEvents; }
 
     int eventIdForDelayedEvent(const QByteArray &scxmlEventId);
+
+    QScxmlStateMachine *stateMachine() const
+    { return m_stateMachine; }
+
+    QScxmlStateMachinePrivate *stateMachinePrivate() const
+    { return QScxmlStateMachinePrivate::get(stateMachine()); }
 
 protected: // overrides for QStateMachinePrivate:
 #if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
@@ -88,6 +94,17 @@ protected: // overrides for QStateMachinePrivate:
     void endMacrostep(bool didChange) Q_DECL_OVERRIDE;
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
+    void enterStates(QEvent *event, const QList<QAbstractState*> &exitedStates_sorted,
+                     const QList<QAbstractState*> &statesToEnter_sorted,
+                     const QSet<QAbstractState*> &statesForDefaultEntry,
+                     QHash<QAbstractState *, QVector<QPropertyAssignment> > &propertyAssignmentsForState
+#  ifndef QT_NO_ANIMATION
+                     , const QList<QAbstractAnimation*> &selectedAnimations
+#  endif
+                     ) Q_DECL_OVERRIDE;
+    void exitStates(QEvent *event, const QList<QAbstractState *> &statesToExit_sorted,
+                    const QHash<QAbstractState*, QVector<QPropertyAssignment> > &assignmentsForEnteredStates) Q_DECL_OVERRIDE;
+
     void exitInterpreter() Q_DECL_OVERRIDE;
 #endif // QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 
@@ -96,7 +113,7 @@ protected: // overrides for QStateMachinePrivate:
 #endif // QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
 
 public: // fields
-    QScxmlStateMachine *m_table;
+    QScxmlStateMachine *m_stateMachine;
 
     struct QueuedEvent
     {
@@ -119,18 +136,18 @@ WrappedQStateMachine::WrappedQStateMachine(WrappedQStateMachinePrivate &dd, QScx
     : QStateMachine(dd, parent)
 {}
 
-QScxmlStateMachine *WrappedQStateMachine::stateTable() const
+QScxmlStateMachine *WrappedQStateMachine::stateMachine() const
 {
     Q_D(const WrappedQStateMachine);
 
-    return d->m_table;
+    return d->stateMachine();
 }
 
 QScxmlStateMachinePrivate *WrappedQStateMachine::stateMachinePrivate()
 {
-    Q_D(WrappedQStateMachine);
+    Q_D(const WrappedQStateMachine);
 
-    return QScxmlStateMachinePrivate::get(d->m_table);
+    return d->stateMachinePrivate();
 }
 } // Internal namespace
 
@@ -677,26 +694,41 @@ void QScxmlInternal::WrappedQStateMachine::beginSelectTransitions(QEvent *event)
 {
     Q_D(WrappedQStateMachine);
 
+    { // handle <invoke>s
+        QVector<QScxmlState*> &sti = d->stateMachinePrivate()->m_statesToInvoke;
+        std::sort(sti.begin(), sti.end(), WrappedQStateMachinePrivate::stateEntryLessThan);
+        foreach (QScxmlState *s, sti) {
+            auto sp = QScxmlStatePrivate::get(s);
+            foreach (QScxmlInvokableServiceFactory *f, sp->invokableServiceFactories) {
+                if (auto service = f->invoke(stateMachine())) {
+                    sp->invokedServices.append(service);
+                    stateMachinePrivate()->m_invokedServices.append(service);
+                }
+            }
+        }
+        sti.clear();
+    }
+
     if (event && event->type() == QScxmlEvent::scxmlEventType) {
         stateMachinePrivate()->m_event = *static_cast<QScxmlEvent *>(event);
-        d->m_table->dataModel()->setEvent(stateMachinePrivate()->m_event);
+        d->stateMachine()->dataModel()->setEvent(stateMachinePrivate()->m_event);
 
         auto scxmlEvent = static_cast<QScxmlEvent *>(event);
         auto smp = stateMachinePrivate();
 
-        foreach (QScxmlInvokableService *service, smp->m_registeredServices) {
+        foreach (QScxmlInvokableService *service, smp->m_invokedServices) {
             if (scxmlEvent->invokeId() == service->id()) {
                 service->finalize();
             }
             if (service->autoforward()) {
                 qCDebug(scxmlLog) << "auto-forwarding event" << scxmlEvent->name()
-                                  << "from" << stateTable()->name() << "to service" << service->id();
+                                  << "from" << stateMachine()->name() << "to service" << service->id();
                 service->submitEvent(new QScxmlEvent(*scxmlEvent));
             }
         }
 
         auto e = static_cast<QScxmlEvent *>(event);
-        if (smp->m_eventFilter && !smp->m_eventFilter->handle(e, d->m_table)) {
+        if (smp->m_eventFilter && !smp->m_eventFilter->handle(e, d->stateMachine())) {
             e->makeIgnorable();
             e->clear();
             smp->m_event.clear();
@@ -704,7 +736,7 @@ void QScxmlInternal::WrappedQStateMachine::beginSelectTransitions(QEvent *event)
         }
     } else {
         stateMachinePrivate()->m_event.clear();
-        d->m_table->dataModel()->setEvent(stateMachinePrivate()->m_event);
+        d->stateMachine()->dataModel()->setEvent(stateMachinePrivate()->m_event);
     }
 }
 
@@ -712,7 +744,7 @@ void QScxmlInternal::WrappedQStateMachine::beginMicrostep(QEvent *event)
 {
     Q_D(WrappedQStateMachine);
 
-    qCDebug(scxmlLog) << d->m_table->tableData()->name() << " started microstep from state" << d->m_table->activeStates()
+    qCDebug(scxmlLog) << d->m_stateMachine->tableData()->name() << " started microstep from state" << d->m_stateMachine->activeStates()
                       << "with event" << stateMachinePrivate()->m_event.name() << "from event type" << event->type();
 }
 
@@ -721,21 +753,21 @@ void QScxmlInternal::WrappedQStateMachine::endMicrostep(QEvent *event)
     Q_D(WrappedQStateMachine);
     Q_UNUSED(event);
 
-    qCDebug(scxmlLog) << d->m_table->tableData()->name() << " finished microstep in state (" << d->m_table->activeStates() << ")";
+    qCDebug(scxmlLog) << d->m_stateMachine->tableData()->name() << " finished microstep in state (" << d->m_stateMachine->activeStates() << ")";
 }
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
 
 void QScxmlInternal::WrappedQStateMachinePrivate::noMicrostep()
 {
-    qCDebug(scxmlLog) << m_table->tableData()->name() << " had no transition, stays in state (" << m_table->activeStates() << ")";
+    qCDebug(scxmlLog) << m_stateMachine->tableData()->name() << " had no transition, stays in state (" << m_stateMachine->activeStates() << ")";
 }
 
 void QScxmlInternal::WrappedQStateMachinePrivate::processedPendingEvents(bool didChange)
 {
-    qCDebug(scxmlLog) << m_table->tableData()->name() << " finishedPendingEvents " << didChange << " in state ("
-                      << m_table->activeStates() << ")";
-    emit m_table->reachedStableState(didChange);
+    qCDebug(scxmlLog) << m_stateMachine->tableData()->name() << " finishedPendingEvents " << didChange << " in state ("
+                      << m_stateMachine->activeStates() << ")";
+    emit m_stateMachine->reachedStableState(didChange);
 }
 
 void QScxmlInternal::WrappedQStateMachinePrivate::beginMacrostep()
@@ -744,11 +776,67 @@ void QScxmlInternal::WrappedQStateMachinePrivate::beginMacrostep()
 
 void QScxmlInternal::WrappedQStateMachinePrivate::endMacrostep(bool didChange)
 {
-    qCDebug(scxmlLog) << m_table->tableData()->name() << " endMacrostep " << didChange << " in state ("
-                      << m_table->activeStates() << ")";
+    qCDebug(scxmlLog) << m_stateMachine->tableData()->name() << " endMacrostep " << didChange << " in state ("
+                      << m_stateMachine->activeStates() << ")";
 }
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
+void QScxmlInternal::WrappedQStateMachinePrivate::enterStates(
+        QEvent *event,
+        const QList<QAbstractState*> &exitedStates_sorted,
+        const QList<QAbstractState*> &statesToEnter_sorted,
+        const QSet<QAbstractState*> &statesForDefaultEntry,
+        QHash<QAbstractState *, QVector<QPropertyAssignment> > &propertyAssignmentsForState
+#  ifndef QT_NO_ANIMATION
+        , const QList<QAbstractAnimation*> &selectedAnimations
+#  endif
+        )
+{
+    QStateMachinePrivate::enterStates(event, exitedStates_sorted, statesToEnter_sorted,
+                                      statesForDefaultEntry, propertyAssignmentsForState
+#  ifndef QT_NO_ANIMATION
+                                      , selectedAnimations
+#  endif
+                                      );
+    foreach (QAbstractState *s, statesToEnter_sorted) {
+        if (QScxmlState *qss = qobject_cast<QScxmlState *>(s)) {
+            if (!QScxmlStatePrivate::get(qss)->invokableServiceFactories.isEmpty()) {
+                if (!stateMachinePrivate()->m_statesToInvoke.contains(qss)) {
+                    stateMachinePrivate()->m_statesToInvoke.append(qss);
+                }
+            }
+        }
+    }
+}
+
+void QScxmlInternal::WrappedQStateMachinePrivate::exitStates(
+        QEvent *event,
+        const QList<QAbstractState *> &statesToExit_sorted,
+        const QHash<QAbstractState*, QVector<QPropertyAssignment> > &assignmentsForEnteredStates)
+{
+    QStateMachinePrivate::exitStates(event, statesToExit_sorted, assignmentsForEnteredStates);
+
+    auto smp = stateMachinePrivate();
+    for (int i = 0; i < smp->m_statesToInvoke.size(); ) {
+        if (statesToExit_sorted.contains(smp->m_statesToInvoke.at(i))) {
+            smp->m_statesToInvoke.removeAt(i);
+        } else {
+            ++i;
+        }
+    }
+
+    foreach (QAbstractState *s, statesToExit_sorted) {
+        if (QScxmlState *qss = qobject_cast<QScxmlState *>(s)) {
+            QVector<QScxmlInvokableService *> &services = QScxmlStatePrivate::get(qss)->invokedServices;
+            foreach (QScxmlInvokableService *service, services) {
+                stateMachinePrivate()->m_invokedServices.removeOne(service);
+                delete service;
+            }
+            services.clear();
+        }
+    }
+}
+
 void QScxmlInternal::WrappedQStateMachinePrivate::exitInterpreter()
 {
     Q_Q(WrappedQStateMachine);
@@ -756,22 +844,23 @@ void QScxmlInternal::WrappedQStateMachinePrivate::exitInterpreter()
     foreach (QAbstractState *s, configuration) {
         QScxmlExecutableContent::ContainerId onExitInstructions = QScxmlExecutableContent::NoInstruction;
         if (QScxmlFinalState *finalState = qobject_cast<QScxmlFinalState *>(s)) {
-            QScxmlStateMachinePrivate::get(m_table)->m_executionEngine->execute(finalState->doneData(), QVariant());
+            stateMachinePrivate()->m_executionEngine->execute(finalState->doneData(), QVariant());
             onExitInstructions = QScxmlFinalState::Data::get(finalState)->onExitInstructions;
         } else if (QScxmlState *state = qobject_cast<QScxmlState *>(s)) {
-            onExitInstructions = QScxmlState::Data::get(state)->onExitInstructions;
+            onExitInstructions = QScxmlStatePrivate::get(state)->onExitInstructions;
         }
 
-        if (onExitInstructions != QScxmlExecutableContent::NoInstruction)
-            QScxmlStateMachinePrivate::get(m_table)->m_executionEngine->execute(onExitInstructions);
+        if (onExitInstructions != QScxmlExecutableContent::NoInstruction) {
+            stateMachinePrivate()->m_executionEngine->execute(onExitInstructions);
+        }
 
         if (QScxmlFinalState *finalState = qobject_cast<QScxmlFinalState *>(s)) {
             if (finalState->parent() == q) {
-                auto psm = m_table->parentStateMachine();
+                auto psm = m_stateMachine->parentStateMachine();
                 if (psm) {
                     auto done = new QScxmlEvent;
-                    done->setName(QByteArray("done.invoke.") + m_table->sessionId().toUtf8());
-                    done->setInvokeId(m_table->sessionId());
+                    done->setName(QByteArray("done.invoke.") + m_stateMachine->sessionId().toUtf8());
+                    done->setInvokeId(m_stateMachine->sessionId());
                     qCDebug(scxmlLog) << "submitting event" << done->name() << "to" << psm->name();
                     psm->submitEvent(done);
                 }
@@ -788,7 +877,7 @@ void QScxmlInternal::WrappedQStateMachinePrivate::emitStateFinished(QState *forS
     if (QScxmlFinalState *finalState = qobject_cast<QScxmlFinalState *>(guiltyState)) {
         if (!q->isRunning())
             return;
-        QScxmlStateMachinePrivate::get(m_table)->m_executionEngine->execute(finalState->doneData(), forState->objectName());
+        stateMachinePrivate()->m_executionEngine->execute(finalState->doneData(), forState->objectName());
     }
 
     QStateMachinePrivate::emitStateFinished(forState, guiltyState);
@@ -1056,7 +1145,7 @@ void QScxmlInternal::WrappedQStateMachine::queueEvent(QScxmlEvent *event, EventP
 {
     Q_D(WrappedQStateMachine);
 
-    qCDebug(scxmlLog) << d->m_table->name() << ": queueing event" << event->name();
+    qCDebug(scxmlLog) << d->m_stateMachine->name() << ": queueing event" << event->name();
 
     if (!d->m_queuedEvents)
         d->m_queuedEvents = new QVector<WrappedQStateMachinePrivate::QueuedEvent>();
@@ -1067,7 +1156,7 @@ void QScxmlInternal::WrappedQStateMachine::submitQueuedEvents()
 {
     Q_D(WrappedQStateMachine);
 
-    qCDebug(scxmlLog) << d->m_table->name() << ": submitting queued events";
+    qCDebug(scxmlLog) << d->m_stateMachine->name() << ": submitting queued events";
 
     if (d->m_queuedEvents) {
         foreach (const WrappedQStateMachinePrivate::QueuedEvent &e, *d->m_queuedEvents)
@@ -1094,21 +1183,6 @@ bool QScxmlStateMachine::isDispatchableTarget(const QString &target) const
         return true;
     return target == QStringLiteral("#_internal")
             || target == QStringLiteral("#_scxml_%1").arg(sessionId());
-}
-
-void QScxmlStateMachine::registerService(QScxmlInvokableService *service)
-{
-    Q_D(QScxmlStateMachine);
-    Q_ASSERT(!d->m_registeredServices.contains(service));
-    d->m_registeredServices.append(service);
-}
-
-void QScxmlStateMachine::unregisterService(QScxmlInvokableService *service)
-{
-    Q_D(QScxmlStateMachine);
-    int idx =  d->m_registeredServices.indexOf(service);
-    Q_ASSERT(idx >= 0);
-    d->m_registeredServices.remove(idx);
 }
 
 void QScxmlStateMachine::onFinished()

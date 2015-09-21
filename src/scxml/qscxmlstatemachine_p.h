@@ -48,7 +48,7 @@ public:
     WrappedQStateMachine(QScxmlStateMachine *parent);
     WrappedQStateMachine(WrappedQStateMachinePrivate &dd, QScxmlStateMachine *parent);
 
-    QScxmlStateMachine *stateTable() const;
+    QScxmlStateMachine *stateMachine() const;
 
     void queueEvent(QScxmlEvent *event, QStateMachine::EventPriority priority);
     void submitQueuedEvents();
@@ -64,6 +64,7 @@ private:
 };
 } // Internal namespace
 
+class QScxmlState;
 class QScxmlStateMachinePrivate: public QObjectPrivate
 {
     Q_DECLARE_PUBLIC(QScxmlStateMachine)
@@ -91,7 +92,7 @@ public:
 
     ParserData *parserData();
 
-public: // data fields:
+public: // types & data fields:
     QString m_sessionId;
     bool m_isInvoked;
     QScxmlDataModel *m_dataModel;
@@ -101,7 +102,8 @@ public: // data fields:
     QScxmlEvent m_event;
     QScxmlInternal::WrappedQStateMachine *m_qStateMachine;
     QScxmlEventFilter *m_eventFilter;
-    QVector<QScxmlInvokableService *> m_registeredServices;
+    QVector<QScxmlState*> m_statesToInvoke;
+    QVector<QScxmlInvokableService *> m_invokedServices;
     QScxmlStateMachine *m_parentStateMachine;
 
 private:

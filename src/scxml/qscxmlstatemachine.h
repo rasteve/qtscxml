@@ -243,9 +243,6 @@ public:
     bool isLegalTarget(const QString &target) const;
     bool isDispatchableTarget(const QString &target) const;
 
-    void registerService(QScxmlInvokableService *service);
-    void unregisterService(QScxmlInvokableService *service);
-
 Q_SIGNALS:
     void log(const QString &label, const QString &msg);
     void reachedStableState(bool didChange);

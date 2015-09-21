@@ -61,9 +61,6 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         << QLatin1String("w3c-ecma/test250.txml")
         << QLatin1String("w3c-ecma/test252.txml")
         << QLatin1String("w3c-ecma/test253.txml")
-        << QLatin1String("w3c-ecma/test338.txml")
-        << QLatin1String("w3c-ecma/test422.txml")
-        << QLatin1String("w3c-ecma/test530.txml")
            ;
 
 static QSet<QString> weDieOnThese = QSet<QString>()
@@ -97,6 +94,8 @@ static QSet<QString> differentSemantics = QSet<QString>()
         << QLatin1String("script-src/test1")
         << QLatin1String("script-src/test2")
         << QLatin1String("script-src/test3")
+        // ---
+        << QLatin1String("w3c-ecma/test530.txml") // We do not evaluate the <content> of <invoke> when invoked.
         ;
 
 class MySignalSpy: public QSignalSpy
