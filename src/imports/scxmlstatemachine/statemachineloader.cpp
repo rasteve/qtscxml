@@ -18,7 +18,7 @@
 
 #include "statemachineloader.h"
 
-#include <QtScxml/scxmlstatemachine.h>
+#include <QtScxml/qscxmlstatemachine.h>
 #include <QQmlContext>
 #include <QQmlEngine>
 #include <QQmlInfo>

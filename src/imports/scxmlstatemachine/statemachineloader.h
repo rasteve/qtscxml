@@ -20,7 +20,7 @@
 #define STATEMACHINELOADER_H
 
 #include <QUrl>
-#include <QtScxml/scxmlstatemachine.h>
+#include <QtScxml/qscxmlstatemachine.h>
 #include <private/qqmlengine_p.h>
 
 QT_BEGIN_NAMESPACE
