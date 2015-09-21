@@ -50,17 +50,12 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         // The following test needs manual inspection of the result.
         << QLatin1String("w3c-ecma/test230.txml")
         << QLatin1String("w3c-ecma/test307.txml")
-        // We do not support the src attribute in invoke.
+        << QLatin1String("w3c-ecma/test250.txml")
+        // TODO: We do not support the src attribute in invoke.
+        << QLatin1String("w3c-ecma/test226.txml")
         << QLatin1String("w3c-ecma/test239.txml")
         << QLatin1String("w3c-ecma/test242.txml")
         << QLatin1String("w3c-ecma/test276.txml")
-        // TODO: after having implemented <invoke>, the following tests need to be re-verified.
-        << QLatin1String("w3c-ecma/test215.txml")
-        << QLatin1String("w3c-ecma/test216.txml")
-        << QLatin1String("w3c-ecma/test226.txml")
-        << QLatin1String("w3c-ecma/test250.txml")
-        << QLatin1String("w3c-ecma/test252.txml")
-        << QLatin1String("w3c-ecma/test253.txml")
            ;
 
 static QSet<QString> weDieOnThese = QSet<QString>()
@@ -94,8 +89,10 @@ static QSet<QString> differentSemantics = QSet<QString>()
         << QLatin1String("script-src/test1")
         << QLatin1String("script-src/test2")
         << QLatin1String("script-src/test3")
-        // ---
-        << QLatin1String("w3c-ecma/test530.txml") // We do not evaluate the <content> of <invoke> when invoked.
+        // We do not evaluate the <content> of <invoke> when invoked.
+        << QLatin1String("w3c-ecma/test215.txml")
+        << QLatin1String("w3c-ecma/test216.txml")
+        << QLatin1String("w3c-ecma/test530.txml")
         ;
 
 class MySignalSpy: public QSignalSpy

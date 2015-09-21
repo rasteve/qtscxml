@@ -829,6 +829,7 @@ void QScxmlInternal::WrappedQStateMachinePrivate::exitStates(
         if (QScxmlState *qss = qobject_cast<QScxmlState *>(s)) {
             QVector<QScxmlInvokableService *> &services = QScxmlStatePrivate::get(qss)->invokedServices;
             foreach (QScxmlInvokableService *service, services) {
+                qCDebug(scxmlLog) << stateMachine()->name() << "canceling service" << service->id();
                 stateMachinePrivate()->m_invokedServices.removeOne(service);
                 delete service;
             }
@@ -1063,10 +1064,13 @@ void QScxmlStateMachine::submitError(const QByteArray &type, const QString &msg,
 
 void QScxmlStateMachine::routeEvent(QScxmlEvent *e)
 {
+    Q_D(QScxmlStateMachine);
+
     if (!e)
         return;
 
-    if (e->origin() == QStringLiteral("#_parent")) {
+    QString origin = e->origin();
+    if (origin == QStringLiteral("#_parent")) {
         if (auto psm = parentStateMachine()) {
             qCDebug(scxmlLog) << "routing event" << e->name() << "from" << name() << "to parent" << psm->name();
             psm->submitEvent(e);
@@ -1074,8 +1078,17 @@ void QScxmlStateMachine::routeEvent(QScxmlEvent *e)
             qCDebug(scxmlLog) << "machine" << name() << "is not invoked, so it cannot route a message to #_parent";
             delete e;
         }
+    } else if (origin.startsWith(QStringLiteral("#_")) && origin != QStringLiteral("#_internal")) {
+        // route to children
+        auto originId = origin.midRef(2);
+        foreach (QScxmlInvokableService *service, d->m_invokedServices) {
+            if (service->id() == originId) {
+                qCDebug(scxmlLog) << "routing event" << e->name() << "from" << name() << "to parent" << service->id();
+                service->submitEvent(new QScxmlEvent(*e));
+            }
+        }
+        delete e;
     } else {
-        // FIXME: event routing to child services
         submitEvent(e);
     }
 }
@@ -1179,10 +1192,24 @@ bool QScxmlStateMachine::isLegalTarget(const QString &target) const
 
 bool QScxmlStateMachine::isDispatchableTarget(const QString &target) const
 {
+    Q_D(const QScxmlStateMachine);
+
     if (isInvoked() && target == QStringLiteral("#_parent"))
-        return true;
-    return target == QStringLiteral("#_internal")
-            || target == QStringLiteral("#_scxml_%1").arg(sessionId());
+        return true; // parent state machine, if we're <invoke>d.
+    if (target == QStringLiteral("#_internal")
+            || target == QStringLiteral("#_scxml_%1").arg(sessionId()))
+        return true; // that's the current state machine
+
+    if (target.startsWith(QStringLiteral("#_"))) {
+        QStringRef targetId = target.midRef(2);
+        foreach (QScxmlInvokableService *service, d->m_invokedServices) {
+            if (service->id() == targetId) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 void QScxmlStateMachine::onFinished()
