@@ -260,7 +260,7 @@ QScxmlInvokableService *QScxmlInvokableScxmlServiceFactory::finishInvoke(QScxmlS
     auto data = calculateData(parent, &ok);
     if (!ok)
         return Q_NULLPTR;
-    child->setIsInvoked(true);
+    QScxmlStateMachinePrivate::get(child)->setIsInvoked(true);
     return new InvokableScxml(child, id, data, autoforward(), finalizeContent(), parent);
 }
 

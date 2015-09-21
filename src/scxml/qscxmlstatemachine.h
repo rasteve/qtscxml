@@ -36,6 +36,7 @@ class QTextStream;
 
 Q_SCXML_EXPORT Q_DECLARE_LOGGING_CATEGORY(scxmlLog)
 
+class QScxmlParser;
 class QScxmlTableData;
 class QScxmlStateMachine;
 class Q_SCXML_EXPORT QScxmlEventFilter
@@ -62,14 +63,11 @@ public:
     static QScxmlStateMachine *fromData(QIODevice *data, const QString &fileName = QString(), QScxmlDataModel *dataModel = Q_NULLPTR);
     QVector<QScxmlError> errors() const;
 
-    QScxmlStateMachine(QObject *parent = 0);
-
     QString sessionId() const;
     void setSessionId(const QString &id);
     static QString generateSessionId(const QString &prefix);
 
     bool isInvoked() const;
-    void setIsInvoked(bool invoked);
 
     QScxmlDataModel *dataModel() const;
     void setDataModel(QScxmlDataModel *dataModel);
@@ -124,7 +122,10 @@ private Q_SLOTS:
     void onFinished();
 
 protected:
+    friend class QScxmlParser; // For the constructor:
+    QScxmlStateMachine(QObject *parent = 0);
     QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *parent);
+
     void executeInitialSetup();
 };
 

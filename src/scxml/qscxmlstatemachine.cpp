@@ -125,10 +125,30 @@ QScxmlStateMachinePrivate *WrappedQStateMachine::stateMachinePrivate()
 }
 } // Internal namespace
 
+/*!
+ * \class QScxmlEventFilter
+ * \brief Event filter for an QScxmlStateMachine
+ * \since 5.6
+ * \inmodule QtScxml
+ *
+ * \sa QScxmlStateMachine
+ */
+
 QScxmlEventFilter::~QScxmlEventFilter()
 {}
 
+/*!
+ * \class QScxmlStateMachine
+ * \brief Event filter for an QScxmlStateMachine
+ * \since 5.6
+ * \inmodule QtScxml
+ *
+ * QScxmlStateMachine is an implementation of
+ * \l{http://www.w3.org/TR/scxml/}{State Chart XML (SCXML)}.
+ */
+
 QAtomicInt QScxmlStateMachinePrivate::m_sessionIdCounter = QAtomicInt(0);
+
 
 QScxmlStateMachinePrivate::QScxmlStateMachinePrivate()
     : QObjectPrivate()
@@ -221,6 +241,9 @@ QVector<QScxmlError> QScxmlStateMachine::errors() const
     return d->m_parserData ? d->m_parserData->m_errors : QVector<QScxmlError>();
 }
 
+/*!
+ * Constructs a new state machine with the given parent.
+ */
 QScxmlStateMachine::QScxmlStateMachine(QObject *parent)
     : QObject(*new QScxmlStateMachinePrivate, parent)
 {
@@ -231,6 +254,9 @@ QScxmlStateMachine::QScxmlStateMachine(QObject *parent)
     connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::finished);
 }
 
+/*!
+ * \internal
+ */
 QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *parent)
     : QObject(dd, parent)
 {
@@ -240,6 +266,17 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
     connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::finished);
 }
 
+/*!
+ * \brief Returns the session ID for the current state machine.
+ *
+ * The session ID is used for message routing between parent and child state machines. If a state
+ * machine is started by <invoke>, any event it sends will have the invokeid field of set to the
+ * session ID. The state machine will use the origin of an event (which is set by the target or
+ * targetexpr attribute in a <send> tag) to dispatch a message from one state machine to the correct
+ * child state machine.
+ *
+ * \sa QScxmlStateMachine::setSessionId() QScxmlEvent::invokeId() QScxmlStateMachine::routeEvent()
+ */
 QString QScxmlStateMachine::sessionId() const
 {
     Q_D(const QScxmlStateMachine);
@@ -247,28 +284,40 @@ QString QScxmlStateMachine::sessionId() const
     return d->m_sessionId;
 }
 
+/*!
+  Sets the session ID for the current state machine.
+
+  \sa QScxmlStateMachine::sessionId
+ */
 void QScxmlStateMachine::setSessionId(const QString &id)
 {
     Q_D(QScxmlStateMachine);
     d->m_sessionId = id;
 }
 
+/*!
+ * \brief Generates a unique ID by appending a unique number to the prefix.
+ *
+ * The number is only unique within a single run of an application.
+ *
+ * This method is used when an invoked service does not have an ID set (the id attribute in
+ * <invoke>).
+ *
+ * \param prefix The prefix onto which a unique number is appended.
+ */
 QString QScxmlStateMachine::generateSessionId(const QString &prefix)
 {
     int id = ++QScxmlStateMachinePrivate::m_sessionIdCounter;
     return prefix + QString::number(id);
 }
 
+/*!
+ * \return true when the state machine was started as a service with <invoke>, false otherwise.
+ */
 bool QScxmlStateMachine::isInvoked() const
 {
     Q_D(const QScxmlStateMachine);
     return d->m_isInvoked;
-}
-
-void QScxmlStateMachine::setIsInvoked(bool invoked)
-{
-    Q_D(QScxmlStateMachine);
-    d->m_isInvoked = invoked;
 }
 
 QScxmlDataModel *QScxmlStateMachine::dataModel() const

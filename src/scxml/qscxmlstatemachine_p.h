@@ -93,6 +93,9 @@ public:
 
     ParserData *parserData();
 
+    void setIsInvoked(bool invoked)
+    { m_isInvoked = invoked; }
+
 public: // types & data fields:
     QString m_sessionId;
     bool m_isInvoked;
