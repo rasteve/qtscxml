@@ -40,7 +40,7 @@
 
 #include "../mediaplayer-common/mainwindow.h"
 
-#include <scxmlstatemachine.h>
+#include <QScxmlStateMachine>
 #include <QApplication>
 
 int main(int argc, char **argv)

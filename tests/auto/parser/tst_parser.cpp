@@ -31,8 +31,8 @@
 #include <QtTest>
 #include <QObject>
 #include <QXmlStreamReader>
-#include <QtScxml/scxmlparser.h>
-#include <QtScxml/scxmlstatemachine.h>
+#include <QtScxml/qscxmlparser.h>
+#include <QtScxml/qscxmlstatemachine.h>
 
 Q_DECLARE_METATYPE(QScxmlError);
 
