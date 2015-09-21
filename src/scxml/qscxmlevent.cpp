@@ -136,7 +136,7 @@ QScxmlEvent *EventBuilder::buildEvent()
         }
     } else if (origin == QStringLiteral("#_parent")) {
         // allow sending messages to the parent, independently of whether we're invoked or not.
-    } else if (!stateMachine->isLegalTarget(origin)) {
+    } else if (!origin.startsWith(QLatin1Char('#'))) {
         // [6.2.4] and test194.
         stateMachine->submitError(QByteArray("error.execution"),
                            QStringLiteral("Error in %1: %2 is not a legal target")

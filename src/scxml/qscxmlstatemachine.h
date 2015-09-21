@@ -63,7 +63,6 @@ public:
     QVector<QScxmlError> errors() const;
 
     QScxmlStateMachine(QObject *parent = 0);
-    QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *parent);
 
     QString sessionId() const;
     void setSessionId(const QString &id);
@@ -80,8 +79,6 @@ public:
 
     QScxmlTableData *tableData() const;
     void setTableData(QScxmlTableData *tableData);
-
-    void doLog(const QString &label, const QString &msg);
 
     QScxmlStateMachine *parentStateMachine() const;
     void setParentStateMachine(QScxmlStateMachine *parent);
@@ -103,6 +100,8 @@ public:
     QScxmlEventFilter *scxmlEventFilter() const;
     void setScxmlEventFilter(QScxmlEventFilter *newFilter);
 
+    void doLog(const QString &label, const QString &msg);
+
     Q_INVOKABLE void submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid);
 
     Q_INVOKABLE void routeEvent(QScxmlEvent *e);
@@ -111,7 +110,6 @@ public:
     Q_INVOKABLE void submitEvent(const QByteArray &event, const QVariant &data);
     void cancelDelayedEvent(const QByteArray &event);
 
-    bool isLegalTarget(const QString &target) const;
     bool isDispatchableTarget(const QString &target) const;
 
 Q_SIGNALS:
@@ -126,6 +124,7 @@ private Q_SLOTS:
     void onFinished();
 
 protected:
+    QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *parent);
     void executeInitialSetup();
 };
 

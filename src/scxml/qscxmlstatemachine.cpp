@@ -310,8 +310,12 @@ QScxmlTableData *QScxmlStateMachine::tableData() const
 void QScxmlStateMachine::setTableData(QScxmlTableData *tableData)
 {
     Q_D(QScxmlStateMachine);
+    Q_ASSERT(tableData);
 
     d->m_tableData = tableData;
+    if (objectName().isEmpty()) {
+        setObjectName(tableData->name());
+    }
 }
 
 void QScxmlStateMachine::doLog(const QString &label, const QString &msg)
@@ -363,7 +367,7 @@ void QScxmlInternal::WrappedQStateMachine::beginSelectTransitions(QEvent *event)
                 service->finalize();
             }
             if (service->autoforward()) {
-                qCDebug(scxmlLog) << "auto-forwarding event" << scxmlEvent->name()
+                qCDebug(scxmlLog) << this << "auto-forwarding event" << scxmlEvent->name()
                                   << "from" << stateMachine()->name() << "to service" << service->id();
                 service->submitEvent(new QScxmlEvent(*scxmlEvent));
             }
@@ -386,8 +390,10 @@ void QScxmlInternal::WrappedQStateMachine::beginMicrostep(QEvent *event)
 {
     Q_D(WrappedQStateMachine);
 
-    qCDebug(scxmlLog) << d->m_stateMachine->tableData()->name() << " started microstep from state" << d->m_stateMachine->activeStates()
-                      << "with event" << stateMachinePrivate()->m_event.name() << "from event type" << event->type();
+    qCDebug(scxmlLog) << d->m_stateMachine
+                      << "started microstep from state" << d->m_stateMachine->activeStates()
+                      << "with event" << stateMachinePrivate()->m_event.name()
+                      << "and event type" << event->type();
 }
 
 void QScxmlInternal::WrappedQStateMachine::endMicrostep(QEvent *event)
@@ -395,19 +401,21 @@ void QScxmlInternal::WrappedQStateMachine::endMicrostep(QEvent *event)
     Q_D(WrappedQStateMachine);
     Q_UNUSED(event);
 
-    qCDebug(scxmlLog) << d->m_stateMachine->tableData()->name() << " finished microstep in state (" << d->m_stateMachine->activeStates() << ")";
+    qCDebug(scxmlLog) << d->m_stateMachine
+                      << "finished microstep in state (" << d->m_stateMachine->activeStates() << ")";
 }
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
 
 void QScxmlInternal::WrappedQStateMachinePrivate::noMicrostep()
 {
-    qCDebug(scxmlLog) << m_stateMachine->tableData()->name() << " had no transition, stays in state (" << m_stateMachine->activeStates() << ")";
+    qCDebug(scxmlLog) << m_stateMachine
+                      << "had no transition, stays in state (" << m_stateMachine->activeStates() << ")";
 }
 
 void QScxmlInternal::WrappedQStateMachinePrivate::processedPendingEvents(bool didChange)
 {
-    qCDebug(scxmlLog) << m_stateMachine->tableData()->name() << " finishedPendingEvents " << didChange << " in state ("
+    qCDebug(scxmlLog) << m_stateMachine << "finishedPendingEvents" << didChange << "in state ("
                       << m_stateMachine->activeStates() << ")";
     emit m_stateMachine->reachedStableState(didChange);
 }
@@ -418,8 +426,8 @@ void QScxmlInternal::WrappedQStateMachinePrivate::beginMacrostep()
 
 void QScxmlInternal::WrappedQStateMachinePrivate::endMacrostep(bool didChange)
 {
-    qCDebug(scxmlLog) << m_stateMachine->tableData()->name() << " endMacrostep " << didChange << " in state ("
-                      << m_stateMachine->activeStates() << ")";
+    qCDebug(scxmlLog) << m_stateMachine << "endMacrostep" << didChange
+                      << "in state (" << m_stateMachine->activeStates() << ")";
 }
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
@@ -471,7 +479,7 @@ void QScxmlInternal::WrappedQStateMachinePrivate::exitStates(
         if (QScxmlState *qss = qobject_cast<QScxmlState *>(s)) {
             QVector<QScxmlInvokableService *> &services = QScxmlStatePrivate::get(qss)->invokedServices;
             foreach (QScxmlInvokableService *service, services) {
-                qCDebug(scxmlLog) << stateMachine()->name() << "canceling service" << service->id();
+                qCDebug(scxmlLog) << this << "canceling service" << service->id();
                 stateMachinePrivate()->m_invokedServices.removeOne(service);
                 delete service;
             }
@@ -700,7 +708,7 @@ QString QScxmlStateMachine::name() const
 
 void QScxmlStateMachine::submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid)
 {
-    qCDebug(scxmlLog) << "machine" << name() << "had error" << type << ":" << msg;
+    qCDebug(scxmlLog) << this << "had error" << type << ":" << msg;
     submitEvent(EventBuilder::errorEvent(this, type, sendid));
 }
 
@@ -714,10 +722,10 @@ void QScxmlStateMachine::routeEvent(QScxmlEvent *e)
     QString origin = e->origin();
     if (origin == QStringLiteral("#_parent")) {
         if (auto psm = parentStateMachine()) {
-            qCDebug(scxmlLog) << "routing event" << e->name() << "from" << name() << "to parent" << psm->name();
+            qCDebug(scxmlLog) << this << "routing event" << e->name() << "from" << name() << "to parent" << psm->name();
             psm->submitEvent(e);
         } else {
-            qCDebug(scxmlLog) << "machine" << name() << "is not invoked, so it cannot route a message to #_parent";
+            qCDebug(scxmlLog) << this << "is not invoked, so it cannot route a message to #_parent";
             delete e;
         }
     } else if (origin.startsWith(QStringLiteral("#_")) && origin != QStringLiteral("#_internal")) {
@@ -725,7 +733,9 @@ void QScxmlStateMachine::routeEvent(QScxmlEvent *e)
         auto originId = origin.midRef(2);
         foreach (QScxmlInvokableService *service, d->m_invokedServices) {
             if (service->id() == originId) {
-                qCDebug(scxmlLog) << "routing event" << e->name() << "from" << name() << "to parent" << service->id();
+                qCDebug(scxmlLog) << this << "routing event" << e->name()
+                                  << "from" << name()
+                                  << "to parent" << service->id();
                 service->submitEvent(new QScxmlEvent(*e));
             }
         }
@@ -743,22 +753,26 @@ void QScxmlStateMachine::submitEvent(QScxmlEvent *e)
         return;
 
     if (e->delay() > 0) {
-        qCDebug(scxmlLog) << name() << ": submitting event" << e->name() << "with delay" << e->delay() << "ms" << "and sendid" << e->sendId();
+        qCDebug(scxmlLog) << this << ": submitting event" << e->name()
+                          << "with delay" << e->delay() << "ms"
+                          << "and sendid" << e->sendId();
 
         Q_ASSERT(e->eventType() == QScxmlEvent::ExternalEvent);
         int id = d->m_qStateMachine->postDelayedEvent(e, e->delay());
 
-        qCDebug(scxmlLog) << name() << ": delayed event" << e->name() << "(" << e << ") got id:" << id;
+        qCDebug(scxmlLog) << this << ": delayed event" << e->name() << "(" << e << ") got id:" << id;
     } else {
         QStateMachine::EventPriority priority =
                 e->eventType() == QScxmlEvent::ExternalEvent ? QStateMachine::NormalPriority
                                                              : QStateMachine::HighPriority;
 
-        qCDebug(scxmlLog) << "queueing event" << e->name() << "in" << name();
-        if (d->m_qStateMachine->isRunning())
+        if (d->m_qStateMachine->isRunning()) {
+            qCDebug(scxmlLog) << this << "posting event" << e->name();
             d->m_qStateMachine->postEvent(e, priority);
-        else
+        } else {
+            qCDebug(scxmlLog) << this << "queueing event" << e->name();
             d->m_qStateMachine->queueEvent(e, priority);
+        }
     }
 }
 
@@ -790,7 +804,7 @@ void QScxmlStateMachine::cancelDelayedEvent(const QByteArray &sendid)
 
     int id = d->m_qStateMachine->eventIdForDelayedEvent(sendid);
 
-    qCDebug(scxmlLog) << name() << ": canceling event" << sendid << "with id" << id;
+    qCDebug(scxmlLog) << this << "canceling event" << sendid << "with id" << id;
 
     if (id != -1)
         d->m_qStateMachine->cancelDelayedEvent(id);
@@ -799,8 +813,6 @@ void QScxmlStateMachine::cancelDelayedEvent(const QByteArray &sendid)
 void QScxmlInternal::WrappedQStateMachine::queueEvent(QScxmlEvent *event, EventPriority priority)
 {
     Q_D(WrappedQStateMachine);
-
-    qCDebug(scxmlLog) << d->m_stateMachine->name() << ": queueing event" << event->name();
 
     if (!d->m_queuedEvents)
         d->m_queuedEvents = new QVector<WrappedQStateMachinePrivate::QueuedEvent>();
@@ -811,7 +823,7 @@ void QScxmlInternal::WrappedQStateMachine::submitQueuedEvents()
 {
     Q_D(WrappedQStateMachine);
 
-    qCDebug(scxmlLog) << d->m_stateMachine->name() << ": submitting queued events";
+    qCDebug(scxmlLog) << d->m_stateMachine << ": submitting queued events";
 
     if (d->m_queuedEvents) {
         foreach (const WrappedQStateMachinePrivate::QueuedEvent &e, *d->m_queuedEvents)
@@ -825,11 +837,6 @@ int QScxmlInternal::WrappedQStateMachine::eventIdForDelayedEvent(const QByteArra
 {
     Q_D(WrappedQStateMachine);
     return d->eventIdForDelayedEvent(scxmlEventId);
-}
-
-bool QScxmlStateMachine::isLegalTarget(const QString &target) const
-{
-    return target.startsWith(QLatin1Char('#'));
 }
 
 bool QScxmlStateMachine::isDispatchableTarget(const QString &target) const
