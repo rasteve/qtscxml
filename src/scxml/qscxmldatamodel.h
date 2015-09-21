@@ -79,7 +79,6 @@ public:
     virtual ~QScxmlDataModel();
 
     QScxmlStateMachine *stateMachine() const;
-    void setTable(QScxmlStateMachine *stateMachine);
 
     virtual void setup(const QVariantMap &initialDataValues) = 0;
 
@@ -99,6 +98,7 @@ public:
                              bool *ok) = 0;
 
 private:
+    friend class QScxmlDataModelPrivate;
     QScxmlDataModelPrivate *d;
 };
 

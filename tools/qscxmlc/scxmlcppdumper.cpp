@@ -290,7 +290,7 @@ protected:
         auto name = mangledName(node);
         auto stateName = QStringLiteral("state_") + name;
         // Property stuff:
-        clazz.properties << QStringLiteral("Q_PROPERTY(QAbstractState *%1 READ %1() CONSTANT)").arg(name); // FIXME: notify!
+        clazz.properties << QStringLiteral("Q_PROPERTY(QAbstractState *%1 READ %1() CONSTANT)").arg(name);
         Method getter(QStringLiteral("QAbstractState *%1() const").arg(name));
         getter.impl << QStringLiteral("QAbstractState *%2::%1() const").arg(name)
                     << QStringLiteral("{ return &data->%1; }").arg(stateName);

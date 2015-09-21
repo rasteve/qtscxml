@@ -40,7 +40,7 @@ QT_BEGIN_NAMESPACE
 
 class EventBuilder
 {
-    QScxmlStateMachine* table;
+    QScxmlStateMachine* stateMachine;
     QScxmlExecutableContent::StringId instructionLocation;
     QByteArray event;
     QScxmlExecutableContent::EvaluatorId eventexpr;
@@ -69,7 +69,7 @@ class EventBuilder
 
     void init() // Because stupid VS2012 can't cope with non-static field initializers.
     {
-        table = Q_NULLPTR;
+        stateMachine = Q_NULLPTR;
         eventexpr = QScxmlExecutableContent::NoEvaluator;
         contentExpr = QScxmlExecutableContent::NoEvaluator;
         params = Q_NULLPTR;
@@ -80,32 +80,32 @@ class EventBuilder
     }
 
 public:
-    EventBuilder(QScxmlStateMachine *table, const QString &eventName, const QScxmlExecutableContent::DoneData *doneData)
+    EventBuilder(QScxmlStateMachine *stateMachine, const QString &eventName, const QScxmlExecutableContent::DoneData *doneData)
     {
         init();
-        this->table = table;
+        this->stateMachine = stateMachine;
         Q_ASSERT(doneData);
         instructionLocation = doneData->location;
         event = eventName.toUtf8();
-        contents = table->tableData()->string(doneData->contents);
+        contents = stateMachine->tableData()->string(doneData->contents);
         contentExpr = doneData->expr;
         params = &doneData->params;
     }
 
-    EventBuilder(QScxmlStateMachine *table, QScxmlExecutableContent::Send &send)
+    EventBuilder(QScxmlStateMachine *stateMachine, QScxmlExecutableContent::Send &send)
     {
         init();
-        this->table = table;
+        this->stateMachine = stateMachine;
         instructionLocation = send.instructionLocation;
-        event = table->tableData()->byteArray(send.event);
+        event = stateMachine->tableData()->byteArray(send.event);
         eventexpr = send.eventexpr;
-        contents = table->tableData()->string(send.content);
+        contents = stateMachine->tableData()->string(send.content);
         params = send.params();
-        id = table->tableData()->byteArray(send.id);
-        idLocation = table->tableData()->string(send.idLocation);
-        target = table->tableData()->string(send.target);
+        id = stateMachine->tableData()->byteArray(send.id);
+        idLocation = stateMachine->tableData()->string(send.idLocation);
+        target = stateMachine->tableData()->string(send.target);
         targetexpr = send.targetexpr;
-        type = table->tableData()->string(send.type);
+        type = stateMachine->tableData()->string(send.type);
         typeexpr = send.typeexpr;
         namelist = &send.namelist;
     }
@@ -114,10 +114,10 @@ public:
 
     QScxmlEvent *buildEvent();
 
-    static QScxmlEvent *errorEvent(QScxmlStateMachine *table, const QByteArray &name, const QByteArray &sendid)
+    static QScxmlEvent *errorEvent(QScxmlStateMachine *stateMachine, const QByteArray &name, const QByteArray &sendid)
     {
         EventBuilder event;
-        event.table = table;
+        event.stateMachine = stateMachine;
         event.event = name;
         event.eventType = QScxmlEvent::PlatformEvent; // Errors are platform events. See e.g. test331.
         // _event.data == null, see test528

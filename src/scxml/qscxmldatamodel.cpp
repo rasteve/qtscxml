@@ -40,11 +40,6 @@ QScxmlStateMachine *QScxmlDataModel::stateMachine() const
     return d->m_stateMachine;
 }
 
-void QScxmlDataModel::setTable(QScxmlStateMachine *table)
-{
-    d->m_stateMachine = table;
-}
-
 QScxmlDataModel *QScxmlDataModelPrivate::instantiateDataModel(
         DocumentModel::Scxml::DataModelType type, QScxmlStateMachine *stateMachine)
 {
@@ -65,4 +60,9 @@ QScxmlDataModel *QScxmlDataModelPrivate::instantiateDataModel(
     QScxmlStateMachinePrivate::get(stateMachine)->parserData()->m_ownedDataModel.reset(dataModel);
 
     return dataModel;
+}
+
+void QScxmlDataModelPrivate::setStateMachine(QScxmlStateMachine *stateMachine)
+{
+    m_stateMachine = stateMachine;
 }

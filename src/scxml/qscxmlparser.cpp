@@ -511,14 +511,14 @@ class QStateMachineBuilder: public QScxmlExecutableContent::Builder
 {
 public:
     QStateMachineBuilder()
-        : m_table(Q_NULLPTR)
+        : m_stateMachine(Q_NULLPTR)
         , m_currentTransition(Q_NULLPTR)
         , m_bindLate(false)
     {}
 
     QScxmlStateMachine *build(DocumentModel::ScxmlDocument *doc)
     {
-        m_table = Q_NULLPTR;
+        m_stateMachine = Q_NULLPTR;
         m_parents.reserve(32);
         m_allTransitions.reserve(doc->allTransitions.size());
         m_docStatesToQStates.reserve(doc->allStates.size());
@@ -528,16 +528,16 @@ public:
         applyInitialStates();
 
         QScxmlExecutableContent::DynamicTableData *td = tableData();
-        td->setParent(m_table);
-        m_table->setTableData(td);
-        m_table->initDynamicParts(m_eventSignals, m_eventSlots, m_stateNames);
+        td->setParent(m_stateMachine);
+        m_stateMachine->setTableData(td);
+        m_stateMachine->initDynamicParts(m_eventSignals, m_eventSlots, m_stateNames);
 
         m_parents.clear();
         m_allTransitions.clear();
         m_docStatesToQStates.clear();
         m_currentTransition = Q_NULLPTR;
 
-        return m_table;
+        return m_stateMachine;
     }
 
 private:
@@ -546,14 +546,14 @@ private:
 
     bool visit(DocumentModel::Scxml *node) Q_DECL_OVERRIDE
     {
-        m_table = new DynamicStateMachine;
+        m_stateMachine = new DynamicStateMachine;
 
         switch (node->binding) {
         case DocumentModel::Scxml::EarlyBinding:
-            m_table->setDataBinding(QScxmlStateMachine::EarlyBinding);
+            m_stateMachine->setDataBinding(QScxmlStateMachine::EarlyBinding);
             break;
         case DocumentModel::Scxml::LateBinding:
-            m_table->setDataBinding(QScxmlStateMachine::LateBinding);
+            m_stateMachine->setDataBinding(QScxmlStateMachine::LateBinding);
             m_bindLate = true;
             break;
         default:
@@ -562,7 +562,7 @@ private:
 
         setName(node->name);
 
-        m_parents.append(QScxmlStateMachinePrivate::get(m_table)->m_qStateMachine);
+        m_parents.append(QScxmlStateMachinePrivate::get(m_stateMachine)->m_qStateMachine);
         visit(node->children);
 
         m_dataElements.append(node->dataElements);
@@ -580,7 +580,7 @@ private:
 
         foreach (auto initialState, node->initialStates) {
             Q_ASSERT(initialState);
-            m_initialStates.append(qMakePair(QScxmlStateMachinePrivate::get(m_table)->m_qStateMachine, initialState));
+            m_initialStates.append(qMakePair(QScxmlStateMachinePrivate::get(m_stateMachine)->m_qStateMachine, initialState));
         }
 
         return false;
@@ -837,10 +837,10 @@ private: // Utility methods
     }
 
     QScxmlDataModel *dataModel() const
-    { return m_table->dataModel(); }
+    { return m_stateMachine->dataModel(); }
 
 private:
-    DynamicStateMachine *m_table;
+    DynamicStateMachine *m_stateMachine;
     QVector<QAbstractState *> m_parents;
     QHash<QAbstractTransition *, DocumentModel::Transition*> m_allTransitions;
     QHash<DocumentModel::AbstractState *, QAbstractState *> m_docStatesToQStates;
@@ -893,15 +893,15 @@ QScxmlStateMachine *QScxmlParser::instantiateStateMachine() const
     if (DocumentModel::ScxmlDocument *doc = p->scxmlDocument()) {
         return QStateMachineBuilder().build(doc);
     } else {
-        auto table = new QScxmlStateMachine;
-        QScxmlStateMachinePrivate::get(table)->parserData()->m_errors = errors();
-        return table;
+        auto stateMachine = new QScxmlStateMachine;
+        QScxmlStateMachinePrivate::get(stateMachine)->parserData()->m_errors = errors();
+        return stateMachine;
     }
 }
 
-void QScxmlParser::instantiateDataModel(QScxmlStateMachine *table) const
+void QScxmlParser::instantiateDataModel(QScxmlStateMachine *stateMachine) const
 {
-    QScxmlDataModel *dm = QScxmlDataModelPrivate::instantiateDataModel(p->scxmlDocument()->root->dataModel, table);
+    QScxmlDataModel *dm = QScxmlDataModelPrivate::instantiateDataModel(p->scxmlDocument()->root->dataModel, stateMachine);
     if (dm == Q_NULLPTR) {
         qWarning() << "No data-model instantiated!";
     }
@@ -1292,26 +1292,6 @@ void QScxmlParserPrivate::parse()
             QXmlStreamAttributes attributes = m_reader->attributes();
             if (!m_stack.isEmpty() && (m_stack.last().kind == ParserState::DataElement
                                        || m_stack.last().kind == ParserState::Data)) {
-                /*switch (m_table->dataModel()) {
-                case StateTable::None:
-                    break; // error?
-                case StateTable::Json:
-                case StateTable::Javascript:
-                {
-                    ParserState pNew = ParserState(ParserState::DataElement);
-                    QJsonObject obj;
-                    foreach (const QXmlStreamAttribute &attribute, attributes)
-                        obj.insert(QStringLiteral("@").append(attribute.name()), attribute.value().toString());
-                    pNew.jsonValue = obj;
-                    m_stack.append(pNew);
-                    break;
-                }
-                case StateTable::Xml:
-                {
-                    ParserState pNew = ParserState(ParserState::DataElement);
-                    Q_ASSERT(0);
-                }
-                }*/
                 break;
             } else if (elName == QLatin1String("scxml")) {
                 m_doc->root = new DocumentModel::Scxml(xmlLocation());
@@ -1542,7 +1522,7 @@ void QScxmlParserPrivate::parse()
                 data->src = attributes.value(QLatin1String("src")).toString();
                 data->expr = attributes.value(QLatin1String("expr")).toString();
                 if (!data->src.isEmpty()) {
-                    addError(QStringLiteral("the source attribute in a data tag is unsupported")); // FIXME: use a loader like in <script>
+                    addError(QStringLiteral("the src attribute in a data tag is unsupported")); // TODO: use a loader like in <script>
                 }
                 if (DocumentModel::Scxml *scxml = m_currentParent->asScxml()) {
                     scxml->dataElements.append(data);

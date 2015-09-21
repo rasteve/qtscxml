@@ -204,16 +204,16 @@ void TestScion::dynamic()
     QVERIFY(parser.errors().isEmpty());
     scxmlFile.close();
 
-    QScopedPointer<QScxmlStateMachine> table(parser.instantiateStateMachine());
-    if (table == Q_NULLPTR && testStatus == TestFails) {
+    QScopedPointer<QScxmlStateMachine> stateMachine(parser.instantiateStateMachine());
+    if (stateMachine == Q_NULLPTR && testStatus == TestFails) {
         QEXPECT_FAIL("", "This is expected to fail", Abort);
     }
-    QVERIFY(table != Q_NULLPTR);
-    parser.instantiateDataModel(table.data());
+    QVERIFY(stateMachine != Q_NULLPTR);
+    parser.instantiateDataModel(stateMachine.data());
 
     if (testStatus == TestFails)
         QEXPECT_FAIL("", "This is expected to fail", Abort);
-    QVERIFY(runTest(table.data(), testDescription.object()));
+    QVERIFY(runTest(stateMachine.data(), testDescription.object()));
 }
 
 static QStringList getStates(const QJsonObject &obj, const QString &key)
@@ -251,15 +251,15 @@ void TestScion::compiled()
     auto testDescription = QJsonDocument::fromJson(jsonFile.readAll());
     jsonFile.close();
 
-    QScopedPointer<QScxmlStateMachine> table(creator());
-    if (table == Q_NULLPTR && testStatus == TestFails) {
+    QScopedPointer<QScxmlStateMachine> stateMachine(creator());
+    if (stateMachine == Q_NULLPTR && testStatus == TestFails) {
         QEXPECT_FAIL("", "This is expected to fail", Abort);
     }
-    QVERIFY(table != Q_NULLPTR);
+    QVERIFY(stateMachine != Q_NULLPTR);
 
     if (testStatus == TestFails)
         QEXPECT_FAIL("", "This is expected to fail", Abort);
-    QVERIFY(runTest(table.data(), testDescription.object()));
+    QVERIFY(runTest(stateMachine.data(), testDescription.object()));
 }
 
 static bool verifyStates(QScxmlStateMachine *stateMachine, const QJsonObject &stateDescription, const QString &key, int counter)

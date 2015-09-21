@@ -24,10 +24,10 @@ class QScxmlPlatformProperties::Data
 {
 public:
     Data()
-        : m_table(Q_NULLPTR)
+        : m_stateMachine(Q_NULLPTR)
     {}
 
-    QScxmlStateMachine *m_table;
+    QScxmlStateMachine *m_stateMachine;
     QJSValue m_jsValue;
 };
 QT_END_NAMESPACE
@@ -37,10 +37,10 @@ QScxmlPlatformProperties::QScxmlPlatformProperties(QObject *parent)
     , data(new Data)
 {}
 
-QScxmlPlatformProperties *QScxmlPlatformProperties::create(QJSEngine *engine, QScxmlStateMachine *table)
+QScxmlPlatformProperties *QScxmlPlatformProperties::create(QJSEngine *engine, QScxmlStateMachine *stateMachine)
 {
     QScxmlPlatformProperties *pp = new QScxmlPlatformProperties(engine);
-    pp->data->m_table = table;
+    pp->data->m_stateMachine = stateMachine;
     pp->data->m_jsValue = engine->newQObject(pp);
     return pp;
 }
@@ -57,7 +57,7 @@ QJSEngine *QScxmlPlatformProperties::engine() const
 
 QScxmlStateMachine *QScxmlPlatformProperties::stateMachine() const
 {
-    return data->m_table;
+    return data->m_stateMachine;
 }
 
 QJSValue QScxmlPlatformProperties::jsValue() const

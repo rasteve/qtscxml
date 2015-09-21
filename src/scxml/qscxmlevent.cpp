@@ -26,11 +26,11 @@ using namespace QScxmlExecutableContent;
 QEvent::Type QScxmlEvent::scxmlEventType = (QEvent::Type) QEvent::registerEventType();
 QEvent::Type QScxmlEvent::ignoreEventType = (QEvent::Type) QEvent::registerEventType();
 
-static bool evaluate(const QScxmlExecutableContent::Param &param, QScxmlStateMachine *table,
+static bool evaluate(const QScxmlExecutableContent::Param &param, QScxmlStateMachine *stateMachine,
                      QVariantMap &keyValues)
 {
-    auto dataModel = table->dataModel();
-    auto tableData = table->tableData();
+    auto dataModel = stateMachine->dataModel();
+    auto tableData = stateMachine->tableData();
     if (param.expr != NoEvaluator) {
         bool success = false;
         auto v = dataModel->evaluateToVariant(param.expr, &success);
@@ -51,7 +51,7 @@ static bool evaluate(const QScxmlExecutableContent::Param &param, QScxmlStateMac
         keyValues.insert(tableData->string(param.name), dataModel->property(loc));
         return true;
     } else {
-        table->submitError(QByteArray("error.execution"),
+        stateMachine->submitError(QByteArray("error.execution"),
                            QStringLiteral("Error in <param>: %1 is not a valid location")
                            .arg(loc),
                            /*sendid =*/ QByteArray());
@@ -60,14 +60,14 @@ static bool evaluate(const QScxmlExecutableContent::Param &param, QScxmlStateMac
 }
 
 static bool evaluate(const QScxmlExecutableContent::Array<QScxmlExecutableContent::Param> *params,
-                     QScxmlStateMachine *table, QVariantMap &keyValues)
+                     QScxmlStateMachine *stateMachine, QVariantMap &keyValues)
 {
     if (!params)
         return true;
 
     auto paramPtr = params->const_data();
     for (qint32 i = 0; i != params->count; ++i, ++paramPtr) {
-        if (!evaluate(*paramPtr, table, keyValues))
+        if (!evaluate(*paramPtr, stateMachine, keyValues))
             return false;
     }
 
@@ -78,8 +78,8 @@ QAtomicInt EventBuilder::idCounter = QAtomicInt(0);
 
 QScxmlEvent *EventBuilder::buildEvent()
 {
-    auto dataModel = table ? table->dataModel() : Q_NULLPTR;
-    auto tableData = table ? table->tableData() : Q_NULLPTR;
+    auto dataModel = stateMachine ? stateMachine->dataModel() : Q_NULLPTR;
+    auto tableData = stateMachine ? stateMachine->tableData() : Q_NULLPTR;
 
     QByteArray eventName = event;
     bool ok = true;
@@ -101,7 +101,7 @@ QScxmlEvent *EventBuilder::buildEvent()
         }
     } else {
         QVariantMap keyValues;
-        if (evaluate(params, table, keyValues)) {
+        if (evaluate(params, stateMachine, keyValues)) {
             if (namelist) {
                 for (qint32 i = 0; i < namelist->count; ++i) {
                     QString name = tableData->string(namelist->const_data()[i]);
@@ -119,7 +119,7 @@ QScxmlEvent *EventBuilder::buildEvent()
     QByteArray sendid = id;
     if (!idLocation.isEmpty()) {
         sendid = generateId();
-        table->dataModel()->setProperty(idLocation, QString::fromUtf8(sendid), tableData->string(instructionLocation), &ok);
+        stateMachine->dataModel()->setProperty(idLocation, QString::fromUtf8(sendid), tableData->string(instructionLocation), &ok);
         if (!ok)
             return Q_NULLPTR;
     }
@@ -136,16 +136,16 @@ QScxmlEvent *EventBuilder::buildEvent()
         }
     } else if (origin == QStringLiteral("#_parent")) {
         // allow sending messages to the parent, independently of whether we're invoked or not.
-    } else if (!table->isLegalTarget(origin)) {
+    } else if (!stateMachine->isLegalTarget(origin)) {
         // [6.2.4] and test194.
-        table->submitError(QByteArray("error.execution"),
+        stateMachine->submitError(QByteArray("error.execution"),
                            QStringLiteral("Error in %1: %2 is not a legal target")
                            .arg(tableData->string(instructionLocation), origin),
                            sendid);
         return Q_NULLPTR;
-    } else if (!table->isDispatchableTarget(origin)) {
+    } else if (!stateMachine->isDispatchableTarget(origin)) {
         // [6.2.4] and test521.
-        table->submitError(QByteArray("error.communication"),
+        stateMachine->submitError(QByteArray("error.communication"),
                            QStringLiteral("Error in %1: cannot dispatch to target '%2'")
                            .arg(tableData->string(instructionLocation), origin),
                            sendid);
@@ -166,7 +166,7 @@ QScxmlEvent *EventBuilder::buildEvent()
             && origintype != QStringLiteral("qt:signal")
             && origintype != QStringLiteral("http://www.w3.org/TR/scxml/#SCXMLEventProcessor")) {
         // [6.2.5] and test199
-        table->submitError(QByteArray("error.execution"),
+        stateMachine->submitError(QByteArray("error.execution"),
                            QStringLiteral("Error in %1: %2 is not a valid type")
                            .arg(tableData->string(instructionLocation), origintype),
                            sendid);
@@ -174,8 +174,8 @@ QScxmlEvent *EventBuilder::buildEvent()
     }
 
     QString invokeid;
-    if (table && table->isInvoked()) {
-        invokeid = table->sessionId();
+    if (stateMachine && stateMachine->isInvoked()) {
+        invokeid = stateMachine->sessionId();
     }
 
     QScxmlEvent *event = new QScxmlEvent;

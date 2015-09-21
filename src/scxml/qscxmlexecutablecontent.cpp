@@ -58,20 +58,20 @@ static int parseTime(const QString &t, bool *ok = 0)
     return negative ? -value : value;
 }
 
-ExecutionEngine::ExecutionEngine(QScxmlStateMachine *table)
-    : table(table)
+ExecutionEngine::ExecutionEngine(QScxmlStateMachine *stateMachine)
+    : stateMachine(stateMachine)
 {
-    Q_ASSERT(table);
+    Q_ASSERT(stateMachine);
 }
 
 bool ExecutionEngine::execute(ContainerId id, const QVariant &extraData)
 {
-    Q_ASSERT(table);
+    Q_ASSERT(stateMachine);
 
     if (id == NoInstruction)
         return true;
 
-    qint32 *ip = table->tableData()->instructions() + id;
+    qint32 *ip = stateMachine->tableData()->instructions() + id;
     this->extraData = extraData;
     bool result = step(ip);
     this->extraData = QVariant();
@@ -80,8 +80,8 @@ bool ExecutionEngine::execute(ContainerId id, const QVariant &extraData)
 
 bool ExecutionEngine::step(Instructions &ip)
 {
-    auto dataModel = table->dataModel();
-    auto tableData = table->tableData();
+    auto dataModel = stateMachine->dataModel();
+    auto tableData = stateMachine->tableData();
 
     auto instr = reinterpret_cast<Instruction *>(ip);
     switch (instr->instructionType) {
@@ -121,12 +121,12 @@ bool ExecutionEngine::step(Instructions &ip)
         QString delay = tableData->string(send->delay);
         if (send->delayexpr != NoEvaluator) {
             bool ok = false;
-            delay = table->dataModel()->evaluateToString(send->delayexpr, &ok);
+            delay = stateMachine->dataModel()->evaluateToString(send->delayexpr, &ok);
             if (!ok)
                 return false;
         }
 
-        QScxmlEvent *event = EventBuilder(table, *send).buildEvent();
+        QScxmlEvent *event = EventBuilder(stateMachine, *send).buildEvent();
         if (!event)
             return false;
 
@@ -140,7 +140,7 @@ bool ExecutionEngine::step(Instructions &ip)
             }
         }
 
-        table->routeEvent(event);
+        stateMachine->routeEvent(event);
         return true;
     }
 
@@ -213,7 +213,7 @@ bool ExecutionEngine::step(Instructions &ip)
         auto event = new QScxmlEvent;
         event->setName(name);
         event->setEventType(QScxmlEvent::InternalEvent);
-        table->submitEvent(event);
+        stateMachine->submitEvent(event);
         return true;
     }
 
@@ -224,7 +224,7 @@ bool ExecutionEngine::step(Instructions &ip)
         bool ok = true;
         QString str = dataModel->evaluateToString(log->expr, &ok);
         if (ok)
-            table->doLog(tableData->string(log->label), str);
+            stateMachine->doLog(tableData->string(log->label), str);
         return ok;
     }
 
@@ -237,7 +237,7 @@ bool ExecutionEngine::step(Instructions &ip)
         if (cancel->sendidexpr != NoEvaluator)
             e = dataModel->evaluateToString(cancel->sendidexpr, &ok).toUtf8();
         if (ok && !e.isEmpty())
-            table->cancelDelayedEvent(e);
+            stateMachine->cancelDelayedEvent(e);
         return ok;
     }
 
@@ -264,9 +264,9 @@ bool ExecutionEngine::step(Instructions &ip)
         DoneData *doneData = reinterpret_cast<DoneData *>(instr);
 
         QString eventName = QStringLiteral("done.state.") + extraData.toString();
-        EventBuilder event(table, eventName, doneData);
+        EventBuilder event(stateMachine, eventName, doneData);
         qDebug() << "submitting event" << eventName;
-        table->submitEvent(event());
+        stateMachine->submitEvent(event());
         return true;
     }
 

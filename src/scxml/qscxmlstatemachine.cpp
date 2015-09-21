@@ -20,6 +20,7 @@
 #include "qscxmlexecutablecontent_p.h"
 #include "qscxmlevent_p.h"
 #include "qscxmlqstates_p.h"
+#include "qscxmldatamodel_p.h"
 
 #include <QAbstractState>
 #include <QAbstractTransition>
@@ -35,7 +36,7 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(scxmlLog, "scxml.table")
+Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
 namespace {
 class InvokableScxml: public QScxmlInvokableService
@@ -71,8 +72,8 @@ class WrappedQStateMachinePrivate: public QStateMachinePrivate
     Q_DECLARE_PUBLIC(WrappedQStateMachine)
 
 public:
-    WrappedQStateMachinePrivate(QScxmlStateMachine *table)
-        : m_stateMachine(table)
+    WrappedQStateMachinePrivate(QScxmlStateMachine *stateMachine)
+        : m_stateMachine(stateMachine)
         , m_queuedEvents(Q_NULLPTR)
     {}
     ~WrappedQStateMachinePrivate()
@@ -372,17 +373,17 @@ QString QScxmlInvokableServiceFactory::calculateId(QScxmlStateMachine *parent, b
 {
     Q_ASSERT(ok);
     *ok = true;
-    auto table = parent->tableData();
+    auto stateMachine = parent->tableData();
 
     if (d->id != QScxmlExecutableContent::NoString) {
-        return table->string(d->id);
+        return stateMachine->string(d->id);
     }
 
-    QString id = QScxmlStateMachine::generateSessionId(table->string(d->idPrefix));
+    QString id = QScxmlStateMachine::generateSessionId(stateMachine->string(d->idPrefix));
 
     if (d->idlocation != QScxmlExecutableContent::NoString) {
-        auto idloc = table->string(d->idlocation);
-        auto ctxt = table->string(d->invokeLocation);
+        auto idloc = stateMachine->string(d->idlocation);
+        auto ctxt = stateMachine->string(d->invokeLocation);
         parent->dataModel()->setProperty(idloc, id, ctxt, ok);
         if (!*ok)
             return QString();
@@ -548,14 +549,14 @@ QScxmlStateMachine *QScxmlStateMachine::fromFile(const QString &fileName, QScxml
         QVector<QScxmlError> errors({
                                 QScxmlError(scxmlFile.fileName(), 0, 0, QStringLiteral("cannot open for reading"))
                             });
-        auto table = new QScxmlStateMachine;
-        QScxmlStateMachinePrivate::get(table)->parserData()->m_errors = errors;
-        return table;
+        auto stateMachine = new QScxmlStateMachine;
+        QScxmlStateMachinePrivate::get(stateMachine)->parserData()->m_errors = errors;
+        return stateMachine;
     }
 
-    QScxmlStateMachine *table = fromData(&scxmlFile, fileName, dataModel);
+    QScxmlStateMachine *stateMachine = fromData(&scxmlFile, fileName, dataModel);
     scxmlFile.close();
-    return table;
+    return stateMachine;
 }
 
 QScxmlStateMachine *QScxmlStateMachine::fromData(QIODevice *data, const QString &fileName, QScxmlDataModel *dataModel)
@@ -564,13 +565,13 @@ QScxmlStateMachine *QScxmlStateMachine::fromData(QIODevice *data, const QString 
     QScxmlParser parser(&xmlReader);
     parser.setFileName(fileName);
     parser.parse();
-    auto table = parser.instantiateStateMachine();
+    auto stateMachine = parser.instantiateStateMachine();
     if (dataModel) {
-        table->setDataModel(dataModel);
+        stateMachine->setDataModel(dataModel);
     } else {
-        parser.instantiateDataModel(table);
+        parser.instantiateDataModel(stateMachine);
     }
-    return table;
+    return stateMachine;
 }
 
 QVector<QScxmlError> QScxmlStateMachine::errors() const
@@ -641,7 +642,7 @@ void QScxmlStateMachine::setDataModel(QScxmlDataModel *dataModel)
     Q_D(QScxmlStateMachine);
 
     d->m_dataModel = dataModel;
-    dataModel->setTable(this);
+    QScxmlDataModelPrivate::get(dataModel)->setStateMachine(this);
 }
 
 void QScxmlStateMachine::setDataBinding(QScxmlStateMachine::BindingMethod b)

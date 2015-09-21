@@ -31,9 +31,15 @@ public:
         : m_stateMachine(Q_NULLPTR)
     {}
 
+    static QScxmlDataModelPrivate *get(QScxmlDataModel *dataModel)
+    { return dataModel->d; }
+
     static QScxmlDataModel *instantiateDataModel(DocumentModel::Scxml::DataModelType type,
                                                  QScxmlStateMachine *stateMachine);
 
+    void setStateMachine(QScxmlStateMachine *stateMachine);
+
+public:
     QScxmlStateMachine *m_stateMachine;
 };
 

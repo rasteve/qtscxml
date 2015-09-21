@@ -242,9 +242,8 @@ bool QScxmlBaseTransition::eventTest(QEvent *event)
         return true;
     if (event->type() == QEvent::None)
         return false;
-    QScxmlStateMachine *stateTable = stateMachine();
-    Q_ASSERT(stateTable);
-    QByteArray eventName = QScxmlStateMachinePrivate::get(stateTable)->m_event.name();
+    Q_ASSERT(stateMachine());
+    QByteArray eventName = QScxmlStateMachinePrivate::get(stateMachine())->m_event.name();
     bool selected = false;
     foreach (QByteArray eventStr, d->eventSelector) {
         if (eventStr == "*") {
