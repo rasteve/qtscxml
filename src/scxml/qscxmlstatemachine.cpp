@@ -418,8 +418,13 @@ QVariantMap QScxmlInvokableServiceFactory::calculateData(QScxmlStateMachine *par
             *ok = false;
             return QVariantMap();
         }
-        auto v = dataModel->property(loc);
-        result.insert(loc, v);
+        if (dataModel->hasProperty(loc)) {
+            auto v = dataModel->property(loc);
+            result.insert(loc, v);
+        } else {
+            *ok = false;
+            return QVariantMap();
+        }
     }
 
     return result;

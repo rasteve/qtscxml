@@ -64,7 +64,6 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         << QLatin1String("w3c-ecma/test338.txml")
         << QLatin1String("w3c-ecma/test422.txml")
         << QLatin1String("w3c-ecma/test530.txml")
-        << QLatin1String("w3c-ecma/test554.txml")
            ;
 
 static QSet<QString> weDieOnThese = QSet<QString>()
