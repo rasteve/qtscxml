@@ -18,8 +18,8 @@
 
 #include "qscxmlnulldatamodel.h"
 #include "qscxmlevent.h"
-
 #include "qscxmlstatemachine.h"
+#include "qscxmltabledata.h"
 
 class QScxmlNullDataModel::Data
 {

@@ -34,9 +34,11 @@
 
 #include <QDir>
 #include <QFileInfo>
+#include <QSet>
 #include <QSharedPointer>
 #include <QStringList>
 #include <QString>
+#include <QXmlStreamAttributes>
 
 QT_BEGIN_NAMESPACE
 

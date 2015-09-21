@@ -43,6 +43,8 @@ QScxmlStateMachine *QScxmlDataModel::stateMachine() const
 QScxmlDataModel *QScxmlDataModelPrivate::instantiateDataModel(
         DocumentModel::Scxml::DataModelType type, QScxmlStateMachine *stateMachine)
 {
+    Q_ASSERT(stateMachine);
+
     QScxmlDataModel *dataModel = Q_NULLPTR;
     switch (type) {
     case DocumentModel::Scxml::NullDataModel:

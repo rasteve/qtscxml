@@ -64,6 +64,7 @@ private:
 };
 } // Internal namespace
 
+class QScxmlInvokableService;
 class QScxmlState;
 class QScxmlStateMachinePrivate: public QObjectPrivate
 {

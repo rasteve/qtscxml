@@ -1195,7 +1195,9 @@ DocumentModel::NodeVisitor::~NodeVisitor()
 
 QScxmlParser::Loader::Loader(QScxmlParser *parser)
     : m_parser(parser)
-{}
+{
+    Q_ASSERT(parser);
+}
 
 QScxmlParser::Loader::~Loader()
 {}

@@ -19,13 +19,14 @@
 #ifndef SCXMLPARSER_H
 #define SCXMLPARSER_H
 
-#include <QtScxml/qscxmlstatemachine.h>
+#include <QtScxml/qscxmlerror.h>
 
 #include <QStringList>
 #include <QString>
 
 QT_BEGIN_NAMESPACE
 class QXmlStreamReader;
+class QScxmlStateMachine;
 
 class QScxmlParserPrivate;
 class Q_SCXML_EXPORT QScxmlParser

@@ -151,8 +151,9 @@ static QString toHex(const QString &str)
     return res;
 }
 
-const char *headerStart =
+static const char *headerStart =
         "#include <QScxmlStateMachine>\n"
+        "#include <QAbstractState>\n"
         "#include <QString>\n"
         "#include <QByteArray>\n"
         "\n";
@@ -1154,7 +1155,8 @@ void CppDumper::writeImplStart(const QVector<ClassDump> &allClazzes)
     auto headerName = QFileInfo(m_translationUnit->outHFileName).fileName();
     cpp << l("#include \"") << headerName << l("\"") << endl;
     cpp << endl
-        << QStringLiteral("#include <qscxmlqstates.h>") << endl;
+        << QStringLiteral("#include <qscxmlqstates.h>") << endl
+        << QStringLiteral("#include <qscxmltabledata.h>") << endl;
     if (!includes.isEmpty()) {
         includes.write(cpp, QStringLiteral("#include <"), QStringLiteral(">\n"));
         cpp << endl;

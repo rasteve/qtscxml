@@ -34,6 +34,7 @@
 #include <QtScxml/qscxmlexecutablecontent.h>
 #include <QtScxml/private/qscxmlparser_p.h>
 #include <QtScxml/qscxmlstatemachine.h>
+#include <QtScxml/qscxmltabledata.h>
 
 QT_BEGIN_NAMESPACE
 

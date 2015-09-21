@@ -20,6 +20,11 @@
 #define SCXMLQSTATES_H
 
 #include <QtScxml/qscxmlstatemachine.h>
+#include <QtScxml/qscxmlinvokableservice.h>
+
+#include <QAbstractTransition>
+#include <QFinalState>
+#include <QState>
 
 QT_BEGIN_NAMESPACE
 
