@@ -699,12 +699,12 @@ private:
         if (QHistoryState *parent = qobject_cast<QHistoryState*>(m_parents.last())) {
             // QHistoryState cannot have an initial transition, only an initial state.
             // So, work around that by creating an initial state, and add the transition to that.
-            parentState = new ScxmlState(parent->parentState());
+            parentState = new QScxmlState(parent->parentState());
             parent->setDefaultState(parentState);
         } else {
             parentState = currentParent();
         }
-        auto newTransition = new ScxmlTransition(parentState, toUtf8(node->events));
+        auto newTransition = new QScxmlTransition(parentState, toUtf8(node->events));
         parentState->addTransition(newTransition);
 #endif
 

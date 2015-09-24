@@ -267,7 +267,7 @@ protected:
             switch (node->dataModel) {
             case Scxml::NullDataModel:
                 clazz.classFields << QStringLiteral("QScxmlNullDataModel dataModel;");
-                clazz.implIncludes << QStringLiteral("QScxmlNullDataModel.h");
+                clazz.implIncludes << QStringLiteral("QScxmlNullDataModel");
                 break;
             case Scxml::JSDataModel:
                 clazz.classFields << QStringLiteral("QScxmlEcmaScriptDataModel dataModel;");
