@@ -16,7 +16,7 @@ qscxmlc.variable_out = QSCXMLC_HEADERS
 qscxmlc.commands = $$QMAKE_QSCXMLC ${QMAKE_FILE_IN} -oh ${QMAKE_FILE_OUT} -ocpp $$QSCXMLC_DIR/${QMAKE_FILE_BASE}$${first(QMAKE_EXT_CPP)}
 qscxmlc.output = $$QSCXMLC_DIR/${QMAKE_FILE_BASE}$${first(QMAKE_EXT_H)}
 qscxmlc.CONFIG += target_predeps
-qscxmlc.depends += $$[QT_HOST_BINS]/qscxmlc
+qscxmlc.depends += $$QMAKE_QSCXMLC
 
 QMAKE_EXTRA_COMPILERS += qscxmlc
 
