@@ -109,13 +109,21 @@ void QScxmlState::setInvokableServiceFactories(const QVector<QScxmlInvokableServ
 
 void QScxmlState::onEntry(QEvent *event)
 {
+    auto sp = QScxmlStateMachinePrivate::get(stateMachine());
     if (d->initInstructions != QScxmlExecutableContent::NoInstruction) {
-        QScxmlStateMachinePrivate::get(stateMachine())->m_executionEngine->execute(d->initInstructions);
+        sp->m_executionEngine->execute(d->initInstructions);
         d->initInstructions = QScxmlExecutableContent::NoInstruction;
     }
     QState::onEntry(event);
     auto sm = stateMachine();
     QScxmlStateMachinePrivate::get(sm)->m_executionEngine->execute(d->onEntryInstructions);
+    foreach (QScxmlInvokableServiceFactory *f, d->invokableServiceFactories) {
+        if (auto service = f->invoke(stateMachine())) {
+            d->invokedServices.append(service);
+            d->servicesWaitingToStart.append(service);
+            sp->addService(service);
+        }
+    }
     emit didEnter();
 }
 
@@ -233,7 +241,7 @@ QString QScxmlBaseTransition::transitionLocation() const {
         int transitionIndex = state->transitions().indexOf(const_cast<QScxmlBaseTransition *>(this));
         return QStringLiteral("transition #%1 in state %2").arg(transitionIndex).arg(stateName);
     }
-    return QStringLiteral("unbound transition @%1").arg((size_t)(void*)this);
+    return QStringLiteral("unbound transition @%1").arg(reinterpret_cast<quintptr>(this));
 }
 
 bool QScxmlBaseTransition::eventTest(QEvent *event)

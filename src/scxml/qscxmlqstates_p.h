@@ -44,6 +44,7 @@ public:
     QScxmlExecutableContent::ContainerId onExitInstructions;
     QVector<QScxmlInvokableServiceFactory *> invokableServiceFactories;
     QVector<QScxmlInvokableService *> invokedServices;
+    QVector<QScxmlInvokableService *> servicesWaitingToStart;
 };
 
 class QScxmlFinalState::Data

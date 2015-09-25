@@ -28,21 +28,26 @@ QT_BEGIN_NAMESPACE
 
 class QScxmlEvent;
 class QScxmlStateMachine;
+class QScxmlInvokableServiceFactory;
+
 class Q_SCXML_EXPORT QScxmlInvokableService
 {
 public:
-    QScxmlInvokableService(const QString &id, const QVariantMap &data, bool autoforward,
-                           QScxmlExecutableContent::ContainerId finalize, QScxmlStateMachine *parent);
+    QScxmlInvokableService(QScxmlInvokableServiceFactory *service, QScxmlStateMachine *parent);
     virtual ~QScxmlInvokableService();
 
-    QString id() const;
     bool autoforward() const;
-    QVariantMap data() const;
     QScxmlStateMachine *parent() const;
 
+    virtual bool start() = 0;
+    virtual QString id() const = 0;
+    virtual QString name() const = 0;
     virtual void submitEvent(QScxmlEvent *event) = 0;
 
     void finalize();
+
+protected:
+    QScxmlInvokableServiceFactory *service() const;
 
 private:
     class Data;
@@ -71,7 +76,7 @@ public:
 
     virtual QScxmlInvokableService *invoke(QScxmlStateMachine *parent) = 0;
 
-protected:
+public: // callbacks from the service:
     QString calculateId(QScxmlStateMachine *parent, bool *ok) const;
     QVariantMap calculateData(QScxmlStateMachine *parent, bool *ok) const;
     bool autoforward() const;
@@ -80,6 +85,25 @@ protected:
 private:
     class Data;
     Data *d;
+};
+
+class Q_SCXML_EXPORT QScxmlInvokableScxml: public QScxmlInvokableService
+{
+public:
+    QScxmlInvokableScxml(QScxmlInvokableServiceFactory *service,
+                         QScxmlStateMachine *stateMachine,
+                         QScxmlStateMachine *parent);
+    virtual ~QScxmlInvokableScxml();
+
+    bool start() Q_DECL_OVERRIDE;
+    QString id() const Q_DECL_OVERRIDE;
+    QString name() const Q_DECL_OVERRIDE;
+    void submitEvent(QScxmlEvent *event) Q_DECL_OVERRIDE;
+
+    QScxmlStateMachine *stateMachine() const;
+
+private:
+    QScxmlStateMachine *m_stateMachine;
 };
 
 class Q_SCXML_EXPORT QScxmlInvokableScxmlServiceFactory: public QScxmlInvokableServiceFactory
@@ -99,5 +123,7 @@ protected:
 };
 
 QT_END_NAMESPACE
+
+Q_DECLARE_METATYPE(QScxmlInvokableService *)
 
 #endif // QSCXMLINVOKABLESERVICE_H

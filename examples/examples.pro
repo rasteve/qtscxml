@@ -14,4 +14,6 @@ qtHaveModule(qml) {
     SUBDIRS +=  mediaplayer-qml-dynamic
 
     SUBDIRS +=  mediaplayer-qml-cppdatamodel
+    SUBDIRS +=  invoke-static
+    SUBDIRS +=  invoke-dynamic
 }

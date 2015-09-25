@@ -36,9 +36,11 @@ class QTextStream;
 
 Q_SCXML_EXPORT Q_DECLARE_LOGGING_CATEGORY(scxmlLog)
 
+class QScxmlInvokableService;
 class QScxmlParser;
-class QScxmlTableData;
 class QScxmlStateMachine;
+class QScxmlTableData;
+
 class Q_SCXML_EXPORT QScxmlEventFilter
 {
 public:
@@ -52,6 +54,12 @@ class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
     Q_DECLARE_PRIVATE(QScxmlStateMachine)
     Q_OBJECT
     Q_ENUMS(BindingMethod)
+    Q_PROPERTY(bool running READ isRunning NOTIFY runningChanged)
+
+protected: // For the constructor:
+    friend class QScxmlParser;
+    QScxmlStateMachine(QObject *parent = 0);
+    QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *parent);
 
 public:
     enum BindingMethod {
@@ -111,6 +119,7 @@ public:
     bool isDispatchableTarget(const QString &target) const;
 
 Q_SIGNALS:
+    void runningChanged(bool running);
     void log(const QString &label, const QString &msg);
     void reachedStableState(bool didChange);
     void finished();
@@ -122,11 +131,7 @@ private Q_SLOTS:
     void onFinished();
 
 protected:
-    friend class QScxmlParser; // For the constructor:
-    QScxmlStateMachine(QObject *parent = 0);
-    QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *parent);
-
-    void executeInitialSetup();
+    virtual void setService(const QString &id, QScxmlInvokableService *service);
 };
 
 QT_END_NAMESPACE

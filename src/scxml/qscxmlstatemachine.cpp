@@ -50,7 +50,15 @@ public:
         , m_queuedEvents(Q_NULLPTR)
     {}
     ~WrappedQStateMachinePrivate()
-    { delete m_queuedEvents; }
+    {
+        if (m_queuedEvents) {
+            foreach (const QueuedEvent &qt, *m_queuedEvents) {
+                delete qt.event;
+            }
+
+            delete m_queuedEvents;
+        }
+    }
 
     int eventIdForDelayedEvent(const QByteArray &scxmlEventId);
 
@@ -203,6 +211,27 @@ QScxmlStateMachinePrivate::ParserData *QScxmlStateMachinePrivate::parserData()
     return m_parserData.data();
 }
 
+void QScxmlStateMachinePrivate::addService(QScxmlInvokableService *service)
+{
+    Q_Q(QScxmlStateMachine);
+    Q_ASSERT(!m_invokedServices.contains(service));
+    m_invokedServices.append(service);
+    q->setService(service->name(), service);
+}
+
+void QScxmlStateMachinePrivate::removeService(QScxmlInvokableService *service)
+{
+    Q_Q(QScxmlStateMachine);
+    Q_ASSERT(m_invokedServices.contains(service));
+    m_invokedServices.removeOne(service);
+    q->setService(service->name(), Q_NULLPTR);
+}
+
+void QScxmlStateMachinePrivate::executeInitialSetup()
+{
+    m_executionEngine->execute(m_tableData->initialSetup());
+}
+
 QScxmlStateMachine *QScxmlStateMachine::fromFile(const QString &fileName, QScxmlDataModel *dataModel)
 {
     QFile scxmlFile(fileName);
@@ -250,6 +279,7 @@ QScxmlStateMachine::QScxmlStateMachine(QObject *parent)
     Q_D(QScxmlStateMachine);
     d->m_executionEngine = new QScxmlExecutableContent::ExecutionEngine(this);
     d->setQStateMachine(new QScxmlInternal::WrappedQStateMachine(this));
+    connect(d->m_qStateMachine, &QStateMachine::runningChanged, this, &QScxmlStateMachine::runningChanged);
     connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::onFinished);
     connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::finished);
 }
@@ -262,6 +292,7 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
 {
     Q_D(QScxmlStateMachine);
     d->m_executionEngine = new QScxmlExecutableContent::ExecutionEngine(this);
+    connect(d->m_qStateMachine, &QStateMachine::runningChanged, this, &QScxmlStateMachine::runningChanged);
     connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::onFinished);
     connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::finished);
 }
@@ -389,21 +420,6 @@ void QScxmlInternal::WrappedQStateMachine::beginSelectTransitions(QEvent *event)
 {
     Q_D(WrappedQStateMachine);
 
-    { // handle <invoke>s
-        QVector<QScxmlState*> &sti = d->stateMachinePrivate()->m_statesToInvoke;
-        std::sort(sti.begin(), sti.end(), WrappedQStateMachinePrivate::stateEntryLessThan);
-        foreach (QScxmlState *s, sti) {
-            auto sp = QScxmlStatePrivate::get(s);
-            foreach (QScxmlInvokableServiceFactory *f, sp->invokableServiceFactories) {
-                if (auto service = f->invoke(stateMachine())) {
-                    sp->invokedServices.append(service);
-                    stateMachinePrivate()->m_invokedServices.append(service);
-                }
-            }
-        }
-        sti.clear();
-    }
-
     if (event && event->type() == QScxmlEvent::scxmlEventType) {
         stateMachinePrivate()->m_event = *static_cast<QScxmlEvent *>(event);
         d->stateMachine()->dataModel()->setEvent(stateMachinePrivate()->m_event);
@@ -411,7 +427,7 @@ void QScxmlInternal::WrappedQStateMachine::beginSelectTransitions(QEvent *event)
         auto scxmlEvent = static_cast<QScxmlEvent *>(event);
         auto smp = stateMachinePrivate();
 
-        foreach (QScxmlInvokableService *service, smp->m_invokedServices) {
+        foreach (QScxmlInvokableService *service, smp->invokedServices()) {
             if (scxmlEvent->invokeId() == service->id()) {
                 service->finalize();
             }
@@ -477,6 +493,19 @@ void QScxmlInternal::WrappedQStateMachinePrivate::endMacrostep(bool didChange)
 {
     qCDebug(scxmlLog) << m_stateMachine << "endMacrostep" << didChange
                       << "in state (" << m_stateMachine->activeStates() << ")";
+
+    { // handle <invoke>s
+        QVector<QScxmlState*> &sti = stateMachinePrivate()->m_statesToInvoke;
+        std::sort(sti.begin(), sti.end(), WrappedQStateMachinePrivate::stateEntryLessThan);
+        foreach (QScxmlState *s, sti) {
+            auto sp = QScxmlStatePrivate::get(s);
+            foreach (QScxmlInvokableService *s, sp->servicesWaitingToStart) {
+                s->start();
+            }
+            sp->servicesWaitingToStart.clear();
+        }
+        sti.clear();
+    }
 }
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
@@ -526,11 +555,15 @@ void QScxmlInternal::WrappedQStateMachinePrivate::exitStates(
 
     foreach (QAbstractState *s, statesToExit_sorted) {
         if (QScxmlState *qss = qobject_cast<QScxmlState *>(s)) {
-            QVector<QScxmlInvokableService *> &services = QScxmlStatePrivate::get(qss)->invokedServices;
+            auto ssp = QScxmlStatePrivate::get(qss);
+            ssp->servicesWaitingToStart.clear();
+            QVector<QScxmlInvokableService *> &services = ssp->invokedServices;
             foreach (QScxmlInvokableService *service, services) {
-                qCDebug(scxmlLog) << this << "canceling service" << service->id();
-                stateMachinePrivate()->m_invokedServices.removeOne(service);
-                delete service;
+                qCDebug(scxmlLog) << stateMachine() << "schedule service cancellation" << service->id();
+                QMetaObject::invokeMethod(q_func(),
+                                          "removeAndDestroyService",
+                                          Qt::QueuedConnection,
+                                          Q_ARG(QScxmlInvokableService *,service));
             }
             services.clear();
         }
@@ -666,12 +699,6 @@ void QScxmlStateMachine::setScxmlEventFilter(QScxmlEventFilter *newFilter)
     d->m_eventFilter = newFilter;
 }
 
-void QScxmlStateMachine::executeInitialSetup()
-{
-    Q_D(const QScxmlStateMachine);
-    d->m_executionEngine->execute(tableData()->initialSetup());
-}
-
 static bool loopOnSubStates(QState *startState,
                             std::function<bool(QState *)> enteringState = Q_NULLPTR,
                             std::function<void(QState *)> exitingState = Q_NULLPTR,
@@ -719,7 +746,7 @@ bool QScxmlStateMachine::init(const QVariantMap &initialDataValues)
     Q_D(QScxmlStateMachine);
 
     dataModel()->setup(initialDataValues);
-    executeInitialSetup();
+    d->executeInitialSetup();
 
     bool res = true;
     loopOnSubStates(d->m_qStateMachine, std::function<bool(QState *)>(), [&res](QState *state) {
@@ -888,6 +915,14 @@ int QScxmlInternal::WrappedQStateMachine::eventIdForDelayedEvent(const QByteArra
     return d->eventIdForDelayedEvent(scxmlEventId);
 }
 
+void QScxmlInternal::WrappedQStateMachine::removeAndDestroyService(QScxmlInvokableService *service)
+{
+    Q_D(WrappedQStateMachine);
+    qCDebug(scxmlLog) << stateMachine() << "canceling service" << service->id();
+    d->stateMachinePrivate()->removeService(service);
+    delete service;
+}
+
 bool QScxmlStateMachine::isDispatchableTarget(const QString &target) const
 {
     Q_D(const QScxmlStateMachine);
@@ -910,17 +945,23 @@ bool QScxmlStateMachine::isDispatchableTarget(const QString &target) const
     return false;
 }
 
+void QScxmlStateMachine::start()
+{
+    Q_D(QScxmlStateMachine);
+
+    d->m_qStateMachine->start();
+}
+
 void QScxmlStateMachine::onFinished()
 {
     // The final state is also a stable state.
     emit reachedStableState(true);
 }
 
-void QScxmlStateMachine::start()
+void QScxmlStateMachine::setService(const QString &id, QScxmlInvokableService *service)
 {
-    Q_D(QScxmlStateMachine);
-
-    d->m_qStateMachine->start();
+    Q_UNUSED(id);
+    Q_UNUSED(service);
 }
 
 QT_END_NAMESPACE

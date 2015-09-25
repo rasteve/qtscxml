@@ -33,6 +33,7 @@
 #include <QtScxml/private/qscxmlexecutablecontent_p.h>
 #include <QtScxml/qscxmlstatemachine.h>
 
+#include <QStateMachine>
 #include <QtCore/private/qstatemachine_p.h>
 
 QT_BEGIN_NAMESPACE
@@ -53,6 +54,8 @@ public:
     void queueEvent(QScxmlEvent *event, QStateMachine::EventPriority priority);
     void submitQueuedEvents();
     int eventIdForDelayedEvent(const QByteArray &scxmlEventId);
+
+    Q_INVOKABLE void removeAndDestroyService(QScxmlInvokableService *service);
 
 protected:
     void beginSelectTransitions(QEvent *event) Q_DECL_OVERRIDE;
@@ -96,6 +99,15 @@ public:
     void setIsInvoked(bool invoked)
     { m_isInvoked = invoked; }
 
+    const QVector<QScxmlInvokableService *> &invokedServices() const
+    { return m_invokedServices; }
+
+    void addService(QScxmlInvokableService *service);
+
+    void removeService(QScxmlInvokableService *service);
+
+    void executeInitialSetup();
+
 public: // types & data fields:
     QString m_sessionId;
     bool m_isInvoked;
@@ -107,10 +119,10 @@ public: // types & data fields:
     QScxmlInternal::WrappedQStateMachine *m_qStateMachine;
     QScxmlEventFilter *m_eventFilter;
     QVector<QScxmlState*> m_statesToInvoke;
-    QVector<QScxmlInvokableService *> m_invokedServices;
     QScxmlStateMachine *m_parentStateMachine;
 
 private:
+    QVector<QScxmlInvokableService *> m_invokedServices;
     QScopedPointer<ParserData> m_parserData; // used when created by StateMachine::fromFile.
 };
 

@@ -73,8 +73,8 @@ public:
     void setInvokableServiceFactories(const QVector<QScxmlInvokableServiceFactory *>& factories);
 
 Q_SIGNALS:
-    void didEnter();
-    void willExit();
+    void didEnter(); // TODO: REMOVE!
+    void willExit(); // TODO: REMOVE!
 
 protected:
     void onEntry(QEvent * event) Q_DECL_OVERRIDE;

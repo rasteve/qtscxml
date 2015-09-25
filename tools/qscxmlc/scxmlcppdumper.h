@@ -65,9 +65,9 @@ public:
     static QString mangleId(const QString &id);
 
 private:
-    void writeHeaderStart(const QString &headerGuard);
+    void writeHeaderStart(const QString &headerGuard, const QStringList &forwardDecls);
     void writeClass(const ClassDump &clazz);
-    void writeHeaderEnd(const QString &headerGuard);
+    void writeHeaderEnd(const QString &headerGuard, const QStringList &metatypeDecls);
     void writeImplStart(const QVector<ClassDump> &allClazzes);
     void writeImplBody(const ClassDump &clazz);
     void writeImplEnd();

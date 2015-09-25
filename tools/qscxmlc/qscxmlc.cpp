@@ -59,6 +59,15 @@ int write(TranslationUnit *tu)
     return NoError;
 }
 
+static void collectAllDocuments(DocumentModel::ScxmlDocument *doc, QMap<DocumentModel::ScxmlDocument *, QString> *docs)
+{
+    docs->insert(doc, doc->root->name);
+    foreach (DocumentModel::ScxmlDocument *subDoc, doc->allSubDocuments) {
+        collectAllDocuments(subDoc, docs);
+    }
+}
+
+
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
@@ -133,17 +142,8 @@ int main(int argc, char *argv[])
         return ScxmlVerificationError;
     }
 
-    struct : public DocumentModel::NodeVisitor {
-        bool visit(DocumentModel::Invoke *invoke) Q_DECL_OVERRIDE {
-            if (DocumentModel::ScxmlDocument *doc = invoke->content.data()) {
-                docs.insert(doc, doc->root->name);
-            }
-            return true;
-        }
-
-        QMap<DocumentModel::ScxmlDocument *, QString> docs;
-    } collector;
-    mainDoc->root->accept(&collector);
+    QMap<DocumentModel::ScxmlDocument *, QString> docs;
+    collectAllDocuments(mainDoc, &docs);
     if (mainClassname.isEmpty())
         mainClassname = mainDoc->root->name;
     if (mainClassname.isEmpty()) {
@@ -152,13 +152,13 @@ int main(int argc, char *argv[])
         if (dot != -1)
             mainClassname = mainClassname.left(dot);
     }
-    collector.docs.insert(mainDoc, mainClassname);
+    docs.insert(mainDoc, mainClassname);
 
     TranslationUnit tu = options;
     tu.mainDocument = mainDoc;
     tu.outHFileName = outHFileName;
     tu.outCppFileName = outCppFileName;
-    for (QMap<DocumentModel::ScxmlDocument *, QString>::const_iterator i = collector.docs.begin(), ei = collector.docs.end(); i != ei; ++i) {
+    for (QMap<DocumentModel::ScxmlDocument *, QString>::const_iterator i = docs.begin(), ei = docs.end(); i != ei; ++i) {
         auto name = i.value();
         if (name.isEmpty()) {
             name = QStringLiteral("%1_StateMachine_%2").arg(mainClassname).arg(tu.classnameForDocument.size() + 1);

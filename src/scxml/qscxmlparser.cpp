@@ -349,7 +349,8 @@ private:
     {
         if (_c == QMetaObject::InvokeMetaMethod) {
             DynamicStateMachine *_t = static_cast<DynamicStateMachine *>(_o);
-            if (_id >= _t->m_eventNamesByIndex.size() || _id < 0) {
+            if (_id >= _t->m_eventNamesByIndex.size() ||
+                    (_id >= _t->m_firstSubStateMachineSignal && _id < _t->m_firstSlot)) {
                 Q_UNREACHABLE();
             }
             const QByteArray &event = _t->m_eventNamesByIndex.at(_id);
@@ -370,7 +371,12 @@ private:
             DynamicStateMachine *_t = static_cast<DynamicStateMachine *>(_o);
             void *_v = _a[0];
             if (_id >= 0 && _id < _t->m_propertyNamesByIndex.size()) {
-                *reinterpret_cast<QAbstractState**>(_v) = QScxmlStateMachinePrivate::get(_t)->stateByScxmlName(_t->m_propertyNamesByIndex.at(_id));
+                if (_id < _t->m_firstSubStateMachineProperty) {
+                    *reinterpret_cast<QAbstractState**>(_v) = QScxmlStateMachinePrivate::get(_t)->stateByScxmlName(_t->m_propertyNamesByIndex.at(_id));
+                } else {
+                    int idx = _id - _t->m_firstSubStateMachineProperty;
+                    *reinterpret_cast<QScxmlStateMachine **>(_v) = _t->m_subStateMachines.at(idx);
+                }
             }
         }
     }
@@ -380,8 +386,10 @@ private:
     friend QStateMachineBuilder;
     DynamicStateMachine()
         : m_metaObject(Q_NULLPTR)
+        , m_firstSubStateMachineSignal(0)
         , m_firstSlot(0)
         , m_firstSlotWithoutData(0)
+        , m_firstSubStateMachineProperty(0)
     {
         // Temporarily wire up the QMetaObject, because qobject_cast needs it while building MyQStateMachine.
         QMetaObjectBuilder b;
@@ -395,13 +403,14 @@ private:
 
     void initDynamicParts(const QSet<QByteArray> &eventSignals,
                           const QSet<QByteArray> &eventSlots,
-                          const QSet<QString> &stateNames)
+                          const QSet<QString> &stateNames,
+                          const QList<QString> &subStateMachineNames)
     {
         // Release the temporary QMetaObject.
         Q_ASSERT(m_metaObject);
         free(m_metaObject);
 
-        m_eventNamesByIndex.reserve(eventSignals.size() + eventSlots.size());
+        m_eventNamesByIndex.reserve(eventSignals.size() + subStateMachineNames.size() + eventSlots.size());
 
         // Build the real one.
         QMetaObjectBuilder b;
@@ -417,6 +426,16 @@ private:
             int idx = signalBuilder.index();
             m_eventNamesByIndex.resize(std::max(idx + 1, m_eventNamesByIndex.size()));
             m_eventNamesByIndex[idx] = eventName;
+        }
+
+        m_firstSubStateMachineSignal = m_eventNamesByIndex.size();
+        foreach (const QString &machineName, subStateMachineNames) {
+            auto name = machineName.toUtf8();
+            QByteArray signalName = name + "Changed()";
+            QMetaMethodBuilder signalBuilder = b.addSignal(signalName);
+            int idx = signalBuilder.index();
+            m_eventNamesByIndex.resize(std::max(idx + 1, m_eventNamesByIndex.size()));
+//            m_eventNamesByIndex[idx] = name;
         }
 
         // slots
@@ -449,6 +468,19 @@ private:
             m_propertyNamesByIndex[idx] = stateName;
         }
 
+        m_firstSubStateMachineProperty = m_propertyNamesByIndex.size();
+        int notifier = m_firstSubStateMachineSignal;
+        foreach (const QString &machineName, subStateMachineNames) {
+            QMetaPropertyBuilder prop = b.addProperty(machineName.toUtf8(), "QScxmlStateMachine *", notifier);
+            prop.setWritable(false);
+            int idx = prop.index();
+            m_propertyNamesByIndex.resize(std::max(idx + 1, m_propertyNamesByIndex.size()));
+            m_propertyNamesByIndex[idx] = machineName;
+            ++notifier;
+        }
+        m_subStateMachines.resize(subStateMachineNames.size());
+
+        // And we're done
         m_metaObject = b.toMetaObject();
     }
 
@@ -464,7 +496,7 @@ public:
         }
 
         auto eventName = event->name();
-        for (int i = 0; i < m_firstSlot; ++i) {
+        for (int i = 0; i < m_firstSubStateMachineSignal; ++i) {
             if (m_eventNamesByIndex.at(i) == eventName) {
                 QVariant data = event->data();
                 void *argv[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&data)) };
@@ -476,12 +508,36 @@ public:
         return true;
     }
 
+protected:
+    void setService(const QString &id, QScxmlInvokableService *service) Q_DECL_OVERRIDE
+    {
+        int idx = -1;
+        for (int i = m_firstSubStateMachineProperty, ei = m_propertyNamesByIndex.size(); i != ei; ++i) {
+            if (m_propertyNamesByIndex.at(i) == id) {
+                idx = i - m_firstSubStateMachineProperty;
+                break;
+            }
+        }
+        if (idx < 0)
+            return;
+        auto scxml = service ? dynamic_cast<QScxmlInvokableScxml *>(service) : Q_NULLPTR;
+        auto machine = scxml ? scxml->stateMachine() : Q_NULLPTR;
+        if (m_subStateMachines.at(idx) != machine) {
+            m_subStateMachines[idx] = machine;
+            // emit changed signal:
+            QMetaObject::activate(this, metaObject(), m_firstSubStateMachineSignal + idx, Q_NULLPTR);
+        }
+    }
+
 private:
     QMetaObject *m_metaObject;
     QVector<QByteArray> m_eventNamesByIndex;
     QVector<QString> m_propertyNamesByIndex;
+    QVector<QScxmlStateMachine *> m_subStateMachines;
+    int m_firstSubStateMachineSignal;
     int m_firstSlot;
     int m_firstSlotWithoutData;
+    int m_firstSubStateMachineProperty;
 };
 
 class InvokeDynamicScxmlFactory: public QScxmlInvokableScxmlServiceFactory
@@ -530,7 +586,7 @@ public:
         QScxmlExecutableContent::DynamicTableData *td = tableData();
         td->setParent(m_stateMachine);
         m_stateMachine->setTableData(td);
-        m_stateMachine->initDynamicParts(m_eventSignals, m_eventSlots, m_stateNames);
+        m_stateMachine->initDynamicParts(m_eventSignals, m_eventSlots, m_stateNames, m_subStateMachineNames.toList());
 
         m_parents.clear();
         m_allTransitions.clear();
@@ -668,6 +724,10 @@ private:
                                                                  finalize);
                     factory->setContent(invoke->content);
                     factories.append(factory);
+                    QString name = invoke->content->root->name;
+                    if (!name.isEmpty()) {
+                        m_subStateMachineNames.insert(name);
+                    }
                 }
                 s->setInvokableServiceFactories(factories);
             }
@@ -836,9 +896,6 @@ private: // Utility methods
         return QStringLiteral("%1 with %2=\"%3\"").arg(location, attrName, attrValue);
     }
 
-    QScxmlDataModel *dataModel() const
-    { return m_stateMachine->dataModel(); }
-
 private:
     DynamicStateMachine *m_stateMachine;
     QVector<QAbstractState *> m_parents;
@@ -851,6 +908,7 @@ private:
     QSet<QByteArray> m_eventSignals;
     QSet<QByteArray> m_eventSlots;
     QSet<QString> m_stateNames;
+    QSet<QString> m_subStateMachineNames;
 };
 
 inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(QScxmlStateMachine *parent)
@@ -1003,7 +1061,6 @@ bool QScxmlParserPrivate::ParserState::validChild(ParserState::Kind parent, Pars
     case ParserState::OnEntry:
     case ParserState::OnExit:
         return isExecutableContent(child);
-        return false;
     case ParserState::History:
         return (child == ParserState::Transition);
     case ParserState::Raise:
@@ -1036,7 +1093,6 @@ bool QScxmlParserPrivate::ParserState::validChild(ParserState::Kind parent, Pars
     case ParserState::Cancel:
     case ParserState::Finalize:
         return isExecutableContent(child);
-        break;
     case ParserState::Invoke:
         return child == ParserState::Content || child == ParserState::Finalize
                 || child == ParserState::Param;
@@ -1584,6 +1640,7 @@ void QScxmlParserPrivate::parse()
                     p.setFileName(m_fileName);
                     p.parse();
                     i->content.reset(p.p->m_doc.take());
+                    m_doc->allSubDocuments.append(i->content.data());
                     m_errors.append(p.errors());
                     if (p.state() == QScxmlParser::ParsingError)
                         m_state = QScxmlParser::ParsingError;

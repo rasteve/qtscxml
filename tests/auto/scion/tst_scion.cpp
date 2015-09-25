@@ -17,6 +17,7 @@
  ****************************************************************************/
 
 #include <QtTest/QtTest>
+#include <QCoreApplication>
 #include <QJsonDocument>
 
 #include <QtScxml/qscxmlparser.h>
@@ -214,6 +215,7 @@ void TestScion::dynamic()
     if (testStatus == TestFails)
         QEXPECT_FAIL("", "This is expected to fail", Abort);
     QVERIFY(runTest(stateMachine.data(), testDescription.object()));
+    QCoreApplication::processEvents(); // flush any pending events
 }
 
 static QStringList getStates(const QJsonObject &obj, const QString &key)
@@ -260,6 +262,7 @@ void TestScion::compiled()
     if (testStatus == TestFails)
         QEXPECT_FAIL("", "This is expected to fail", Abort);
     QVERIFY(runTest(stateMachine.data(), testDescription.object()));
+    QCoreApplication::processEvents(); // flush any pending events
 }
 
 static bool verifyStates(QScxmlStateMachine *stateMachine, const QJsonObject &stateDescription, const QString &key, int counter)

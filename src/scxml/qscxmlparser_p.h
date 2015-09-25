@@ -386,6 +386,7 @@ struct ScxmlDocument
     QVector<Transition *> allTransitions;
     QVector<Node *> allNodes;
     QVector<InstructionSequence *> allSequences;
+    QVector<ScxmlDocument *> allSubDocuments; // weak pointers
     bool isVerified;
 
     ScxmlDocument(const QString &fileName)
@@ -604,7 +605,7 @@ private:
     {
     public:
         DefaultLoader(QScxmlParser *parser);
-        QByteArray load(const QString &name, const QString &baseDir, bool *ok) Q_DECL_OVERRIDE;
+        QByteArray load(const QString &name, const QString &baseDir, bool *ok) Q_DECL_OVERRIDE Q_DECL_FINAL;
     };
 
 private:
