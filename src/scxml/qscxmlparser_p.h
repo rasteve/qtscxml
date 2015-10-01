@@ -523,91 +523,6 @@ public:
 
 } // DocumentModel namespace
 
-namespace {
-
-struct ParserState {
-    enum Kind {
-        Scxml,
-        State,
-        Parallel,
-        Transition,
-        Initial,
-        Final,
-        OnEntry,
-        OnExit,
-        History,
-        Raise,
-        If,
-        ElseIf,
-        Else,
-        Foreach,
-        Log,
-        DataModel,
-        Data,
-        DataElement,
-        Assign,
-        DoneData,
-        Content,
-        Param,
-        Script,
-        Send,
-        Cancel,
-        Invoke,
-        Finalize,
-        None
-    };
-    Kind kind;
-    QString chars;
-    DocumentModel::Instruction *instruction;
-    DocumentModel::InstructionSequence *instructionContainer;
-
-    bool collectChars();
-
-    ParserState(Kind someKind = None)
-        : kind(someKind)
-        , instruction(0)
-        , instructionContainer(0)
-    {}
-    ~ParserState() { }
-
-    bool validChild(ParserState::Kind child) const;
-    static bool validChild(ParserState::Kind parent, ParserState::Kind child);
-    static bool isExecutableContent(ParserState::Kind kind);
-};
-
-class DefaultLoader: public QScxmlParser::Loader
-{
-public:
-    DefaultLoader(QScxmlParser *parser)
-        : Loader(parser)
-    {}
-
-    QByteArray load(const QString &name, const QString &baseDir, bool *ok) Q_DECL_OVERRIDE
-    {
-        Q_ASSERT(ok != nullptr);
-
-        *ok = false;
-        QFileInfo fInfo(name);
-        if (fInfo.isRelative())
-            fInfo = QFileInfo(QDir(baseDir).filePath(name));
-        if (!fInfo.exists()) {
-            parser()->addError(QStringLiteral("src attribute resolves to non existing file (%1)").arg(fInfo.absoluteFilePath()));
-        } else {
-            QFile f(fInfo.absoluteFilePath());
-            if (f.open(QFile::ReadOnly)) {
-                *ok = true;
-                return f.readAll();
-            } else {
-                parser()->addError(QStringLiteral("Failure opening file %1: %2")
-                                   .arg(fInfo.absoluteFilePath(), f.errorString()));
-            }
-        }
-        return QByteArray();
-    }
-};
-
-} // anonymous namespace
-
 class Q_SCXML_EXPORT QScxmlParserPrivate
 {
 public:
@@ -637,6 +552,60 @@ private:
     bool checkAttributes(const QXmlStreamAttributes &attributes, const char *attribStr);
     bool checkAttributes(const QXmlStreamAttributes &attributes, QStringList requiredNames,
                          QStringList optionalNames);
+
+private:
+    struct ParserState {
+        enum Kind {
+            Scxml,
+            State,
+            Parallel,
+            Transition,
+            Initial,
+            Final,
+            OnEntry,
+            OnExit,
+            History,
+            Raise,
+            If,
+            ElseIf,
+            Else,
+            Foreach,
+            Log,
+            DataModel,
+            Data,
+            DataElement,
+            Assign,
+            DoneData,
+            Content,
+            Param,
+            Script,
+            Send,
+            Cancel,
+            Invoke,
+            Finalize,
+            None
+        };
+        Kind kind;
+        QString chars;
+        DocumentModel::Instruction *instruction;
+        DocumentModel::InstructionSequence *instructionContainer;
+
+        bool collectChars();
+
+        ParserState(Kind someKind = None);
+        ~ParserState() { }
+
+        bool validChild(ParserState::Kind child) const;
+        static bool validChild(ParserState::Kind parent, ParserState::Kind child);
+        static bool isExecutableContent(ParserState::Kind kind);
+    };
+
+    class DefaultLoader: public QScxmlParser::Loader
+    {
+    public:
+        DefaultLoader(QScxmlParser *parser);
+        QByteArray load(const QString &name, const QString &baseDir, bool *ok) Q_DECL_OVERRIDE;
+    };
 
 private:
     QScxmlParser *m_parser;

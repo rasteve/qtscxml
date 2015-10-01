@@ -922,7 +922,7 @@ void QScxmlParser::addError(const QString &msg)
     p->addError(msg);
 }
 
-bool ParserState::collectChars() {
+bool QScxmlParserPrivate::ParserState::collectChars() {
     switch (kind) {
     case Content:
     case Data:
@@ -934,11 +934,11 @@ bool ParserState::collectChars() {
     return false;
 }
 
-bool ParserState::validChild(ParserState::Kind child) const {
+bool QScxmlParserPrivate::ParserState::validChild(ParserState::Kind child) const {
     return validChild(kind, child);
 }
 
-bool ParserState::validChild(ParserState::Kind parent, ParserState::Kind child)
+bool QScxmlParserPrivate::ParserState::validChild(ParserState::Kind parent, ParserState::Kind child)
 {
     switch (parent) {
     case ParserState::Scxml:
@@ -1047,7 +1047,7 @@ bool ParserState::validChild(ParserState::Kind parent, ParserState::Kind child)
     return false;
 }
 
-bool ParserState::isExecutableContent(ParserState::Kind kind) {
+bool QScxmlParserPrivate::ParserState::isExecutableContent(ParserState::Kind kind) {
     switch (kind) {
     case Raise:
     case Send:
@@ -1940,5 +1940,38 @@ bool QScxmlParserPrivate::checkAttributes(const QXmlStreamAttributes &attributes
     }
     return true;
 }
+
+QScxmlParserPrivate::DefaultLoader::DefaultLoader(QScxmlParser *parser)
+    : Loader(parser)
+{}
+
+QByteArray QScxmlParserPrivate::DefaultLoader::load(const QString &name, const QString &baseDir, bool *ok)
+{
+    Q_ASSERT(ok != nullptr);
+
+    *ok = false;
+    QFileInfo fInfo(name);
+    if (fInfo.isRelative())
+        fInfo = QFileInfo(QDir(baseDir).filePath(name));
+    if (!fInfo.exists()) {
+        parser()->addError(QStringLiteral("src attribute resolves to non existing file (%1)").arg(fInfo.absoluteFilePath()));
+    } else {
+        QFile f(fInfo.absoluteFilePath());
+        if (f.open(QFile::ReadOnly)) {
+            *ok = true;
+            return f.readAll();
+        } else {
+            parser()->addError(QStringLiteral("Failure opening file %1: %2")
+                               .arg(fInfo.absoluteFilePath(), f.errorString()));
+        }
+    }
+    return QByteArray();
+}
+
+QScxmlParserPrivate::ParserState::ParserState(QScxmlParserPrivate::ParserState::Kind someKind)
+    : kind(someKind)
+    , instruction(0)
+    , instructionContainer(0)
+{}
 
 QT_END_NAMESPACE
