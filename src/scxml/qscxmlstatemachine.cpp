@@ -35,6 +35,8 @@
 
 #include <QtCore/private/qstatemachine_p.h>
 
+#include <functional>
+
 QT_BEGIN_NAMESPACE
 
 Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")

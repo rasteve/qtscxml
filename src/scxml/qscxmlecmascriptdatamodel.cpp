@@ -24,6 +24,8 @@
 #include <QtQml/private/qjsvalue_p.h>
 #include <QtQml/private/qv4scopedvalue_p.h>
 
+#include <functional>
+
 QT_BEGIN_NAMESPACE
 
 using namespace QScxmlExecutableContent;

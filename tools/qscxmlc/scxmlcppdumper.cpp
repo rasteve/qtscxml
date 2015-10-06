@@ -20,6 +20,7 @@
 #include "scxmlcppdumper.h"
 
 #include <algorithm>
+#include <functional>
 #include <QFileInfo>
 
 QT_BEGIN_NAMESPACE

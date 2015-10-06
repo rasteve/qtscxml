@@ -37,6 +37,8 @@
 #include <private/qmetaobjectbuilder_p.h>
 #include <QJSValue>
 
+#include <functional>
+
 namespace {
 enum {
     DebugHelper_NameTransitions = 0
