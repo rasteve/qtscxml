@@ -24,6 +24,8 @@
 #include <QtScxml/qscxmlecmascriptdatamodel.h>
 #include <QtScxml/qscxmlnulldatamodel.h>
 
+#include <functional>
+
 #include "scxml/scion.h"
 #include "scxml/compiled_tests.h"
 
