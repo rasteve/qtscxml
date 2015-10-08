@@ -175,6 +175,7 @@ QScxmlStateMachinePrivate::QScxmlStateMachinePrivate()
 
 QScxmlStateMachinePrivate::~QScxmlStateMachinePrivate()
 {
+    qDeleteAll(m_invokedServices);
     delete m_executionEngine;
 }
 
@@ -221,12 +222,15 @@ void QScxmlStateMachinePrivate::addService(QScxmlInvokableService *service)
     q->setService(service->name(), service);
 }
 
-void QScxmlStateMachinePrivate::removeService(QScxmlInvokableService *service)
+bool QScxmlStateMachinePrivate::removeService(QScxmlInvokableService *service)
 {
     Q_Q(QScxmlStateMachine);
     Q_ASSERT(m_invokedServices.contains(service));
-    m_invokedServices.removeOne(service);
-    q->setService(service->name(), Q_NULLPTR);
+    if (m_invokedServices.removeOne(service)) {
+        q->setService(service->name(), Q_NULLPTR);
+        return true;
+    }
+    return false;
 }
 
 void QScxmlStateMachinePrivate::executeInitialSetup()
@@ -750,26 +754,34 @@ bool QScxmlStateMachine::init(const QVariantMap &initialDataValues)
     dataModel()->setup(initialDataValues);
     d->executeInitialSetup();
 
-    bool res = true;
-    loopOnSubStates(d->m_qStateMachine, std::function<bool(QState *)>(), [&res](QState *state) {
-        if (QScxmlState *s = qobject_cast<QScxmlState *>(state))
-            if (!s->init())
-                res = false;
-        if (QScxmlFinalState *s = qobject_cast<QScxmlFinalState *>(state))
-            if (!s->init())
-                res = false;
-        foreach (QAbstractTransition *t, state->transitions()) {
-            if (QScxmlTransition *scTransition = qobject_cast<QScxmlTransition *>(t))
-                if (!scTransition->init())
-                    res = false;
+    bool success = true;
+    loopOnSubStates(d->m_qStateMachine, std::function<bool(QState *)>(), [&success](QState *state) {
+        if (QScxmlState *s = qobject_cast<QScxmlState *>(state)) {
+            if (!s->init()) {
+                success = false;
+            }
+        }
+        if (QScxmlFinalState *s = qobject_cast<QScxmlFinalState *>(state)) {
+            if (!s->init()) {
+                success = false;
+            }
+        }
+        foreach (QObject *child, state->children()) {
+            if (QScxmlTransition *transition = qobject_cast<QScxmlTransition *>(child)) {
+                if (!transition->init()) {
+                    success = false;
+                }
+            }
         }
     });
-    foreach (QAbstractTransition *t, d->m_qStateMachine->transitions()) {
-        if (QScxmlTransition *scTransition = qobject_cast<QScxmlTransition *>(t))
-            if (!scTransition->init())
-                res = false;
+    foreach (QObject *child, d->m_qStateMachine->children()) {
+        if (QScxmlTransition *transition = qobject_cast<QScxmlTransition *>(child)) {
+            if (!transition->init()) {
+                success = false;
+            }
+        }
     }
-    return res;
+    return success;
 }
 
 bool QScxmlStateMachine::isRunning() const
@@ -921,8 +933,9 @@ void QScxmlInternal::WrappedQStateMachine::removeAndDestroyService(QScxmlInvokab
 {
     Q_D(WrappedQStateMachine);
     qCDebug(scxmlLog) << stateMachine() << "canceling service" << service->id();
-    d->stateMachinePrivate()->removeService(service);
-    delete service;
+    if (d->stateMachinePrivate()->removeService(service)) {
+        delete service;
+    }
 }
 
 bool QScxmlStateMachine::isDispatchableTarget(const QString &target) const

@@ -104,7 +104,7 @@ public:
 
     void addService(QScxmlInvokableService *service);
 
-    void removeService(QScxmlInvokableService *service);
+    bool removeService(QScxmlInvokableService *service);
 
     void executeInitialSetup();
 
