@@ -35,7 +35,18 @@ enum { SpyWaitTime = 8000 };
 
 static QSet<QString> weFailOnThese = QSet<QString>()
         // The following test needs manual inspection of the result. However, note that we do not support multiple identical keys for event data.
+        << QLatin1String("delayedSend/send1") // same as above
+        << QLatin1String("delayedSend/send2") // same as above
+        << QLatin1String("delayedSend/send3") // same as above
+        << QLatin1String("send-data/send1") // test suite problem: we expect every stable configuration to be listed.
         << QLatin1String("w3c-ecma/test178.txml")
+        // We do not support the optional basic http event i/o processor.
+        << QLatin1String("w3c-ecma/test201.txml")
+        << QLatin1String("w3c-ecma/test364.txml") // initial attribute on <state>
+        << QLatin1String("w3c-ecma/test388.txml") // Qt refuses to set an initial state to a "deep" state
+        << QLatin1String("w3c-ecma/test403c.txml")
+
+
         // Currently we do not support loading data as XML content inside the <data> tag.
         << QLatin1String("w3c-ecma/test557.txml")
         // FIXME: Currently we do not support loading data from a src.
@@ -43,17 +54,14 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         << QLatin1String("w3c-ecma/test558.txml")
         // A nested state machine is used, which we do not support.
         << QLatin1String("w3c-ecma/test187.txml")
-        // We do not support the optional basic http event i/o processor.
-        << QLatin1String("w3c-ecma/test201.txml")
-        << QLatin1String("w3c-ecma/test207.txml")
         // The following test uses the undocumented "exmode" attribute.
         << QLatin1String("w3c-ecma/test441a.txml")
         // The following test needs manual inspection of the result. However, note that we do not support the undocumented "exmode" attribute.
         << QLatin1String("w3c-ecma/test441b.txml")
         // The following test needs manual inspection of the result.
         << QLatin1String("w3c-ecma/test230.txml")
-        << QLatin1String("w3c-ecma/test307.txml")
         << QLatin1String("w3c-ecma/test250.txml")
+        << QLatin1String("w3c-ecma/test307.txml")
         // TODO: We do not support the src attribute in invoke.
         << QLatin1String("w3c-ecma/test226.txml")
         << QLatin1String("w3c-ecma/test239.txml")
@@ -62,38 +70,22 @@ static QSet<QString> weFailOnThese = QSet<QString>()
            ;
 
 static QSet<QString> weDieOnThese = QSet<QString>()
-        << QLatin1String("send-data/send1") // test suite problem: we expect every stable configuration to be listed.
-        << QLatin1String("delayedSend/send1") // same as above
-        << QLatin1String("delayedSend/send2") // same as above
-        << QLatin1String("delayedSend/send3") // same as above
-#if QT_VERSION < QT_VERSION_CHECK(5, 6, 0) // QTBUG-46703
-        << QLatin1String("history/history3")
-        << QLatin1String("history/history4")
-        << QLatin1String("history/history5")
-#endif // Qt 5.6.0
-        << QLatin1String("w3c-ecma/test364.txml") // initial attribute on <state>
-        << QLatin1String("w3c-ecma/test388.txml") // Qt refuses to set an initial state to a "deep" state
-        << QLatin1String("w3c-ecma/test403a.txml")
-        << QLatin1String("w3c-ecma/test403c.txml")
+        << QLatin1String("script-src/test0")
+        << QLatin1String("script-src/test1")
+        << QLatin1String("script-src/test2")
+        << QLatin1String("script-src/test3")
            ;
 
 static QSet<QString> differentSemantics = QSet<QString>()
         // FIXME: looks like a bug in internal event ordering when writing to read-only variables.
         << QLatin1String("w3c-ecma/test329.txml")
-        << QLatin1String("w3c-ecma/test346.txml")
-        // Scion apparently sets <data> values without a src/expr attribute to 0. We set it to undefined, as specified in B.2.1.
-        << QLatin1String("w3c-ecma/test456.txml") // replaced by modified_test456
         // Qt does not support forcing initial states that are not marked as such.
         << QLatin1String("w3c-ecma/test413.txml") // FIXME: verify initial state setting...
+        // Scion apparently sets <data> values without a src/expr attribute to 0. We set it to undefined, as specified in B.2.1.
+        << QLatin1String("w3c-ecma/test456.txml") // replaced by modified_test456
         << QLatin1String("w3c-ecma/test576.txml")
         // FIXME: Currently we do not support loading scripts from a src.
         << QLatin1String("w3c-ecma/test301.txml")
-        << QLatin1String("script-src/test0")
-        << QLatin1String("script-src/test1")
-        << QLatin1String("script-src/test2")
-        << QLatin1String("script-src/test3")
-        // We do not evaluate the <content> of <invoke> when invoked.
-        << QLatin1String("w3c-ecma/test215.txml")
         << QLatin1String("w3c-ecma/test216.txml")
         << QLatin1String("w3c-ecma/test530.txml")
         ;

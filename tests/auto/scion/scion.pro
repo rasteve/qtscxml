@@ -63,18 +63,9 @@ ALLSCXMLS = $$files($$SCXMLS_DIR/*.scxml, true)
 # For a better explanation about the "blacklisted" tests, see tst_scion.cpp
 # <invoke>
 BLACKLISTED = \
-    test187.txml.scxml \
-    test207.txml.scxml \
-    test215.txml.scxml \
     test216.txml.scxml \
     test226.txml.scxml \
-    test250.txml.scxml \
     test530.txml.scxml
-
-# needs manual inspection
-BLACKLISTED += \
-    test230.txml.scxml \
-    test307.txml.scxml \
 
 # other
 BLACKLISTED += \
