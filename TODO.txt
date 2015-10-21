@@ -4,3 +4,4 @@
 - fix logging
 - check all messages to have the same format
 - handle typeexpr,src,srcexpr attributes in <invoke>
+- document nonconformance with w3c-ecma/test558 (modified by us) - we always expect js expression in <data>'s non-XML children or in external file referenced by src attribute of <data> element.

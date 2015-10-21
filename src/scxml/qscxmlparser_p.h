@@ -535,7 +535,10 @@ public:
     DocumentModel::ScxmlDocument *scxmlDocument();
 
     QString fileName() const;
-    void setFilename(const QString &fileName);
+    void setFileName(const QString &fileName);
+
+    QScxmlParser::Loader *loader() const;
+    void setLoader(QScxmlParser::Loader *loader);
 
     void parse();
     QByteArray load(const QString &name, bool *ok) const;

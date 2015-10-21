@@ -49,9 +49,6 @@ static QSet<QString> weFailOnThese = QSet<QString>()
 
         // Currently we do not support loading data as XML content inside the <data> tag.
         << QLatin1String("w3c-ecma/test557.txml")
-        // FIXME: Currently we do not support loading data from a src.
-        << QLatin1String("w3c-ecma/test552.txml")
-        << QLatin1String("w3c-ecma/test558.txml")
         // A nested state machine is used, which we do not support.
         << QLatin1String("w3c-ecma/test187.txml")
         // The following test uses the undocumented "exmode" attribute.
@@ -107,6 +104,48 @@ public:
         return false;
     }
 };
+
+class DynamicLoader: public QScxmlParser::Loader
+{
+public:
+    DynamicLoader(QScxmlParser *parser);
+    QByteArray load(const QString &name, const QString &baseDir, bool *ok) Q_DECL_OVERRIDE Q_DECL_FINAL;
+
+};
+
+DynamicLoader::DynamicLoader(QScxmlParser *parser)
+    : Loader(parser)
+{}
+
+QByteArray DynamicLoader::load(const QString &name, const QString &baseDir, bool *ok)
+{
+    Q_ASSERT(ok != nullptr);
+
+    *ok = false;
+    QUrl url(name);
+    if (!url.isLocalFile() && !url.isRelative())
+        parser()->addError(QStringLiteral("src attribute is not a local file (%1)").arg(name));
+    QFileInfo fInfo = url.isLocalFile() ? url.toLocalFile() : name;
+    if (fInfo.isRelative())
+        fInfo = QFileInfo(QDir(baseDir).filePath(fInfo.filePath()));
+    fInfo = QFileInfo(QLatin1String(":/") + fInfo.filePath()); // take it from resources
+
+    if (!fInfo.exists()) {
+        parser()->addError(QStringLiteral("src attribute resolves to non existing file (%1)").arg(fInfo.absoluteFilePath()));
+    } else {
+        QFile f(fInfo.absoluteFilePath());
+        if (f.open(QFile::ReadOnly)) {
+            *ok = true;
+            QByteArray array = f.readAll();
+            return array;
+        } else {
+            parser()->addError(QStringLiteral("Failure opening file %1: %2")
+                               .arg(fInfo.absoluteFilePath(), f.errorString()));
+        }
+    }
+    return QByteArray();
+}
+
 
 class TestScion: public QObject
 {
@@ -192,6 +231,9 @@ void TestScion::dynamic()
     QVERIFY(scxmlFile.open(QIODevice::ReadOnly));
     QXmlStreamReader xmlReader(&scxmlFile);
     QScxmlParser parser(&xmlReader);
+    parser.setFileName(scxml);
+    DynamicLoader loader(&parser);
+    parser.setLoader(&loader);
     parser.parse();
     if (testStatus == TestFails && parser.state() != QScxmlParser::FinishedParsing)
         QEXPECT_FAIL("", "This is expected to fail", Abort);

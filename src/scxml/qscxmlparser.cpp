@@ -940,7 +940,17 @@ QString QScxmlParser::fileName() const
 
 void QScxmlParser::setFileName(const QString &fileName)
 {
-    p->setFilename(fileName);
+    p->setFileName(fileName);
+}
+
+QScxmlParser::Loader *QScxmlParser::loader() const
+{
+    return p->loader();
+}
+
+void QScxmlParser::setLoader(QScxmlParser::Loader *newLoader)
+{
+    p->setLoader(newLoader);
 }
 
 void QScxmlParser::parse()
@@ -1311,9 +1321,19 @@ QString QScxmlParserPrivate::fileName() const
     return m_fileName;
 }
 
-void QScxmlParserPrivate::setFilename(const QString &fileName)
+void QScxmlParserPrivate::setFileName(const QString &fileName)
 {
     m_fileName = fileName;
+}
+
+QScxmlParser::Loader *QScxmlParserPrivate::loader() const
+{
+    return m_loader;
+}
+
+void QScxmlParserPrivate::setLoader(QScxmlParser::Loader *loader)
+{
+    m_loader = loader;
 }
 
 void QScxmlParserPrivate::parse()
@@ -1587,9 +1607,6 @@ void QScxmlParserPrivate::parse()
                 data->id = attributes.value(QLatin1String("id")).toString();
                 data->src = attributes.value(QLatin1String("src")).toString();
                 data->expr = attributes.value(QLatin1String("expr")).toString();
-                if (!data->src.isEmpty()) {
-                    addError(QStringLiteral("the src attribute in a data tag is unsupported")); // TODO: use a loader like in <script>
-                }
                 if (DocumentModel::Scxml *scxml = m_currentParent->asScxml()) {
                     scxml->dataElements.append(data);
                 } else if (DocumentModel::State *state = m_currentParent->asState()) {
@@ -1870,7 +1887,25 @@ void QScxmlParserPrivate::parse()
                         addError(QStringLiteral("data element with both 'expr' attribute and CDATA"));
                         return;
                     } else {
-                        data->expr = p.chars.simplified();
+                        // w3c-ecma/test558 - "if a child element of <data> is not a XML,
+                        // treat it as a string with whitespace normalization"
+                        // We've modified the test, so that a string is enclosed with quotes.
+                        data->expr = p.chars;
+                    }
+                } else if (!data->src.isEmpty()) {
+                    if (!m_loader) {
+                        addError(QStringLiteral("cannot parse a document with external dependencies without a loader"));
+                    } else {
+                        bool ok;
+                        QByteArray ba = load(data->src, &ok);
+                        if (!ok) {
+                            addError(QStringLiteral("failed to load external dependency"));
+                        } else {
+                            // w3c-ecma/test558 - "if XML is loaded via "src" attribute,
+                            // treat it as a string with whitespace normalization"
+                            // We've enclosed the text in file with quotes.
+                            data->expr = QString::fromUtf8(ba);
+                        }
                     }
                 }
             } break;
@@ -1909,7 +1944,8 @@ void QScxmlParserPrivate::parse()
 
 QByteArray QScxmlParserPrivate::load(const QString &name, bool *ok) const
 {
-    return m_loader->load(name, QFileInfo(m_fileName).absolutePath(), ok);
+    return m_loader->load(name, m_fileName.isEmpty() ?
+                              QString() : QFileInfo(m_fileName).path(), ok);
 }
 
 QScxmlParser::State QScxmlParserPrivate::state() const
@@ -2015,19 +2051,23 @@ QByteArray QScxmlParserPrivate::DefaultLoader::load(const QString &name, const Q
     Q_ASSERT(ok != nullptr);
 
     *ok = false;
-    QFileInfo fInfo(name);
+    const QUrl url(name);
+    if (!url.isLocalFile() && !url.isRelative())
+        parser()->addError(QStringLiteral("src attribute is not a local file (%1)").arg(name));
+    QFileInfo fInfo = url.isLocalFile() ? url.toLocalFile() : name;
     if (fInfo.isRelative())
-        fInfo = QFileInfo(QDir(baseDir).filePath(name));
+        fInfo = QFileInfo(QDir(baseDir).filePath(fInfo.filePath()));
+
     if (!fInfo.exists()) {
-        parser()->addError(QStringLiteral("src attribute resolves to non existing file (%1)").arg(fInfo.absoluteFilePath()));
+        parser()->addError(QStringLiteral("src attribute resolves to non existing file (%1)").arg(fInfo.filePath()));
     } else {
-        QFile f(fInfo.absoluteFilePath());
+        QFile f(fInfo.filePath());
         if (f.open(QFile::ReadOnly)) {
             *ok = true;
             return f.readAll();
         } else {
             parser()->addError(QStringLiteral("Failure opening file %1: %2")
-                               .arg(fInfo.absoluteFilePath(), f.errorString()));
+                               .arg(fInfo.filePath(), f.errorString()));
         }
     }
     return QByteArray();

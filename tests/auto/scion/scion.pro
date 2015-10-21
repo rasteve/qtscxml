@@ -75,9 +75,7 @@ BLACKLISTED += \
     test301.txml.scxml \
     test441a.txml.scxml \
     test441b.txml.scxml \
-    test552.txml.scxml \
-    test557.txml.scxml \
-    test558.txml.scxml
+    test557.txml.scxml
 
 for (f,ALLSCXMLS) {
     cn = $$basename(f)
@@ -106,6 +104,18 @@ for (f,ALLSCXMLS) {
         json_alias = $$base
         json_alias ~= s/\\.scxml$/.json/
         qrc += '<file alias="$$json_alias">$$json</file>'
+
+        txt_file = $$file
+        txt_file ~= s/\\.scxml$//
+        txt_file ~= s/\\.txml$//
+        txt_file = $$txt_file'.txt'
+        if (exists($$txt_file)) {
+            txt_alias = $$base
+            txt_alias ~= s/\\.scxml$//
+            txt_alias ~= s/\\.txml$//
+            txt_alias = $$txt_alias'.txt'
+            qrc += '<file alias="$$txt_alias">$$txt_file</file>'
+        }
     }
 }
 
