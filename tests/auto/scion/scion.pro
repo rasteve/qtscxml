@@ -95,28 +95,14 @@ for (f,ALLSCXMLS) {
         tn = $$base
         tn ~= s/\\.scxml$//
         testBases += "    \"$$tn\","
-
-        file = $$relative_path($$f, $$absolute_path($$PWD))
-        qrc += '<file alias="$$base">$$file</file>'
-
-        json = $$file
-        json ~= s/\\.scxml$/.json/
-        json_alias = $$base
-        json_alias ~= s/\\.scxml$/.json/
-        qrc += '<file alias="$$json_alias">$$json</file>'
-
-        txt_file = $$file
-        txt_file ~= s/\\.scxml$//
-        txt_file ~= s/\\.txml$//
-        txt_file = $$txt_file'.txt'
-        if (exists($$txt_file)) {
-            txt_alias = $$base
-            txt_alias ~= s/\\.scxml$//
-            txt_alias ~= s/\\.txml$//
-            txt_alias = $$txt_alias'.txt'
-            qrc += '<file alias="$$txt_alias">$$txt_file</file>'
-        }
     }
+}
+
+ALLFILES = $$files($$SCXMLS_DIR/*.*, true)
+for (f,ALLFILES) {
+    base = $$relative_path($$f,$$absolute_path($$SCXMLS_DIR))
+    file = $$relative_path($$f, $$absolute_path($$PWD))
+    qrc += '<file alias="$$base">$$file</file>'
 }
 
 contents = $$inc_list "std::function<QScxmlStateMachine *()> creators[] = {" $$func_list "};"

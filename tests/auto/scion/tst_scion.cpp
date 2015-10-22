@@ -66,13 +66,6 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         << QLatin1String("w3c-ecma/test276.txml")
            ;
 
-static QSet<QString> weDieOnThese = QSet<QString>()
-        << QLatin1String("script-src/test0")
-        << QLatin1String("script-src/test1")
-        << QLatin1String("script-src/test2")
-        << QLatin1String("script-src/test3")
-           ;
-
 static QSet<QString> differentSemantics = QSet<QString>()
         // FIXME: looks like a bug in internal event ordering when writing to read-only variables.
         << QLatin1String("w3c-ecma/test329.txml")
@@ -170,7 +163,6 @@ void TestScion::initTestCase()
 enum TestStatus {
     TestIsOk,
     TestFails,
-    TestCrashes,
     TestUsesDifferentSemantics
 };
 Q_DECLARE_METATYPE(TestStatus)
@@ -186,9 +178,7 @@ void TestScion::generateData()
     for (int i = 0; i < nrOfTests; ++i) {
         TestStatus testStatus;
         QString base = QString::fromUtf8(testBases[i]);
-        if (weDieOnThese.contains(base))
-            testStatus = TestCrashes;
-        else if (differentSemantics.contains(base))
+        if (differentSemantics.contains(base))
             testStatus = TestUsesDifferentSemantics;
         else if (weFailOnThese.contains(base))
             testStatus = TestFails;
@@ -215,8 +205,6 @@ void TestScion::dynamic()
 
 //    fprintf(stderr, "\n\n%s\n%s\n\n", qPrintable(scxml), qPrintable(json));
 
-    if (testStatus == TestCrashes)
-        QSKIP("Test is marked as a crasher");
     if (testStatus == TestUsesDifferentSemantics)
         QSKIP("Test uses different semantics");
 
@@ -279,8 +267,6 @@ void TestScion::compiled()
     QFETCH(TestStatus, testStatus);
     QFETCH(std::function<QScxmlStateMachine *()>, creator);
 
-    if (testStatus == TestCrashes)
-        QSKIP("Test is marked as a crasher");
     if (testStatus == TestUsesDifferentSemantics)
         QSKIP("Test uses different semantics");
 
