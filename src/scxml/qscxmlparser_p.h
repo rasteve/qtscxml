@@ -541,6 +541,7 @@ public:
     void setLoader(QScxmlParser::Loader *loader);
 
     void parse();
+    void parseSubDocument(DocumentModel::Invoke *parentInvoke, QXmlStreamReader *reader, const QString &fileName);
     QByteArray load(const QString &name, bool *ok) const;
 
     QScxmlParser::State state() const;

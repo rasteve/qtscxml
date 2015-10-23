@@ -59,11 +59,6 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         << QLatin1String("w3c-ecma/test230.txml")
         << QLatin1String("w3c-ecma/test250.txml")
         << QLatin1String("w3c-ecma/test307.txml")
-        // TODO: We do not support the src attribute in invoke.
-        << QLatin1String("w3c-ecma/test226.txml")
-        << QLatin1String("w3c-ecma/test239.txml")
-        << QLatin1String("w3c-ecma/test242.txml")
-        << QLatin1String("w3c-ecma/test276.txml")
            ;
 
 static QSet<QString> differentSemantics = QSet<QString>()

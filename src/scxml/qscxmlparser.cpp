@@ -1336,6 +1336,18 @@ void QScxmlParserPrivate::setLoader(QScxmlParser::Loader *loader)
     m_loader = loader;
 }
 
+void QScxmlParserPrivate::parseSubDocument(DocumentModel::Invoke *parentInvoke, QXmlStreamReader *reader, const QString &fileName)\
+{
+    QScxmlParser p(reader);
+    p.setFileName(fileName);
+    p.parse();
+    parentInvoke->content.reset(p.p->m_doc.take());
+    m_doc->allSubDocuments.append(parentInvoke->content.data());
+    m_errors.append(p.errors());
+    if (p.state() == QScxmlParser::ParsingError)
+        m_state = QScxmlParser::ParsingError;
+}
+
 void QScxmlParserPrivate::parse()
 {
     m_doc.reset(new DocumentModel::ScxmlDocument(fileName()));
@@ -1661,14 +1673,7 @@ void QScxmlParserPrivate::parse()
                         addError(QStringLiteral("expr attribute in content of invoke is not supported"));
                         break;
                     }
-                    QScxmlParser p(m_reader);
-                    p.setFileName(m_fileName);
-                    p.parse();
-                    i->content.reset(p.p->m_doc.take());
-                    m_doc->allSubDocuments.append(i->content.data());
-                    m_errors.append(p.errors());
-                    if (p.state() == QScxmlParser::ParsingError)
-                        m_state = QScxmlParser::ParsingError;
+                    parseSubDocument(i, m_reader, m_fileName);
                 } break;
                 default:
                     addError(QStringLiteral("unexpected parent of content %1").arg(m_stack.last().kind));
@@ -1801,6 +1806,30 @@ void QScxmlParserPrivate::parse()
                 m_currentState = m_currentParent = m_currentParent->parent;
                 break;
             case ParserState::Invoke:
+            {
+                DocumentModel::Invoke *i = p.instruction->asInvoke();
+                const QString fileName = i->src;
+                if (!i->content.data()) {
+                    if (!fileName.isEmpty()) {
+                        bool ok = true;
+                        QByteArray data = load(fileName, &ok);
+                        if (!ok) {
+                            addError(QStringLiteral("failed to load external dependency"));
+                        } else {
+                            QXmlStreamReader reader(data);
+                            parseSubDocument(i, &reader, fileName);
+                        }
+                    } else { // invoke always expects sub document
+                        DocumentModel::ScxmlDocument *doc = new DocumentModel::ScxmlDocument(m_fileName);
+                        doc->root = new DocumentModel::Scxml(DocumentModel::XmlLocation(0, 0));
+                        i->content.reset(doc);
+                        m_doc->allSubDocuments.append(i->content.data());
+                    }
+                } else if (!fileName.isEmpty()) {
+                    addError(QStringLiteral("both src and content given to invoke"));
+                }
+            }
+                break;
             case ParserState::Transition:
             case ParserState::OnEntry:
             case ParserState::OnExit:
@@ -1813,7 +1842,7 @@ void QScxmlParserPrivate::parse()
                 if (!p.chars.trimmed().isEmpty()) {
                     scriptI->content = p.chars.trimmed();
                     if (!scriptI->src.isEmpty())
-                        addError(QStringLiteral("both scr and source content given to script, will ignore external content"));
+                        addError(QStringLiteral("both src and source content given to script, will ignore external content"));
                 } else if (!scriptI->src.isEmpty()) {
                     if (!m_loader) {
                         addError(QStringLiteral("cannot parse a document with external dependencies without a loader"));

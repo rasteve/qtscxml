@@ -64,14 +64,14 @@ ALLSCXMLS = $$files($$SCXMLS_DIR/*.scxml, true)
 # <invoke>
 BLACKLISTED = \
     test216.txml.scxml \
-    test226.txml.scxml \
+    test226sub1.txml \
+    test239sub1.scxml \
+    test242sub1.scxml \
+    test276sub1.scxml \
     test530.txml.scxml
 
 # other
 BLACKLISTED += \
-    test239.txml.scxml \
-    test242.txml.scxml \
-    test276.txml.scxml \
     test301.txml.scxml \
     test441a.txml.scxml \
     test441b.txml.scxml \
