@@ -953,7 +953,13 @@ QScxmlStateMachine *QScxmlParser::instantiateStateMachine() const
     if (DocumentModel::ScxmlDocument *doc = p->scxmlDocument()) {
         return QStateMachineBuilder().build(doc);
     } else {
-        auto stateMachine = new QScxmlStateMachine;
+        class InvalidStateMachine: public QScxmlStateMachine {
+        public:
+            InvalidStateMachine()
+            {}
+        };
+
+        auto stateMachine = new InvalidStateMachine;
         QScxmlStateMachinePrivate::get(stateMachine)->parserData()->m_errors = errors();
         return stateMachine;
     }

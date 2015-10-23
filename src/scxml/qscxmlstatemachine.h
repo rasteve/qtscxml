@@ -56,8 +56,7 @@ class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
     Q_ENUMS(BindingMethod)
     Q_PROPERTY(bool running READ isRunning NOTIFY runningChanged)
 
-protected: // For the constructor:
-    friend class QScxmlParser;
+protected:
     QScxmlStateMachine(QObject *parent = 0);
     QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *parent);
 
@@ -80,7 +79,6 @@ public:
     QScxmlDataModel *dataModel() const;
     void setDataModel(QScxmlDataModel *dataModel);
 
-    void setDataBinding(BindingMethod b);
     BindingMethod dataBinding() const;
 
     QScxmlTableData *tableData() const;
@@ -131,6 +129,7 @@ private Q_SLOTS:
     void onFinished();
 
 protected:
+    void setDataBinding(BindingMethod bindingMethod);
     virtual void setService(const QString &id, QScxmlInvokableService *service);
 };
 

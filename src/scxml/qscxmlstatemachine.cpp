@@ -304,6 +304,19 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
 }
 
 /*!
+    \enum QStateMachine::BindingMethod
+
+    This enum specifies the binding method. The binding method controls when the initial values are
+    assigned to the data elements.
+
+    \value EarlyBinding will create and initialize all data elements at data-model initialization.
+           This is the default.
+    \value LateBinding will create all data elements at initialization, but only assign the initial
+           values when the containing state is entered for the first time. It will do so before any
+           executable content is executed.
+ */
+
+/*!
  * \brief Returns the session ID for the current state machine.
  *
  * The session ID is used for message routing between parent and child state machines. If a state
@@ -372,13 +385,19 @@ void QScxmlStateMachine::setDataModel(QScxmlDataModel *dataModel)
     QScxmlDataModelPrivate::get(dataModel)->setStateMachine(this);
 }
 
-void QScxmlStateMachine::setDataBinding(QScxmlStateMachine::BindingMethod b)
+/*!
+ * Sets the binding method to the specified value.
+ */
+void QScxmlStateMachine::setDataBinding(QScxmlStateMachine::BindingMethod bindingMethod)
 {
     Q_D(QScxmlStateMachine);
 
-    d->m_dataBinding = b;
+    d->m_dataBinding = bindingMethod;
 }
 
+/*!
+ * \return the binding method used by the state-machine.
+ */
 QScxmlStateMachine::BindingMethod QScxmlStateMachine::dataBinding() const
 {
     Q_D(const QScxmlStateMachine);
