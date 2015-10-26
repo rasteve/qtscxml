@@ -69,9 +69,11 @@ static QSet<QString> differentSemantics = QSet<QString>()
         // Scion apparently sets <data> values without a src/expr attribute to 0. We set it to undefined, as specified in B.2.1.
         << QLatin1String("w3c-ecma/test456.txml") // replaced by modified_test456
         << QLatin1String("w3c-ecma/test576.txml")
-        // FIXME: Currently we do not support loading scripts from a src.
+        // FIXME: qscxmlc fails on improper scxml file, currently no way of testing it properly for compiled case
         << QLatin1String("w3c-ecma/test301.txml")
+        // FIXME: Currently we do not support loading scripts from a srcexpr.
         << QLatin1String("w3c-ecma/test216.txml")
+        // FIXME: Currently we do not support nested scxml as a child of assign.
         << QLatin1String("w3c-ecma/test530.txml")
         ;
 
