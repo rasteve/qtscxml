@@ -2,8 +2,7 @@
  the processor treats the value as a string, does whitespace normalization and assigns it to the var.--><scxml xmlns="http://www.w3.org/2005/07/scxml" xmlns:conf="http://www.w3.org/2005/scxml-conformance" initial="s0" version="1.0" datamodel="ecmascript">
  <datamodel>
    <data id="var1">
-'this  is
-a string'
+'this is a string'
 </data>
   <data id="var2" src="file:test558.txt"/> 
   </datamodel>
