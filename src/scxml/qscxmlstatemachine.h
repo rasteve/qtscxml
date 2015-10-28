@@ -108,7 +108,7 @@ public:
 
     Q_INVOKABLE void submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid);
 
-    Q_INVOKABLE void routeEvent(QScxmlEvent *e);
+    void postEvent(QScxmlEvent *e);
     Q_INVOKABLE void submitEvent(QScxmlEvent *e);
     Q_INVOKABLE void submitEvent(const QByteArray &event);
     Q_INVOKABLE void submitEvent(const QByteArray &event, const QVariant &data);
@@ -131,6 +131,7 @@ private Q_SLOTS:
 protected:
     void setDataBinding(BindingMethod bindingMethod);
     virtual void setService(const QString &id, QScxmlInvokableService *service);
+
 };
 
 QT_END_NAMESPACE

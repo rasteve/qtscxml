@@ -42,7 +42,7 @@ public:
     virtual bool start() = 0;
     virtual QString id() const = 0;
     virtual QString name() const = 0;
-    virtual void submitEvent(QScxmlEvent *event) = 0;
+    virtual void postEvent(QScxmlEvent *event) = 0;
 
     void finalize();
 
@@ -112,7 +112,7 @@ public:
     bool start() Q_DECL_OVERRIDE;
     QString id() const Q_DECL_OVERRIDE;
     QString name() const Q_DECL_OVERRIDE;
-    void submitEvent(QScxmlEvent *event) Q_DECL_OVERRIDE;
+    void postEvent(QScxmlEvent *event) Q_DECL_OVERRIDE;
 
     QScxmlStateMachine *stateMachine() const;
 

@@ -140,7 +140,7 @@ bool ExecutionEngine::step(Instructions &ip)
             }
         }
 
-        stateMachine->routeEvent(event);
+        stateMachine->submitEvent(event);
         return true;
     }
 
