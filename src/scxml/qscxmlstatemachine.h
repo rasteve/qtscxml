@@ -106,7 +106,6 @@ public:
 
     Q_INVOKABLE void submitError(const QString &type, const QString &msg, const QString &sendid = QString());
 
-    Q_INVOKABLE void routeEvent(QScxmlEvent *event);
     Q_INVOKABLE void submitEvent(QScxmlEvent *event);
     Q_INVOKABLE void submitEvent(const QString &eventName);
     Q_INVOKABLE void submitEvent(const QString &eventName, const QVariant &data);

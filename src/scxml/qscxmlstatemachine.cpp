@@ -254,6 +254,56 @@ bool QScxmlStateMachinePrivate::executeInitialSetup()
     return m_executionEngine->execute(m_tableData->initialSetup());
 }
 
+void QScxmlStateMachinePrivate::routeEvent(QScxmlEvent *event)
+{
+    Q_Q(QScxmlStateMachine);
+
+    if (!event)
+        return;
+
+    QString origin = event->origin();
+    if (origin == QStringLiteral("#_parent")) {
+        if (auto psm = m_parentStateMachine) {
+            qCDebug(scxmlLog) << q << "routing event" << event->name() << "from" << q->name() << "to parent" << psm->name();
+                                 QScxmlStateMachinePrivate::get(psm)->postEvent(event);
+        } else {
+            qCDebug(scxmlLog) << this << "is not invoked, so it cannot route a message to #_parent";
+            delete event;
+        }
+    } else if (origin.startsWith(QStringLiteral("#_")) && origin != QStringLiteral("#_internal")) {
+        // route to children
+        auto originId = origin.midRef(2);
+        foreach (QScxmlInvokableService *service, m_invokedServices) {
+            if (service->id() == originId) {
+                qCDebug(scxmlLog) << q << "routing event" << event->name()
+                                  << "from" << q->name()
+                                  << "to parent" << service->id();
+                service->postEvent(new QScxmlEvent(*event));
+            }
+        }
+        delete event;
+    } else {
+        postEvent(event);
+    }
+}
+
+void QScxmlStateMachinePrivate::postEvent(QScxmlEvent *event)
+{
+    Q_Q(QScxmlStateMachine);
+
+    QStateMachine::EventPriority priority =
+            event->eventType() == QScxmlEvent::ExternalEvent ? QStateMachine::NormalPriority
+                                                             : QStateMachine::HighPriority;
+
+    if (m_qStateMachine->isRunning()) {
+        qCDebug(scxmlLog) << q << "posting event" << event->name();
+        m_qStateMachine->postEvent(event, priority);
+    } else {
+        qCDebug(scxmlLog) << q << "queueing event" << event->name();
+        m_qStateMachine->queueEvent(event, priority);
+    }
+}
+
 /*!
  * \brief Creates a state-machine from a SCXML file.
  *
@@ -492,7 +542,7 @@ void QScxmlInternal::WrappedQStateMachine::beginSelectTransitions(QEvent *event)
             if (service->autoforward()) {
                 qCDebug(scxmlLog) << this << "auto-forwarding event" << scxmlEvent->name()
                                   << "from" << stateMachine()->name() << "to service" << service->id();
-                service->submitEvent(new QScxmlEvent(*scxmlEvent));
+                service->postEvent(new QScxmlEvent(*scxmlEvent));
             }
         }
 
@@ -526,6 +576,43 @@ void QScxmlInternal::WrappedQStateMachine::endMicrostep(QEvent *event)
 
     qCDebug(scxmlLog) << d->m_stateMachine
                       << "finished microstep in state (" << d->m_stateMachine->activeStates() << ")";
+}
+
+// This is a slightly modified copy of QStateMachinePrivate::event()
+// Instead of postExternalEvent and processEvents
+// we route event first to the appropriate state machine instance.
+bool QScxmlInternal::WrappedQStateMachine::event(QEvent *e)
+{
+    Q_D(QScxmlInternal::WrappedQStateMachine);
+    if (e->type() == QEvent::Timer) {
+        QTimerEvent *te = static_cast<QTimerEvent*>(e);
+        int tid = te->timerId();
+        if (d->state != QStateMachinePrivate::Running) {
+            // This event has been cancelled already
+            QMutexLocker locker(&d->delayedEventsMutex);
+            Q_ASSERT(!d->timerIdToDelayedEventId.contains(tid));
+            return true;
+        }
+        d->delayedEventsMutex.lock();
+        int id = d->timerIdToDelayedEventId.take(tid);
+        QStateMachinePrivate::DelayedEvent ee = d->delayedEvents.take(id);
+        if (ee.event != 0) {
+            Q_ASSERT(ee.timerId == tid);
+//          killTimer(tid);
+//          d->delayedEventIdFreeList.release(id);
+            d->delayedEventsMutex.unlock();
+            d->_q_killDelayedEventTimer(id, tid);
+            // route here
+            if (ee.event->type() == QScxmlEvent::scxmlEventType)
+                QScxmlStateMachinePrivate::get(stateMachine())->routeEvent(static_cast<QScxmlEvent *>(ee.event));
+//          d->postExternalEvent(ee.event);
+//          d->processEvents(QStateMachinePrivate::DirectProcessing);
+            return true;
+        } else {
+            d->delayedEventsMutex.unlock();
+        }
+    }
+    return QState::event(e);
 }
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
@@ -834,47 +921,6 @@ void QScxmlStateMachine::submitError(const QString &type, const QString &msg, co
 }
 
 /*!
- * \brief Submits an event for routing.
- *
- * Depending on the origin of the event, it gets submitted to the parent state-machine (if there is
- * one), to a child state-machine, or to the current state-machine.
- *
- * \param event The event to be routed.
- */
-void QScxmlStateMachine::routeEvent(QScxmlEvent *event)
-{
-    Q_D(QScxmlStateMachine);
-
-    if (!event)
-        return;
-
-    QString origin = event->origin();
-    if (origin == QStringLiteral("#_parent")) {
-        if (auto psm = d->m_parentStateMachine) {
-            qCDebug(scxmlLog) << this << "routing event" << event->name() << "from" << name() << "to parent" << psm->name();
-            psm->submitEvent(event);
-        } else {
-            qCDebug(scxmlLog) << this << "is not invoked, so it cannot route a message to #_parent";
-            delete event;
-        }
-    } else if (origin.startsWith(QStringLiteral("#_")) && origin != QStringLiteral("#_internal")) {
-        // route to children
-        auto originId = origin.midRef(2);
-        foreach (QScxmlInvokableService *service, d->m_invokedServices) {
-            if (service->id() == originId) {
-                qCDebug(scxmlLog) << this << "routing event" << event->name()
-                                  << "from" << name()
-                                  << "to parent" << service->id();
-                service->submitEvent(new QScxmlEvent(*event));
-            }
-        }
-        delete event;
-    } else {
-        submitEvent(event);
-    }
-}
-
-/*!
  * \brief Submits a \a QScxmlEvent to the internal or external event queue depending on the priority.
  *
  * When a delay is set, the event will be queued for delivery after the timeout has passed.
@@ -896,17 +942,7 @@ void QScxmlStateMachine::submitEvent(QScxmlEvent *event)
 
         qCDebug(scxmlLog) << this << ": delayed event" << event->name() << "(" << event << ") got id:" << id;
     } else {
-        QStateMachine::EventPriority priority =
-                event->eventType() == QScxmlEvent::ExternalEvent ? QStateMachine::NormalPriority
-                                                             : QStateMachine::HighPriority;
-
-        if (d->m_qStateMachine->isRunning()) {
-            qCDebug(scxmlLog) << this << "posting event" << event->name();
-            d->m_qStateMachine->postEvent(event, priority);
-        } else {
-            qCDebug(scxmlLog) << this << "queueing event" << event->name();
-            d->m_qStateMachine->queueEvent(event, priority);
-        }
+        d->routeEvent(event);
     }
 }
 

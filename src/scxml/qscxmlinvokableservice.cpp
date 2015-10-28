@@ -246,9 +246,9 @@ QString QScxmlInvokableScxml::name() const
     return m_stateMachine->name();
 }
 
-void QScxmlInvokableScxml::submitEvent(QScxmlEvent *event)
+void QScxmlInvokableScxml::postEvent(QScxmlEvent *event)
 {
-    m_stateMachine->submitEvent(event);
+    QScxmlStateMachinePrivate::get(m_stateMachine)->postEvent(event);
 }
 
 QScxmlStateMachine *QScxmlInvokableScxml::stateMachine() const
