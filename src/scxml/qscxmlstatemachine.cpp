@@ -137,7 +137,7 @@ QScxmlStateMachinePrivate *WrappedQStateMachine::stateMachinePrivate()
 
 /*!
  * \class QScxmlEventFilter
- * \brief Event filter for an QScxmlStateMachine
+ * \brief Event filter for a QScxmlStateMachine
  * \since 5.6
  * \inmodule QtScxml
  *
@@ -149,7 +149,7 @@ QScxmlEventFilter::~QScxmlEventFilter()
 
 /*!
  * \class QScxmlStateMachine
- * \brief Event filter for an QScxmlStateMachine
+ * \brief Event filter for a QScxmlStateMachine
  * \since 5.6
  * \inmodule QtScxml
  *

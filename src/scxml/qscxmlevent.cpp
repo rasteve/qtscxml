@@ -189,6 +189,15 @@ QScxmlEvent *EventBuilder::buildEvent()
     return event;
 }
 
+/*!
+ * \class QScxmlEvent
+ * \brief Event for an QScxmlStateMachine
+ * \since 5.6
+ * \inmodule QtScxml
+ *
+ * \sa QScxmlStateMachine
+ */
+
 QScxmlEvent::QScxmlEvent()
     : QEvent(scxmlEventType), d(new QScxmlEventPrivate)
 { }

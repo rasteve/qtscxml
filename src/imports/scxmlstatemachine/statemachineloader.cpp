@@ -25,17 +25,46 @@
 #include <QQmlFile>
 #include <QBuffer>
 
+/*!
+    \qmltype StateMachineLoader
+    \instantiates QScxmlStateMachineLoader
+    \inqmlmodule Scxml
+
+    \brief Dynamically loads an Scxml file and instantiates the state-machine.
+
+    \since Scxml 1.0
+ */
+
+/*!
+    \qmlsignal StateMachineLoader::filenameChanged()
+    This signal is emitted when the user changes the filename.
+*/
+
+/*!
+    \qmlsignal StateMachineLoader::stateMachineChanged()
+*/
+
 QScxmlStateMachineLoader::QScxmlStateMachineLoader(QObject *parent)
     : QObject(parent)
     , m_stateMachine(Q_NULLPTR)
 {
 }
 
+/*!
+    \qmlproperty QObject StateMachineLoader::stateMachine
+
+    The state-machine instance.
+ */
 QT_PREPEND_NAMESPACE(QScxmlStateMachine) *QScxmlStateMachineLoader::stateMachine() const
 {
     return m_stateMachine;
 }
 
+/*!
+    \qmlproperty string StateMachineLoader::filename
+
+    The name of the SCXML file to load.
+ */
 QUrl QScxmlStateMachineLoader::filename()
 {
     return m_filename;

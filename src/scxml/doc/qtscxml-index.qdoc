@@ -1,0 +1,194 @@
+/****************************************************************************
+ **
+ ** Copyright (c) 2015 Digia Plc
+ ** For any questions to Digia, please use contact form at http://qt.digia.com/
+ **
+ ** All Rights Reserved.
+ **
+ ** NOTICE: All information contained herein is, and remains
+ ** the property of Digia Plc and its suppliers,
+ ** if any. The intellectual and technical concepts contained
+ ** herein are proprietary to Digia Plc
+ ** and its suppliers and may be covered by Finnish and Foreign Patents,
+ ** patents in process, and are protected by trade secret or copyright law.
+ ** Dissemination of this information or reproduction of this material
+ ** is strictly forbidden unless prior written permission is obtained
+ ** from Digia Plc.
+ ****************************************************************************/
+
+/*!
+    \page qtscxml-index.html
+    \title Qt Scxml
+    \brief The QtScxml module provides functionality to create state-machines from SXML files.
+
+The QtScxml module provides functionality to create state-machines from
+SXML files. This includes both dynamically creating state-machines
+(loading the SCXML file and instantiating states and transitions) and
+generating a C++ file that has a class implementing the state-machine.
+It also contains functionality to support data-models and executable
+content.
+
+    \section1 Getting Started
+
+Both the dynamically created and the compiled state-machines act the
+same, have the same properties, states, data-model, etc. They only
+differ in the way they are instantiated. To dynamically create one in C++ from
+an scxml file, you can use:
+
+    \code
+    auto *stateMachine = QScxmlStateMachine::fromFile("MyStatemachine.scxml");
+    \endcode
+
+Or, in QML:
+
+    \code
+    import Scxml 1.0
+
+    Item {
+        property QtObject stateMachine: scxmlLoader.stateMachine
+
+        StateMachineLoader {
+            id: scxmlLoader
+            filename: "statemachine.scxml"
+        }
+    }
+    \endcode
+
+A compiled state-machine can be instantiated as any C++ object:
+
+    \code
+    auto *stateMachine = new MyStatemachine;
+    \endcode
+
+Or:
+
+    \code
+    MyStatemachine stateMachine;
+    \endcode
+
+To use a compiled state-machine in QML, you can assign it to a context property:
+
+    \code
+    MyStatemachine stateMachine;
+    QQmlApplicationEngine engine;
+    engine.rootContext()->setContextProperty("stateMachine", &stateMachine);
+    \endcode
+
+To compile a state-machine, the following lines have to be added to a
+.pro file:
+
+    \code
+    QT += scxml
+    STATECHARTS = MyStatemachine.scxml
+    \endcode
+
+This will tell qmake to run qscxmlc, which generates MyStatemachine.h
+and MyStatemachine.cpp, and add those files to the HEADERS respectively
+the SOURCES variable.
+
+After instantiating a state-machine, you can connect to any state's
+active property as follows. For example, if the state-machine for a
+trafficlight has a state indicating that the light is red (which has the
+convenient id "red" in the scxml file), you can write:
+
+    \code
+    QObject::connect(stateMachine->red(), &QAbstractState::activeChanged, [stateMachine](){
+        qDebug() << (stateMachine->red()->active() ? "entered" : "exited") << "the red state";
+    });
+    \endcode
+
+And in QML:
+
+    \code
+    Light {
+        id: greenLight
+        color: "green"
+        visible: stateMachine.green.active
+    }
+    \endcode
+
+When you want to be notified when a state-machine sends
+out an event, you can connect to the corresponding signal. For example, for a media player
+state-machine which indicates that playback has stopped by sending an event, you can write:
+
+    \code
+    QObject::connect(stateMachine, &MediaPlayer::playbackStopped, [](){
+        qDebug() << "Stopped!";
+    });
+    \endcode
+
+And in QML:
+
+    \code
+    Connections {
+        target: stateMachine
+        onEvent_playbackStopped: console.log("Stopped!")
+    }
+    \endcode
+
+Sending events to a state machine is equally simple. You can call (or
+connect to) the slot:
+
+    \code
+    stateMachine->event_tap_song(QVariantMap({
+        std::make_pair("artist", "Fatboy Slim"),
+        std::make_pair("title", "The Rockafeller Skank")
+    });
+    \endcode
+
+This will generate a "tap_song" event with the map contents available in
+_event.data inside the state-machine. In QML:
+
+    \code
+    stateMacine.event_tap_song({
+        "artist": "Fatboy Slim"
+        "title": "The Rockafeller Skank"
+    })
+    \endcode
+
+Any invoked state-machine with a name property will show also show up as a property on its
+parent state-machine.
+
+
+
+    \section1 SCXML compliance
+
+The QtScxml implementation is SCXML compliant, with a few exceptions:
+
+\list
+\li Event data (_event.data) is implemented as a QVariant. If parameters are passed to <send>,
+    the QVariant holds a QVariantMap, so multiple parameters with the same name are not supported.
+\li There is no "raw" representation of an event.
+\li The (optional) basic http event I/O processor is not supported.
+\li The contents of a <script> tag and a <data> tag must be valid for the chosen data-model.
+    So, as an example: XML content inside <data> is not supported. However, the EcmaScript
+    data-model does support data in JSON format.
+\li The only service that can be instantiated with <invoke> is another SCXML state-machine.
+\li To keep the behavior of dynamically created state-machines and compiled state-machines the
+    same, the typeexpr and srcexpr attributes are not supported. Moreover, if a <content> tag is
+    used inside an <invoke> tag, that content must be XML. Specifically, dynamically creating SCXML
+    by e.g. concatenating strings with the EcmaScript data-model is not supported.
+\endlist
+
+QtScxml supports the following data-models:
+\list
+\li null data-model, as described in B.1 of the SCXML specification
+\li EcmaScript data-model, as described in B.2 of the SCXML specification
+\li C++ data-model, as described in the QScxmlCppDataModel documentation
+\endlist
+
+    \section1 Examples
+
+    \list
+    \li \l {Qt Scxml Examples}
+    \endlist
+
+    \section1 API Reference
+
+    These are links to the API reference materials.
+
+    \list
+    \li \l {Qt Scxml C++ Classes}{C++ Classes and Namespaces}
+    \li \l {Qt Scxml QML Types}{QML Types}
+    \endlist
+*/

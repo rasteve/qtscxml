@@ -1,0 +1,35 @@
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
+
+project                 = QtScxml
+description             = Qt Scxml Reference Documentation
+version                 = $QT_VERSION
+
+examplesinstallpath     = scxml
+exampledirs             = ../../../examples
+
+qhp.QtScxml.subprojects = classes qmltypes
+qhp.QtScxml.subprojects.classes.title      = C++ Classes
+qhp.QtScxml.subprojects.classes.indexTitle = Qt Scxml C++ Classes
+qhp.QtScxml.subprojects.classes.selectors  = class fake:headerfile
+qhp.QtScxml.subprojects.classes.sortPages  = true
+qhp.QtScxml.subprojects.qmltypes.title      = QML Types
+qhp.QtScxml.subprojects.qmltypes.indexTitle = Qt Scxml QML Types
+qhp.QtScxml.subprojects.qmltypes.selectors  = qmlclass
+qhp.QtScxml.subprojects.qmltypes.sortPages  = true
+
+qhp.projects            = QtScxml
+
+qhp.QtScxml.file                = qtscxml.qhp
+qhp.QtScxml.namespace           = org.qt-project.qtscxml.$QT_VERSION_TAG
+qhp.QtScxml.virtualFolder       = qtscxml
+qhp.QtScxml.indexTitle          = Qt SCXML
+qhp.QtScxml.indexRoot           =
+
+depends += qtcore qtdeclarative qtdoc
+
+headerdirs = .. ../../imports/scxmlstatemachine
+sourcedirs = .. ../../imports/scxmlstatemachine
+
+navigation.landingpage = "Qt SCXML"
+navigation.cppclassespage = "Qt SCXML C++ Classes"
+navigation.qmltypespage = "Qt SCXML QML Types"

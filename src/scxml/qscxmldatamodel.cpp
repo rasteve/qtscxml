@@ -26,6 +26,15 @@ QT_USE_NAMESPACE
 QScxmlDataModel::ForeachLoopBody::~ForeachLoopBody()
 {}
 
+/*!
+ * \class QScxmlDataModel
+ * \brief Data-model base-class for a QScxmlStateMachine
+ * \since 5.6
+ * \inmodule QtScxml
+ *
+ * \sa QScxmlStateMachine QScxmlCppDataModel QScxmlEcmaScriptDataModel QScxmlNullDataModel
+ */
+
 QScxmlDataModel::QScxmlDataModel()
     : d(new QScxmlDataModelPrivate)
 {}

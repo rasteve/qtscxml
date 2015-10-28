@@ -86,6 +86,15 @@ private:
     Resolved resolved;
 };
 
+/*!
+ * \class QScxmlNullDataModel
+ * \brief The "null" data-model for a QScxmlStateMachine
+ * \since 5.6
+ * \inmodule QtScxml
+ *
+ * \sa QScxmlStateMachine QScxmlDataModel
+ */
+
 QScxmlNullDataModel::QScxmlNullDataModel()
     : d(new Data(this))
 {}

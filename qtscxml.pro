@@ -7,8 +7,6 @@ features.path = $$[QT_HOST_DATA]/mkspecs/features/
 
 INSTALLS += features
 
-QMAKE_DOCS = $$PWD/doc/qtscxml.qdocconf
-
 OTHER_FILES += \
     $$FEATURES \
     .qmake.conf \

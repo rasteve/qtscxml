@@ -310,6 +310,15 @@ private:
     QJSValue dataModel;
 };
 
+/*!
+ * \class QScxmlEcmaScriptDataModel
+ * \brief The EcmaScript data-model for a QScxmlStateMachine
+ * \since 5.6
+ * \inmodule QtScxml
+ *
+ * \sa QScxmlStateMachine QScxmlDataModel
+ */
+
 QScxmlEcmaScriptDataModel::QScxmlEcmaScriptDataModel()
     : d(new QScxmlEcmaScriptDataModelPrivate(this))
 {}

@@ -4,6 +4,8 @@ MODULE_CONFIG += c++11
 
 load(qt_module)
 
+QMAKE_DOCS = $$PWD/doc/qtscxml.qdocconf
+
 CONFIG  += $$MODULE_CONFIG
 DEFINES += QT_NO_CAST_FROM_ASCII
 

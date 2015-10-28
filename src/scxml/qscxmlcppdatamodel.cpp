@@ -23,6 +23,15 @@ QT_USE_NAMESPACE
 
 using namespace QScxmlExecutableContent;
 
+/*!
+ * \class QScxmlCppDataModel
+ * \brief C++ data-model for a QScxmlStateMachine
+ * \since 5.6
+ * \inmodule QtScxml
+ *
+ * \sa QScxmlStateMachine QScxmlDataModel
+ */
+
 QScxmlCppDataModel::QScxmlCppDataModel()
     : data(new QScxmlCppDataModelPrivate)
 {}
