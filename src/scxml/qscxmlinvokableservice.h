@@ -62,6 +62,20 @@ public:
         QScxmlExecutableContent::StringId name;
         QScxmlExecutableContent::EvaluatorId expr;
         QScxmlExecutableContent::StringId location;
+
+        Param(QScxmlExecutableContent::StringId theName,
+              QScxmlExecutableContent::EvaluatorId theExpr,
+              QScxmlExecutableContent::StringId theLocation)
+            : name(theName)
+            , expr(theExpr)
+            , location(theLocation)
+        {}
+
+        Param()
+            : name(QScxmlExecutableContent::NoString)
+            , expr(QScxmlExecutableContent::NoInstruction)
+            , location(QScxmlExecutableContent::NoString)
+        {}
     };
 
     QScxmlInvokableServiceFactory(QScxmlExecutableContent::StringId invokeLocation,

@@ -242,11 +242,9 @@ QScxmlStateMachine *QScxmlStateMachine::fromFile(const QString &fileName, QScxml
 {
     QFile scxmlFile(fileName);
     if (!scxmlFile.open(QIODevice::ReadOnly)) {
-        QVector<QScxmlError> errors({
-                                QScxmlError(scxmlFile.fileName(), 0, 0, QStringLiteral("cannot open for reading"))
-                            });
         auto stateMachine = new QScxmlStateMachine;
-        QScxmlStateMachinePrivate::get(stateMachine)->parserData()->m_errors = errors;
+        QScxmlError err(scxmlFile.fileName(), 0, 0, QStringLiteral("cannot open for reading"));
+        QScxmlStateMachinePrivate::get(stateMachine)->parserData()->m_errors.append(err);
         return stateMachine;
     }
 

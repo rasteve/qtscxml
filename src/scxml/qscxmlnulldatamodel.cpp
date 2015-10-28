@@ -24,8 +24,12 @@
 class QScxmlNullDataModel::Data
 {
     struct ResolvedEvaluatorInfo {
-        bool error = false;
+        bool error;
         QString str;
+
+        ResolvedEvaluatorInfo()
+            : error(false)
+        {}
     };
 
 public:

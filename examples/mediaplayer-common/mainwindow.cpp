@@ -53,13 +53,15 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    auto model = new QStringListModel({"song 1", "song 2", "song 3"}, this);
+    auto model = new QStringListModel(QStringList() << QStringLiteral("song 1")
+                                                    << QStringLiteral("song 2")
+                                                    << QStringLiteral("song 3"), this);
     ui->mediaListView->setModel(model);
 
     connect(ui->mediaListView, &QAbstractItemView::clicked, [model,this](const QModelIndex & index){
-        emit tap(QVariantMap({
-            std::make_pair(QStringLiteral("media"), model->data(index, Qt::EditRole).toString())
-        }));
+        QVariantMap data;
+        data.insert(QStringLiteral("media"), model->data(index, Qt::EditRole).toString());
+        emit tap(data);
     });
 }
 

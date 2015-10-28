@@ -424,7 +424,7 @@ private:
         foreach (const QByteArray &eventName, eventSignals) {
             QByteArray signalName = QByteArray("event_") + eventName + "(const QVariant &)";
             QMetaMethodBuilder signalBuilder = b.addSignal(signalName);
-            signalBuilder.setParameterNames({"data"});
+            signalBuilder.setParameterNames(init("data"));
             int idx = signalBuilder.index();
             m_eventNamesByIndex.resize(std::max(idx + 1, m_eventNamesByIndex.size()));
             m_eventNamesByIndex[idx] = eventName;
@@ -445,7 +445,7 @@ private:
         foreach (const QByteArray &eventName, eventSlots) {
             QByteArray slotName = QByteArray("event_") + eventName + "(const QVariant &)";
             QMetaMethodBuilder slotBuilder = b.addSlot(slotName);
-            slotBuilder.setParameterNames({"data"});
+            slotBuilder.setParameterNames(init("data"));
             int idx = slotBuilder.index();
             m_eventNamesByIndex.resize(std::max(idx + 1, m_eventNamesByIndex.size()));
             m_eventNamesByIndex[idx] = eventName;
@@ -529,6 +529,16 @@ protected:
             // emit changed signal:
             QMetaObject::activate(this, metaObject(), m_firstSubStateMachineSignal + idx, Q_NULLPTR);
         }
+    }
+
+private:
+    static QList<QByteArray> init(const char *s)
+    {
+#ifdef Q_COMPILER_INITIALIZER_LISTS
+        return QList<QByteArray>({ QByteArray::fromRawData(s, strlen(s)) });
+#else // insane compiler:
+        return QList<QByteArray>() << QByteArray::fromRawData(s, strlen(s));
+#endif
     }
 
 private:
@@ -704,11 +714,11 @@ private:
                         namelist += addString(name);
                     QVector<QScxmlInvokableServiceFactory::Param> params;
                     foreach (DocumentModel::Param *param, invoke->params) {
-                        params.append({
-                                          addString(param->name),
-                                          createEvaluatorVariant(QStringLiteral("param"), QStringLiteral("expr"), param->expr),
-                                          addString(param->location)
-                                      });
+                        QScxmlInvokableServiceFactory::Param p;
+                        p.name = addString(param->name);
+                        p.expr = createEvaluatorVariant(QStringLiteral("param"), QStringLiteral("expr"), param->expr);
+                        p.location = addString(param->location);
+                        params.append(p);
                     }
                     QScxmlExecutableContent::ContainerId finalize = QScxmlExecutableContent::NoInstruction;
                     if (!invoke->finalize.isEmpty()) {

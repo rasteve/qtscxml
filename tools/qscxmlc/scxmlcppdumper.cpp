@@ -79,7 +79,7 @@ struct Method {
 };
 
 struct ClassDump {
-    bool needsEventFilter = false;
+    bool needsEventFilter;
     StringListDumper implIncludes;
     QString className;
     QString dataModelClassName;
@@ -98,6 +98,10 @@ struct ClassDump {
     StringListDumper publicSlotDefinitions;
 
     QList<Method> dataModelMethods;
+
+    ClassDump()
+        : needsEventFilter(false)
+    {}
 };
 
 namespace {
@@ -346,41 +350,31 @@ protected:
         if (!node->onExit.isEmpty())
             clazz.init.impl << stateName + QStringLiteral(".setOnExitInstructions(%1);").arg(generate(node->onExit));
         if (!node->invokes.isEmpty()) {
-            clazz.init.impl << stateName + QStringLiteral(".setInvokableServiceFactories({");
+            QStringList lines;
             for (int i = 0, ei = node->invokes.size(); i != ei; ++i) {
                 Invoke *invoke = node->invokes.at(i);
-                QString line = QStringLiteral("    new QScxmlInvokeScxmlFactory<%1>(").arg(scxmlClassName(invoke->content.data()));
+                QString line = QStringLiteral("new QScxmlInvokeScxmlFactory<%1>(").arg(scxmlClassName(invoke->content.data()));
                 line += QStringLiteral("%1, ").arg(Builder::createContext(QStringLiteral("invoke")));
                 line += QStringLiteral("%1, ").arg(addString(invoke->id));
                 line += QStringLiteral("%1, ").arg(addString(node->id + QStringLiteral(".session-")));
                 line += QStringLiteral("%1, ").arg(addString(invoke->idLocation));
-                if (invoke->namelist.isEmpty()) {
-                    line += QStringLiteral("{}, ");
-                } else {
-                    line += QStringLiteral("{");
-                    bool first = true;
+                {
+                    QStringList l;
                     foreach (const QString &name, invoke->namelist) {
-                        if (first) {
-                            first = false;
-                        } else {
-                            line += QLatin1Char(',');
-                        }
-                        line += QStringLiteral(" %1").arg(addString(name));
+                        l.append(QString::number(addString(name)));
                     }
-                    line += QStringLiteral(" }, ");
+                    line += QStringLiteral("%1, ").arg(createVector(QStringLiteral("QScxmlExecutableContent::StringId"), l));
                 }
                 line += QStringLiteral("%1, ").arg(invoke->autoforward ? QStringLiteral("true") : QStringLiteral("false"));
-                if (invoke->params.isEmpty()) {
-                    line += QStringLiteral("{}, ");
-                } else {
-                    line += QLatin1Char('{');
+                {
+                    QStringList l;
                     foreach (DocumentModel::Param *param, invoke->params) {
-                        line += QStringLiteral("{ %1, %2, %3 }")
+                        l += QStringLiteral("QScxmlInvokableServiceFactory::Param(%1, %2, %3)")
                                 .arg(addString(param->name))
                                 .arg(createEvaluatorVariant(QStringLiteral("param"), QStringLiteral("expr"), param->expr))
                                 .arg(addString(param->location));
                     }
-                    line += QStringLiteral("}, ");
+                    line += QStringLiteral("%1, ").arg(createVector(QStringLiteral("QScxmlInvokableServiceFactory::Param"), l));
                 }
                 if (invoke->finalize.isEmpty()) {
                     line += QStringLiteral("QScxmlExecutableContent::NoInstruction");
@@ -390,11 +384,11 @@ protected:
                     endSequence();
                 }
                 line += QLatin1Char(')');
-                if (i + 1 != ei)
-                    line += QLatin1Char(',');
-                clazz.init.impl << line;
+                lines << line;
             }
-            clazz.init.impl << QStringLiteral("});");
+            clazz.init.impl << stateName + QStringLiteral(".setInvokableServiceFactories(");
+            clazz.init.impl << QStringLiteral("    ") + createVector(QStringLiteral("QScxmlInvokableServiceFactory *"), lines);
+            clazz.init.impl << QStringLiteral(");");
         }
 
         if (node->type == State::Final) {
@@ -592,17 +586,25 @@ private:
     }
 
     QString createList(const QString &elementType, const QStringList &elements) const
+    { return createContainer(QStringLiteral("QList"), elementType, elements); }
+
+    QString createVector(const QString &elementType, const QStringList &elements) const
+    { return createContainer(QStringLiteral("QVector"), elementType, elements); }
+
+    QString createContainer(const QString &baseType, const QString &elementType, const QStringList &elements) const
     {
         QString result;
         if (translationUnit->useCxx11) {
-            if (elements.isEmpty())
+            if (elements.isEmpty()) {
                 result += QStringLiteral("{}");
-            else
+            } else {
                 result += QStringLiteral("{ ") + elements.join(QStringLiteral(", ")) + QStringLiteral(" }");
+            }
         } else {
-            result += QStringLiteral("QList<%1>()").arg(elementType);
-            if (!elements.isEmpty())
+            result += QStringLiteral("%1<%2>()").arg(baseType, elementType);
+            if (!elements.isEmpty()) {
                 result += QStringLiteral(" << ") + elements.join(QStringLiteral(" << "));
+            }
         }
         return result;
     }
