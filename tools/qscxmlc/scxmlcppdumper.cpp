@@ -301,8 +301,8 @@ protected:
 
     bool visit(State *node) Q_DECL_OVERRIDE
     {
-        auto name = mangledName(node);
-        auto stateName = QStringLiteral("state_") + name;
+        QString name = mangledName(node);
+        QString stateName = QStringLiteral("state_") + name;
         // Property stuff:
         clazz.properties << QStringLiteral("Q_PROPERTY(QAbstractState *%1 READ %1() CONSTANT)").arg(name);
         Method getter(QStringLiteral("QAbstractState *%1() const").arg(name));
@@ -473,7 +473,7 @@ protected:
         // Includes:
         clazz.implIncludes << "QHistoryState";
 
-        auto stateName = QStringLiteral("state_") + mangledName(node);
+        QString stateName = QStringLiteral("state_") + mangledName(node);
         // Declaration:
         clazz.classFields << QStringLiteral("QHistoryState ") + stateName + QLatin1Char(';');
 
@@ -611,8 +611,7 @@ private:
 
     QString generateInitializer(AbstractState *node)
     {
-        auto stateName = QStringLiteral("state_") + mangledName(node);
-        QString init = stateName + QStringLiteral("(");
+        QString init = QStringLiteral("state_") + mangledName(node) + QStringLiteral("(");
         if (State *parentState = node->parent->asState()) {
             init += QStringLiteral("&state_") + mangledName(parentState);
         } else {
@@ -626,7 +625,7 @@ private:
     {
         QStringList serviceProps;
         foreach (ScxmlDocument *subDocs, doc->allSubDocuments) {
-            auto name = subDocs->root->name;
+            QString name = subDocs->root->name;
             if (name.isEmpty())
                 continue;
 
@@ -1032,7 +1031,7 @@ private:
                 t << QStringLiteral("\"\"");
             } else {
                 foreach (const QByteArray &ba, byteArrays) {
-                    auto s = QString::fromUtf8(ba);
+                    QString s = QString::fromUtf8(ba);
                     t << QStringLiteral("\"%1\" // %2").arg(toHex(s) + QStringLiteral("\\x00"), cEscape(s));
                 }
             }
@@ -1070,7 +1069,7 @@ private:
 
     QString scxmlClassName(DocumentModel::ScxmlDocument *doc) const
     {
-        auto name = translationUnit->classnameForDocument.value(doc);
+        QString name = translationUnit->classnameForDocument.value(doc);
         Q_ASSERT(!name.isEmpty());
         return namespacePrefix + name;
     }
@@ -1109,7 +1108,7 @@ void CppDumper::dump(TranslationUnit *unit)
         classDecls.append(clazz.className);
     }
 
-    auto headerName = QFileInfo(unit->outHFileName).fileName();
+    QString headerName = QFileInfo(unit->outHFileName).fileName();
     const QString headerGuard = headerName.toUpper()
             .replace(QLatin1Char('.'), QLatin1Char('_'))
             .replace(QLatin1Char('-'), QLatin1Char('_'));
@@ -1223,7 +1222,7 @@ void CppDumper::writeImplStart(const QVector<ClassDump> &allClazzes)
     }
     includes.unique();
 
-    auto headerName = QFileInfo(m_translationUnit->outHFileName).fileName();
+    QString headerName = QFileInfo(m_translationUnit->outHFileName).fileName();
     cpp << l("#include \"") << headerName << l("\"") << endl;
     cpp << endl
         << QStringLiteral("#include <qscxmlqstates.h>") << endl

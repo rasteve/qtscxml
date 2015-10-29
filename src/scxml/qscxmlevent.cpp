@@ -223,6 +223,8 @@ QScxmlEvent::~QScxmlEvent()
 QString QScxmlEvent::scxmlType() const
 {
     switch (d->eventType) {
+    case PlatformEvent:
+        return QLatin1String("platform");
     case InternalEvent:
         return QLatin1String("internal");
     case ExternalEvent:
