@@ -24,12 +24,62 @@ QT_USE_NAMESPACE
 using namespace QScxmlExecutableContent;
 
 /*!
- * \class QScxmlCppDataModel
- * \brief C++ data-model for a QScxmlStateMachine
- * \since 5.6
- * \inmodule QtScxml
- *
- * \sa QScxmlStateMachine QScxmlDataModel
+   \class QScxmlCppDataModel
+   \brief C++ data-model for a QScxmlStateMachine
+   \since 5.6
+   \inmodule QtScxml
+
+   \sa QScxmlStateMachine QScxmlDataModel
+
+   TODO: blah... DIY data-model
+   \note TODO: mention that you can inherit from both QScxmlCppDataModel and QObject
+
+   The Scxml compiler will generate the various evaluateTo methods, and convert expressions and
+   scripts into lambdas inside those methods. For example:
+   \code
+<scxml datamodel="cplusplus:TheDataModel:thedatamodel.h" xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="MediaPlayerStateMachine">
+    <state id="stopped">
+        <transition event="tap" cond="isValidMedia()" target="playing"/>
+    </state>
+
+    <state id="playing">
+        <onentry>
+            <script>
+                media = eventData().value(QStringLiteral(&quot;media&quot;)).toString();
+            </script>
+            <send type="qt:signal" event="playbackStarted">
+                <param name="media" expr="media"/>
+            </send>
+        </onentry>
+    </state>
+</scxml>
+   \endcode
+   This will result in:
+   \code
+bool TheDataModel::evaluateToBool(QScxmlExecutableContent::EvaluatorId id, bool *ok) {
+    // ....
+        return [this]()->bool{ return isValidMedia(); }();
+    // ....
+}
+
+QVariant TheDataModel::evaluateToVariant(QScxmlExecutableContent::EvaluatorId id, bool *ok) {
+    // ....
+        return [this]()->QVariant{ return media; }();
+    // ....
+}
+
+void TheDataModel::evaluateToVoid(QScxmlExecutableContent::EvaluatorId id, bool *ok) {
+    // ....
+        [this]()->void{ media = eventData().value(QStringLiteral("media")).toString(); }();
+    // ....
+}
+   \endcode
+
+   So, you are not limited to call functions. In a script tag you can put zero or more C++ statements,
+   and in cond or expr attributes you can use any C++ expression that can be converted to the
+   respectively bool or QVariant. And, as the this pointer is also captured, you can call/access
+   the data model (the media attribute in the example above). For the full example, see
+   mediaplayer-cppdatamodel.
  */
 
 QScxmlCppDataModel::QScxmlCppDataModel()
