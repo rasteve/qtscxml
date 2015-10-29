@@ -33,6 +33,8 @@ using namespace QScxmlExecutableContent;
 
    TODO: blah... DIY data-model
    \note TODO: mention that you can inherit from both QScxmlCppDataModel and QObject
+   \note put the Q_SCXML_DATAMODEL macro directly after opening the class, so around the same spot
+         as the Q_OBJECT macro. The order of these macro uses is not important.
 
    The Scxml compiler will generate the various evaluateTo methods, and convert expressions and
    scripts into lambdas inside those methods. For example:
