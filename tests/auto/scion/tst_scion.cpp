@@ -44,8 +44,6 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         << QLatin1String("w3c-ecma/test201.txml")
         << QLatin1String("w3c-ecma/test364.txml") // initial attribute on <state>
         << QLatin1String("w3c-ecma/test388.txml") // Qt refuses to set an initial state to a "deep" state
-        << QLatin1String("w3c-ecma/test403c.txml")
-
 
         // Currently we do not support loading data as XML content inside the <data> tag.
         << QLatin1String("w3c-ecma/test557.txml")
