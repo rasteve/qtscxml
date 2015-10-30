@@ -84,10 +84,16 @@ void TheDataModel::evaluateToVoid(QScxmlExecutableContent::EvaluatorId id, bool 
    mediaplayer-cppdatamodel.
  */
 
+/*!
+ * \brief Creates a new C++ data model.
+ */
 QScxmlCppDataModel::QScxmlCppDataModel()
     : data(new QScxmlCppDataModelPrivate)
 {}
 
+/*!
+ * \brief Destroys the C++ data model.
+ */
 QScxmlCppDataModel::~QScxmlCppDataModel()
 {
     delete data;

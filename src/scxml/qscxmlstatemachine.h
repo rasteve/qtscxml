@@ -125,9 +125,6 @@ Q_SIGNALS:
 public Q_SLOTS:
     void start();
 
-private Q_SLOTS:
-    void onFinished();
-
 protected:
     void setDataBinding(BindingMethod bindingMethod);
     virtual void setService(const QString &id, QScxmlInvokableService *service);

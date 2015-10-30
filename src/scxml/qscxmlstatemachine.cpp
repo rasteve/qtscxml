@@ -317,8 +317,11 @@ QScxmlStateMachine::QScxmlStateMachine(QObject *parent)
     d->m_executionEngine = new QScxmlExecutableContent::ExecutionEngine(this);
     d->setQStateMachine(new QScxmlInternal::WrappedQStateMachine(this));
     connect(d->m_qStateMachine, &QStateMachine::runningChanged, this, &QScxmlStateMachine::runningChanged);
-    connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::onFinished);
     connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::finished);
+    connect(d->m_qStateMachine, &QStateMachine::finished, [this](){
+        // The final state is also a stable state.
+        emit reachedStableState(true);
+    });
 }
 
 /*!
@@ -330,8 +333,11 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
     Q_D(QScxmlStateMachine);
     d->m_executionEngine = new QScxmlExecutableContent::ExecutionEngine(this);
     connect(d->m_qStateMachine, &QStateMachine::runningChanged, this, &QScxmlStateMachine::runningChanged);
-    connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::onFinished);
     connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::finished);
+    connect(d->m_qStateMachine, &QStateMachine::finished, [this](){
+        // The final state is also a stable state.
+        emit reachedStableState(true);
+    });
 }
 
 /*!
@@ -1003,17 +1009,30 @@ bool QScxmlStateMachine::isDispatchableTarget(const QString &target) const
     return false;
 }
 
+/*!
+  \fn QScxmlStateMachine::log(const QString &label, const QString &msg)
+  \since 5.6
+
+  This signal is emitted where a <log> tag is used in the Scxml.
+
+  \param label The value of the label attribute of the <log> tag.
+  \param msg The value of the evaluated expr attribute of the <log> tag. If there was no expr
+         attribute, a null string will be returned.
+*/
+
+/*!
+  \fn QScxmlStateMachine::reachedStableState(bool didChange)
+  \since 5.6
+
+  This signal is emitted when the event queue is empty at the end of a macro step, or when a final
+  state is reached.
+*/
+
 void QScxmlStateMachine::start()
 {
     Q_D(QScxmlStateMachine);
 
     d->m_qStateMachine->start();
-}
-
-void QScxmlStateMachine::onFinished()
-{
-    // The final state is also a stable state.
-    emit reachedStableState(true);
 }
 
 void QScxmlStateMachine::setService(const QString &id, QScxmlInvokableService *service)

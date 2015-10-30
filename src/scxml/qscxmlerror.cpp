@@ -43,11 +43,21 @@ public:
  * \sa QScxmlStateMachine QScxmlParser
  */
 
-
+/*!
+ * \brief Creates a new invalid QScxmlError.
+ */
 QScxmlError::QScxmlError()
     : d(Q_NULLPTR)
 {}
 
+/*!
+ * \brief Creates a new (valid) QScxmlError.
+ *
+ * \param fileName The name of the file in which the error occurred.
+ * \param line The line on which the error occurred.
+ * \param column The column in which the error occurred.
+ * \param description The error message.
+ */
 QScxmlError::QScxmlError(const QString &fileName, int line, int column, const QString &description)
     : d(new ScxmlErrorPrivate)
 {
@@ -79,37 +89,60 @@ QScxmlError &QScxmlError::operator=(const QScxmlError &other)
     return *this;
 }
 
+/*!
+ * \brief Destroys a QScxmlError.
+ */
 QScxmlError::~QScxmlError()
 {
     delete d;
     d = Q_NULLPTR;
 }
 
+/*!
+ * \return Returns true when the error is valid, false otherwise. An invalid error can only be
+ *         created by calling the default constructor, or by assigning an invalid error.
+ */
 bool QScxmlError::isValid() const
 {
     return d != Q_NULLPTR;
 }
 
+/*!
+ * \return The name of the file in which the error occurred.
+ */
 QString QScxmlError::fileName() const
 {
     return isValid() ? d->fileName : QString();
 }
 
+/*!
+ * \return The line on which the error occurred.
+ */
 int QScxmlError::line() const
 {
     return isValid() ? d->line : -1;
 }
 
+/*!
+ * \return The column in which the error occurred.
+ */
 int QScxmlError::column() const
 {
     return isValid() ? d->column : -1;
 }
 
+/*!
+ * \return The error message.
+ */
 QString QScxmlError::description() const
 {
     return isValid() ? d->description : QString();
 }
 
+/*!
+ * \brief Convenience method to convert an error to a string.
+ * \return The error message formatted as: "filename:line:column: error: description"
+ */
 QString QScxmlError::toString() const
 {
     QString str;
@@ -130,12 +163,18 @@ QString QScxmlError::toString() const
     return str;
 }
 
+/*!
+ * \brief Convenience method to write a QScxmlError to a QDebug stream.
+ */
 QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const QScxmlError &error)
 {
     debug << error.toString();
     return debug;
 }
 
+/*!
+ * \brief Convenience method to write QScxmlErrors to a QDebug stream.
+ */
 QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const QVector<QScxmlError> &errors)
 {
     foreach (const QScxmlError &error, errors) {

@@ -52,8 +52,6 @@ class QDebug;
 QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const QScxmlError &error);
 QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const QVector<QScxmlError> &errors);
 
-Q_DECLARE_TYPEINFO(QScxmlError, Q_MOVABLE_TYPE);
-
 QT_END_NAMESPACE
 
 #endif // QSCXMLERROR_H

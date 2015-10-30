@@ -37,10 +37,16 @@ QScxmlDataModel::ForeachLoopBody::~ForeachLoopBody()
  * \sa QScxmlStateMachine QScxmlCppDataModel QScxmlEcmaScriptDataModel QScxmlNullDataModel
  */
 
+/*!
+ * \brief Creates a new data model.
+ */
 QScxmlDataModel::QScxmlDataModel()
     : d(new QScxmlDataModelPrivate)
 {}
 
+/*!
+ * \brief Destroys the data model.
+ */
 QScxmlDataModel::~QScxmlDataModel()
 {
     delete d;
