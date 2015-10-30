@@ -47,9 +47,9 @@ QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
 }
+class QScxmlStateMachine;
 QT_END_NAMESPACE
 
-class QScxmlStateMachine;
 
 class MainWindow : public QWidget
 {
