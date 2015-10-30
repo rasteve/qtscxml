@@ -93,11 +93,22 @@ QScxmlCppDataModel::~QScxmlCppDataModel()
     delete data;
 }
 
+/*!
+ * \brief QScxmlCppDataModel::setup is called during state-machine initialization.
+ *
+ * \param initialDataValues initial values for data-model variables specified by their keys. These
+ *        are the values specified by <param> tags in an <invoke>.
+ *
+ * \sa QScxmlStateMachine::init
+ */
 void QScxmlCppDataModel::setup(const QVariantMap &initialDataValues)
 {
     Q_UNUSED(initialDataValues);
 }
 
+/*!
+ * \internal not supported in this data-model
+ */
 void QScxmlCppDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
@@ -105,6 +116,9 @@ void QScxmlCppDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
     Q_UNREACHABLE();
 }
 
+/*!
+ * \internal not supported in this data-model
+ */
 void QScxmlCppDataModel::evaluateInitialization(EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
@@ -112,6 +126,9 @@ void QScxmlCppDataModel::evaluateInitialization(EvaluatorId id, bool *ok)
     Q_UNREACHABLE();
 }
 
+/*!
+ * \internal not supported in this data-model
+ */
 bool QScxmlCppDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body)
 {
     Q_UNUSED(id);
@@ -121,11 +138,24 @@ bool QScxmlCppDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBo
     return false;
 }
 
+/*!
+ * \brief Set the event that will be processed next.
+ *
+ * \sa QScxmlCppDataModel::event
+ */
 void QScxmlCppDataModel::setEvent(const QScxmlEvent &event)
 {
     data->event = event;
 }
 
+/*!
+ * \brief QScxmlCppDataModel::event holds the current event that is being processed by the
+ *        state-machine.
+ *
+ * See also section 5.10 in the Scxml specification for the description of the _event variable.
+ *
+ * \return the event currently being processed.
+ */
 const QScxmlEvent &QScxmlCppDataModel::event() const
 {
     return data->event;
@@ -152,6 +182,9 @@ void QScxmlCppDataModel::setProperty(const QString &name, const QVariant &value,
     Q_UNREACHABLE();
 }
 
+/*!
+ * \return true if the state-machine is in the state specified by stateName, false otherwise.
+ */
 bool QScxmlCppDataModel::In(const QString &stateName) const
 {
     return stateMachine()->isActive(stateName);

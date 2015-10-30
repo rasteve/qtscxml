@@ -34,6 +34,16 @@ public:
     QString description;
 };
 
+/*!
+ * \class QScxmlError
+ * \brief Describes the errors returned by the QScxmlStateMachine when parsing an Scxml file.
+ * \since 5.6
+ * \inmodule QtScxml
+ *
+ * \sa QScxmlStateMachine QScxmlParser
+ */
+
+
 QScxmlError::QScxmlError()
     : d(Q_NULLPTR)
 {}

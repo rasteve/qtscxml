@@ -302,7 +302,7 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
 }
 
 /*!
-    \enum QStateMachine::BindingMethod
+    \enum QScxmlStateMachine::BindingMethod
 
     This enum specifies the binding method. The binding method controls when the initial values are
     assigned to the data elements.
