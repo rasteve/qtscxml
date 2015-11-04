@@ -9,6 +9,7 @@ version                 = $QT_VERSION
 # under QT_INSTALL_EXAMPLES.
 examplesinstallpath     = tqtc-qtscxml
 exampledirs             = ../../../examples
+imagedirs               = ../../../examples/doc/images
 
 examples.fileextensions += "*.scxml"
 

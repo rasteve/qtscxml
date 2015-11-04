@@ -65,8 +65,8 @@ MainWindow::MainWindow(Pinball *machine, QWidget *parent) :
 
     // help labels
     initAndConnect(QLatin1String("offState"), ui->offStateLabel);
-    initAndConnect(QLatin1String("normalState"), ui->normalStateLabel);
-    initAndConnect(QLatin1String("hurryState"), ui->hurryStateLabel);
+    initAndConnect(QLatin1String("hurryStateOff"), ui->normalStateLabel);
+    initAndConnect(QLatin1String("hurryStateOn"), ui->hurryStateLabel);
     initAndConnect(QLatin1String("jackpotStateOn"), ui->jackpotStateLabel);
 
     // context enablement

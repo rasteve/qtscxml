@@ -23,6 +23,465 @@
     \example pinball-ecmascript-widgets-static
     \title Qt SCXML: Pinball ECMAScript Example (Static)
     \ingroup examples-qtscxml
+    \brief Demonstrates how the internal
+    logic of the application can be encapsulated in a scxml file.
 
-    \brief Demonstrates...
+    \image pinball-ecmascript-widgets-static.png Screenshot of the Pinball example
+
+    \e {Pinball EcmaScript Widgets Static Example} mimics a pinball game.
+    The targets on the pinball table are substituted here by GUI controls,
+    mainly by push buttons. Display elements, including current
+    score, highscore and targets' lights are substituted by labels.
+    Usually targets' lights state changes very often during game:
+    they get turned on or off, they blink slowly, fast or
+    with any intermediate speed indicating a game (or a certain target)
+    entered some temporary state. The state of each target light
+    is presented here as an enabled or a disabled label.
+    There is no real ball here, but one can easily imagine that
+    pressing a target's button can mimic hitting a real pinball
+    target with a ball.
+
+    \section1 Pinball Features
+
+    Our pinball contains the following features:
+    \list
+    \li Initially and when the game ends the pinball table
+        goes into \c offState. In that state all lights on the table
+        blink slowly (with 1s interval).
+    \li After pressing the \uicontrol START button the pinball table
+        goes into \c onState. All lights get turned off and the
+        pinball table is ready to be played.
+    \li Whenever the table is in \c onState and the inattentive player
+        presses the \uicontrol {BALL OUT} button, the game ends
+        and enters into the \c offState. If the player's score is
+        higher than the current highscore, the highscore is updated.
+    \li The goal is to collect the \uicontrol JACKPOT. In order to do that,
+        the player must hit all five \uicontrol CRAZY letters twice.
+        He has unlimited time for collecting it for the first time.
+        However, after he has collected all the letters for the first time,
+        he enters the \c hurryState and he must quickly collect
+        all the letters again within 5s. If the time passed and
+        the letters were not collected again, the player must
+        start collecting the letters from scratch.
+    \li Scores:
+        \list
+        \li 1.000 per letter hit when not in \c hurryState.
+        \li 10.000 per letter hit when in \c hurryState.
+        \li 100.000 bonus for all 5 letters when not in \c hurryState.
+        \li 1.000.000 bonus for all 5 letters when in \c hurryState (\uicontrol JACKPOT)
+        \endlist
+    \li When not in \c hurryState, the letters already hit should blink
+        with intermediate speed (500ms). Letters not hit yet should stay off.
+    \li When in \c hurryState, the letters already hit should
+        stay on. Letters not hit yet should blink fast (200ms).
+        In addition the \uicontrol HURRY light should blink with the same speed.
+    \li When jackpot gets collected the \uicontrol JACKPOT light should stay on.
+    \endlist
+
+    This example also demonstrates a clear separation
+    between chosen user interface (which may be easily replaced) and internal logic
+    (which should stay the same for different user interface).
+
+    \section1 Internal Logic Description
+
+    The pinball.scxml file describes the internal logic implemented for
+    pinball game.
+
+    \quotefromfile pinball-ecmascript-common/pinball.scxml
+    \skipto scxml
+    \printuntil guiControl
+    \dots 12
+    \skipto /^\ {8}<\//
+    \printuntil internalState
+    \dots 12
+    \skipto /^\ {8}<\//
+    \printuntil scxml
+
+    In this example we've chosen ecmascript data model
+    ("datamodel" attribute of <scxml> element).
+    This data model enables declaring variables with
+    initial values, which can be modified later.
+    We declare two variables in our model: "highscore" and "score",
+    with initial values of 0 (two <data> elements inside <datamodel> element).
+    We also define a root parallel state "global",
+    with two child states: \c guiControl and \c internalState,
+    which are also parallel. Since the top \c global state is
+    parallel, it means that whenever a \c global state is active
+    all of its direct children are also active. In fact,
+    the top level \c global is always active, meaning
+    all of its children are always active, too.
+    The \c global state in our example doesn't play any other role apart from
+    collecting its two children and making them both active at a time.
+
+    \quotefromfile pinball-ecmascript-common/pinball.scxml
+    \skipto guiControl
+    \printuntil rLight
+    \dots 16
+    \skipto /^\ {12}<\//
+    \printuntil aLight
+    \dots 16
+    \skipto /^\ {12}<\//
+    \printuntil zLight
+    \dots 16
+    \skipto /^\ {12}<\//
+    \printuntil yLight
+    \dots 16
+    \skipto /^\ {12}<\//
+    \printuntil hurryLight
+    \dots 16
+    \skipto /^\ {12}<\//
+    \printuntil jackpotLight
+    \dots 16
+    \skipto /^\ {12}<\//
+    \printuntil gameOverLight
+    \dots 16
+    \skipto /^\ {12}<\//
+    \printuntil /^\ {8}<\//
+
+    The \c guiControl part is responsible for maintaining the current
+    state of every light control, which is visible on the pinball table.
+    We have eight different lights, five for letters: C, R, A, Z and Y,
+    and three for whole texts: \uicontrol HURRY!, \uicontrol JACKPOT
+    and \uicontrol {GAME OVER}. Every light
+    corresponds to its state, e.g. for light of letter \uicontrol C we have
+    a \c cLight state and so on. Every light state has two child states
+    indicating whether the light is on or off, e.g. \c cLight state
+    contains \c cLightOn and \c cLightOff states. The content
+    for other light states, which is omitted here, is analogous.
+    As mentioned before, \c guiControl state is always active, and since
+    it is of parallel type, all its direct children are always active too.
+    So, \c cLight state is always active, however,
+    only one of \c cLightOn or \c cLightOff it active at a time.
+    The same applies to other children of \c guiControl state.
+    In addition, we define transitions between on and off substates, e.g.
+    whenever the active state is \c cLightOn and someone posts \c turnOffC event,
+    we change the active substate of \c cLight into \c cLightOff, and vice versa:
+    whenever the active state is \c cLightOff and we receive \c turnOnC event,
+    we change the active substate of \c cLight into \c cLightOn.
+
+    In case of our application, we use instances of QLabel class in C++
+    to pretend real lights on the table. Whenever the light transitions
+    into "on" or "off" state we enable or disable the particular label
+    accordingly. The glue connection between the state machine and the GUI
+    part of the application will be shown in \l {cpp} {cpp code} later on. For now
+    it is enough to realize that changes to active states inside
+    the state machine will serve as external interface of the state machine,
+    so that other parts of the application (e.g. GUI part) can listen to.
+
+    All of the mentioned events which switch the state of every light
+    will be generated by this state machine inside \c internalState
+    in reaction to running timers or to external triggers.
+
+    \quotefromfile pinball-ecmascript-common/pinball.scxml
+    \skipto internalState
+    \printuntil logicalState
+    \dots 16
+    \skipto /^\ {12}<\//
+    \printuntil workflow
+    \dots 16
+    \skipto /^\ {12}<\//
+    \printuntil /^\ {8}<\//
+
+    The \c internalState consists of two main parts: \c logicalState and \c workflow.
+    The \c logicalState holds the definitions for modes the game is able
+    to go into and logical states of collected targets, while \c workflow state
+    implements generator for light blinking and calculates most of new states
+    machine should go into depending on incoming events and on currently active states.
+    As mentioned already, \c internalState is always active, and since
+    it is of a parallel type, \c logicalState and \c workflow children are always active too.
+
+    \quotefromfile pinball-ecmascript-common/pinball.scxml
+    \skipto logicalState
+    \printuntil letterState
+    \dots 20
+    \skipto /^\ {16}<\//
+    \printuntil modeState
+    \dots 20
+    \skipto /^\ {16}<\//
+    \printuntil /^\ {12}<\//
+
+    The \c logicalState consist of two parts: \c letterState and \c modeState.
+    As previously mentioned, \c logicalState is always active, and since
+    it is of parallel type, \c letterState and \c modeState children are always active too.
+    Now let's look at the first part of it, the \c letterState:
+
+    \quotefromfile pinball-ecmascript-common/pinball.scxml
+    \skipto letterState
+    \printuntil lettersState
+    \printuntil rLetter
+    \dots 28
+    \skipto /^\ {24}<\//
+    \printuntil aLetter
+    \dots 28
+    \skipto /^\ {24}<\//
+    \printuntil zLetter
+    \dots 28
+    \skipto /^\ {24}<\//
+    \printuntil yLetter
+    \dots 28
+    \skipto /^\ {24}<\//
+    \printuntil /^\ {16}<\//
+
+    It contains one parallel \c lettersState.
+    The \c lettersState maintains the logical state of
+    buttons pretending targets which were pressed by the user.
+    Please notice the difference between lettersStates and lightStates
+    which were mentioned earlier. E.g. the letter state for \uicontrol C letter
+    holds the info if the target for \uicontrol C letter was hit or not,
+    while the light state for \uicontrol C letter holds the info if the
+    light for the target for \uicontrol C letter should be currently on or off.
+    In the real pinball game these states are usually orthogonal,
+    e.g. if you didn't hit any target yet, the target is blinking,
+    indicating that it's currently worth to hit it. This blinking
+    means the light state switches between on or off in some short time interval,
+    while the target state is continouosly off, since it was not hit yet.
+    The author of a pinball table can decide e.g. that
+    after hitting the target (so after the target state goes to on)
+    he turns target's light continouosly off or on or just increase
+    of decrease the interval of blinking.
+
+    As mentioned before, \c letterState is always active, so it means
+    that its only child \c lettersState should always be active too. However,
+    there is an exception here: for a short while the \c lettersState may
+    end up being \e {not active}. This happens when the transition for
+    \c lettersState is being performed. This transition is triggered when
+    the \c resetLetters event will appear and it instructs the state machine
+    to exit \c lettersState and all its descendant states and reenter
+    \c lettersState and set up all its descendant states with their initial states.
+    In short, the \c resetLetters event resets the \c lettersState and all its
+    descendant states to the default configuration.
+
+    The \c lettersState contains five direct substates which
+    correspond to five different letters. The content
+    for other letters states than C, which is omitted here, is analogous.
+
+    The \c cLetter contains two substates reflecting its off and on states:
+    \c cLetterOff and \c cLetterOn. The "cLetter" state inside its parallel
+    parent \c lettersState is always active (under condition that
+    \c lettersState is active, too, what was described before), however,
+    only one of its child states is active at a time: \c cLetterOff or \c cLetterOn.
+    The initial substate of \c cLetter state is \c cLetterOff meaning
+    that whenever \c cLetter state is being activated (what happens
+    initially and after \c resetLetters event) its active
+    substate will be set to \c cLetterOff.
+
+    The \c cLetterOff defines a transition, which will be triggered by
+    the \c {letterTriggered.C} event. This transition activates the \c cLetterOn,
+    the other child of \c cLetter, only when the machine is in \c onState
+    (which will be defined later, but in short: when the pinball game is running).
+    The \c {letterTriggered.C} event is expected to be an event posted into the state machine
+    from outside of the state machine. This event should be generated when
+    the ball hits the \uicontrol C letter target. In our example we mimic
+    it by the pressing \uicontrol C letter button.
+
+    The \c cLetterOn state defines additional action. The action is defined
+    inside \c onentry element of the state, which means it will be executed
+    when the state machine enters this state. The action will generate
+    the event \c letterOn, which is common for all other letter states
+    defined in \c lettersState. This event will be used in further part
+    for updating the current score. So, whenever any of letters will switch
+    its state from off to on (but not vice versa), the \c letterOn
+    event will be posted.
+
+    The \c cLetterOn state is defined as a final state, which means that
+    whenever this state is activated the \c {done.state.cLetter} event
+    will be automatically posted by the state machine. Moreover,
+    when all \c lettersState children reach their final state,
+    the state machine will automatically post \c {done.state.lettersState} event.
+    Later, we will make use of it.
+
+    \quotefromfile pinball-ecmascript-common/pinball.scxml
+    \skipto modeState
+    \printuntil offState
+    \dots 24
+    \skipto /^\ {20}<\//
+    \printuntil onState
+    \dots 24
+    \skipto /^\ {20}<\//
+    \printuntil /^\ {16}<\//
+
+    The \c modeState consists of two substates, \c offState and \c onState.
+    The \c offState describes what should happen when the pinball game
+    is not yet started or when it is over,
+    while \c onState represents the logic appropriate for the active game.
+
+    \quotefromfile pinball-ecmascript-common/pinball.scxml
+    \skipto offState
+    \printuntil /^\ {20}<\//
+
+    Whenever the pinball application starts or when the game ends the machine goes into the
+    \c offState. Entering that state invokes some actions, which are
+    enclosed inside <onentry> element. First, we update the highScore
+    variable in case the current highScore value is less than current score value.
+    This is being checked inside the "cond" attribute of <if> element
+    (please note that we need to escape the "<" character with "&lt;").
+    When being in off state, we still want to show the last reached score,
+    so we don't clear it here - we will do that when we enter the on state.
+    Next, we raise two events: \c resetLetters for logical reset of
+    all letter which were possibly hit during last game and \c update
+    for immediate generation of light blink and update of all lights.
+    When the machine is in \c offState it is ready to go into the
+    \c onState if only the \c startTriggered event occurs, which is described
+    by <transition> element. This event is expected to be generated externally
+    after pressing the \uicontrol START button on the pinball table.
+
+    \skipto onState
+    \printuntil /^\ {20}<\//
+
+    The fist thing which is being done by the state machine after in enters
+    the \c onState is clearing the current score variable. The \c onState
+    is of parallel type and consists of two direct child states:
+    \c hurryState and \c jackpotState, which both are always active as long as
+    their parent "onState" is active too. Both \c hurryState and \c jackpotState
+    contain two substates which reflects the off and the on state of each of them.
+    Only one substate of \c hurryState and one substate of \c jackpotState
+    can be acitve at a time and initially the off substates are active.
+
+    Whenever we enter \c hurryStateOff or \c hurryStateOn we generate two events:
+    \c resetLetters and \c update (the same as we generate when entering the \c onState).
+    In addition when we enter the \c hurryStateOn we send a delayed event
+    \c goToHurryOff with a delay of 5s, marked with \c hurryId. It means, that after 5s we just
+    switch the state back to \c hurryStateOff. In this way we implement
+    the five seconds hurry feature of the pinball table.
+    We also define transitions: \c hurryStateOff -> \c hurryStateOn
+    when \c goToHurryOn event occurs and the opposite,
+    \c hurryStateOn -> \c hurryStateOff when \c goToHurryOff event occurs.
+    When we exit the \c hurryStateOn we cancel possibly pending delayed
+    event which was marked with \c hurryId. This is important in case
+    the 5s time hasn't elapsed yet, but we've collected all the five letters
+    in the hurry state - we then collect the jackpot and want the pending
+    timer to finish.
+
+    The substates of \c jackpotState generate the request for update the state
+    of lights. The \c jackpotStateOff defines the transition to \c jackpotStateOn
+    when the \c goForJackpot event occurs. The opposite transition isn't
+    needed, since when the jackpot gets collected the corresponding light
+    is left lit until the end of game. When the new game starts, the \c jackpotState
+    is entered again which causes that its initial active substate will be
+    \c jackpotStateOff.
+
+    In addition, the \c onState defines one transition in reaction to
+    \c ballOutTriggered event which instructs the machine to go into the \c offState.
+    The \c ballOutTriggered event is expected to be an event posted into the state machine
+    from outside of the state machine. This event should be generated when
+    the ball gets out of playing area of the table. In our example we mimic
+    it by the pressing \uicontrol {BALL OUT} button. Posting the event from outside of state
+    machine will be shown in \l {cpp} {cpp code} later on.
+
+    \quotefromfile pinball-ecmascript-common/pinball.scxml
+    \skipto workflow
+    \printuntil letterOn
+    \dots 20
+    \skipto /^\ {16}<\//
+    \printuntil lettersState
+    \dots 20
+    \skipto /^\ {16}<\//
+    \printuntil updateLights
+    \dots 20
+    \skipto /^\ {16}<\//
+    \printuntil /^\ {12}<\//
+
+    The \c workflow state is responsible for generator for light blinking,
+    which is defined in its \c lightImpulseGenerator substate, and
+    for reacting for events which were posted so far from other parts
+    of the state machine.
+
+    The \c lightImpulseGenerator contains two child states:
+    \c lightImpulseOn and \c lightImpulseOff, with only one active at a time.
+    Whenever the delayed \c lightImpulse event is being delivered, it immediately
+    cause the transition from \c lightImpluseOn into \c lightImpulseOff or vice versa,
+    depending on the state the machine was in. In effect, the \c lightImpulseGenerator
+    toggles between its on and off state. These transitions are defined inside
+    \c lightImpulseGenerator, so it means that during this toggling the machine
+    also exits \c lightImpulseGenerator and reenters it immediately afterwards.
+    Entering \c lightImpulseGenerator cause generation of the \c update event.
+    The \c update event triggers the targetless transition and posts two other
+    events: \c scheduleNewImpulse and \c updateLights. The first one,
+    \c scheduleNewImpulse returns back to the \c lightImpulseGenerator and
+    it posts delayed \c lightImpulse event. After the desired delay,
+    the \c lightImpulse gets delivered to \c lightImpulseGenerator back
+    and it causes to toggle its substate again. In this way the machine
+    gets into the cycle. The current delay of the \c lightImpulse
+    event depends on the state in which the machine was in time of posting that delayed event.
+    Please also notice, that the next \c scheduleNewImpulse
+    event may occur on demand, before the next delayed \c lightImpulse
+    event gets delivered, so for that case we cancel any possible pending event.
+
+    \quotefromfile pinball-ecmascript-common/pinball.scxml
+    \skipto workflow
+    \skipto letterOn
+    \printuntil /^\ {16}<\//
+    \printuntil /^\ {16}<\//
+
+    Whenever we receive the \c letterOn event we update the current score.
+    The transition for the \c letterOn event is targetless, since we just
+    listen for that event and update the internal data accordingly
+    without changing any active state. The new score is being
+    increased by 1.000 or 10.000 points, depending if we currently are
+    in \c hurryStateOff or \c hurryStateOn.
+    After the score is updated we generate the \c updateLights event
+    in order to update immediately letters' lights accordingly.
+    We don't generate "update" here, since we don't want to toggle
+    light impulse now, but just update the lights according to
+    the current impulse state.
+
+    We also intercept the \c {done.state.lettersState} event,
+    which is being generated when all the letters were hit.
+    Depending on which state we are currently in, we grant
+    a small bonus of 100.000 or a big one of 1.000.000 (jackpot).
+    In addition we toggle \c hurryState substate by
+    sending \c goToHurryOn or \c goToHurryOff event.
+    When all letters were collected being in \c hurryStateOn
+    we also raise the \c goForJackpot event which instructs
+    the machine to activate the \c jackpotStateOn.
+
+    \skipto updateLights
+    \printuntil rLetterOn
+    \dots 32
+    \skipto /^\ {28}<\//
+    \printuntil aLetterOn
+    \dots 32
+    \skipto /^\ {28}<\//
+    \printuntil zLetterOn
+    \dots 32
+    \skipto /^\ {28}<\//
+    \printuntil yLetterOn
+    \dots 32
+    \skipto /^\ {28}<\//
+    \printuntil rLetterOn
+    \dots 32
+    \skipto /^\ {28}<\//
+    \printuntil aLetterOn
+    \dots 32
+    \skipto /^\ {28}<\//
+    \printuntil zLetterOn
+    \dots 32
+    \skipto /^\ {28}<\//
+    \printuntil yLetterOn
+    \dots 32
+    \skipto /^\ {28}<\//
+    \printuntil /^\ {16}<\//
+
+    When we receive \c updateLights event, we first want to send a
+    \c updateScore signal outside of the state machine. We pass
+    to the signal current value of highscore and score variables.
+    This signal is received by the cpp part.
+
+    Next, depending if we are in \c jackpotStateOn or \c jackpotStateOff
+    we send the \c turnOnJackpot or the \c turnOffJackpot signal,
+    which instructs the \c guiControl state to transition to
+    \c jackpotLightOn or \c jackpotLightOff respectively.
+
+    When the machine is in \e idle state, i.e. in off state
+    or when the game is on, but no interaction is being performed,
+    the \c updateLights event is delivered periodically
+    during the game, each time with \c lightImpulseOn or
+    \c lightImpulseOff state toggled. Depending on the
+    current state of light impulse, and depending also
+    on which of \c offState, \c hurryStateOff or \c hurryStateOn
+    is active we turn on or off all the lights accordingly
+    to the description of the pinball table.
+
+    \target cpp
+
 */
