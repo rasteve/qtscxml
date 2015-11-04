@@ -409,7 +409,6 @@ private:
             T *instr = at<T>(pos);
             Q_ASSERT(instr->instructionType == 0);
             instr->instructionType = T::kind();
-//            qDebug()<<"adding instruction"<<typeid(*instr).name()<<"size"<<size;
             return instr;
         }
 

@@ -86,35 +86,35 @@ bool ExecutionEngine::step(Instructions &ip)
     auto instr = reinterpret_cast<Instruction *>(ip);
     switch (instr->instructionType) {
     case Instruction::Sequence: {
-        qDebug() << "Executing sequence step";
+        qCDebug(scxmlLog) << "Executing sequence step";
         InstructionSequence *sequence = reinterpret_cast<InstructionSequence *>(instr);
         ip = sequence->instructions();
         Instructions end = ip + sequence->entryCount;
         while (ip < end) {
             if (!step(ip)) {
                 ip = end;
-                qDebug() << "Finished sequence step UNsuccessfully";
+                qCDebug(scxmlLog) << "Finished sequence step UNsuccessfully";
                 return false;
             }
         }
-        qDebug() << "Finished sequence step successfully";
+        qCDebug(scxmlLog) << "Finished sequence step successfully";
         return true;
     }
 
     case Instruction::Sequences: {
-        qDebug() << "Executing sequences step";
+        qCDebug(scxmlLog) << "Executing sequences step";
         InstructionSequences *sequences = reinterpret_cast<InstructionSequences *>(instr);
         ip += sequences->size();
         for (int i = 0; i != sequences->sequenceCount; ++i) {
             Instructions sequence = sequences->at(i);
             step(sequence);
         }
-        qDebug() << "Finished sequences step";
+        qCDebug(scxmlLog) << "Finished sequences step";
         return true;
     }
 
     case Instruction::Send: {
-        qDebug() << "Executing send step";
+        qCDebug(scxmlLog) << "Executing send step";
         Send *send = reinterpret_cast<Send *>(instr);
         ip += send->size();
 
@@ -145,7 +145,7 @@ bool ExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::JavaScript: {
-        qDebug() << "Executing script step";
+        qCDebug(scxmlLog) << "Executing script step";
         JavaScript *javascript = reinterpret_cast<JavaScript *>(instr);
         ip += javascript->size();
         bool ok = true;
@@ -154,7 +154,7 @@ bool ExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::If: {
-        qDebug() << "Executing if step";
+        qCDebug(scxmlLog) << "Executing if step";
         If *_if = reinterpret_cast<If *>(instr);
         ip += _if->size();
         auto blocks = _if->blocks();
@@ -163,7 +163,7 @@ bool ExecutionEngine::step(Instructions &ip)
             if (dataModel->evaluateToBool(_if->conditions.at(i), &ok) && ok) {
                 Instructions block = blocks->at(i);
                 bool res = step(block);
-                qDebug()<<"Finished if step";
+                qCDebug(scxmlLog) << "Finished if step";
                 return res;
             }
         }
@@ -195,7 +195,7 @@ bool ExecutionEngine::step(Instructions &ip)
             }
         };
 
-        qDebug() << "Executing foreach step";
+        qCDebug(scxmlLog) << "Executing foreach step";
         Foreach *foreach = reinterpret_cast<Foreach *>(instr);
         Instructions loopStart = foreach->blockstart();
         ip += foreach->size();
@@ -206,7 +206,7 @@ bool ExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::Raise: {
-        qDebug() << "Executing raise step";
+        qCDebug(scxmlLog) << "Executing raise step";
         Raise *raise = reinterpret_cast<Raise *>(instr);
         ip += raise->size();
         auto name = tableData->byteArray(raise->event);
@@ -218,7 +218,7 @@ bool ExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::Log: {
-        qDebug() << "Executing log step";
+        qCDebug(scxmlLog) << "Executing log step";
         Log *log = reinterpret_cast<Log *>(instr);
         ip += log->size();
         bool ok = true;
@@ -229,7 +229,7 @@ bool ExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::Cancel: {
-        qDebug() << "Executing cancel step";
+        qCDebug(scxmlLog) << "Executing cancel step";
         Cancel *cancel = reinterpret_cast<Cancel *>(instr);
         ip += cancel->size();
         QByteArray e = tableData->byteArray(cancel->sendid);
@@ -242,7 +242,7 @@ bool ExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::Assign: {
-        qDebug() << "Executing assign step";
+        qCDebug(scxmlLog) << "Executing assign step";
         Assign *assign = reinterpret_cast<Assign *>(instr);
         ip += assign->size();
         bool ok = true;
@@ -251,7 +251,7 @@ bool ExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::Initialize: {
-        qDebug() << "Executing initialize step";
+        qCDebug(scxmlLog) << "Executing initialize step";
         Initialize *init = reinterpret_cast<Initialize *>(instr);
         ip += init->size();
         bool ok = true;
@@ -260,12 +260,12 @@ bool ExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::DoneData: {
-        qDebug() << "Executing DoneData step";
+        qCDebug(scxmlLog) << "Executing DoneData step";
         DoneData *doneData = reinterpret_cast<DoneData *>(instr);
 
         QString eventName = QStringLiteral("done.state.") + extraData.toString();
         EventBuilder event(stateMachine, eventName, doneData);
-        qDebug() << "submitting event" << eventName;
+        qCDebug(scxmlLog) << "submitting event" << eventName;
         stateMachine->submitEvent(event());
         return true;
     }
@@ -325,7 +325,6 @@ void Builder::visit(DocumentModel::Script *node)
 void Builder::visit(DocumentModel::Assign *node)
 {
     auto instr = m_instructions.add<Assign>();
-//    qDebug()<<"...:" <<node->location<<"="<<node->expr;
     auto ctxt = createContext(QStringLiteral("assign"), QStringLiteral("expr"), node->expr);
     instr->expression = addAssignment(node->location, node->expr, ctxt);
 }
@@ -466,7 +465,6 @@ void Builder::startSequence(InstructionSequence *sequence)
     m_instructions.setSequenceInfo(&m_activeSequences.last());
     sequence->instructionType = Instruction::Sequence;
     sequence->entryCount = -1; // checked in endSequence
-//    qDebug()<<"starting sequence with depth"<<m_activeSequences.size();
 }
 
 InstructionSequence *Builder::endSequence()
@@ -480,7 +478,6 @@ InstructionSequence *Builder::endSequence()
     sequence->entryCount = info.entryCount;
     if (!m_activeSequences.isEmpty())
         m_activeSequences.last().entryCount += info.entryCount;
-//    qDebug()<<"finished sequence with"<<info.entryCount<<"bytes, depth" << (m_activeSequences.size()+1);
     return sequence;
 }
 

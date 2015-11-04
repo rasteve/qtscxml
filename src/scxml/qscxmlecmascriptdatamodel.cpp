@@ -234,7 +234,7 @@ public:
 private: // Uses private API
     static void setReadonlyProperty(QJSValue *object, const QString& name, const QJSValue& value)
     {
-        qDebug()<<"setting read-only property"<<name;
+        qCDebug(scxmlLog) << "setting read-only property" << name;
         QV4::ExecutionEngine *engine = QJSValuePrivate::engine(object);
         Q_ASSERT(engine);
         QV4::Scope scope(engine);
@@ -244,7 +244,7 @@ private: // Uses private API
             return;
 
         if (!QJSValuePrivate::checkEngine(engine, value)) {
-            qWarning("EcmaScriptDataModel::setReadonlyProperty(%s) failed: cannot set value created in a different engine", name.toUtf8().constData());
+            qCWarning(scxmlLog, "EcmaScriptDataModel::setReadonlyProperty(%s) failed: cannot set value created in a different engine", name.toUtf8().constData());
             return;
         }
 

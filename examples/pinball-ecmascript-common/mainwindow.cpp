@@ -124,6 +124,5 @@ void MainWindow::updateScore(const QVariant &data)
     ui->highScoreLabel->setText(highScore);
     const QString score = data.toMap().value("score").toString();
     ui->scoreLabel->setText(score);
-    qDebug() << "HERE!!!" << highScore << score;
 }
 

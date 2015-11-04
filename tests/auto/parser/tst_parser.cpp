@@ -67,7 +67,7 @@ void tst_Parser::error()
 
     QVector<QScxmlError> errors = stateMachine->errors();
     if (errors.count() != expectedErrors.count()) {
-        qDebug()<<errors;
+        qDebug() << errors;
     }
     QCOMPARE(errors.count(), expectedErrors.count());
 

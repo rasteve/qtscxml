@@ -342,7 +342,6 @@ static bool playEvent(QScxmlStateMachine *stateMachine, const QJsonObject &event
     e->setOrigin(origin);
     e->setOriginType(origintype);
     e->setInvokeId(invokeid);
-//    qDebug() << "submitting event" << eventName << "....";
     if (eventDescription.contains(QLatin1String("after"))) {
         int delay = eventDescription.value(QLatin1String("after")).toInt();
         Q_ASSERT(delay > 0);

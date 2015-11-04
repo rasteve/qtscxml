@@ -43,8 +43,6 @@
 
 #include <QStringListModel>
 
-#include <QDebug>
-
 QT_USE_NAMESPACE
 
 MainWindow::MainWindow(QWidget *parent) :

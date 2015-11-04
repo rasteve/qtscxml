@@ -39,7 +39,7 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
+Q_LOGGING_CATEGORY(scxmlLog, "qt.scxml.statemachine")
 
 namespace QScxmlInternal {
 class WrappedQStateMachinePrivate: public QStateMachinePrivate

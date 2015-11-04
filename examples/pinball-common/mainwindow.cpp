@@ -44,8 +44,6 @@
 #include <QStringListModel>
 #include <QScxmlStateMachine>
 
-#include <QDebug>
-
 QT_USE_NAMESPACE
 
 MainWindow::MainWindow(QScxmlStateMachine *machine, QWidget *parent) :
