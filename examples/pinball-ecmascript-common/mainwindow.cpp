@@ -48,67 +48,67 @@ QT_USE_NAMESPACE
 
 MainWindow::MainWindow(Pinball *machine, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::MainWindow),
+    m_ui(new Ui::MainWindow),
     m_machine(machine)
 {
-    ui->setupUi(this);
+    m_ui->setupUi(this);
 
     // lights
-    initAndConnect(QLatin1String("cLightOn"), ui->cLabel);
-    initAndConnect(QLatin1String("rLightOn"), ui->rLabel);
-    initAndConnect(QLatin1String("aLightOn"), ui->aLabel);
-    initAndConnect(QLatin1String("zLightOn"), ui->zLabel);
-    initAndConnect(QLatin1String("yLightOn"), ui->yLabel);
-    initAndConnect(QLatin1String("hurryLightOn"), ui->hurryLabel);
-    initAndConnect(QLatin1String("jackpotLightOn"), ui->jackpotLabel);
-    initAndConnect(QLatin1String("gameOverLightOn"), ui->gameOverLabel);
+    initAndConnect(QLatin1String("cLightOn"), m_ui->cLabel);
+    initAndConnect(QLatin1String("rLightOn"), m_ui->rLabel);
+    initAndConnect(QLatin1String("aLightOn"), m_ui->aLabel);
+    initAndConnect(QLatin1String("zLightOn"), m_ui->zLabel);
+    initAndConnect(QLatin1String("yLightOn"), m_ui->yLabel);
+    initAndConnect(QLatin1String("hurryLightOn"), m_ui->hurryLabel);
+    initAndConnect(QLatin1String("jackpotLightOn"), m_ui->jackpotLabel);
+    initAndConnect(QLatin1String("gameOverLightOn"), m_ui->gameOverLabel);
 
     // help labels
-    initAndConnect(QLatin1String("offState"), ui->offStateLabel);
-    initAndConnect(QLatin1String("hurryStateOff"), ui->normalStateLabel);
-    initAndConnect(QLatin1String("hurryStateOn"), ui->hurryStateLabel);
-    initAndConnect(QLatin1String("jackpotStateOn"), ui->jackpotStateLabel);
+    initAndConnect(QLatin1String("offState"), m_ui->offStateLabel);
+    initAndConnect(QLatin1String("hurryStateOff"), m_ui->normalStateLabel);
+    initAndConnect(QLatin1String("hurryStateOn"), m_ui->hurryStateLabel);
+    initAndConnect(QLatin1String("jackpotStateOn"), m_ui->jackpotStateLabel);
 
     // context enablement
-    initAndConnect(QLatin1String("offState"), ui->startButton);
-    initAndConnect(QLatin1String("onState"), ui->cButton);
-    initAndConnect(QLatin1String("onState"), ui->rButton);
-    initAndConnect(QLatin1String("onState"), ui->aButton);
-    initAndConnect(QLatin1String("onState"), ui->zButton);
-    initAndConnect(QLatin1String("onState"), ui->yButton);
-    initAndConnect(QLatin1String("onState"), ui->ballOutButton);
-
-    // gui interaction
-    connect(ui->cButton, &QAbstractButton::clicked,
-            [this] { m_machine->submitEvent("letterTriggered.C");
-            });
-    connect(ui->rButton, &QAbstractButton::clicked,
-            [this] { m_machine->submitEvent("letterTriggered.R");
-            });
-    connect(ui->aButton, &QAbstractButton::clicked,
-            [this] { m_machine->submitEvent("letterTriggered.A");
-            });
-    connect(ui->zButton, &QAbstractButton::clicked,
-            [this] { m_machine->submitEvent("letterTriggered.Z");
-            });
-    connect(ui->yButton, &QAbstractButton::clicked,
-            [this] { m_machine->submitEvent("letterTriggered.Y");
-            });
-    connect(ui->startButton, &QAbstractButton::clicked,
-            [this] { m_machine->submitEvent("startTriggered");
-            });
-    connect(ui->ballOutButton, &QAbstractButton::clicked,
-            [this] { m_machine->submitEvent("ballOutTriggered");
-            });
+    initAndConnect(QLatin1String("offState"), m_ui->startButton);
+    initAndConnect(QLatin1String("onState"), m_ui->cButton);
+    initAndConnect(QLatin1String("onState"), m_ui->rButton);
+    initAndConnect(QLatin1String("onState"), m_ui->aButton);
+    initAndConnect(QLatin1String("onState"), m_ui->zButton);
+    initAndConnect(QLatin1String("onState"), m_ui->yButton);
+    initAndConnect(QLatin1String("onState"), m_ui->ballOutButton);
 
     // datamodel update
     connect(m_machine, &Pinball::event_updateScore,
             this, &MainWindow::updateScore);
+
+    // gui interaction
+    connect(m_ui->cButton, &QAbstractButton::clicked,
+            [this] { m_machine->submitEvent("letterTriggered.C");
+            });
+    connect(m_ui->rButton, &QAbstractButton::clicked,
+            [this] { m_machine->submitEvent("letterTriggered.R");
+            });
+    connect(m_ui->aButton, &QAbstractButton::clicked,
+            [this] { m_machine->submitEvent("letterTriggered.A");
+            });
+    connect(m_ui->zButton, &QAbstractButton::clicked,
+            [this] { m_machine->submitEvent("letterTriggered.Z");
+            });
+    connect(m_ui->yButton, &QAbstractButton::clicked,
+            [this] { m_machine->submitEvent("letterTriggered.Y");
+            });
+    connect(m_ui->startButton, &QAbstractButton::clicked,
+            [this] { m_machine->submitEvent("startTriggered");
+            });
+    connect(m_ui->ballOutButton, &QAbstractButton::clicked,
+            [this] { m_machine->submitEvent("ballOutTriggered");
+            });
 }
 
 MainWindow::~MainWindow()
 {
-    delete ui;
+    delete m_ui;
 }
 
 void MainWindow::initAndConnect(const QString &state, QWidget *widget)
@@ -121,8 +121,8 @@ void MainWindow::initAndConnect(const QString &state, QWidget *widget)
 void MainWindow::updateScore(const QVariant &data)
 {
     const QString highScore = data.toMap().value("highScore").toString();
-    ui->highScoreLabel->setText(highScore);
+    m_ui->highScoreLabel->setText(highScore);
     const QString score = data.toMap().value("score").toString();
-    ui->scoreLabel->setText(score);
+    m_ui->scoreLabel->setText(score);
 }
 

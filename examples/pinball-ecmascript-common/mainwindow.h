@@ -62,7 +62,7 @@ public:
 private:
     void initAndConnect(const QString &state, QWidget *widget);
     void updateScore(const QVariant &data);
-    QT_PREPEND_NAMESPACE(Ui::MainWindow) *ui;
+    QT_PREPEND_NAMESPACE(Ui::MainWindow) *m_ui;
     Pinball *m_machine;
 };
 
