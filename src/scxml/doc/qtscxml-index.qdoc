@@ -197,6 +197,21 @@
         detailed description of the error.
     \endlist
 
+    \section1 Logging Categories
+
+    The QtScxml module exports the following logging categories:
+    \table
+    \header
+        \li Logging Category
+        \li Description
+    \row
+        \li qscxmlLog
+        \li Enables QtScxml module log
+    \row
+        \li scxmlLog
+        \li Enables log of scxml documents
+    \endtable
+
     \section1 Examples
 
     \list

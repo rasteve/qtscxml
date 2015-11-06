@@ -215,7 +215,7 @@ QScxmlInvokableScxml::~QScxmlInvokableScxml()
 
 bool QScxmlInvokableScxml::start()
 {
-    qCDebug(scxmlLog) << parentStateMachine() << "preparing to start" << m_stateMachine;
+    qCDebug(qscxmlLog) << parentStateMachine() << "preparing to start" << m_stateMachine;
 
     bool ok = false;
     auto id = service()->calculateId(parentStateMachine(), &ok);
@@ -227,12 +227,12 @@ bool QScxmlInvokableScxml::start()
 
     m_stateMachine->setSessionId(id);
     if (m_stateMachine->init(data)) {
-        qCDebug(scxmlLog) << parentStateMachine() << "starting" << m_stateMachine;
+        qCDebug(qscxmlLog) << parentStateMachine() << "starting" << m_stateMachine;
         m_stateMachine->start();
         return true;
     }
 
-    qCDebug(scxmlLog) << parentStateMachine() << "failed to start" << m_stateMachine;
+    qCDebug(qscxmlLog) << parentStateMachine() << "failed to start" << m_stateMachine;
     return false;
 }
 

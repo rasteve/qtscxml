@@ -221,7 +221,7 @@ QScxmlStateMachine *QScxmlBaseTransition::stateMachine() const {
         return t->stateMachine();
     if (QState *s = sourceState())
         return qobject_cast<QScxmlInternal::WrappedQStateMachine *>(s->machine())->stateMachine();
-    qCWarning(scxmlLog) << "could not find Scxml::StateMachine in " << transitionLocation();
+    qCWarning(qscxmlLog) << "could not find Scxml::StateMachine in " << transitionLocation();
     return 0;
 }
 
@@ -309,7 +309,7 @@ bool QScxmlTransition::eventTest(QEvent *event)
 {
 #ifdef DUMP_EVENT
     if (auto edm = dynamic_cast<QScxmlEcmaScriptDataModel *>(stateMachine()->dataModel()))
-        qCDebug(scxmlLog) << qPrintable(edm->engine()->evaluate(QLatin1String("JSON.stringify(_event)")).toString());
+        qCDebug(qscxmlLog) << qPrintable(edm->engine()->evaluate(QLatin1String("JSON.stringify(_event)")).toString());
 #endif
 
     if (QScxmlBaseTransition::eventTest(event)) {

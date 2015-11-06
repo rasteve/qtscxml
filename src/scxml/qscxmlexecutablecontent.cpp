@@ -90,35 +90,35 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
     auto instr = reinterpret_cast<Instruction *>(ip);
     switch (instr->instructionType) {
     case Instruction::Sequence: {
-        qCDebug(scxmlLog) << "Executing sequence step";
+        qCDebug(qscxmlLog) << "Executing sequence step";
         InstructionSequence *sequence = reinterpret_cast<InstructionSequence *>(instr);
         ip = sequence->instructions();
         Instructions end = ip + sequence->entryCount;
         while (ip < end) {
             if (!step(ip)) {
                 ip = end;
-                qCDebug(scxmlLog) << "Finished sequence step UNsuccessfully";
+                qCDebug(qscxmlLog) << "Finished sequence step UNsuccessfully";
                 return false;
             }
         }
-        qCDebug(scxmlLog) << "Finished sequence step successfully";
+        qCDebug(qscxmlLog) << "Finished sequence step successfully";
         return true;
     }
 
     case Instruction::Sequences: {
-        qCDebug(scxmlLog) << "Executing sequences step";
+        qCDebug(qscxmlLog) << "Executing sequences step";
         InstructionSequences *sequences = reinterpret_cast<InstructionSequences *>(instr);
         ip += sequences->size();
         for (int i = 0; i != sequences->sequenceCount; ++i) {
             Instructions sequence = sequences->at(i);
             step(sequence);
         }
-        qCDebug(scxmlLog) << "Finished sequences step";
+        qCDebug(qscxmlLog) << "Finished sequences step";
         return true;
     }
 
     case Instruction::Send: {
-        qCDebug(scxmlLog) << "Executing send step";
+        qCDebug(qscxmlLog) << "Executing send step";
         Send *send = reinterpret_cast<Send *>(instr);
         ip += send->size();
 
@@ -139,7 +139,7 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
             if (msecs >= 0) {
                 event->setDelay(msecs);
             } else {
-                qCDebug(scxmlLog) << "failed to parse delay time" << delay;
+                qCDebug(qscxmlLog) << "failed to parse delay time" << delay;
                 return false;
             }
         }
@@ -149,7 +149,7 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::JavaScript: {
-        qCDebug(scxmlLog) << "Executing script step";
+        qCDebug(qscxmlLog) << "Executing script step";
         JavaScript *javascript = reinterpret_cast<JavaScript *>(instr);
         ip += javascript->size();
         bool ok = true;
@@ -158,7 +158,7 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::If: {
-        qCDebug(scxmlLog) << "Executing if step";
+        qCDebug(qscxmlLog) << "Executing if step";
         If *_if = reinterpret_cast<If *>(instr);
         ip += _if->size();
         auto blocks = _if->blocks();
@@ -167,7 +167,7 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
             if (dataModel->evaluateToBool(_if->conditions.at(i), &ok) && ok) {
                 Instructions block = blocks->at(i);
                 bool res = step(block);
-                qCDebug(scxmlLog) << "Finished if step";
+                qCDebug(qscxmlLog) << "Finished if step";
                 return res;
             }
         }
@@ -199,7 +199,7 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
             }
         };
 
-        qCDebug(scxmlLog) << "Executing foreach step";
+        qCDebug(qscxmlLog) << "Executing foreach step";
         Foreach *foreach = reinterpret_cast<Foreach *>(instr);
         Instructions loopStart = foreach->blockstart();
         ip += foreach->size();
@@ -210,7 +210,7 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::Raise: {
-        qCDebug(scxmlLog) << "Executing raise step";
+        qCDebug(qscxmlLog) << "Executing raise step";
         Raise *raise = reinterpret_cast<Raise *>(instr);
         ip += raise->size();
         auto name = tableData->string(raise->event);
@@ -222,23 +222,25 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::Log: {
-        qCDebug(scxmlLog) << "Executing log step";
+        qCDebug(qscxmlLog) << "Executing log step";
         Log *log = reinterpret_cast<Log *>(instr);
         ip += log->size();
         bool ok = true;
         QString str = dataModel->evaluateToString(log->expr, &ok);
         if (ok) {
+            const QString label = tableData->string(log->label);
+            qCDebug(scxmlLog) << label << ":" << str;
             QMetaObject::invokeMethod(stateMachine,
                                       "log",
                                       Qt::QueuedConnection,
-                                      Q_ARG(QString, tableData->string(log->label)),
+                                      Q_ARG(QString, label),
                                       Q_ARG(QString, str));
         }
         return ok;
     }
 
     case Instruction::Cancel: {
-        qCDebug(scxmlLog) << "Executing cancel step";
+        qCDebug(qscxmlLog) << "Executing cancel step";
         Cancel *cancel = reinterpret_cast<Cancel *>(instr);
         ip += cancel->size();
         QString e = tableData->string(cancel->sendid);
@@ -251,7 +253,7 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::Assign: {
-        qCDebug(scxmlLog) << "Executing assign step";
+        qCDebug(qscxmlLog) << "Executing assign step";
         Assign *assign = reinterpret_cast<Assign *>(instr);
         ip += assign->size();
         bool ok = true;
@@ -260,7 +262,7 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::Initialize: {
-        qCDebug(scxmlLog) << "Executing initialize step";
+        qCDebug(qscxmlLog) << "Executing initialize step";
         Initialize *init = reinterpret_cast<Initialize *>(instr);
         ip += init->size();
         bool ok = true;
@@ -269,12 +271,12 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::DoneData: {
-        qCDebug(scxmlLog) << "Executing DoneData step";
+        qCDebug(qscxmlLog) << "Executing DoneData step";
         DoneData *doneData = reinterpret_cast<DoneData *>(instr);
 
         QString eventName = QStringLiteral("done.state.") + extraData.toString();
         QScxmlEventBuilder event(stateMachine, eventName, doneData);
-        qCDebug(scxmlLog) << "submitting event" << eventName;
+        qCDebug(qscxmlLog) << "submitting event" << eventName;
         stateMachine->submitEvent(event());
         return true;
     }
