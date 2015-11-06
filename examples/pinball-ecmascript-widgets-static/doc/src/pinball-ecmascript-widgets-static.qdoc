@@ -17,11 +17,9 @@
  ****************************************************************************/
 
 /*!
-\group examples-qtscxml
-\title Qt SCXML Examples
-\brief Examples for the Qt SCXML module.
-\ingroup all-examples
+    \example pinball-ecmascript-widgets-static
+    \title Qt SCXML: Pinball ECMAScript Example (Static)
+    \ingroup examples-qtscxml
 
-Here is a list of example applications demonstrating the functionality
-provided by the \l{Qt SCXML} module.
+    \brief Demonstrates...
 */

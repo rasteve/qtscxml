@@ -180,7 +180,7 @@ QtScxml supports the following data-models:
     \section1 Examples
 
     \list
-    \li \l {Qt Scxml Examples}
+      \li \l {Qt SCXML Examples}
     \endlist
 
     \section1 Reference

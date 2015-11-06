@@ -4,8 +4,13 @@ project                 = QtScxml
 description             = Qt Scxml Reference Documentation
 version                 = $QT_VERSION
 
-examplesinstallpath     = scxml
+# Install path for the examples. For Qt 5.6, the convention
+# is to use the repository name as the install location
+# under QT_INSTALL_EXAMPLES.
+examplesinstallpath     = tqtc-qtscxml
 exampledirs             = ../../../examples
+
+examples.fileextensions += "*.scxml"
 
 qhp.QtScxml.subprojects = classes qmltypes examples
 qhp.QtScxml.subprojects.classes.title      = C++ Classes
