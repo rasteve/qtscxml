@@ -18,9 +18,9 @@
 
 /*!
     \qmlmodule Scxml 1.0
-    \title Qt Scxml QML Types
+    \title Qt SCXML QML Types
     \ingroup qmlmodules
-    \brief Enables the use Scxml state-machines with QML.
+    \brief Enables the use SCXML state machines with QML.
 
     \section1 QML Types
  */

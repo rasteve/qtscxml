@@ -17,11 +17,6 @@
  ****************************************************************************/
 
 /*!
-    \module QtScxml
-    \title Qt SCXML C++ Classes
-    \brief Provides classes to create and use state machines from SCXML files.
-
-    \ingroup modules
-    \ingroup technology-apis
-    \qtvariable scxml
+    \externalpage http://www.w3.org/TR/scxml/
+    \title SCXML Specification
 */

@@ -18,30 +18,31 @@
 
 /*!
     \page qtscxml-index.html
-    \title Qt Scxml
-    \brief The QtScxml module provides functionality to create state-machines from SXML files.
+    \title Qt SCXML
+    \brief The Qt SCXML module provides functionality to create state machines
+           from SCXML files.
 
-The QtScxml module provides functionality to create state-machines from
-SCXML files. This includes both dynamically creating state-machines
-(loading the SCXML file and instantiating states and transitions) and
-generating a C++ file that has a class implementing the state-machine.
-It also contains functionality to support data-models and executable
-content.
+    The Qt SCXML module provides functionality to create state machines from
+    \l {SCXML Specification}{SCXML} files. This includes both dynamically
+    creating state machines (loading the SCXML file and instantiating states
+    and transitions) and generating a C++ file that has a class implementing
+    the state machine. It also contains functionality to support data models
+    and executable content.
 
     \section1 Getting Started
 
-Both the dynamically created and the compiled state-machines act the
-same, have the same properties, states, data-model, etc. They only
-differ in the way they are instantiated. To dynamically create one in C++ from
-an scxml file, you can use:
+    Both the dynamically created and the compiled state machines act the
+    same, have the same properties, states, data model, and so on. They only
+    differ in the way they are instantiated. To dynamically create one in C++
+    from an SCXML file, you can use:
 
     \code
     auto *stateMachine = QScxmlStateMachine::fromFile("MyStatemachine.scxml");
     \endcode
 
-Or, in QML:
+    Or, in QML:
 
-    \code
+    \qml
     import Scxml 1.0
 
     Item {
@@ -52,21 +53,23 @@ Or, in QML:
             filename: "statemachine.scxml"
         }
     }
-    \endcode
+    \endqml
 
-A compiled state-machine can be instantiated as any C++ object:
+    A compiled state machine can be instantiated the same way as any C++
+    object:
 
     \code
     auto *stateMachine = new MyStatemachine;
     \endcode
 
-Or:
+    Or:
 
     \code
     MyStatemachine stateMachine;
     \endcode
 
-To use a compiled state-machine in QML, you can assign it to a context property:
+    To use a compiled state machine in QML, you can assign it to a context
+    property:
 
     \code
     MyStatemachine stateMachine;
@@ -74,42 +77,44 @@ To use a compiled state-machine in QML, you can assign it to a context property:
     engine.rootContext()->setContextProperty("stateMachine", &stateMachine);
     \endcode
 
-To compile a state-machine, the following lines have to be added to a
-.pro file:
+    To compile a state machine, the following lines have to be added to a
+    .pro file:
 
-    \code
+    \badcode
     QT += scxml
     STATECHARTS = MyStatemachine.scxml
     \endcode
 
-    This will tell qmake to run \l qscxmlc which generates MyStatemachine.h
+    This will tell qmake to run \e qscxmlc which generates MyStatemachine.h
     and MyStatemachine.cpp, and adds them to \l [QMake] HEADERS and
     \l [QMake] SOURCES variables.
 
-After instantiating a state-machine, you can connect to any state's
-active property as follows. For example, if the state-machine for a
-trafficlight has a state indicating that the light is red (which has the
-convenient id "red" in the scxml file), you can write:
+    After instantiating a state machine, you can connect to any state's
+    active property as follows. For example, if the state machine for a
+    traffic light has a state indicating that the light is red (which has the
+    convenient id "red" in the scxml file), you can write:
 
     \code
-    QObject::connect(stateMachine->red(), &QAbstractState::activeChanged, [stateMachine](){
-        qDebug() << (stateMachine->red()->active() ? "entered" : "exited") << "the red state";
+    QObject::connect(stateMachine->red(), &QAbstractState::activeChanged,
+        [stateMachine](){
+            qDebug() << (stateMachine->red()->active() ? "entered" : "exited") << "the red state";
     });
     \endcode
 
-And in QML:
+    And in QML:
 
-    \code
+    \qml
     Light {
         id: greenLight
         color: "green"
         visible: stateMachine.green.active
     }
-    \endcode
+    \endqml
 
-When you want to be notified when a state-machine sends
-out an event, you can connect to the corresponding signal. For example, for a media player
-state-machine which indicates that playback has stopped by sending an event, you can write:
+    When you want to be notified when a state machine sends out an event, you
+    can connect to the corresponding signal. For example, for a media player
+    state machine which indicates that playback has stopped by sending an
+    event, you can write:
 
     \code
     QObject::connect(stateMachine, &MediaPlayer::playbackStopped, [](){
@@ -117,17 +122,17 @@ state-machine which indicates that playback has stopped by sending an event, you
     });
     \endcode
 
-And in QML:
+    And in QML:
 
-    \code
+    \qml
     Connections {
         target: stateMachine
         onEvent_playbackStopped: console.log("Stopped!")
     }
-    \endcode
+    \endqml
 
-Sending events to a state machine is equally simple. You can call (or
-connect to) the slot:
+    Sending events to a state machine is equally simple. You can call (or
+    connect to) the slot:
 
     \code
     stateMachine->event_tap_song(QVariantMap({
@@ -136,8 +141,8 @@ connect to) the slot:
     });
     \endcode
 
-This will generate a "tap_song" event with the map contents available in
-_event.data inside the state-machine. In QML:
+    This will generate a "tap_song" event with the map contents available in
+    _event.data inside the state machine. In QML:
 
     \code
     stateMacine.event_tap_song({
@@ -146,36 +151,41 @@ _event.data inside the state-machine. In QML:
     })
     \endcode
 
-Any invoked state-machine with a name property will also show up as a property on its
-parent state-machine.
+    Any invoked state machine with a name property will also show up as a
+    property on its parent state machine.
 
+    \section1 SCXML Compliance
 
+    The Qt SCXML implementation is SCXML compliant, with a few exceptions:
 
-    \section1 SCXML compliance
+    \list
+    \li Event data (\c _event.data) is implemented as a QVariant. If parameters
+        are passed to \c <send>, the QVariant holds a QVariantMap, so multiple
+        parameters with the same name are not supported.
+    \li There is no "raw" representation of an event.
+    \li The (optional) basic http event I/O processor is not supported.
+    \li The contents of a \c <script> tag and a \c <data> tag must be valid for
+        the chosen data model. So, as an example: XML content inside <data> is
+        not supported. However, the ECMAScript data model does support data in
+        JSON format.
+    \li The only service that can be instantiated with \c <invoke> is another
+        SCXML state machine.
+    \li To keep the behavior of dynamically created state machines and compiled
+        state machines the same, the \e typeexpr and \e srcexpr attributes are
+        not supported. Moreover, if a \c <content> tag is
+        used inside an \c <invoke> tag, that content must be XML. Specifically,
+        dynamically creating SCXML, for example by concatenating strings with
+        the ECMAScript data model, is not supported.
+    \endlist
 
-The QtScxml implementation is SCXML compliant, with a few exceptions:
+    Qt SCXML supports the following data models:
 
-\list
-\li Event data (_event.data) is implemented as a QVariant. If parameters are passed to <send>,
-    the QVariant holds a QVariantMap, so multiple parameters with the same name are not supported.
-\li There is no "raw" representation of an event.
-\li The (optional) basic http event I/O processor is not supported.
-\li The contents of a <script> tag and a <data> tag must be valid for the chosen data-model.
-    So, as an example: XML content inside <data> is not supported. However, the EcmaScript
-    data-model does support data in JSON format.
-\li The only service that can be instantiated with <invoke> is another SCXML state-machine.
-\li To keep the behavior of dynamically created state-machines and compiled state-machines the
-    same, the typeexpr and srcexpr attributes are not supported. Moreover, if a <content> tag is
-    used inside an <invoke> tag, that content must be XML. Specifically, dynamically creating SCXML
-    by e.g. concatenating strings with the EcmaScript data-model is not supported.
-\endlist
-
-QtScxml supports the following data-models:
-\list
-\li null data-model, as described in B.1 of the SCXML specification
-\li EcmaScript data-model, as described in B.2 of the SCXML specification
-\li C++ data-model, as described in the QScxmlCppDataModel documentation
-\endlist
+    \list
+      \li null data model, as described in B.1 of the \l {SCXML specification}
+      \li ECMAScript data model, as described in B.2 of the
+          \l {SCXML specification}
+      \li C++ data model, as described in the QScxmlCppDataModel documentation
+    \endlist
 
     \section1 Examples
 
@@ -184,8 +194,6 @@ QtScxml supports the following data-models:
     \endlist
 
     \section1 Reference
-
-    These are links to the API reference materials.
 
     \list
       \li \l {Qt SCXML C++ Classes} {C++ Classes and Namespaces}

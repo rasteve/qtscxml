@@ -14,15 +14,15 @@ examples.fileextensions += "*.scxml"
 
 qhp.QtScxml.subprojects = classes qmltypes examples
 qhp.QtScxml.subprojects.classes.title      = C++ Classes
-qhp.QtScxml.subprojects.classes.indexTitle = Qt Scxml C++ Classes
+qhp.QtScxml.subprojects.classes.indexTitle = Qt SCXML C++ Classes
 qhp.QtScxml.subprojects.classes.selectors  = class fake:headerfile
 qhp.QtScxml.subprojects.classes.sortPages  = true
 qhp.QtScxml.subprojects.qmltypes.title      = QML Types
-qhp.QtScxml.subprojects.qmltypes.indexTitle = Qt Scxml QML Types
+qhp.QtScxml.subprojects.qmltypes.indexTitle = Qt SCXML QML Types
 qhp.QtScxml.subprojects.qmltypes.selectors  = qmlclass
 qhp.QtScxml.subprojects.qmltypes.sortPages  = true
 qhp.QtScxml.subprojects.examples.title = Examples
-qhp.QtScxml.subprojects.examples.indexTitle = Qt Scxml Examples
+qhp.QtScxml.subprojects.examples.indexTitle = Qt SCXML Examples
 qhp.QtScxml.subprojects.examples.selectors = fake:example
 
 qhp.projects            = QtScxml
@@ -33,10 +33,12 @@ qhp.QtScxml.virtualFolder       = qtscxml
 qhp.QtScxml.indexTitle          = Qt SCXML
 qhp.QtScxml.indexRoot           =
 
-depends += qtcore qtdeclarative qtdoc
+depends += qtcore qtdeclarative qtdoc qmake
 
 headerdirs = .. ../../imports/scxmlstatemachine
 sourcedirs = .. ../../imports/scxmlstatemachine ../../../tools/qscxmlc/doc
+
+tagfile = qtscxml.tags
 
 navigation.landingpage = "Qt SCXML"
 navigation.cppclassespage = "Qt SCXML C++ Classes"
