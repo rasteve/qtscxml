@@ -82,9 +82,9 @@ To compile a state-machine, the following lines have to be added to a
     STATECHARTS = MyStatemachine.scxml
     \endcode
 
-This will tell qmake to run qscxmlc, which generates MyStatemachine.h
-and MyStatemachine.cpp, and add those files to the HEADERS respectively
-the SOURCES variable.
+    This will tell qmake to run \l qscxmlc which generates MyStatemachine.h
+    and MyStatemachine.cpp, and adds them to \l [QMake] HEADERS and
+    \l [QMake] SOURCES variables.
 
 After instantiating a state-machine, you can connect to any state's
 active property as follows. For example, if the state-machine for a
@@ -183,12 +183,13 @@ QtScxml supports the following data-models:
     \li \l {Qt Scxml Examples}
     \endlist
 
-    \section1 API Reference
+    \section1 Reference
 
     These are links to the API reference materials.
 
     \list
-    \li \l {Qt Scxml C++ Classes}{C++ Classes and Namespaces}
-    \li \l {Qt Scxml QML Types}{QML Types}
+      \li \l {Qt SCXML C++ Classes} {C++ Classes and Namespaces}
+      \li \l {Qt SCXML QML Types} {QML Types}
+      \li \l{Using the Qt SCXML Compiler (qscxmlc)} {Qt SCXML Compiler (qscxmlc)}
     \endlist
 */

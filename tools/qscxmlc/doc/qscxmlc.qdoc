@@ -1,0 +1,77 @@
+/****************************************************************************
+ **
+ ** Copyright (c) 2015 Digia Plc
+ ** For any questions to Digia, please use contact form at http://qt.digia.com/
+ **
+ ** All Rights Reserved.
+ **
+ ** NOTICE: All information contained herein is, and remains
+ ** the property of Digia Plc and its suppliers,
+ ** if any. The intellectual and technical concepts contained
+ ** herein are proprietary to Digia Plc
+ ** and its suppliers and may be covered by Finnish and Foreign Patents,
+ ** patents in process, and are protected by trade secret or copyright law.
+ ** Dissemination of this information or reproduction of this material
+ ** is strictly forbidden unless prior written permission is obtained
+ ** from Digia Plc.
+ ****************************************************************************/
+
+/*!
+    \page qscxmlc.html
+    \title Using the Qt SCXML Compiler (qscxmlc)
+    \keyword qscxmlc
+
+    \brief The Qt SCXML Compiler, \c qscxmlc, compiles state chart XML
+           (.scxml) files to C++ source files.
+
+    The \c qscxmlc tool reads an .scxml file and produces C++ source
+    and header files, containing a class that implements a state machine as
+    defined in SCXML.
+
+    \section1 Usage
+
+    The \c qscxml tool is invoked automatically if the QT variable in the
+    project file includes \c scxml, and the .scxml file to use is specified
+    using the \c STATECHARTS variable.
+
+    \badcode
+    QT += scxml
+    STATECHARTS = MyStatemachine.scxml
+    \endcode
+
+    With above definitions, \c qmake invokes \c qscxmlc to generate
+    MyStatemachine.h and MyStatemachine.cpp, and adds them to \l [QMake]
+    HEADERS and \l [QMAKE] SOURCES variables.
+
+    By default, the name of the generated class that implements the state
+    machine corresponds with the \e name attribute of the \c <scxml> root
+    element.
+
+    \section1 Command-Line Options
+
+    The \c qscxmlc tool supports the following command-line options:
+
+    \table
+      \header
+        \li Option
+        \li Description
+      \row
+        \li \c -no-c++11
+        \li Use no C++11 features in the generated code.
+      \row
+        \li \c {-namespace <namespace>}
+        \li ...
+      \row
+        \li \c {-o <base/out/name>}
+        \li ...
+      \row
+        \li \c {-oh <header/out>}
+        \li ...
+      \row
+        \li \c {-ocpp <cpp/out>}
+        \li ...
+      \row
+        \li \c {-classname <StateMachineClassName>}
+        \li ...
+    \endtable
+*/

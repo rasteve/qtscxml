@@ -31,7 +31,7 @@ qhp.QtScxml.indexRoot           =
 depends += qtcore qtdeclarative qtdoc
 
 headerdirs = .. ../../imports/scxmlstatemachine
-sourcedirs = .. ../../imports/scxmlstatemachine
+sourcedirs = .. ../../imports/scxmlstatemachine ../../../tools/qscxmlc/doc
 
 navigation.landingpage = "Qt SCXML"
 navigation.cppclassespage = "Qt SCXML C++ Classes"
