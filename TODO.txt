@@ -1,14 +1,12 @@
 - go over the TODOs/FIXMEs
 - code review
 - qmake review
-- fix logging
 - check all messages to have the same format
 - document nonconformance with w3c-ecma/test558 (modified by us) - we always expect js expression in <data>'s non-XML children or in external file referenced by src attribute of <data> element.
 
 For TP:
 - review examples
 - add minimal explanation for examples
-- add minimal doc for qscxmlc
 - Have Topi check the docs
 - rename master branch to dev
 - branch 5.6 off of dev
