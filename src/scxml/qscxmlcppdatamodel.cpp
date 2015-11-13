@@ -126,7 +126,7 @@ QScxmlCppDataModel::~QScxmlCppDataModel()
 }
 
 /*!
- * \brief QScxmlCppDataModel::setup is called during state-machine initialization.
+ * \brief QScxmlCppDataModel::setup is called during state machine initialization.
  *
  * \param initialDataValues initial values for data-model variables specified by their keys. These
  *        are the values specified by <param> tags in an <invoke>.
@@ -182,7 +182,7 @@ void QScxmlCppDataModel::setEvent(const QScxmlEvent &event)
 
 /*!
  * \brief QScxmlCppDataModel::event holds the current event that is being processed by the
- *        state-machine.
+ *        state machine.
  *
  * See also section 5.10 in the Scxml specification for the description of the _event variable.
  *
@@ -215,7 +215,7 @@ void QScxmlCppDataModel::setProperty(const QString &name, const QVariant &value,
 }
 
 /*!
- * \return true if the state-machine is in the state specified by stateName, false otherwise.
+ * \return true if the state machine is in the state specified by stateName, false otherwise.
  */
 bool QScxmlCppDataModel::In(const QString &stateName) const
 {

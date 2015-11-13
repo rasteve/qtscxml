@@ -433,7 +433,7 @@ void QScxmlStateMachine::setDataBinding(QScxmlStateMachine::BindingMethod bindin
 }
 
 /*!
- * \return the binding method used by the state-machine.
+ * \return the binding method used by the state machine.
  */
 QScxmlStateMachine::BindingMethod QScxmlStateMachine::dataBinding() const
 {

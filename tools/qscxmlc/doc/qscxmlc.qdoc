@@ -73,7 +73,7 @@
         \li The name of the output header file. If none is specified, .cpp is added to the base name.
       \row
         \li \c {-classname <StateMachineClassName>}
-        \li The class name of the generated state-machine. If none is specified, the value of the
+        \li The class name of the generated state machine. If none is specified, the value of the
             name attribute of the <scxml> tag is taken. If that attribute is not specified either,
             the basename (excluding path) is taken from the input file name.
     \endtable

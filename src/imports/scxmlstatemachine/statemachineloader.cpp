@@ -30,7 +30,7 @@
     \instantiates QScxmlStateMachineLoader
     \inqmlmodule Scxml
 
-    \brief Dynamically loads an Scxml file and instantiates the state-machine.
+    \brief Dynamically loads an SCXML file and instantiates the state machine.
 
     \since Scxml 1.0
  */
@@ -53,7 +53,7 @@ QScxmlStateMachineLoader::QScxmlStateMachineLoader(QObject *parent)
 /*!
     \qmlproperty QObject StateMachineLoader::stateMachine
 
-    The state-machine instance.
+    The state machine instance.
  */
 QT_PREPEND_NAMESPACE(QScxmlStateMachine) *QScxmlStateMachineLoader::stateMachine() const
 {

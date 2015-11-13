@@ -32,7 +32,7 @@ QScxmlDataModel::ForeachLoopBody::~ForeachLoopBody()
  * \since 5.6
  * \inmodule QtScxml
  *
- * One data-model can only belong to one state-machine.
+ * One data-model can only belong to one state machine.
  *
  * \sa QScxmlStateMachine QScxmlCppDataModel QScxmlEcmaScriptDataModel QScxmlNullDataModel
  */
@@ -53,7 +53,7 @@ QScxmlDataModel::~QScxmlDataModel()
 }
 
 /*!
- * \return the state-machine to which this data-model is associated.
+ * \return the state machine to which this data-model is associated.
  */
 QScxmlStateMachine *QScxmlDataModel::stateMachine() const
 {
