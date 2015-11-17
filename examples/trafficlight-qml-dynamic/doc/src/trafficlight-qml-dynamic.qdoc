@@ -21,5 +21,5 @@
     \title Qt SCXML: Traffic Light QML Example (Dynamic)
     \ingroup examples-qtscxml
 
-    \brief Demonstrates...
+    \brief Demonstrates using a state-machine for a simple traffic light.
 */

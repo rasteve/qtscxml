@@ -21,5 +21,5 @@
     \title Qt SCXML: Media Player Example (Dynamic)
     \ingroup examples-qtscxml
 
-    \brief Demonstrates...
+    \brief Demonstrates how to send/receive data to/from EcmaScript data-model.
 */

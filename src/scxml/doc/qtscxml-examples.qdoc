@@ -23,5 +23,8 @@
 \ingroup all-examples
 
 Here is a list of example applications demonstrating the functionality
-provided by the \l{Qt SCXML} module.
+provided by the \l{Qt SCXML} module. Some examples come in multiple flavors,
+e.g. the traffic-light example. All of these use the same SCXML file, but
+implement the UI differently (C++ versus QML), or load the SCXML dynamically
+versus compiling it to C++ first (the "static" versions).
 */

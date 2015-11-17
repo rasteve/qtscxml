@@ -21,5 +21,6 @@
     \title Qt SCXML: Invoke Example (Static)
     \ingroup examples-qtscxml
 
-    \brief Demonstrates...
+    \brief Demonstrates the use of <invoke> and the use of the generated/created
+           nested state-machines, where the SCXML file is compiled to C++ first.
 */
