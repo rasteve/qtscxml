@@ -24,7 +24,7 @@
 
 #include <QtScxml/qscxmldatamodel.h>
 
-QT_FORWARD_DECLARE_CLASS(QJSEngine);
+QT_FORWARD_DECLARE_CLASS(QJSEngine)
 
 QT_BEGIN_NAMESPACE
 class QScxmlEcmaScriptDataModelPrivate;
