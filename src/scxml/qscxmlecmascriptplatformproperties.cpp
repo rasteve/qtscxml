@@ -22,6 +22,8 @@
 #include "qscxmlecmascriptplatformproperties_p.h"
 #include "qscxmlstatemachine.h"
 
+#include <QJSEngine>
+
 QT_BEGIN_NAMESPACE
 class QScxmlPlatformProperties::Data
 {
