@@ -22,8 +22,9 @@
 #include "qscxmlqstates_p.h"
 #include "qscxmlstatemachine_p.h"
 
-#define DUMP_EVENT
+#undef DUMP_EVENT
 #ifdef DUMP_EVENT
+#include <QJSEngine>
 #include "qscxmlecmascriptdatamodel.h"
 #endif
 
