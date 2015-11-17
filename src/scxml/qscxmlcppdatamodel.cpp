@@ -1,20 +1,23 @@
-/****************************************************************************
- **
- ** Copyright (c) 2015 Digia Plc
- ** For any questions to Digia, please use contact form at http://qt.digia.com/
- **
- ** All Rights Reserved.
- **
- ** NOTICE: All information contained herein is, and remains
- ** the property of Digia Plc and its suppliers,
- ** if any. The intellectual and technical concepts contained
- ** herein are proprietary to Digia Plc
- ** and its suppliers and may be covered by Finnish and Foreign Patents,
- ** patents in process, and are protected by trade secret or copyright law.
- ** Dissemination of this information or reproduction of this material
- ** is strictly forbidden unless prior written permission is obtained
- ** from Digia Plc.
- ****************************************************************************/
+/******************************************************************************
+**
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
+**
+** This file is part of the QtScxml module.
+**
+** $QT_BEGIN_LICENSE:COMM$
+**
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
+**
+** $QT_END_LICENSE$
+**
+******************************************************************************/
 
 #include "qscxmlcppdatamodel_p.h"
 #include "qscxmlstatemachine.h"
@@ -193,18 +196,27 @@ const QScxmlEvent &QScxmlCppDataModel::event() const
     return data->event;
 }
 
+/*!
+ * \internal not supported in this data-model
+ */
 QVariant QScxmlCppDataModel::property(const QString &name) const
 {
     Q_UNUSED(name);
     return QVariant();
 }
 
+/*!
+ * \internal not supported in this data-model
+ */
 bool QScxmlCppDataModel::hasProperty(const QString &name) const
 {
     Q_UNUSED(name);
     return false;
 }
 
+/*!
+ * \internal not supported in this data-model
+ */
 void QScxmlCppDataModel::setProperty(const QString &name, const QVariant &value, const QString &context, bool *ok)
 {
     Q_UNUSED(name);
