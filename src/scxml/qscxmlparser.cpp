@@ -538,9 +538,9 @@ private:
     static QList<QByteArray> init(const char *s)
     {
 #ifdef Q_COMPILER_INITIALIZER_LISTS
-        return QList<QByteArray>({ QByteArray::fromRawData(s, strlen(s)) });
+        return QList<QByteArray>({ QByteArray::fromRawData(s, int(strlen(s))) });
 #else // insane compiler:
-        return QList<QByteArray>() << QByteArray::fromRawData(s, strlen(s));
+        return QList<QByteArray>() << QByteArray::fromRawData(s, int(strlen(s)));
 #endif
     }
 

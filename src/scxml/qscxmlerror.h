@@ -51,10 +51,6 @@ private:
     ScxmlErrorPrivate *d;
 };
 
-class QDebug;
-QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const QScxmlError &error);
-QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const QVector<QScxmlError> &errors);
-
 QT_END_NAMESPACE
 
 #endif // QSCXMLERROR_H

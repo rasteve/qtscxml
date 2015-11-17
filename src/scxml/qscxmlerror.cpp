@@ -166,24 +166,4 @@ QString QScxmlError::toString() const
     return str;
 }
 
-/*!
- * \brief Convenience method to write a QScxmlError to a QDebug stream.
- */
-QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const QScxmlError &error)
-{
-    debug << error.toString();
-    return debug;
-}
-
-/*!
- * \brief Convenience method to write QScxmlErrors to a QDebug stream.
- */
-QDebug Q_SCXML_EXPORT operator<<(QDebug debug, const QVector<QScxmlError> &errors)
-{
-    foreach (const QScxmlError &error, errors) {
-        debug << error << endl;
-    }
-    return debug;
-}
-
 QT_END_NAMESPACE
