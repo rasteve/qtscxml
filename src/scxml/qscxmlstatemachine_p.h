@@ -64,7 +64,6 @@ protected:
     void beginSelectTransitions(QEvent *event) Q_DECL_OVERRIDE;
     void beginMicrostep(QEvent *event) Q_DECL_OVERRIDE;
     void endMicrostep(QEvent *event) Q_DECL_OVERRIDE;
-    bool event(QEvent *e) Q_DECL_OVERRIDE;
 
 private:
     QScxmlStateMachinePrivate *stateMachinePrivate();
@@ -111,8 +110,6 @@ public:
     bool removeService(QScxmlInvokableService *service);
 
     void executeInitialSetup();
-
-    void routeEvent(QScxmlEvent *e);
 
 public: // types & data fields:
     QString m_sessionId;

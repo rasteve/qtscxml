@@ -31,7 +31,7 @@
 
 Q_DECLARE_METATYPE(std::function<QScxmlStateMachine *()>);
 
-enum { SpyWaitTime = 12000 };
+enum { SpyWaitTime = 8000 };
 
 static QSet<QString> weFailOnThese = QSet<QString>()
         // The following test needs manual inspection of the result. However, note that we do not support multiple identical keys for event data.
@@ -47,6 +47,8 @@ static QSet<QString> weFailOnThese = QSet<QString>()
 
         // Currently we do not support loading data as XML content inside the <data> tag.
         << QLatin1String("w3c-ecma/test557.txml")
+        // A nested state machine is used, which we do not support.
+        << QLatin1String("w3c-ecma/test187.txml")
         // The following test uses the undocumented "exmode" attribute.
         << QLatin1String("w3c-ecma/test441a.txml")
         // The following test needs manual inspection of the result. However, note that we do not support the undocumented "exmode" attribute.
@@ -62,9 +64,9 @@ static QSet<QString> differentSemantics = QSet<QString>()
         << QLatin1String("w3c-ecma/test329.txml")
         // Qt does not support forcing initial states that are not marked as such.
         << QLatin1String("w3c-ecma/test413.txml") // FIXME: verify initial state setting...
-        << QLatin1String("w3c-ecma/test576.txml") // FIXME: verify initial state setting...
         // Scion apparently sets <data> values without a src/expr attribute to 0. We set it to undefined, as specified in B.2.1.
         << QLatin1String("w3c-ecma/test456.txml") // replaced by modified_test456
+        << QLatin1String("w3c-ecma/test576.txml")
         // FIXME: qscxmlc fails on improper scxml file, currently no way of testing it properly for compiled case
         << QLatin1String("w3c-ecma/test301.txml")
         // FIXME: Currently we do not support loading scripts from a srcexpr.
