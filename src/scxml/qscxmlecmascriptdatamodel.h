@@ -24,9 +24,9 @@
 
 #include <QtScxml/qscxmldatamodel.h>
 
-QT_BEGIN_NAMESPACE
-class QJSEngine;
+QT_FORWARD_DECLARE_CLASS(QJSEngine);
 
+QT_BEGIN_NAMESPACE
 class QScxmlEcmaScriptDataModelPrivate;
 class Q_SCXML_EXPORT QScxmlEcmaScriptDataModel: public QScxmlDataModel
 {

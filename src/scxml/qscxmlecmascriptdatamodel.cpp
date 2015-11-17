@@ -23,6 +23,7 @@
 #include "qscxmlecmascriptplatformproperties_p.h"
 #include "qscxmlexecutablecontent_p.h"
 
+#include <QJSEngine>
 #include <QJsonDocument>
 #include <QtQml/private/qjsvalue_p.h>
 #include <QtQml/private/qv4scopedvalue_p.h>
