@@ -1,3 +1,5 @@
+requires(!cross_compile)
+
 CONFIG += tests_need_tools examples_need_tools
 
 FEATURES += mkspecs/features/qscxmlc.prf
