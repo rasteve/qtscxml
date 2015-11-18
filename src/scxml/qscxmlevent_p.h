@@ -34,13 +34,17 @@
 //
 
 #include <QtScxml/qscxmlevent.h>
-#include <QtScxml/qscxmlstatemachine.h>
 #include <QtScxml/private/qscxmlexecutablecontent_p.h>
+
+#ifndef QT_BOOTSTRAPPED
+#include <QtScxml/qscxmlstatemachine.h>
+#endif
 
 #include <QAtomicInt>
 
 QT_BEGIN_NAMESPACE
 
+#ifndef QT_BOOTSTRAPPED
 class EventBuilder
 {
     QScxmlStateMachine* stateMachine;
@@ -128,6 +132,7 @@ public:
         return event();
     }
 };
+#endif // QT_BOOTSTRAPPED
 
 class QScxmlEventPrivate
 {

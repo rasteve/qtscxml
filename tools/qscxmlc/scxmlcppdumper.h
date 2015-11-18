@@ -23,7 +23,6 @@
 #define CPPDUMPER_H
 
 #include "qscxmlglobals.h"
-#include "qscxmlstatemachine.h"
 
 #include <QtScxml/private/qscxmlparser_p.h>
 

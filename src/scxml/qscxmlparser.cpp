@@ -20,25 +20,30 @@
 ******************************************************************************/
 
 #include "qscxmlparser_p.h"
-#include "qscxmldatamodel_p.h"
-#include "qscxmlstatemachine_p.h"
 #include "qscxmlexecutablecontent_p.h"
-#include "qscxmlnulldatamodel.h"
-#include "qscxmlecmascriptdatamodel.h"
-#include "qscxmlqstates.h"
+
 #include <QXmlStreamReader>
 #include <QLoggingCategory>
-#include <QState>
-#include <QHistoryState>
-#include <QEventTransition>
-#include <QSignalTransition>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QFile>
 #include <QVector>
+
+#ifndef QT_BOOTSTRAPPED
+#include "qscxmlnulldatamodel.h"
+#include "qscxmlecmascriptdatamodel.h"
+#include "qscxmlqstates.h"
+#include "qscxmldatamodel_p.h"
+#include "qscxmlstatemachine_p.h"
+
+#include <QState>
+#include <QHistoryState>
+#include <QEventTransition>
+#include <QSignalTransition>
+#include <QJSValue>
 #include <private/qabstracttransition_p.h>
 #include <private/qmetaobjectbuilder_p.h>
-#include <QJSValue>
+#endif // QT_BOOTSTRAPPED
 
 #include <functional>
 
@@ -321,6 +326,7 @@ private:
     QVector<DocumentModel::Node *> m_parentNodes;
 };
 
+#ifndef QT_BOOTSTRAPPED
 class QStateMachineBuilder;
 class DynamicStateMachine: public QScxmlStateMachine, public QScxmlEventFilter
 {
@@ -934,6 +940,7 @@ inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(QScxmlStateMach
 
     return finishInvoke(child, parent);
 }
+#endif // QT_BOOTSTRAPPED
 
 } // anonymous namespace
 
@@ -973,6 +980,9 @@ void QScxmlParser::parse()
 
 QScxmlStateMachine *QScxmlParser::instantiateStateMachine() const
 {
+#ifdef QT_BOOTSTRAPPED
+    return Q_NULLPTR;
+#else // QT_BOOTSTRAPPED
     if (DocumentModel::ScxmlDocument *doc = p->scxmlDocument()) {
         return QStateMachineBuilder().build(doc);
     } else {
@@ -986,14 +996,19 @@ QScxmlStateMachine *QScxmlParser::instantiateStateMachine() const
         QScxmlStateMachinePrivate::get(stateMachine)->parserData()->m_errors = errors();
         return stateMachine;
     }
+#endif // QT_BOOTSTRAPPED
 }
 
 void QScxmlParser::instantiateDataModel(QScxmlStateMachine *stateMachine) const
 {
+#ifdef QT_BOOTSTRAPPED
+    Q_UNUSED(stateMachine)
+#else
     QScxmlDataModel *dm = QScxmlDataModelPrivate::instantiateDataModel(p->scxmlDocument()->root->dataModel, stateMachine);
     if (dm == Q_NULLPTR) {
         qWarning() << "No data-model instantiated!";
     }
+#endif // QT_BOOTSTRAPPED
 }
 
 QScxmlParser::State QScxmlParser::state() const
@@ -2093,10 +2108,14 @@ QByteArray QScxmlParserPrivate::DefaultLoader::load(const QString &name, const Q
     Q_ASSERT(ok != nullptr);
 
     *ok = false;
+#ifdef QT_BOOTSTRAPPED
+    QFileInfo fInfo(name);
+#else
     const QUrl url(name);
     if (!url.isLocalFile() && !url.isRelative())
         parser()->addError(QStringLiteral("src attribute is not a local file (%1)").arg(name));
     QFileInfo fInfo = url.isLocalFile() ? url.toLocalFile() : name;
+#endif // QT_BOOTSTRAPPED
     if (fInfo.isRelative())
         fInfo = QFileInfo(QDir(baseDir).filePath(fInfo.filePath()));
 

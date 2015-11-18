@@ -33,11 +33,14 @@
 // We mean it.
 //
 
-#include <QtScxml/qscxmldatamodel.h>
 #include <QtScxml/qscxmlexecutablecontent.h>
-#include <QtScxml/private/qscxmlparser_p.h>
-#include <QtScxml/qscxmlstatemachine.h>
 #include <QtScxml/qscxmltabledata.h>
+#include <QtScxml/private/qscxmlparser_p.h>
+
+#ifndef QT_BOOTSTRAPPED
+#include <QtScxml/qscxmldatamodel.h>
+#include <QtScxml/qscxmlstatemachine.h>
+#endif // QT_BOOTSTRAPPED
 
 QT_BEGIN_NAMESPACE
 
@@ -258,9 +261,15 @@ struct Q_SCXML_EXPORT Cancel: Instruction
 #pragma pack(pop)
 #endif
 
-class Q_SCXML_EXPORT DynamicTableData: public QObject, public QScxmlTableData
+class Q_SCXML_EXPORT DynamicTableData:
+#ifndef QT_BOOTSTRAPPED
+        public QObject,
+#endif // QT_BOOTSTRAPPED
+        public QScxmlTableData
 {
+#ifndef QT_BOOTSTRAPPED
     Q_OBJECT
+#endif
 
 public:
     QString string(StringId id) const Q_DECL_OVERRIDE;
