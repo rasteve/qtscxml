@@ -25,14 +25,14 @@
 
 QT_BEGIN_NAMESPACE
 
-#ifndef QT_STATIC
+#if defined(QT_STATIC) || defined(BUILD_QSCXMLC)
+#  define Q_SCXML_EXPORT
+#else
 #  ifdef QT_BUILD_SCXML_LIB
 #    define Q_SCXML_EXPORT Q_DECL_EXPORT
 #  else
 #    define Q_SCXML_EXPORT Q_DECL_IMPORT
 #  endif
-#else
-#  define Q_SCXML_EXPORT
 #endif
 
 QT_END_NAMESPACE
