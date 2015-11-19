@@ -22,7 +22,7 @@
 #ifndef SCXMLPARSER_H
 #define SCXMLPARSER_H
 
-#include <qscxmlerror.h>
+#include <QtScxml/qscxmlerror.h>
 
 #include <QStringList>
 #include <QString>

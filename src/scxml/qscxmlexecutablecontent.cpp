@@ -25,7 +25,7 @@
 
 using namespace QScxmlExecutableContent;
 
-#ifndef QT_BOOTSTRAPPED
+#ifndef BUILD_QSCXMLC
 static int parseTime(const QString &t, bool *ok = 0)
 {
     if (t.isEmpty()) {
@@ -279,7 +279,7 @@ bool ExecutionEngine::step(Instructions &ip)
         return false;
     }
 }
-#endif // QT_BOOTSTRAPPED
+#endif // BUILD_QSCXMLC
 
 Builder::Builder()
     : m_initialSetup(QScxmlExecutableContent::NoInstruction)

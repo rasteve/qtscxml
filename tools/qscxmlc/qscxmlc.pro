@@ -4,6 +4,8 @@ TARGET = qscxmlc
 CONFIG += console c++11
 QT = core
 
+DEFINES += BUILD_QSCXMLC
+
 SOURCES += \
     qscxmlc.cpp \
     scxmlcppdumper.cpp

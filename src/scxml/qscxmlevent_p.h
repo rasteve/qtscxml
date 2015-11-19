@@ -36,7 +36,7 @@
 #include <QtScxml/qscxmlevent.h>
 #include <QtScxml/private/qscxmlexecutablecontent_p.h>
 
-#ifndef QT_BOOTSTRAPPED
+#ifndef BUILD_QSCXMLC
 #include <QtScxml/qscxmlstatemachine.h>
 #endif
 
@@ -44,7 +44,7 @@
 
 QT_BEGIN_NAMESPACE
 
-#ifndef QT_BOOTSTRAPPED
+#ifndef BUILD_QSCXMLC
 class EventBuilder
 {
     QScxmlStateMachine* stateMachine;
@@ -132,7 +132,7 @@ public:
         return event();
     }
 };
-#endif // QT_BOOTSTRAPPED
+#endif // BUILD_QSCXMLC
 
 class QScxmlEventPrivate
 {

@@ -37,10 +37,10 @@
 #include <QtScxml/qscxmltabledata.h>
 #include <QtScxml/private/qscxmlparser_p.h>
 
-#ifndef QT_BOOTSTRAPPED
+#ifndef BUILD_QSCXMLC
 #include <QtScxml/qscxmldatamodel.h>
 #include <QtScxml/qscxmlstatemachine.h>
-#endif // QT_BOOTSTRAPPED
+#endif // BUILD_QSCXMLC
 
 QT_BEGIN_NAMESPACE
 
@@ -262,12 +262,12 @@ struct Q_SCXML_EXPORT Cancel: Instruction
 #endif
 
 class Q_SCXML_EXPORT DynamicTableData:
-#ifndef QT_BOOTSTRAPPED
+#ifndef BUILD_QSCXMLC
         public QObject,
-#endif // QT_BOOTSTRAPPED
+#endif // BUILD_QSCXMLC
         public QScxmlTableData
 {
-#ifndef QT_BOOTSTRAPPED
+#ifndef BUILD_QSCXMLC
     Q_OBJECT
 #endif
 
