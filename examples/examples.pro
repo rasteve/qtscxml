@@ -1,5 +1,6 @@
 TEMPLATE = subdirs
 
+!msvc{
 qtHaveModule(widgets) {
     SUBDIRS +=  trafficlight-widgets-static
     SUBDIRS +=  trafficlight-widgets-dynamic
@@ -19,4 +20,5 @@ qtHaveModule(qml) {
     SUBDIRS +=  mediaplayer-qml-cppdatamodel
     SUBDIRS +=  invoke-static
     SUBDIRS +=  invoke-dynamic
+}
 }
