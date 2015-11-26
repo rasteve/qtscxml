@@ -54,6 +54,7 @@ public:
     void setEngine(QJSEngine *engine);
 
 private:
+    friend QScxmlEcmaScriptDataModelPrivate;
     QScxmlEcmaScriptDataModelPrivate *d;
 };
 

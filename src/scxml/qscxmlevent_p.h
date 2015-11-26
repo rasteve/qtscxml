@@ -45,7 +45,7 @@
 QT_BEGIN_NAMESPACE
 
 #ifndef BUILD_QSCXMLC
-class EventBuilder
+class QScxmlEventBuilder
 {
     QScxmlStateMachine* stateMachine;
     QScxmlExecutableContent::StringId instructionLocation;
@@ -71,7 +71,7 @@ class EventBuilder
         return id;
     }
 
-    EventBuilder()
+    QScxmlEventBuilder()
     { init(); }
 
     void init() // Because stupid VS2012 can't cope with non-static field initializers.
@@ -87,7 +87,7 @@ class EventBuilder
     }
 
 public:
-    EventBuilder(QScxmlStateMachine *stateMachine, const QString &eventName, const QScxmlExecutableContent::DoneData *doneData)
+    QScxmlEventBuilder(QScxmlStateMachine *stateMachine, const QString &eventName, const QScxmlExecutableContent::DoneData *doneData)
     {
         init();
         this->stateMachine = stateMachine;
@@ -99,7 +99,7 @@ public:
         params = &doneData->params;
     }
 
-    EventBuilder(QScxmlStateMachine *stateMachine, QScxmlExecutableContent::Send &send)
+    QScxmlEventBuilder(QScxmlStateMachine *stateMachine, QScxmlExecutableContent::Send &send)
     {
         init();
         this->stateMachine = stateMachine;
@@ -122,18 +122,13 @@ public:
     QScxmlEvent *buildEvent();
 
     static QScxmlEvent *errorEvent(QScxmlStateMachine *stateMachine, const QByteArray &name,
-                                   const QString &message, const QByteArray &sendid)
-    {
-        EventBuilder event;
-        event.stateMachine = stateMachine;
-        event.event = name;
-        event.eventType = QScxmlEvent::PlatformEvent; // Errors are platform events. See e.g. test331.
-        // _event.data == null, see test528
-        event.id = sendid;
-        auto error = event();
-        error->setErrorMessage(message);
-        return error;
-    }
+                                   const QString &message, const QByteArray &sendid);
+
+    static bool evaluate(const QScxmlExecutableContent::Param &param, QScxmlStateMachine *stateMachine,
+                         QVariantMap &keyValues);
+
+    static bool evaluate(const QScxmlExecutableContent::Array<QScxmlExecutableContent::Param> *params,
+                         QScxmlStateMachine *stateMachine, QVariantMap &keyValues);
 };
 #endif // BUILD_QSCXMLC
 

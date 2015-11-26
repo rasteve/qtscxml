@@ -503,12 +503,12 @@ private:
     bool m_isCppDataModel;
 };
 
-class ExecutionEngine
+class QScxmlExecutionEngine
 {
-    Q_DISABLE_COPY(ExecutionEngine)
+    Q_DISABLE_COPY(QScxmlExecutionEngine)
 
 public:
-    ExecutionEngine(QScxmlStateMachine *stateMachine);
+    QScxmlExecutionEngine(QScxmlStateMachine *stateMachine);
 
     bool execute(ContainerId ip, const QVariant &extraData = QVariant());
 

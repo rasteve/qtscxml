@@ -29,57 +29,9 @@ using namespace QScxmlExecutableContent;
 QEvent::Type QScxmlEvent::scxmlEventType = (QEvent::Type) QEvent::registerEventType();
 QEvent::Type QScxmlEvent::ignoreEventType = (QEvent::Type) QEvent::registerEventType();
 
-static bool evaluate(const QScxmlExecutableContent::Param &param, QScxmlStateMachine *stateMachine,
-                     QVariantMap &keyValues)
-{
-    auto dataModel = stateMachine->dataModel();
-    auto tableData = stateMachine->tableData();
-    if (param.expr != NoEvaluator) {
-        bool success = false;
-        auto v = dataModel->evaluateToVariant(param.expr, &success);
-        keyValues.insert(tableData->string(param.name), v);
-        return success;
-    }
+QAtomicInt QScxmlEventBuilder::idCounter = QAtomicInt(0);
 
-    QString loc;
-    if (param.location != QScxmlExecutableContent::NoString) {
-        loc = tableData->string(param.location);
-    }
-
-    if (loc.isEmpty()) {
-        return false;
-    }
-
-    if (dataModel->hasProperty(loc)) {
-        keyValues.insert(tableData->string(param.name), dataModel->property(loc));
-        return true;
-    } else {
-        stateMachine->submitError(QByteArray("error.execution"),
-                           QStringLiteral("Error in <param>: %1 is not a valid location")
-                           .arg(loc),
-                           /*sendid =*/ QByteArray());
-        return false;
-    }
-}
-
-static bool evaluate(const QScxmlExecutableContent::Array<QScxmlExecutableContent::Param> *params,
-                     QScxmlStateMachine *stateMachine, QVariantMap &keyValues)
-{
-    if (!params)
-        return true;
-
-    auto paramPtr = params->const_data();
-    for (qint32 i = 0; i != params->count; ++i, ++paramPtr) {
-        if (!evaluate(*paramPtr, stateMachine, keyValues))
-            return false;
-    }
-
-    return true;
-}
-
-QAtomicInt EventBuilder::idCounter = QAtomicInt(0);
-
-QScxmlEvent *EventBuilder::buildEvent()
+QScxmlEvent *QScxmlEventBuilder::buildEvent()
 {
     auto dataModel = stateMachine ? stateMachine->dataModel() : Q_NULLPTR;
     auto tableData = stateMachine ? stateMachine->tableData() : Q_NULLPTR;
@@ -190,6 +142,65 @@ QScxmlEvent *EventBuilder::buildEvent()
     event->setOriginType(origintype);
     event->setInvokeId(invokeid);
     return event;
+}
+
+QScxmlEvent *QScxmlEventBuilder::errorEvent(QScxmlStateMachine *stateMachine, const QByteArray &name, const QString &message, const QByteArray &sendid)
+{
+    QScxmlEventBuilder event;
+    event.stateMachine = stateMachine;
+    event.event = name;
+    event.eventType = QScxmlEvent::PlatformEvent; // Errors are platform events. See e.g. test331.
+    // _event.data == null, see test528
+    event.id = sendid;
+    auto error = event();
+    error->setErrorMessage(message);
+    return error;
+}
+
+bool QScxmlEventBuilder::evaluate(const Param &param, QScxmlStateMachine *stateMachine, QVariantMap &keyValues)
+{
+    auto dataModel = stateMachine->dataModel();
+    auto tableData = stateMachine->tableData();
+    if (param.expr != NoEvaluator) {
+        bool success = false;
+        auto v = dataModel->evaluateToVariant(param.expr, &success);
+        keyValues.insert(tableData->string(param.name), v);
+        return success;
+    }
+
+    QString loc;
+    if (param.location != QScxmlExecutableContent::NoString) {
+        loc = tableData->string(param.location);
+    }
+
+    if (loc.isEmpty()) {
+        return false;
+    }
+
+    if (dataModel->hasProperty(loc)) {
+        keyValues.insert(tableData->string(param.name), dataModel->property(loc));
+        return true;
+    } else {
+        stateMachine->submitError(QByteArray("error.execution"),
+                                  QStringLiteral("Error in <param>: %1 is not a valid location")
+                                  .arg(loc),
+                                  /*sendid =*/ QByteArray());
+        return false;
+    }
+}
+
+bool QScxmlEventBuilder::evaluate(const QScxmlExecutableContent::Array<Param> *params, QScxmlStateMachine *stateMachine, QVariantMap &keyValues)
+{
+    if (!params)
+        return true;
+
+    auto paramPtr = params->const_data();
+    for (qint32 i = 0; i != params->count; ++i, ++paramPtr) {
+        if (!evaluate(*paramPtr, stateMachine, keyValues))
+            return false;
+    }
+
+    return true;
 }
 
 /*!

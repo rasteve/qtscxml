@@ -39,6 +39,8 @@ typedef qint32 ByteArrayId;
 enum { NoByteArray = -1 };
 typedef qint32 *Instructions;
 
+class QScxmlExecutionEngine;
+
 } // ExecutableContent namespace
 
 QT_END_NAMESPACE

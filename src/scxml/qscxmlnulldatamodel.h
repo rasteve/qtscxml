@@ -50,6 +50,7 @@ public:
 
 private:
     class Data;
+    friend Data;
     Data *d;
 };
 

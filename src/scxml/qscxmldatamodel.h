@@ -32,6 +32,7 @@ QT_BEGIN_NAMESPACE
 class QScxmlEvent;
 
 class QScxmlStateMachine;
+class QScxmlTableData;
 
 namespace QScxmlExecutableContent {
 #if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
@@ -97,6 +98,9 @@ public:
     virtual bool hasProperty(const QString &name) const = 0;
     virtual void setProperty(const QString &name, const QVariant &value, const QString &context,
                              bool *ok) = 0;
+
+protected:
+    QScxmlTableData *tableData() const;
 
 private:
     friend class QScxmlDataModelPrivate;

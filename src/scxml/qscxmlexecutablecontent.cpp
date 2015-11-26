@@ -62,13 +62,13 @@ static int parseTime(const QString &t, bool *ok = 0)
     return negative ? -value : value;
 }
 
-ExecutionEngine::ExecutionEngine(QScxmlStateMachine *stateMachine)
+QScxmlExecutionEngine::QScxmlExecutionEngine(QScxmlStateMachine *stateMachine)
     : stateMachine(stateMachine)
 {
     Q_ASSERT(stateMachine);
 }
 
-bool ExecutionEngine::execute(ContainerId id, const QVariant &extraData)
+bool QScxmlExecutionEngine::execute(ContainerId id, const QVariant &extraData)
 {
     Q_ASSERT(stateMachine);
 
@@ -82,7 +82,7 @@ bool ExecutionEngine::execute(ContainerId id, const QVariant &extraData)
     return result;
 }
 
-bool ExecutionEngine::step(Instructions &ip)
+bool QScxmlExecutionEngine::step(Instructions &ip)
 {
     auto dataModel = stateMachine->dataModel();
     auto tableData = stateMachine->tableData();
@@ -130,7 +130,7 @@ bool ExecutionEngine::step(Instructions &ip)
                 return false;
         }
 
-        QScxmlEvent *event = EventBuilder(stateMachine, *send).buildEvent();
+        QScxmlEvent *event = QScxmlEventBuilder(stateMachine, *send).buildEvent();
         if (!event)
             return false;
 
@@ -183,11 +183,11 @@ bool ExecutionEngine::step(Instructions &ip)
     case Instruction::Foreach: {
         class LoopBody: public QScxmlDataModel::ForeachLoopBody // If only we could put std::function in public API, we could use a lambda here. Alas....
         {
-            ExecutionEngine *engine;
+            QScxmlExecutionEngine *engine;
             const Instructions loopStart;
 
         public:
-            LoopBody(ExecutionEngine *engine, const Instructions loopStart)
+            LoopBody(QScxmlExecutionEngine *engine, const Instructions loopStart)
                 : engine(engine)
                 , loopStart(loopStart)
             {}
@@ -273,7 +273,7 @@ bool ExecutionEngine::step(Instructions &ip)
         DoneData *doneData = reinterpret_cast<DoneData *>(instr);
 
         QString eventName = QStringLiteral("done.state.") + extraData.toString();
-        EventBuilder event(stateMachine, eventName, doneData);
+        QScxmlEventBuilder event(stateMachine, eventName, doneData);
         qCDebug(scxmlLog) << "submitting event" << eventName;
         stateMachine->submitEvent(event());
         return true;

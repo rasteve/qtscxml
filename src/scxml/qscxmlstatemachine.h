@@ -39,6 +39,8 @@ class QTextStream;
 
 Q_SCXML_EXPORT Q_DECLARE_LOGGING_CATEGORY(scxmlLog)
 
+class QScxmlEventBuilder;
+class QScxmlInvokableServiceFactory;
 class QScxmlInvokableService;
 class QScxmlParser;
 class QScxmlStateMachine;
@@ -84,9 +86,6 @@ public:
 
     BindingMethod dataBinding() const;
 
-    QScxmlTableData *tableData() const;
-    void setTableData(QScxmlTableData *tableData);
-
     QScxmlStateMachine *parentStateMachine() const;
     void setParentStateMachine(QScxmlStateMachine *parent);
 
@@ -127,8 +126,16 @@ public Q_SLOTS:
     void start();
 
 protected: // methods for friends:
+    friend QScxmlDataModel;
+    friend QScxmlEventBuilder;
+    friend QScxmlInvokableServiceFactory;
+    friend QScxmlExecutableContent::QScxmlExecutionEngine;
+
     void setDataBinding(BindingMethod bindingMethod);
     virtual void setService(const QString &id, QScxmlInvokableService *service);
+
+    QScxmlTableData *tableData() const;
+    void setTableData(QScxmlTableData *tableData);
 };
 
 QT_END_NAMESPACE

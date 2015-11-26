@@ -278,21 +278,13 @@ QVector<QScxmlError> QScxmlStateMachine::errors() const
 }
 
 /*!
-    \property QStateMachine::running
-
-    \brief the running state of this state machine
-
-    \sa start(), runningChanged()
- */
-
-/*!
  * Constructs a new state machine with the given parent.
  */
 QScxmlStateMachine::QScxmlStateMachine(QObject *parent)
     : QObject(*new QScxmlStateMachinePrivate, parent)
 {
     Q_D(QScxmlStateMachine);
-    d->m_executionEngine = new QScxmlExecutableContent::ExecutionEngine(this);
+    d->m_executionEngine = new QScxmlExecutableContent::QScxmlExecutionEngine(this);
     d->setQStateMachine(new QScxmlInternal::WrappedQStateMachine(this));
     connect(d->m_qStateMachine, &QStateMachine::runningChanged, this, &QScxmlStateMachine::runningChanged);
     connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::finished);
@@ -309,7 +301,7 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
     : QObject(dd, parent)
 {
     Q_D(QScxmlStateMachine);
-    d->m_executionEngine = new QScxmlExecutableContent::ExecutionEngine(this);
+    d->m_executionEngine = new QScxmlExecutableContent::QScxmlExecutionEngine(this);
     connect(d->m_qStateMachine, &QStateMachine::runningChanged, this, &QScxmlStateMachine::runningChanged);
     connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::finished);
     connect(d->m_qStateMachine, &QStateMachine::finished, [this](){
@@ -317,6 +309,14 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
         emit reachedStableState(true);
     });
 }
+
+/*!
+    \property QScxmlStateMachine::running
+
+    \brief the running state of this state machine
+
+    \sa start(), runningChanged()
+ */
 
 /*!
     \enum QScxmlStateMachine::BindingMethod
@@ -856,7 +856,7 @@ void QScxmlStateMachine::submitError(const QByteArray &type, const QString &msg,
     qCDebug(scxmlLog) << this << "had error" << type << ":" << msg;
     if (!type.startsWith("error."))
         qCWarning(scxmlLog) << this << "Message type of error message does not start with 'error.'!";
-    submitEvent(EventBuilder::errorEvent(this, type, msg, sendid));
+    submitEvent(QScxmlEventBuilder::errorEvent(this, type, msg, sendid));
 }
 
 /*!
