@@ -62,8 +62,6 @@ typedef qint32 EvaluatorId;
 enum { NoEvaluator = -1 };
 } // QScxmlExecutableContent namespace
 
-class QScxmlNullDataModel;
-class QScxmlEcmaScriptDataModel;
 class QScxmlDataModelPrivate;
 class Q_SCXML_EXPORT QScxmlDataModel
 {
