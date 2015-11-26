@@ -70,7 +70,7 @@ QJSValue QScxmlPlatformProperties::jsValue() const
     return data->m_jsValue;
 }
 
-/// _x.marks() == "the spot"
+/// _x.marks === "the spot"
 QString QScxmlPlatformProperties::marks() const
 {
     return QStringLiteral("the spot");

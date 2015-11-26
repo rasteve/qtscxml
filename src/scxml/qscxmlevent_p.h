@@ -121,7 +121,8 @@ public:
 
     QScxmlEvent *buildEvent();
 
-    static QScxmlEvent *errorEvent(QScxmlStateMachine *stateMachine, const QByteArray &name, const QByteArray &sendid)
+    static QScxmlEvent *errorEvent(QScxmlStateMachine *stateMachine, const QByteArray &name,
+                                   const QString &message, const QByteArray &sendid)
     {
         EventBuilder event;
         event.stateMachine = stateMachine;
@@ -129,7 +130,9 @@ public:
         event.eventType = QScxmlEvent::PlatformEvent; // Errors are platform events. See e.g. test331.
         // _event.data == null, see test528
         event.id = sendid;
-        return event();
+        auto error = event();
+        error->setErrorMessage(message);
+        return error;
     }
 };
 #endif // BUILD_QSCXMLC

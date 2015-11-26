@@ -79,6 +79,10 @@ public:
     QVariant data() const;
     void setData(const QVariant &data);
 
+    bool isErrorEvent() const;
+    QString errorMessage() const;
+    void setErrorMessage(const QString &message);
+
 protected:
     friend class QScxmlInternal::WrappedQStateMachine;
     static QEvent::Type scxmlEventType;

@@ -159,6 +159,15 @@
 
     \section1 SCXML Compliance
 
+    Qt SCXML supports the following data models:
+
+    \list
+      \li null data model, as described in B.1 of the \l {SCXML specification}
+      \li ECMAScript data model, as described in B.2 of the
+          \l {SCXML specification}
+      \li C++ data model, as described in the QScxmlCppDataModel documentation
+    \endlist
+
     The Qt SCXML implementation is SCXML compliant, with a few exceptions:
 
     \list
@@ -181,13 +190,11 @@
         the ECMAScript data model, is not supported.
     \endlist
 
-    Qt SCXML supports the following data models:
+    The Qt SCXML implementation extends SCXML in the following ways:
 
     \list
-      \li null data model, as described in B.1 of the \l {SCXML specification}
-      \li ECMAScript data model, as described in B.2 of the
-          \l {SCXML specification}
-      \li C++ data model, as described in the QScxmlCppDataModel documentation
+    \li If the event is an error event, _event.errorMessage will contain a more
+        detailed description of the error.
     \endlist
 
     \section1 Examples

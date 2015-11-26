@@ -368,12 +368,43 @@ void QScxmlEvent::setEventType(const EventType &type)
  */
 QVariant QScxmlEvent::data() const
 {
+    if (isErrorEvent())
+        return QVariant();
     return d->data;
 }
 
 void QScxmlEvent::setData(const QVariant &data)
 {
-    d->data = data;
+    if (!isErrorEvent())
+        d->data = data;
+}
+
+/*!
+ * \return true when this is an error event, false otherwise.
+ */
+bool QScxmlEvent::isErrorEvent() const
+{
+    return eventType() == PlatformEvent && name().startsWith("error.");
+}
+
+/*!
+ * \return If this is an error event, it returns the error message. Otherwise it will return an
+ *         empty QString.
+ */
+QString QScxmlEvent::errorMessage() const
+{
+    if (!isErrorEvent())
+        return QString();
+    return d->data.toString();
+}
+
+/*!
+ * \param message If this is an error event, the \a message will be set as the error message.
+ */
+void QScxmlEvent::setErrorMessage(const QString &message)
+{
+    if (isErrorEvent())
+        d->data = message;
 }
 
 void QScxmlEvent::makeIgnorable()

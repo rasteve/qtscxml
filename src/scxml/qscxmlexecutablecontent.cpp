@@ -227,8 +227,13 @@ bool ExecutionEngine::step(Instructions &ip)
         ip += log->size();
         bool ok = true;
         QString str = dataModel->evaluateToString(log->expr, &ok);
-        if (ok)
-            stateMachine->doLog(tableData->string(log->label), str);
+        if (ok) {
+            QMetaObject::invokeMethod(stateMachine,
+                                      "log",
+                                      Qt::QueuedConnection,
+                                      Q_ARG(QString, tableData->string(log->label)),
+                                      Q_ARG(QString, str));
+        }
         return ok;
     }
 

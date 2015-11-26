@@ -143,7 +143,8 @@ public:
         _event.setProperty(QStringLiteral("type"), engine()->toScriptValue(event.scxmlType()));
         _event.setProperty(QStringLiteral("name"), engine()->toScriptValue(QString::fromUtf8(event.name())));
         _event.setProperty(QStringLiteral("raw"), QStringLiteral("unsupported")); // See test178
-        // TODO: document this
+        if (event.isErrorEvent())
+            _event.setProperty(QStringLiteral("errorMessage"), event.errorMessage());
 
         setReadonlyProperty(&dataModel, QStringLiteral("_event"), _event);
     }

@@ -278,6 +278,14 @@ QVector<QScxmlError> QScxmlStateMachine::errors() const
 }
 
 /*!
+    \property QStateMachine::running
+
+    \brief the running state of this state machine
+
+    \sa start(), runningChanged()
+ */
+
+/*!
  * Constructs a new state machine with the given parent.
  */
 QScxmlStateMachine::QScxmlStateMachine(QObject *parent)
@@ -355,10 +363,8 @@ void QScxmlStateMachine::setSessionId(const QString &id)
 /*!
  * \brief Generates a unique ID by appending a unique number to the prefix.
  *
- * The number is only unique within a single run of an application.
- *
- * This method is used when an invoked service does not have an ID set (the id attribute in
- * <invoke>).
+ * The number is only unique within a single run of an application. This method is used when an
+ * invoked service does not have an ID set (the id attribute in <invoke>).
  *
  * \param prefix The prefix onto which a unique number is appended.
  */
@@ -377,6 +383,9 @@ bool QScxmlStateMachine::isInvoked() const
     return d->m_isInvoked;
 }
 
+/*!
+ * \return Returns the data-model used by the state-machine.
+ */
 QScxmlDataModel *QScxmlStateMachine::dataModel() const
 {
     Q_D(const QScxmlStateMachine);
@@ -412,6 +421,11 @@ QScxmlStateMachine::BindingMethod QScxmlStateMachine::dataBinding() const
     return d->m_dataBinding;
 }
 
+/*!
+ * \internal This is used internally in order to execute the executable content.
+ *
+ * \return Returns the data tables used by the state-machine.
+ */
 QScxmlTableData *QScxmlStateMachine::tableData() const
 {
     Q_D(const QScxmlStateMachine);
@@ -419,6 +433,12 @@ QScxmlTableData *QScxmlStateMachine::tableData() const
     return d->m_tableData;
 }
 
+/*!
+ * \internal This is used when generating C++ from an SCXML file. The class implementing the
+ * state-machine will use this method to pass in the table data (which is also generated).
+ *
+ * \return Returns the data tables used by the state-machine.
+ */
 void QScxmlStateMachine::setTableData(QScxmlTableData *tableData)
 {
     Q_D(QScxmlStateMachine);
@@ -430,18 +450,19 @@ void QScxmlStateMachine::setTableData(QScxmlTableData *tableData)
     }
 }
 
-void QScxmlStateMachine::doLog(const QString &label, const QString &msg)
-{
-    qCDebug(scxmlLog) << label << ":" << msg;
-    emit log(label, msg);
-}
-
+/*!
+ * \return Returns the parent state-machine if there is one, otherwise it returns null.
+ */
 QScxmlStateMachine *QScxmlStateMachine::parentStateMachine() const
 {
     Q_D(const QScxmlStateMachine);
     return d->m_parentStateMachine;
 }
 
+/*!
+ * \brief Sets the \a parent of the state-machine. When set, this implies that the state-machine
+ * is started by <invoke> tag.
+ */
 void QScxmlStateMachine::setParentStateMachine(QScxmlStateMachine *parent)
 {
     Q_D(QScxmlStateMachine);
@@ -822,84 +843,110 @@ QString QScxmlStateMachine::name() const
     return tableData()->name();
 }
 
+/*!
+ * \brief Submits an error event to the external event queue of this state-machine.
+ *
+ * \param type The error message type, e.g. "error.execution". The type has to start with "error.".
+ * \param msg A string describing the nature of the error. This is passed to the event as the
+ *            errorMessage
+ * \param sendid The sendid of the message causing the error, if it has one.
+ */
 void QScxmlStateMachine::submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid)
 {
     qCDebug(scxmlLog) << this << "had error" << type << ":" << msg;
-    submitEvent(EventBuilder::errorEvent(this, type, sendid));
+    if (!type.startsWith("error."))
+        qCWarning(scxmlLog) << this << "Message type of error message does not start with 'error.'!";
+    submitEvent(EventBuilder::errorEvent(this, type, msg, sendid));
 }
 
-void QScxmlStateMachine::routeEvent(QScxmlEvent *e)
+/*!
+ * \brief Submits an event for routing.
+ *
+ * Depending on the origin of the event, it gets submitted to the parent state-machine (if there is
+ * one), to a child state-machine, or to the current state-machine.
+ *
+ * \param event The event to be routed.
+ */
+void QScxmlStateMachine::routeEvent(QScxmlEvent *event)
 {
     Q_D(QScxmlStateMachine);
 
-    if (!e)
+    if (!event)
         return;
 
-    QString origin = e->origin();
+    QString origin = event->origin();
     if (origin == QStringLiteral("#_parent")) {
         if (auto psm = parentStateMachine()) {
-            qCDebug(scxmlLog) << this << "routing event" << e->name() << "from" << name() << "to parent" << psm->name();
-            psm->submitEvent(e);
+            qCDebug(scxmlLog) << this << "routing event" << event->name() << "from" << name() << "to parent" << psm->name();
+            psm->submitEvent(event);
         } else {
             qCDebug(scxmlLog) << this << "is not invoked, so it cannot route a message to #_parent";
-            delete e;
+            delete event;
         }
     } else if (origin.startsWith(QStringLiteral("#_")) && origin != QStringLiteral("#_internal")) {
         // route to children
         auto originId = origin.midRef(2);
         foreach (QScxmlInvokableService *service, d->m_invokedServices) {
             if (service->id() == originId) {
-                qCDebug(scxmlLog) << this << "routing event" << e->name()
+                qCDebug(scxmlLog) << this << "routing event" << event->name()
                                   << "from" << name()
                                   << "to parent" << service->id();
-                service->submitEvent(new QScxmlEvent(*e));
+                service->submitEvent(new QScxmlEvent(*event));
             }
         }
-        delete e;
+        delete event;
     } else {
-        submitEvent(e);
+        submitEvent(event);
     }
 }
 
-void QScxmlStateMachine::submitEvent(QScxmlEvent *e)
+void QScxmlStateMachine::submitEvent(QScxmlEvent *event)
 {
     Q_D(QScxmlStateMachine);
 
-    if (!e)
+    if (!event)
         return;
 
-    if (e->delay() > 0) {
-        qCDebug(scxmlLog) << this << ": submitting event" << e->name()
-                          << "with delay" << e->delay() << "ms"
-                          << "and sendid" << e->sendId();
+    if (event->delay() > 0) {
+        qCDebug(scxmlLog) << this << ": submitting event" << event->name()
+                          << "with delay" << event->delay() << "ms"
+                          << "and sendid" << event->sendId();
 
-        Q_ASSERT(e->eventType() == QScxmlEvent::ExternalEvent);
-        int id = d->m_qStateMachine->postDelayedEvent(e, e->delay());
+        Q_ASSERT(event->eventType() == QScxmlEvent::ExternalEvent);
+        int id = d->m_qStateMachine->postDelayedEvent(event, event->delay());
 
-        qCDebug(scxmlLog) << this << ": delayed event" << e->name() << "(" << e << ") got id:" << id;
+        qCDebug(scxmlLog) << this << ": delayed event" << event->name() << "(" << event << ") got id:" << id;
     } else {
         QStateMachine::EventPriority priority =
-                e->eventType() == QScxmlEvent::ExternalEvent ? QStateMachine::NormalPriority
+                event->eventType() == QScxmlEvent::ExternalEvent ? QStateMachine::NormalPriority
                                                              : QStateMachine::HighPriority;
 
         if (d->m_qStateMachine->isRunning()) {
-            qCDebug(scxmlLog) << this << "posting event" << e->name();
-            d->m_qStateMachine->postEvent(e, priority);
+            qCDebug(scxmlLog) << this << "posting event" << event->name();
+            d->m_qStateMachine->postEvent(event, priority);
         } else {
-            qCDebug(scxmlLog) << this << "queueing event" << e->name();
-            d->m_qStateMachine->queueEvent(e, priority);
+            qCDebug(scxmlLog) << this << "queueing event" << event->name();
+            d->m_qStateMachine->queueEvent(event, priority);
         }
     }
 }
 
-void QScxmlStateMachine::submitEvent(const QByteArray &event)
+/*!
+ * \brief Utility method to create and submit an external event with the givent \a eventName as
+ *        the name.
+ */
+void QScxmlStateMachine::submitEvent(const QByteArray &eventName)
 {
     QScxmlEvent *e = new QScxmlEvent;
-    e->setName(event);
+    e->setName(eventName);
     e->setEventType(QScxmlEvent::ExternalEvent);
     submitEvent(e);
 }
 
+/*!
+ * \brief Utility method to create and submit an external event with the givent \a eventName as
+ *        the name and \a data as the payload data.
+ */
 void QScxmlStateMachine::submitEvent(const QByteArray &event, const QVariant &data)
 {
     QVariant incomingData = data;
@@ -914,6 +961,9 @@ void QScxmlStateMachine::submitEvent(const QByteArray &event, const QVariant &da
     submitEvent(e);
 }
 
+/*!
+ * \brief Cancels a delayed event with the given \a sendid.
+ */
 void QScxmlStateMachine::cancelDelayedEvent(const QByteArray &sendid)
 {
     Q_D(QScxmlStateMachine);
