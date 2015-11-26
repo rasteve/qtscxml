@@ -320,6 +320,9 @@ private:
  * \since 5.6
  * \inmodule QtScxml
  *
+ * This class implements the EcmaScript data-model as described in the SCXML specification. It can
+ * be subclassed to do custom initialization.
+ *
  * \sa QScxmlStateMachine QScxmlDataModel
  */
 

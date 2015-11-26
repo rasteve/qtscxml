@@ -35,6 +35,8 @@ QScxmlDataModel::ForeachLoopBody::~ForeachLoopBody()
  * \since 5.6
  * \inmodule QtScxml
  *
+ * SCXML data models are described in the SCXML specification.
+ *
  * One data-model can only belong to one state machine.
  *
  * \sa QScxmlStateMachine QScxmlCppDataModel QScxmlEcmaScriptDataModel QScxmlNullDataModel

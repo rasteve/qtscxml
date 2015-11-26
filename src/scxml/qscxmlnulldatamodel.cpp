@@ -99,6 +99,8 @@ private:
  * \since 5.6
  * \inmodule QtScxml
  *
+ * This class implements the "null" data-model as described in the SCXML specification.
+ *
  * \sa QScxmlStateMachine QScxmlDataModel
  */
 
