@@ -378,7 +378,8 @@ bool TestScion::runTest(QScxmlStateMachine *stateMachine, const QJsonObject &tes
     MySignalSpy stableStateSpy(stateMachine, SIGNAL(reachedStableState(bool)));
     MySignalSpy finishedSpy(stateMachine, SIGNAL(finished()));
 
-    if (!stateMachine->init()) {
+    if (!stateMachine->init() && stateMachine->name() != QStringLiteral("test487")) {
+        // test487 relies on a failing init to see if an error event gets posted.
         qWarning() << "init failed";
         return false;
     }

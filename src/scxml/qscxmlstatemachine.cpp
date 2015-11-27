@@ -236,9 +236,9 @@ bool QScxmlStateMachinePrivate::removeService(QScxmlInvokableService *service)
     return false;
 }
 
-void QScxmlStateMachinePrivate::executeInitialSetup()
+bool QScxmlStateMachinePrivate::executeInitialSetup()
 {
-    m_executionEngine->execute(m_tableData->initialSetup());
+    return m_executionEngine->execute(m_tableData->initialSetup());
 }
 
 /*!
@@ -803,48 +803,17 @@ void QScxmlStateMachine::setScxmlEventFilter(QScxmlEventFilter *newFilter)
     d->m_eventFilter = newFilter;
 }
 
-static bool loopOnSubStates(QState *startState,
-                            std::function<bool(QState *)> enteringState = Q_NULLPTR,
-                            std::function<void(QState *)> exitingState = Q_NULLPTR,
-                            std::function<void(QAbstractState *)> inAbstractState = Q_NULLPTR)
-{
-    QList<int> pos;
-    QState *parentAtt = startState;
-    QObjectList childs = startState->children();
-    pos << 0;
-    while (!pos.isEmpty()) {
-        bool goingDeeper = false;
-        for (int i = pos.last(); i < childs.size() ; ++i) {
-            if (QAbstractState *as = qobject_cast<QAbstractState *>(childs.at(i))) {
-                if (QState *s = qobject_cast<QState *>(as)) {
-                    if (enteringState && !enteringState(s))
-                        continue;
-                    pos.last() = i + 1;
-                    parentAtt = s;
-                    childs = s->children();
-                    pos << 0;
-                    goingDeeper = !childs.isEmpty();
-                    break;
-                } else if (inAbstractState) {
-                    inAbstractState(as);
-                }
-            }
-        }
-        if (!goingDeeper) {
-            do {
-                pos.removeLast();
-                if (pos.isEmpty())
-                    break;
-                if (exitingState)
-                    exitingState(parentAtt);
-                parentAtt = parentAtt->parentState();
-                childs = parentAtt->children();
-            } while (!pos.isEmpty() && pos.last() >= childs.size());
-        }
-    }
-    return true;
-}
-
+/*!
+ * \brief Initializes the state-machine.
+ *
+ * State-machine initialization consists of calling QScxmlDataModel::setup() , setting the initial
+ * values for <data> elements, and executing any <script> tags of the <scxml> tag.
+ *
+ * \param initialDataValues Any initial values for data elements as passed in by the <invoke> tag.
+ *        These values will be used instead of the initial values of the <data> elements.
+ * \return Returns false if there were parse errors, or if any of the initialization steps fail.
+ *         Returns true otherwise.
+ */
 bool QScxmlStateMachine::init(const QVariantMap &initialDataValues)
 {
     Q_D(QScxmlStateMachine);
@@ -852,37 +821,10 @@ bool QScxmlStateMachine::init(const QVariantMap &initialDataValues)
     if (!parseErrors().isEmpty())
         return false;
 
-    dataModel()->setup(initialDataValues);
-    d->executeInitialSetup();
+    if (!dataModel()->setup(initialDataValues))
+        return false;
 
-    bool success = true;
-    loopOnSubStates(d->m_qStateMachine, std::function<bool(QState *)>(), [&success](QState *state) {
-        if (QScxmlState *s = qobject_cast<QScxmlState *>(state)) {
-            if (!s->init()) {
-                success = false;
-            }
-        }
-        if (QScxmlFinalState *s = qobject_cast<QScxmlFinalState *>(state)) {
-            if (!s->init()) {
-                success = false;
-            }
-        }
-        foreach (QObject *child, state->children()) {
-            if (QScxmlTransition *transition = qobject_cast<QScxmlTransition *>(child)) {
-                if (!transition->init()) {
-                    success = false;
-                }
-            }
-        }
-    });
-    foreach (QObject *child, d->m_qStateMachine->children()) {
-        if (QScxmlTransition *transition = qobject_cast<QScxmlTransition *>(child)) {
-            if (!transition->init()) {
-                success = false;
-            }
-        }
-    }
-    return success;
+    return d->executeInitialSetup();
 }
 
 /*!

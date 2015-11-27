@@ -109,7 +109,7 @@ public:
 
     bool removeService(QScxmlInvokableService *service);
 
-    void executeInitialSetup();
+    bool executeInitialSetup();
 
 public: // types & data fields:
     QString m_sessionId;

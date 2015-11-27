@@ -336,7 +336,7 @@ QScxmlEcmaScriptDataModel::~QScxmlEcmaScriptDataModel()
     delete d;
 }
 
-void QScxmlEcmaScriptDataModel::setup(const QVariantMap &initialDataValues)
+bool QScxmlEcmaScriptDataModel::setup(const QVariantMap &initialDataValues)
 {
     d->setupDataModel();
 
@@ -354,6 +354,8 @@ void QScxmlEcmaScriptDataModel::setup(const QVariantMap &initialDataValues)
         d->setProperty(name, v, QStringLiteral("<data>"), &ok);
     }
     d->initialDataNames = initialDataValues.keys();
+
+    return true;
 }
 
 QString QScxmlEcmaScriptDataModel::evaluateToString(EvaluatorId id, bool *ok)

@@ -32,7 +32,7 @@ public:
     QScxmlNullDataModel();
     ~QScxmlNullDataModel();
 
-    void setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;
+    bool setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;
 
     QString evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE Q_DECL_FINAL;
     bool evaluateToBool(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE Q_DECL_FINAL;

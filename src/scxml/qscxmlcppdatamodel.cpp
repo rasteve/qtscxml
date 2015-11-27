@@ -136,9 +136,11 @@ QScxmlCppDataModel::~QScxmlCppDataModel()
  *
  * \sa QScxmlStateMachine::init
  */
-void QScxmlCppDataModel::setup(const QVariantMap &initialDataValues)
+bool QScxmlCppDataModel::setup(const QVariantMap &initialDataValues)
 {
     Q_UNUSED(initialDataValues);
+
+    return true;
 }
 
 /*!

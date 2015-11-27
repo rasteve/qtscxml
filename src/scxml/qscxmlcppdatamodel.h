@@ -41,7 +41,7 @@ public:
     QScxmlCppDataModel();
     ~QScxmlCppDataModel();
 
-    void setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;
+    bool setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;
 
     void evaluateAssignment(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE Q_DECL_FINAL;
     void evaluateInitialization(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE Q_DECL_FINAL;

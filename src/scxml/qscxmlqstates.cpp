@@ -81,11 +81,6 @@ QScxmlStateMachine *QScxmlState::stateMachine() const {
     return qobject_cast<QScxmlInternal::WrappedQStateMachine *>(machine())->stateMachine();
 }
 
-bool QScxmlState::init()
-{
-    return true;
-}
-
 QString QScxmlState::stateLocation() const
 {
     return QStringLiteral("State %1").arg(objectName());
@@ -170,11 +165,6 @@ void QScxmlFinalState::setAsInitialStateFor(QScxmlStateMachine *stateMachine)
 
 QScxmlStateMachine *QScxmlFinalState::stateMachine() const {
     return qobject_cast<QScxmlInternal::WrappedQStateMachine *>(machine())->stateMachine();
-}
-
-bool QScxmlFinalState::init()
-{
-    return true;
 }
 
 QScxmlExecutableContent::ContainerId QScxmlFinalState::doneData() const
@@ -275,16 +265,6 @@ bool QScxmlBaseTransition::eventTest(QEvent *event)
         }
     }
     return selected;
-}
-
-bool QScxmlBaseTransition::clear()
-{
-    return true;
-}
-
-bool QScxmlBaseTransition::init()
-{
-    return true;
 }
 
 void QScxmlBaseTransition::onTransition(QEvent *event)

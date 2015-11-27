@@ -82,7 +82,7 @@ public:
 
     QScxmlStateMachine *stateMachine() const;
 
-    virtual void setup(const QVariantMap &initialDataValues) = 0;
+    virtual bool setup(const QVariantMap &initialDataValues) = 0;
 
     virtual QString evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
     virtual bool evaluateToBool(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;

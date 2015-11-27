@@ -67,7 +67,6 @@ public:
     void setAsInitialStateFor(QScxmlStateMachine *stateMachine);
 
     QScxmlStateMachine *stateMachine() const;
-    virtual bool init();
     QString stateLocation() const;
 
     void setInitInstructions(QScxmlExecutableContent::ContainerId instructions);
@@ -109,7 +108,6 @@ public:
     void setAsInitialStateFor(QScxmlStateMachine *stateMachine);
 
     QScxmlStateMachine *stateMachine() const;
-    virtual bool init();
 
     QScxmlExecutableContent::ContainerId doneData() const;
     void setDoneData(QScxmlExecutableContent::ContainerId doneData);
@@ -141,8 +139,6 @@ public:
     QString transitionLocation() const;
 
     bool eventTest(QEvent *event) Q_DECL_OVERRIDE;
-    virtual bool clear();
-    virtual bool init();
 
 protected:
     void onTransition(QEvent *event) Q_DECL_OVERRIDE;

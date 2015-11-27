@@ -113,9 +113,11 @@ QScxmlNullDataModel::~QScxmlNullDataModel()
     delete d;
 }
 
-void QScxmlNullDataModel::setup(const QVariantMap &initialDataValues)
+bool QScxmlNullDataModel::setup(const QVariantMap &initialDataValues)
 {
     Q_UNUSED(initialDataValues);
+
+    return true;
 }
 
 QString QScxmlNullDataModel::evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok)
