@@ -65,7 +65,7 @@ void tst_Parser::error()
     QScopedPointer<QScxmlStateMachine> stateMachine(QScxmlStateMachine::fromFile(scxmlFileName));
     QVERIFY(!stateMachine.isNull());
 
-    QVector<QScxmlError> errors = stateMachine->errors();
+    QVector<QScxmlError> errors = stateMachine->parseErrors();
     if (errors.count() != expectedErrors.count()) {
         foreach (const QScxmlError &error, errors) {
             qDebug() << error.toString();

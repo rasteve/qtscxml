@@ -115,13 +115,13 @@ bool QScxmlStateMachineLoader::parse(const QUrl &filename)
     m_stateMachine->setParent(this);
     m_stateMachine->init();
 
-    if (m_stateMachine->errors().isEmpty()) {
+    if (m_stateMachine->parseErrors().isEmpty()) {
         emit stateMachineChanged();
         QMetaObject::invokeMethod(m_stateMachine, "start", Qt::QueuedConnection);
         return true;
     } else {
         qmlInfo(this) << QStringLiteral("Something went wrong while parsing '%1':").arg(filename.fileName()) << endl;
-        foreach (const QScxmlError &msg, m_stateMachine->errors()) {
+        foreach (const QScxmlError &msg, m_stateMachine->parseErrors()) {
             qmlInfo(this) << msg.toString();
         }
 
