@@ -70,12 +70,18 @@ QScxmlError::QScxmlError(const QString &fileName, int line, int column, const QS
     d->description = description;
 }
 
+/*!
+ * \brief Copies a QScxmlError.
+ */
 QScxmlError::QScxmlError(const QScxmlError &other)
     : d(Q_NULLPTR)
 {
     *this = other;
 }
 
+/*!
+ * \brief Copies a QScxmlError.
+ */
 QScxmlError &QScxmlError::operator=(const QScxmlError &other)
 {
     if (other.d) {

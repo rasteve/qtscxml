@@ -98,3 +98,39 @@ void QScxmlDataModelPrivate::setStateMachine(QScxmlStateMachine *stateMachine)
 {
     m_stateMachine = stateMachine;
 }
+
+/*!
+ * \fn QScxmlDataModel::setup(const QVariantMap &initialDataValues)
+ *
+ * Initializes the data model.
+ */
+
+/*!
+ * \fn QScxmlDataModel::setEvent(const QScxmlEvent &event)
+ *
+ * Sets the event to use in subsequent executable content execution.
+ */
+
+/*!
+ * \fn QScxmlDataModel::property(const QString &name) const
+ *
+ * Returns the value of the property \a name.
+ */
+
+/*!
+ * \fn QScxmlDataModel::hasProperty(const QString &name) const
+ *
+ * \return Returns true if a property with the given \a name exists, false otherwise.
+ */
+
+/*!
+ * \fn QScxmlDataModel::setProperty(const QString &name, const QVariant &value, const QString &context)
+ *
+ * Sets a property to the given value.
+ *
+ * \param name The name of the property to set.
+ * \param value The new value for the property.
+ * \param context A string that is used in error messages to indicate a location in the SCXML file
+ *        where the error occurred.
+ * \return Returns true if successful, otherwise false if any error occurred.
+ */

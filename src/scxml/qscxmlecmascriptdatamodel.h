@@ -36,6 +36,7 @@ public:
 
     bool setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;
 
+#ifndef Q_QDOC
     QString evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE Q_DECL_FINAL;
     bool evaluateToBool(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE Q_DECL_FINAL;
     QVariant evaluateToVariant(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE Q_DECL_FINAL;
@@ -43,12 +44,13 @@ public:
     void evaluateAssignment(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE Q_DECL_FINAL;
     void evaluateInitialization(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE Q_DECL_FINAL;
     bool evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) Q_DECL_OVERRIDE Q_DECL_FINAL;
+#endif // Q_QDOC
 
     void setEvent(const QScxmlEvent &event) Q_DECL_OVERRIDE;
 
     QVariant property(const QString &name) const Q_DECL_OVERRIDE;
     bool hasProperty(const QString &name) const Q_DECL_OVERRIDE;
-    void setProperty(const QString &name, const QVariant &value, const QString &context, bool *ok) Q_DECL_OVERRIDE;
+    bool setProperty(const QString &name, const QVariant &value, const QString &context) Q_DECL_OVERRIDE;
 
     QJSEngine *engine() const;
     void setEngine(QJSEngine *engine);

@@ -125,7 +125,7 @@ QString QScxmlInvokableServiceFactory::calculateId(QScxmlStateMachine *parent, b
     if (d->idlocation != QScxmlExecutableContent::NoString) {
         auto idloc = stateMachine->string(d->idlocation);
         auto ctxt = stateMachine->string(d->invokeLocation);
-        parent->dataModel()->setProperty(idloc, id, ctxt, ok);
+        *ok = parent->dataModel()->setProperty(idloc, id, ctxt);
         if (!*ok)
             return QString();
     }

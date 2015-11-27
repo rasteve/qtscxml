@@ -84,6 +84,7 @@ public:
 
     virtual bool setup(const QVariantMap &initialDataValues) = 0;
 
+#ifndef Q_QDOC
     virtual QString evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
     virtual bool evaluateToBool(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
     virtual QVariant evaluateToVariant(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
@@ -91,16 +92,18 @@ public:
     virtual void evaluateAssignment(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
     virtual void evaluateInitialization(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
     virtual bool evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) = 0;
+#endif // Q_QDOC
 
     virtual void setEvent(const QScxmlEvent &event) = 0;
 
     virtual QVariant property(const QString &name) const = 0;
     virtual bool hasProperty(const QString &name) const = 0;
-    virtual void setProperty(const QString &name, const QVariant &value, const QString &context,
-                             bool *ok) = 0;
+    virtual bool setProperty(const QString &name, const QVariant &value, const QString &context) = 0;
 
 protected:
+#ifndef Q_QDOC
     QScxmlTableData *tableData() const;
+#endif // Q_QDOC
 
 private:
     friend class QScxmlDataModelPrivate;

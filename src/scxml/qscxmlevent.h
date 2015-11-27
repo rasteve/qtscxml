@@ -85,9 +85,11 @@ public:
 
 protected:
     friend class QScxmlInternal::WrappedQStateMachine;
+#ifndef Q_QDOC
     static QEvent::Type scxmlEventType;
     static QEvent::Type ignoreEventType;
     void makeIgnorable();
+#endif // Q_QDOC
 
 private:
     QScxmlEventPrivate *d;

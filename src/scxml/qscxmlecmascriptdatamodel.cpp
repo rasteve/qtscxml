@@ -206,15 +206,12 @@ public:
     QJSValue property(const QString &name) const
     { return dataModel.property(name); }
 
-    void setProperty(const QString &name, const QJSValue &value, const QString &context, bool *ok)
+    bool setProperty(const QString &name, const QJSValue &value, const QString &context)
     {
-        Q_ASSERT(ok);
-
         QString msg;
         switch (setProperty(&dataModel, name, value)) {
         case SetPropertySucceeded:
-            *ok = true;
-            return;
+            return true;
         case SetReadOnlyPropertyFailed:
             msg = QStringLiteral("cannot assign to read-only property %1 in %2");
             break;
@@ -228,9 +225,9 @@ public:
             Q_UNREACHABLE();
         }
 
-        *ok = false;
         static QByteArray sendid;
         stateMachine()->submitError(QByteArray("error.execution"), msg.arg(name, context), sendid);
+        return false;
     }
 
 public:
@@ -327,20 +324,28 @@ private:
  * \sa QScxmlStateMachine QScxmlDataModel
  */
 
+/*!
+ * \brief Creates a new QScxmlEcmaScriptDataModel.
+ */
 QScxmlEcmaScriptDataModel::QScxmlEcmaScriptDataModel()
     : d(new QScxmlEcmaScriptDataModelPrivate(this))
 {}
 
+/*!
+ * \brief Destroys a QScxmlEcmaScriptDataModel
+ */
 QScxmlEcmaScriptDataModel::~QScxmlEcmaScriptDataModel()
 {
     delete d;
 }
 
+/*!
+ */
 bool QScxmlEcmaScriptDataModel::setup(const QVariantMap &initialDataValues)
 {
     d->setupDataModel();
 
-    bool ok;
+    bool ok = true;
     QJSValue undefined(QJSValue::UndefinedValue); // See B.2.1, and test456.
     int count;
     StringId *names = tableData()->dataNames(&count);
@@ -351,11 +356,13 @@ bool QScxmlEcmaScriptDataModel::setup(const QVariantMap &initialDataValues)
         if (it != initialDataValues.end()) {
             v = d->engine()->toScriptValue(it.value());
         }
-        d->setProperty(name, v, QStringLiteral("<data>"), &ok);
+        if (!d->setProperty(name, v, QStringLiteral("<data>"))) {
+            ok = false;
+        }
     }
     d->initialDataNames = initialDataValues.keys();
 
-    return true;
+    return ok;
 }
 
 QString QScxmlEcmaScriptDataModel::evaluateToString(EvaluatorId id, bool *ok)
@@ -398,7 +405,7 @@ void QScxmlEcmaScriptDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
     if (hasProperty(dest)) {
         QJSValue v = d->evalJSValue(d->string(info.expr), d->string(info.context), ok);
         if (*ok)
-            d->setProperty(dest, v, d->string(info.context), ok);
+            *ok = d->setProperty(dest, v, d->string(info.context));
     } else {
         *ok = false;
         stateMachine()->submitError(QByteArray("error.execution"),
@@ -448,11 +455,11 @@ bool QScxmlEcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, Foreac
 
     for (int currentIndex = 0; currentIndex < length; ++currentIndex) {
         QJSValue currentItem = jsArray.property(static_cast<quint32>(currentIndex));
-        d->setProperty(item, currentItem, context, ok);
+        *ok = d->setProperty(item, currentItem, context);
         if (!*ok)
             return false;
         if (hasIndex) {
-            d->setProperty(idx, currentIndex, context, ok);
+            *ok = d->setProperty(idx, currentIndex, context);
             if (!*ok)
                 return false;
         }
@@ -463,33 +470,47 @@ bool QScxmlEcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, Foreac
     return true;
 }
 
+/*!
+ */
 void QScxmlEcmaScriptDataModel::setEvent(const QScxmlEvent &event)
 {
     d->assignEvent(event);
 }
 
+/*!
+ */
 QVariant QScxmlEcmaScriptDataModel::property(const QString &name) const
 {
     return d->property(name).toVariant();
 }
 
+/*!
+ */
 bool QScxmlEcmaScriptDataModel::hasProperty(const QString &name) const
 {
     return d->hasProperty(name);
 }
 
-void QScxmlEcmaScriptDataModel::setProperty(const QString &name, const QVariant &value, const QString &context, bool *ok)
+/*!
+ */
+bool QScxmlEcmaScriptDataModel::setProperty(const QString &name, const QVariant &value, const QString &context)
 {
     Q_ASSERT(hasProperty(name));
     QJSValue v = d->engine()->toScriptValue(value);
-    d->setProperty(name, v, context, ok);
+    return d->setProperty(name, v, context);
 }
 
+/*!
+ * \return The JavaScript engine used by this data-model.
+ */
 QJSEngine *QScxmlEcmaScriptDataModel::engine() const
 {
     return d->engine();
 }
 
+/*!
+ * \brief Sets the JavaScript engine used by this data-model to \a engine .
+ */
 void QScxmlEcmaScriptDataModel::setEngine(QJSEngine *engine)
 {
     d->setEngine(engine);

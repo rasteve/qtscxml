@@ -219,13 +219,13 @@ bool QScxmlCppDataModel::hasProperty(const QString &name) const
 /*!
  * \internal not supported in this data-model
  */
-void QScxmlCppDataModel::setProperty(const QString &name, const QVariant &value, const QString &context, bool *ok)
+bool QScxmlCppDataModel::setProperty(const QString &name, const QVariant &value, const QString &context)
 {
     Q_UNUSED(name);
     Q_UNUSED(value);
     Q_UNUSED(context);
-    Q_UNUSED(ok);
     Q_UNREACHABLE();
+    return false;
 }
 
 /*!

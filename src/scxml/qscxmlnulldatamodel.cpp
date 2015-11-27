@@ -104,15 +104,23 @@ private:
  * \sa QScxmlStateMachine QScxmlDataModel
  */
 
+/*!
+ * \brief Creates a new QScxmlNullDataModel .
+ */
 QScxmlNullDataModel::QScxmlNullDataModel()
     : d(new Data(this))
 {}
 
+/*!
+ * \brief Destroys a QScxmlNullDataModel .
+ */
 QScxmlNullDataModel::~QScxmlNullDataModel()
 {
     delete d;
 }
 
+/*!
+ */
 bool QScxmlNullDataModel::setup(const QVariantMap &initialDataValues)
 {
     Q_UNUSED(initialDataValues);
@@ -173,28 +181,41 @@ bool QScxmlNullDataModel::evaluateForeach(QScxmlExecutableContent::EvaluatorId i
     return false;
 }
 
+/*!
+ */
 void QScxmlNullDataModel::setEvent(const QScxmlEvent &event)
 {
     Q_UNUSED(event);
 }
 
+/*!
+ * \brief The null data-model does not support properties.
+ * \return Returns an invalid variant.
+ */
 QVariant QScxmlNullDataModel::property(const QString &name) const
 {
     Q_UNUSED(name);
     return QVariant();
 }
 
+/*!
+ * \brief The null data-model does not support properties.
+ * \return Returns false.
+ */
 bool QScxmlNullDataModel::hasProperty(const QString &name) const
 {
     Q_UNUSED(name);
     return false;
 }
 
-void QScxmlNullDataModel::setProperty(const QString &name, const QVariant &value, const QString &context, bool *ok)
+/*!
+ * \brief The null data-model does not support properties.
+ * \return Returns false.
+ */
+bool QScxmlNullDataModel::setProperty(const QString &name, const QVariant &value, const QString &context)
 {
     Q_UNUSED(name);
     Q_UNUSED(value);
     Q_UNUSED(context);
-    Q_UNUSED(ok);
-    Q_UNREACHABLE();
+    return false;
 }

@@ -62,8 +62,10 @@ class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
     Q_PROPERTY(bool running READ isRunning NOTIFY runningChanged)
 
 protected:
+#ifndef Q_QDOC
     QScxmlStateMachine(QObject *parent = 0);
     QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *parent);
+#endif // Q_QDOC
 
 public:
     enum BindingMethod {
@@ -131,11 +133,13 @@ protected: // methods for friends:
     friend QScxmlInvokableServiceFactory;
     friend QScxmlExecutableContent::QScxmlExecutionEngine;
 
+#ifndef Q_QDOC
     void setDataBinding(BindingMethod bindingMethod);
     virtual void setService(const QString &id, QScxmlInvokableService *service);
 
     QScxmlTableData *tableData() const;
     void setTableData(QScxmlTableData *tableData);
+#endif // Q_QDOC
 };
 
 QT_END_NAMESPACE
