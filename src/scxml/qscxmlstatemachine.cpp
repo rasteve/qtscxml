@@ -262,10 +262,8 @@ bool QScxmlStateMachinePrivate::executeInitialSetup()
  * method.
  *
  * \param fileName The name of the SCXML file.
- * \param dataModel The data model for the state-machine. If no data-model is passed in, the
- *        data model specified in the SCXML file is instantiated.
  */
-QScxmlStateMachine *QScxmlStateMachine::fromFile(const QString &fileName, QScxmlDataModel *dataModel)
+QScxmlStateMachine *QScxmlStateMachine::fromFile(const QString &fileName)
 {
     QFile scxmlFile(fileName);
     if (!scxmlFile.open(QIODevice::ReadOnly)) {
@@ -275,7 +273,7 @@ QScxmlStateMachine *QScxmlStateMachine::fromFile(const QString &fileName, QScxml
         return stateMachine;
     }
 
-    QScxmlStateMachine *stateMachine = fromData(&scxmlFile, fileName, dataModel);
+    QScxmlStateMachine *stateMachine = fromData(&scxmlFile, fileName);
     scxmlFile.close();
     return stateMachine;
 }
@@ -289,21 +287,15 @@ QScxmlStateMachine *QScxmlStateMachine::fromFile(const QString &fileName, QScxml
  *
  * \param data The device to read the SCXML content from.
  * \param fileName The file name used in error messages.
- * \param dataModel The data model for the state-machine. If no data-model is passed in, the
- *        data model specified in the SCXML file is instantiated.
  */
-QScxmlStateMachine *QScxmlStateMachine::fromData(QIODevice *data, const QString &fileName, QScxmlDataModel *dataModel)
+QScxmlStateMachine *QScxmlStateMachine::fromData(QIODevice *data, const QString &fileName)
 {
     QXmlStreamReader xmlReader(data);
     QScxmlParser parser(&xmlReader);
     parser.setFileName(fileName);
     parser.parse();
     auto stateMachine = parser.instantiateStateMachine();
-    if (dataModel) {
-        stateMachine->setDataModel(dataModel);
-    } else {
-        parser.instantiateDataModel(stateMachine);
-    }
+    parser.instantiateDataModel(stateMachine);
     return stateMachine;
 }
 
@@ -431,19 +423,6 @@ QScxmlDataModel *QScxmlStateMachine::dataModel() const
     Q_D(const QScxmlStateMachine);
 
     return d->m_dataModel;
-}
-
-/*!
- * Sets \a dataModel as the data-model for this state-machine.
- *
- * \note A data-model can be associated with only one state-machine.
- */
-void QScxmlStateMachine::setDataModel(QScxmlDataModel *dataModel)
-{
-    Q_D(QScxmlStateMachine);
-
-    d->m_dataModel = dataModel;
-    QScxmlDataModelPrivate::get(dataModel)->setStateMachine(this);
 }
 
 /*!

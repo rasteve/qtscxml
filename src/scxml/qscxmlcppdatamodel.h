@@ -38,7 +38,7 @@ class QScxmlCppDataModelPrivate;
 class Q_SCXML_EXPORT QScxmlCppDataModel: public QScxmlDataModel
 {
 public:
-    QScxmlCppDataModel();
+    QScxmlCppDataModel(QScxmlStateMachine *stateMachine);
     ~QScxmlCppDataModel();
 
     bool setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;

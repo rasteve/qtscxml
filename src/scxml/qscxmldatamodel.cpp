@@ -45,9 +45,11 @@ QScxmlDataModel::ForeachLoopBody::~ForeachLoopBody()
 /*!
  * \brief Creates a new data model.
  */
-QScxmlDataModel::QScxmlDataModel()
-    : d(new QScxmlDataModelPrivate)
-{}
+QScxmlDataModel::QScxmlDataModel(QScxmlStateMachine *stateMachine)
+    : d(new QScxmlDataModelPrivate(stateMachine))
+{
+    QScxmlStateMachinePrivate::get(stateMachine)->m_dataModel = this;
+}
 
 /*!
  * \brief Destroys the data model.
@@ -78,17 +80,16 @@ QScxmlDataModel *QScxmlDataModelPrivate::instantiateDataModel(
     QScxmlDataModel *dataModel = Q_NULLPTR;
     switch (type) {
     case DocumentModel::Scxml::NullDataModel:
-        dataModel = new QScxmlNullDataModel;
+        dataModel = new QScxmlNullDataModel(stateMachine);
         break;
     case DocumentModel::Scxml::JSDataModel:
-        dataModel = new QScxmlEcmaScriptDataModel;
+        dataModel = new QScxmlEcmaScriptDataModel(stateMachine);
         break;
     case DocumentModel::Scxml::CppDataModel:
         break;
     default:
         Q_UNREACHABLE();
     }
-    stateMachine->setDataModel(dataModel);
     QScxmlStateMachinePrivate::get(stateMachine)->parserData()->m_ownedDataModel.reset(dataModel);
 
     return dataModel;

@@ -232,10 +232,9 @@ protected:
                               << QString();
         }
         if (node->dataModel == Scxml::CppDataModel) {
+            // Tell the builder not to generate any script strings when visiting any executable content.
+            // We'll take care of the evaluators ourselves.
             setIsCppDataModel(true);
-            clazz.dataModelClassName = node->cppDataModelClassName;
-        } else {
-            clazz.init.impl << QStringLiteral("stateMachine.setDataModel(&dataModel);");
         }
 
         QString binding;
@@ -287,12 +286,15 @@ protected:
             case Scxml::NullDataModel:
                 clazz.classFields << QStringLiteral("QScxmlNullDataModel dataModel;");
                 clazz.implIncludes << QStringLiteral("QScxmlNullDataModel");
+                clazz.constructor.initializer << QStringLiteral("dataModel(&stateMachine)");
                 break;
             case Scxml::JSDataModel:
                 clazz.classFields << QStringLiteral("QScxmlEcmaScriptDataModel dataModel;");
                 clazz.implIncludes << QStringLiteral("QScxmlEcmaScriptDataModel");
+                clazz.constructor.initializer << QStringLiteral("dataModel(&stateMachine)");
                 break;
             case Scxml::CppDataModel:
+                clazz.dataModelClassName = node->cppDataModelClassName;
                 clazz.implIncludes << node->cppDataModelHeaderName;
                 break;
             default:

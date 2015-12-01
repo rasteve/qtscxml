@@ -116,8 +116,9 @@ void TheDataModel::evaluateToVoid(QScxmlExecutableContent::EvaluatorId id, bool 
 /*!
  * \brief Creates a new C++ data model.
  */
-QScxmlCppDataModel::QScxmlCppDataModel()
-    : data(new QScxmlCppDataModelPrivate)
+QScxmlCppDataModel::QScxmlCppDataModel(QScxmlStateMachine *stateMachine)
+    : QScxmlDataModel(stateMachine)
+    , data(new QScxmlCppDataModelPrivate)
 {}
 
 /*!

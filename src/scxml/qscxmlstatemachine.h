@@ -73,8 +73,8 @@ public:
         LateBinding
     };
 
-    static QScxmlStateMachine *fromFile(const QString &fileName, QScxmlDataModel *dataModel = Q_NULLPTR);
-    static QScxmlStateMachine *fromData(QIODevice *data, const QString &fileName = QString(), QScxmlDataModel *dataModel = Q_NULLPTR);
+    static QScxmlStateMachine *fromFile(const QString &fileName);
+    static QScxmlStateMachine *fromData(QIODevice *data, const QString &fileName = QString());
     QVector<QScxmlError> parseErrors() const;
 
     QString sessionId() const;
@@ -84,7 +84,6 @@ public:
     bool isInvoked() const;
 
     QScxmlDataModel *dataModel() const;
-    void setDataModel(QScxmlDataModel *dataModel);
 
     BindingMethod dataBinding() const;
 

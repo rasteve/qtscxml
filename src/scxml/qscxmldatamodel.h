@@ -77,7 +77,7 @@ public:
     };
 
 public:
-    QScxmlDataModel();
+    QScxmlDataModel(QScxmlStateMachine *stateMachine);
     virtual ~QScxmlDataModel();
 
     QScxmlStateMachine *stateMachine() const;

@@ -50,8 +50,7 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 
     MediaPlayerStateMachine stateMachine;
-    TheDataModel dataModel;
-    stateMachine.setDataModel(&dataModel);
+    TheDataModel dataModel(&stateMachine);
     stateMachine.init();
     stateMachine.start();
 

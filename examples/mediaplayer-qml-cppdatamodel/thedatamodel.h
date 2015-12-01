@@ -48,6 +48,7 @@ class TheDataModel: public QScxmlCppDataModel
     Q_SCXML_DATAMODEL
 
 public:
+    TheDataModel(QScxmlStateMachine *stateMachine);
     ~TheDataModel();
 
 private:

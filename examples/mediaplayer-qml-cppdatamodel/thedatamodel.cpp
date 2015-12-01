@@ -42,6 +42,11 @@
 
 #include <QScxmlEvent>
 
+TheDataModel::TheDataModel(QScxmlStateMachine *stateMachine)
+    : QScxmlCppDataModel(stateMachine)
+{
+}
+
 TheDataModel::~TheDataModel()
 {}
 

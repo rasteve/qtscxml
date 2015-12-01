@@ -106,8 +106,9 @@ private:
 /*!
  * \brief Creates a new QScxmlNullDataModel .
  */
-QScxmlNullDataModel::QScxmlNullDataModel()
-    : d(new Data(this))
+QScxmlNullDataModel::QScxmlNullDataModel(QScxmlStateMachine *stateMachine)
+    : QScxmlDataModel(stateMachine)
+    , d(new Data(this))
 {}
 
 /*!

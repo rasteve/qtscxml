@@ -29,7 +29,7 @@ QT_BEGIN_NAMESPACE
 class Q_SCXML_EXPORT QScxmlNullDataModel: public QScxmlDataModel
 {
 public:
-    QScxmlNullDataModel();
+    QScxmlNullDataModel(QScxmlStateMachine *stateMachine);
     ~QScxmlNullDataModel();
 
     bool setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;

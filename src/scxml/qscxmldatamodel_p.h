@@ -41,9 +41,11 @@ QT_BEGIN_NAMESPACE
 class QScxmlDataModelPrivate
 {
 public:
-    QScxmlDataModelPrivate()
-        : m_stateMachine(Q_NULLPTR)
-    {}
+    QScxmlDataModelPrivate(QScxmlStateMachine *stateMachine)
+        : m_stateMachine(stateMachine)
+    {
+        Q_ASSERT(stateMachine != Q_NULLPTR);
+    }
 
     static QScxmlDataModelPrivate *get(QScxmlDataModel *dataModel)
     { return dataModel->d; }

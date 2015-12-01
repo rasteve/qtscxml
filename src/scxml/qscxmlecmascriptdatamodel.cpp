@@ -324,8 +324,9 @@ private:
 /*!
  * \brief Creates a new QScxmlEcmaScriptDataModel.
  */
-QScxmlEcmaScriptDataModel::QScxmlEcmaScriptDataModel()
-    : d(new QScxmlEcmaScriptDataModelPrivate(this))
+QScxmlEcmaScriptDataModel::QScxmlEcmaScriptDataModel(QScxmlStateMachine *stateMachine)
+    : QScxmlDataModel(stateMachine)
+    , d(new QScxmlEcmaScriptDataModelPrivate(this))
 {}
 
 /*!
