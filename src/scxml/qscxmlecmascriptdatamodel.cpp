@@ -86,10 +86,8 @@ public:
         QJSValue v = engine()->evaluate(QStringLiteral("'use strict'; ") + script, QStringLiteral("<expr>"), 0);
         if (v.isError()) {
             *ok = false;
-            static QByteArray sendid;
-            stateMachine()->submitError(QByteArray("error.execution"),
-                                 QStringLiteral("%1 in %2").arg(v.toString(), context),
-                                 sendid);
+            stateMachine()->submitError(QStringLiteral("error.execution"),
+                                        QStringLiteral("%1 in %2").arg(v.toString(), context));
             return QJSValue(QJSValue::UndefinedValue);
         } else {
             *ok = true;
@@ -139,9 +137,9 @@ public:
         _event.setProperty(QStringLiteral("origin"), event.origin().isEmpty() ? QJSValue(QJSValue::UndefinedValue)
                                                                               : engine()->toScriptValue(event.origin()) );
         _event.setProperty(QStringLiteral("sendid"), event.sendId().isEmpty() ? QJSValue(QJSValue::UndefinedValue)
-                                                                              : engine()->toScriptValue(QString::fromUtf8(event.sendId())));
+                                                                              : engine()->toScriptValue(event.sendId()));
         _event.setProperty(QStringLiteral("type"), engine()->toScriptValue(event.scxmlType()));
-        _event.setProperty(QStringLiteral("name"), engine()->toScriptValue(QString::fromUtf8(event.name())));
+        _event.setProperty(QStringLiteral("name"), engine()->toScriptValue(event.name()));
         _event.setProperty(QStringLiteral("raw"), QStringLiteral("unsupported")); // See test178
         if (event.isErrorEvent())
             _event.setProperty(QStringLiteral("errorMessage"), event.errorMessage());
@@ -225,8 +223,7 @@ public:
             Q_UNREACHABLE();
         }
 
-        static QByteArray sendid;
-        stateMachine()->submitError(QByteArray("error.execution"), msg.arg(name, context), sendid);
+        stateMachine()->submitError(QStringLiteral("error.execution"), msg.arg(name, context));
         return false;
     }
 
@@ -398,7 +395,6 @@ void QScxmlEcmaScriptDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
     Q_ASSERT(ok);
 
     const AssignmentInfo &info = tableData()->assignmentInfo(id);
-    static QByteArray sendid;
 
     QString dest = d->string(info.dest);
 
@@ -408,9 +404,8 @@ void QScxmlEcmaScriptDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
             *ok = d->setProperty(dest, v, d->string(info.context));
     } else {
         *ok = false;
-        stateMachine()->submitError(QByteArray("error.execution"),
-                             QStringLiteral("%1 in %2 does not exist").arg(dest, d->string(info.context)),
-                             sendid);
+        stateMachine()->submitError(QStringLiteral("error.execution"),
+                                    QStringLiteral("%1 in %2 does not exist").arg(dest, d->string(info.context)));
     }
 }
 
@@ -430,20 +425,19 @@ bool QScxmlEcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, Foreac
 {
     Q_ASSERT(ok);
     Q_ASSERT(body);
-    static QByteArray sendid;
     const ForeachInfo &info = tableData()->foreachInfo(id);
 
     QJSValue jsArray = d->property(d->string(info.array));
     if (!jsArray.isArray()) {
-        stateMachine()->submitError("error.execution", QStringLiteral("invalid array '%1' in %2").arg(d->string(info.array), d->string(info.context)), sendid);
+        stateMachine()->submitError(QStringLiteral("error.execution"), QStringLiteral("invalid array '%1' in %2").arg(d->string(info.array), d->string(info.context)));
         *ok = false;
         return false;
     }
 
     QString item = d->string(info.item);
     if (engine()->evaluate(QStringLiteral("(function(){var %1 = 0})()").arg(item)).isError()) {
-        stateMachine()->submitError("error.execution", QStringLiteral("invalid item '%1' in %2")
-                             .arg(d->string(info.item), d->string(info.context)), sendid);
+        stateMachine()->submitError(QStringLiteral("error.execution"), QStringLiteral("invalid item '%1' in %2")
+                                    .arg(d->string(info.item), d->string(info.context)));
         *ok = false;
         return false;
     }

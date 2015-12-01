@@ -49,13 +49,13 @@ class QScxmlEventBuilder
 {
     QScxmlStateMachine* stateMachine;
     QScxmlExecutableContent::StringId instructionLocation;
-    QByteArray event;
+    QString event;
     QScxmlExecutableContent::EvaluatorId eventexpr;
     QString contents;
     QScxmlExecutableContent::EvaluatorId contentExpr;
     const QScxmlExecutableContent::Array<QScxmlExecutableContent::Param> *params;
     QScxmlEvent::EventType eventType;
-    QByteArray id;
+    QString id;
     QString idLocation;
     QString target;
     QScxmlExecutableContent::EvaluatorId targetexpr;
@@ -64,10 +64,10 @@ class QScxmlEventBuilder
     const QScxmlExecutableContent::Array<QScxmlExecutableContent::StringId> *namelist;
 
     static QAtomicInt idCounter;
-    QByteArray generateId() const
+    QString generateId() const
     {
-        QByteArray id = QByteArray::number(++idCounter);
-        id.prepend("id-");
+        QString id = QString::number(++idCounter);
+        id.prepend(QStringLiteral("id-"));
         return id;
     }
 
@@ -93,7 +93,7 @@ public:
         this->stateMachine = stateMachine;
         Q_ASSERT(doneData);
         instructionLocation = doneData->location;
-        event = eventName.toUtf8();
+        event = eventName;
         contents = stateMachine->tableData()->string(doneData->contents);
         contentExpr = doneData->expr;
         params = &doneData->params;
@@ -104,11 +104,11 @@ public:
         init();
         this->stateMachine = stateMachine;
         instructionLocation = send.instructionLocation;
-        event = stateMachine->tableData()->byteArray(send.event);
+        event = stateMachine->tableData()->string(send.event);
         eventexpr = send.eventexpr;
         contents = stateMachine->tableData()->string(send.content);
         params = send.params();
-        id = stateMachine->tableData()->byteArray(send.id);
+        id = stateMachine->tableData()->string(send.id);
         idLocation = stateMachine->tableData()->string(send.idLocation);
         target = stateMachine->tableData()->string(send.target);
         targetexpr = send.targetexpr;
@@ -121,8 +121,8 @@ public:
 
     QScxmlEvent *buildEvent();
 
-    static QScxmlEvent *errorEvent(QScxmlStateMachine *stateMachine, const QByteArray &name,
-                                   const QString &message, const QByteArray &sendid);
+    static QScxmlEvent *errorEvent(QScxmlStateMachine *stateMachine, const QString &name,
+                                   const QString &message, const QString &sendid);
 
     static bool evaluate(const QScxmlExecutableContent::Param &param, QScxmlStateMachine *stateMachine,
                          QVariantMap &keyValues);
@@ -140,10 +140,10 @@ public:
         , delayInMiliSecs(0)
     {}
 
-    QByteArray name;
+    QString name;
     QScxmlEvent::EventType eventType;
     QVariant data; // extra data
-    QByteArray sendid; // if set, or id of <send> if failure
+    QString sendid; // if set, or id of <send> if failure
     QString origin; // uri to answer by setting the target of send, empty for internal and platform events
     QString originType; // type to answer by setting the type of send, empty for internal and platform events
     QString invokeId; // id of the invocation that triggered the child process if this was invoked

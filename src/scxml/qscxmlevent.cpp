@@ -36,10 +36,10 @@ QScxmlEvent *QScxmlEventBuilder::buildEvent()
     auto dataModel = stateMachine ? stateMachine->dataModel() : Q_NULLPTR;
     auto tableData = stateMachine ? stateMachine->tableData() : Q_NULLPTR;
 
-    QByteArray eventName = event;
+    QString eventName = event;
     bool ok = true;
     if (eventexpr != NoEvaluator) {
-        eventName = dataModel->evaluateToString(eventexpr, &ok).toUtf8();
+        eventName = dataModel->evaluateToString(eventexpr, &ok);
         ok = true; // ignore failure.
     }
 
@@ -71,10 +71,10 @@ QScxmlEvent *QScxmlEventBuilder::buildEvent()
         }
     }
 
-    QByteArray sendid = id;
+    QString sendid = id;
     if (!idLocation.isEmpty()) {
         sendid = generateId();
-        ok = stateMachine->dataModel()->setProperty(idLocation, QString::fromUtf8(sendid), tableData->string(instructionLocation));
+        ok = stateMachine->dataModel()->setProperty(idLocation, sendid, tableData->string(instructionLocation));
         if (!ok)
             return Q_NULLPTR;
     }
@@ -93,17 +93,17 @@ QScxmlEvent *QScxmlEventBuilder::buildEvent()
         // allow sending messages to the parent, independently of whether we're invoked or not.
     } else if (!origin.startsWith(QLatin1Char('#'))) {
         // [6.2.4] and test194.
-        stateMachine->submitError(QByteArray("error.execution"),
-                           QStringLiteral("Error in %1: %2 is not a legal target")
-                           .arg(tableData->string(instructionLocation), origin),
-                           sendid);
+        stateMachine->submitError(QStringLiteral("error.execution"),
+                                  QStringLiteral("Error in %1: %2 is not a legal target")
+                                  .arg(tableData->string(instructionLocation), origin),
+                                  sendid);
         return Q_NULLPTR;
     } else if (!stateMachine->isDispatchableTarget(origin)) {
         // [6.2.4] and test521.
-        stateMachine->submitError(QByteArray("error.communication"),
-                           QStringLiteral("Error in %1: cannot dispatch to target '%2'")
-                           .arg(tableData->string(instructionLocation), origin),
-                           sendid);
+        stateMachine->submitError(QStringLiteral("error.communication"),
+                                  QStringLiteral("Error in %1: cannot dispatch to target '%2'")
+                                  .arg(tableData->string(instructionLocation), origin),
+                                  sendid);
         return Q_NULLPTR;
     }
 
@@ -121,10 +121,10 @@ QScxmlEvent *QScxmlEventBuilder::buildEvent()
             && origintype != QStringLiteral("qt:signal")
             && origintype != QStringLiteral("http://www.w3.org/TR/scxml/#SCXMLEventProcessor")) {
         // [6.2.5] and test199
-        stateMachine->submitError(QByteArray("error.execution"),
-                           QStringLiteral("Error in %1: %2 is not a valid type")
-                           .arg(tableData->string(instructionLocation), origintype),
-                           sendid);
+        stateMachine->submitError(QStringLiteral("error.execution"),
+                                  QStringLiteral("Error in %1: %2 is not a valid type")
+                                  .arg(tableData->string(instructionLocation), origintype),
+                                  sendid);
         return Q_NULLPTR;
     }
 
@@ -144,7 +144,8 @@ QScxmlEvent *QScxmlEventBuilder::buildEvent()
     return event;
 }
 
-QScxmlEvent *QScxmlEventBuilder::errorEvent(QScxmlStateMachine *stateMachine, const QByteArray &name, const QString &message, const QByteArray &sendid)
+QScxmlEvent *QScxmlEventBuilder::errorEvent(QScxmlStateMachine *stateMachine, const QString &name,
+                                            const QString &message, const QString &sendid)
 {
     QScxmlEventBuilder event;
     event.stateMachine = stateMachine;
@@ -157,7 +158,8 @@ QScxmlEvent *QScxmlEventBuilder::errorEvent(QScxmlStateMachine *stateMachine, co
     return error;
 }
 
-bool QScxmlEventBuilder::evaluate(const Param &param, QScxmlStateMachine *stateMachine, QVariantMap &keyValues)
+bool QScxmlEventBuilder::evaluate(const Param &param, QScxmlStateMachine *stateMachine,
+                                  QVariantMap &keyValues)
 {
     auto dataModel = stateMachine->dataModel();
     auto tableData = stateMachine->tableData();
@@ -181,10 +183,9 @@ bool QScxmlEventBuilder::evaluate(const Param &param, QScxmlStateMachine *stateM
         keyValues.insert(tableData->string(param.name), dataModel->property(loc));
         return true;
     } else {
-        stateMachine->submitError(QByteArray("error.execution"),
+        stateMachine->submitError(QStringLiteral("error.execution"),
                                   QStringLiteral("Error in <param>: %1 is not a valid location")
-                                  .arg(loc),
-                                  /*sendid =*/ QByteArray());
+                                  .arg(loc));
         return false;
     }
 }
@@ -286,7 +287,7 @@ QScxmlEvent::QScxmlEvent(const QScxmlEvent &other)
  * \brief The name of the event, used in the event attribute in a <transition>
  * \return the name of the event.
  */
-QByteArray QScxmlEvent::name() const
+QString QScxmlEvent::name() const
 {
     return d->name;
 }
@@ -294,7 +295,7 @@ QByteArray QScxmlEvent::name() const
 /*!
  * \brief Sets the name of the event.
  */
-void QScxmlEvent::setName(const QByteArray &name)
+void QScxmlEvent::setName(const QString &name)
 {
     d->name = name;
 }
@@ -304,7 +305,7 @@ void QScxmlEvent::setName(const QByteArray &name)
  *         event that has to be canceled. Note that the system will generate a unique ID when the
  *         idlocation attribute is used in <send>
  */
-QByteArray QScxmlEvent::sendId() const
+QString QScxmlEvent::sendId() const
 {
     return d->sendid;
 }
@@ -312,7 +313,7 @@ QByteArray QScxmlEvent::sendId() const
 /*!
  * \brief sets the id for this event.
  */
-void QScxmlEvent::setSendId(const QByteArray &sendid)
+void QScxmlEvent::setSendId(const QString &sendid)
 {
     d->sendid = sendid;
 }
@@ -432,7 +433,7 @@ void QScxmlEvent::setData(const QVariant &data)
  */
 bool QScxmlEvent::isErrorEvent() const
 {
-    return eventType() == PlatformEvent && name().startsWith("error.");
+    return eventType() == PlatformEvent && name().startsWith(QStringLiteral("error."));
 }
 
 /*!

@@ -35,8 +35,6 @@ enum { NoInstruction = -1 };
 typedef qint32 StringId;
 typedef QVector<StringId> StringIds;
 enum { NoString = -1 };
-typedef qint32 ByteArrayId;
-enum { NoByteArray = -1 };
 typedef qint32 *Instructions;
 
 class QScxmlExecutionEngine;

@@ -34,7 +34,6 @@ public:
     virtual ~QScxmlTableData();
 
     virtual QString string(QScxmlExecutableContent::StringId id) const = 0;
-    virtual QByteArray byteArray(QScxmlExecutableContent::ByteArrayId id) const = 0;
     virtual QScxmlExecutableContent::Instructions instructions() const = 0;
     virtual QScxmlExecutableContent::EvaluatorInfo evaluatorInfo(QScxmlExecutableContent::EvaluatorId evaluatorId) const = 0;
     virtual QScxmlExecutableContent::AssignmentInfo assignmentInfo(QScxmlExecutableContent::EvaluatorId assignmentId) const = 0;

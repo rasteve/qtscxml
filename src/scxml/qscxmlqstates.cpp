@@ -33,11 +33,11 @@ QT_BEGIN_NAMESPACE
 class QScxmlBaseTransition::Data
 {
 public:
-    QList<QByteArray> eventSelector;
+    QStringList eventSelector;
 };
 
-static QList<QByteArray> filterEmpty(const QList<QByteArray> &events) {
-    QList<QByteArray> res;
+static QStringList filterEmpty(const QStringList &events) {
+    QStringList res;
     int oldI = 0;
     for (int i = 0; i < events.size(); ++i) {
         if (events.at(i).isEmpty()) {
@@ -196,7 +196,7 @@ void QScxmlFinalState::onExit(QEvent *event)
     QScxmlStateMachinePrivate::get(stateMachine())->m_executionEngine->execute(d->onExitInstructions);
 }
 
-QScxmlBaseTransition::QScxmlBaseTransition(QState *sourceState, const QList<QByteArray> &eventSelector)
+QScxmlBaseTransition::QScxmlBaseTransition(QState *sourceState, const QStringList &eventSelector)
     : QAbstractTransition(sourceState)
     , d(new Data)
 {
@@ -204,7 +204,7 @@ QScxmlBaseTransition::QScxmlBaseTransition(QState *sourceState, const QList<QByt
 }
 
 QScxmlBaseTransition::QScxmlBaseTransition(QAbstractTransitionPrivate &dd, QState *parent,
-                                         const QList<QByteArray> &eventSelector)
+                                           const QStringList &eventSelector)
     : QAbstractTransition(dd, parent)
     , d(new Data)
 {
@@ -241,20 +241,20 @@ bool QScxmlBaseTransition::eventTest(QEvent *event)
     if (event->type() == QEvent::None)
         return false;
     Q_ASSERT(stateMachine());
-    QByteArray eventName = QScxmlStateMachinePrivate::get(stateMachine())->m_event.name();
+    QString eventName = QScxmlStateMachinePrivate::get(stateMachine())->m_event.name();
     bool selected = false;
-    foreach (QByteArray eventStr, d->eventSelector) {
-        if (eventStr == "*") {
+    foreach (QString eventStr, d->eventSelector) {
+        if (eventStr == QStringLiteral("*")) {
             selected = true;
             break;
         }
-        if (eventStr.endsWith(".*"))
+        if (eventStr.endsWith(QStringLiteral(".*")))
             eventStr.chop(2);
         if (eventName.startsWith(eventStr)) {
-            char nextC = '.';
+            QChar nextC = QLatin1Char('.');
             if (eventName.size() > eventStr.size())
                 nextC = eventName.at(eventStr.size());
-            if (nextC == '.' || nextC == '(') {
+            if (nextC == QLatin1Char('.') || nextC == QLatin1Char('(')) {
                 selected = true;
                 break;
             }
@@ -280,12 +280,12 @@ public:
     QScxmlExecutableContent::ContainerId instructionsOnTransition;
 };
 
-QScxmlTransition::QScxmlTransition(QState *sourceState, const QList<QByteArray> &eventSelector)
+QScxmlTransition::QScxmlTransition(QState *sourceState, const QStringList &eventSelector)
     : QScxmlBaseTransition(sourceState, filterEmpty(eventSelector))
     , d(new Data)
 {}
 
-QScxmlTransition::QScxmlTransition(const QList<QByteArray> &eventSelector)
+QScxmlTransition::QScxmlTransition(const QStringList &eventSelector)
     : QScxmlBaseTransition(Q_NULLPTR, filterEmpty(eventSelector))
     , d(new Data)
 {}

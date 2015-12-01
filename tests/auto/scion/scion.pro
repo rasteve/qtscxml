@@ -6,6 +6,7 @@ TARGET = tst_scion
 TEMPLATE = app
 
 RESOURCES = $$OUT_PWD/scion.qrc
+DEFINES += QT_NO_CAST_FROM_ASCII QT_NO_CAST_TO_ASCII
 
 SOURCES += \
     tst_scion.cpp

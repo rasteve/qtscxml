@@ -364,7 +364,7 @@ private:
                     (_id >= _t->m_firstSubStateMachineSignal && _id < _t->m_firstSlot)) {
                 Q_UNREACHABLE();
             }
-            const QByteArray &event = _t->m_eventNamesByIndex.at(_id);
+            const QString &event = _t->m_eventNamesByIndex.at(_id);
             if (!event.isEmpty()) {
                 if (_id < _t->m_firstSlotWithoutData) {
                     QVariant data = *reinterpret_cast< QVariant(*)>(_a[1]);
@@ -412,8 +412,8 @@ private:
         setScxmlEventFilter(this);
     }
 
-    void initDynamicParts(const QSet<QByteArray> &eventSignals,
-                          const QSet<QByteArray> &eventSlots,
+    void initDynamicParts(const QSet<QString> &eventSignals,
+                          const QSet<QString> &eventSlots,
                           const QSet<QString> &stateNames,
                           const QList<QString> &subStateMachineNames)
     {
@@ -430,8 +430,8 @@ private:
         b.setStaticMetacallFunction(qt_static_metacall);
 
         // signals
-        foreach (const QByteArray &eventName, eventSignals) {
-            QByteArray signalName = QByteArray("event_") + eventName + "(const QVariant &)";
+        foreach (const QString &eventName, eventSignals) {
+            QByteArray signalName = QByteArray("event_") + eventName.toUtf8() + "(const QVariant &)";
             QMetaMethodBuilder signalBuilder = b.addSignal(signalName);
             signalBuilder.setParameterNames(init("data"));
             int idx = signalBuilder.index();
@@ -451,8 +451,8 @@ private:
 
         // slots
         m_firstSlot = m_eventNamesByIndex.size();
-        foreach (const QByteArray &eventName, eventSlots) {
-            QByteArray slotName = QByteArray("event_") + eventName + "(const QVariant &)";
+        foreach (const QString &eventName, eventSlots) {
+            QByteArray slotName = QByteArray("event_") + eventName.toUtf8() + "(const QVariant &)";
             QMetaMethodBuilder slotBuilder = b.addSlot(slotName);
             slotBuilder.setParameterNames(init("data"));
             int idx = slotBuilder.index();
@@ -461,8 +461,8 @@ private:
         }
 
         m_firstSlotWithoutData = m_eventNamesByIndex.size();
-        foreach (const QByteArray &eventName, eventSlots) {
-            QByteArray slotName = QByteArray("event_") + eventName + "()";
+        foreach (const QString &eventName, eventSlots) {
+            QByteArray slotName = QByteArray("event_") + eventName.toUtf8() + "()";
             QMetaMethodBuilder slotBuilder = b.addSlot(slotName);
             int idx = slotBuilder.index();
             m_eventNamesByIndex.resize(std::max(idx + 1, m_eventNamesByIndex.size()));
@@ -552,7 +552,7 @@ private:
 
 private:
     QMetaObject *m_metaObject;
-    QVector<QByteArray> m_eventNamesByIndex;
+    QVector<QString> m_eventNamesByIndex;
     QVector<QString> m_propertyNamesByIndex;
     QVector<QScxmlStateMachine *> m_subStateMachines;
     int m_firstSubStateMachineSignal;
@@ -768,9 +768,8 @@ private:
     bool visit(DocumentModel::Transition *node) Q_DECL_OVERRIDE
     {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-        auto events = toUtf8(node->events);
-        m_eventSlots.unite(events.toSet());
-        auto newTransition = new QScxmlTransition(events);
+        m_eventSlots.unite(node->events.toSet());
+        auto newTransition = new QScxmlTransition(node->events);
         if (QHistoryState *parent = qobject_cast<QHistoryState*>(m_parents.last())) {
             parent->setDefaultTransition(newTransition);
         } else {
@@ -846,21 +845,13 @@ private:
     bool visit(DocumentModel::Send *node) Q_DECL_OVERRIDE
     {
         if (node->type == QStringLiteral("qt:signal")) {
-            m_eventSignals.insert(node->event.toUtf8());
+            m_eventSignals.insert(node->event);
         }
 
         return QScxmlExecutableContent::Builder::visit(node);
     }
 
 private: // Utility methods
-    static QList<QByteArray> toUtf8(const QStringList &l)
-    {
-        QList<QByteArray> res;
-        foreach (const QString &s, l)
-            res.append(s.toUtf8());
-        return res;
-    }
-
     QState *currentParent() const
     {
         if (m_parents.isEmpty())
@@ -926,8 +917,8 @@ private:
     QVector<QPair<QState *, DocumentModel::AbstractState *>> m_initialStates;
     bool m_bindLate;
     QVector<DocumentModel::DataElement *> m_dataElements;
-    QSet<QByteArray> m_eventSignals;
-    QSet<QByteArray> m_eventSlots;
+    QSet<QString> m_eventSignals;
+    QSet<QString> m_eventSlots;
     QSet<QString> m_stateNames;
     QSet<QString> m_subStateMachineNames;
 };

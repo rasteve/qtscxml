@@ -428,7 +428,7 @@ protected:
         QStringList elements;
         foreach (const QString &event, node->events)
             elements.append(qba(event));
-        initializer += createList(QStringLiteral("QByteArray"), elements);
+        initializer += createList(QStringLiteral("QString"), elements);
         initializer += QStringLiteral(")");
         clazz.constructor.initializer << initializer;
 
@@ -1004,70 +1004,11 @@ private:
             clazz.dataMethods << QStringLiteral("}");
             clazz.dataMethods << QString();
         }
-
-        { // byte arrays
-            t << QStringLiteral("#define BA_LIT(idx, ofs, len) \\")
-              << QStringLiteral("    Q_STATIC_BYTE_ARRAY_DATA_HEADER_INITIALIZER_WITH_OFFSET(len, \\")
-              << QStringLiteral("    qptrdiff(offsetof(ByteArrays, stringdata) + ofs - idx * sizeof(QByteArrayData)) \\")
-              << QStringLiteral("    )");
-
-            t << QStringLiteral("%1::Data::ByteArrays %1::Data::byteArrays = {{").arg(clazz.className);
-            auto byteArrays = td->byteArrayTable();
-            if (byteArrays.isEmpty()) // prevent generation of empty array
-                byteArrays.append(QByteArray(""));
-            int charCount = 0;
-            QString charData;
-            generateList(t, [&charCount, &charData, &byteArrays](int idx) -> QString {
-                if (idx >= byteArrays.size())
-                    return QString();
-
-                auto ba = byteArrays.at(idx);
-                QString str = QStringLiteral("BA_LIT(%1, %2, %3)").arg(QString::number(idx),
-                                                                       QString::number(charCount),
-                                                                       QString::number(ba.size()));
-                charData += toHex(QString::fromUtf8(ba)) + QStringLiteral("\\x00");
-                charCount += ba.size() + 1;
-                return str;
-            });
-            t << QStringLiteral("},");
-            if (byteArrays.isEmpty()) {
-                t << QStringLiteral("\"\"");
-            } else {
-                foreach (const QByteArray &ba, byteArrays) {
-                    QString s = QString::fromUtf8(ba);
-                    t << QStringLiteral("\"%1\" // %2").arg(toHex(s) + QStringLiteral("\\x00"), cEscape(s));
-                }
-            }
-            t << QStringLiteral("};") << QStringLiteral("");
-
-            clazz.classFields << QStringLiteral("static struct ByteArrays {")
-                              << QStringLiteral("    QByteArrayData data[%1];").arg(byteArrays.size())
-                              << QStringLiteral("    char stringdata[%1];").arg(charCount + 1)
-                              << QStringLiteral("} byteArrays;");
-
-            clazz.dataMethods << QStringLiteral("QByteArray byteArray(QScxmlExecutableContent::ByteArrayId id) const Q_DECL_OVERRIDE Q_DECL_FINAL");
-            clazz.dataMethods << QStringLiteral("{");
-            clazz.dataMethods << QStringLiteral("    Q_ASSERT(id >= QScxmlExecutableContent::NoByteArray); Q_ASSERT(id < %1);").arg(byteArrays.size());
-            clazz.dataMethods << QStringLiteral("    if (id == QScxmlExecutableContent::NoByteArray) return QByteArray();");
-            if (translationUnit->useCxx11) {
-                clazz.dataMethods << QStringLiteral("    return QByteArray({byteArrays.data + id});");
-            } else {
-                clazz.dataMethods << QStringLiteral("    QByteArrayDataPtr data;");
-                clazz.dataMethods << QStringLiteral("    data.ptr = byteArrays.data + id;");
-                clazz.dataMethods << QStringLiteral("    return QByteArray(data);");
-            }
-            clazz.dataMethods << QStringLiteral("}");
-            clazz.dataMethods << QString();
-        }
     }
 
     QString qba(const QString &bytes)
     {
-//        QString str = QString::fromLatin1("QByteArray::fromRawData(\"");
-//        auto esc = cEscape(bytes);
-//        str += esc + QLatin1String("\", ") + QString::number(esc.length()) + QLatin1String(")");
-//        return str;
-        return QStringLiteral("byteArray(%1)").arg(addByteArray(bytes.toUtf8()));
+        return QStringLiteral("string(%1)").arg(addString(bytes));
     }
 
     QString scxmlClassName(DocumentModel::ScxmlDocument *doc) const

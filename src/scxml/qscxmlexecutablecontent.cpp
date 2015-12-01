@@ -213,7 +213,7 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
         qCDebug(scxmlLog) << "Executing raise step";
         Raise *raise = reinterpret_cast<Raise *>(instr);
         ip += raise->size();
-        auto name = tableData->byteArray(raise->event);
+        auto name = tableData->string(raise->event);
         auto event = new QScxmlEvent;
         event->setName(name);
         event->setEventType(QScxmlEvent::InternalEvent);
@@ -241,10 +241,10 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
         qCDebug(scxmlLog) << "Executing cancel step";
         Cancel *cancel = reinterpret_cast<Cancel *>(instr);
         ip += cancel->size();
-        QByteArray e = tableData->byteArray(cancel->sendid);
+        QString e = tableData->string(cancel->sendid);
         bool ok = true;
         if (cancel->sendidexpr != NoEvaluator)
-            e = dataModel->evaluateToString(cancel->sendidexpr, &ok).toUtf8();
+            e = dataModel->evaluateToString(cancel->sendidexpr, &ok);
         if (ok && !e.isEmpty())
             stateMachine->cancelDelayedEvent(e);
         return ok;
@@ -297,13 +297,13 @@ bool Builder::visit(DocumentModel::Send *node)
 {
     auto instr = m_instructions.add<Send>(Send::calculateExtraSize(node->params.size(), node->namelist.size()));
     instr->instructionLocation = createContext(QStringLiteral("send"));
-    instr->event = addByteArray(node->event.toUtf8());
+    instr->event = addString(node->event);
     instr->eventexpr = createEvaluatorString(QStringLiteral("send"), QStringLiteral("eventexpr"), node->eventexpr);
     instr->type = addString(node->type);
     instr->typeexpr = createEvaluatorString(QStringLiteral("send"), QStringLiteral("typeexpr"), node->typeexpr);
     instr->target = addString(node->target);
     instr->targetexpr = createEvaluatorString(QStringLiteral("send"), QStringLiteral("targetexpr"), node->targetexpr);
-    instr->id = addByteArray(node->id.toUtf8());
+    instr->id = addString(node->id);
     instr->idLocation = addString(node->idLocation);
     instr->delay = addString(node->delay);
     instr->delayexpr = createEvaluatorString(QStringLiteral("send"), QStringLiteral("delayexpr"), node->delayexpr);
@@ -316,7 +316,7 @@ bool Builder::visit(DocumentModel::Send *node)
 void Builder::visit(DocumentModel::Raise *node)
 {
     auto instr = m_instructions.add<Raise>();
-    instr->event = addByteArray(node->event.toUtf8());
+    instr->event = addString(node->event);
 }
 
 void Builder::visit(DocumentModel::Log *node)
@@ -370,7 +370,7 @@ bool Builder::visit(DocumentModel::Foreach *node)
 void Builder::visit(DocumentModel::Cancel *node)
 {
     auto instr = m_instructions.add<Cancel>();
-    instr->sendid = addByteArray(node->sendid.toUtf8());
+    instr->sendid = addString(node->sendid);
     instr->sendidexpr = createEvaluatorString(QStringLiteral("cancel"), QStringLiteral("sendidexpr"), node->sendidexpr);
 }
 
@@ -559,7 +559,6 @@ DynamicTableData *Builder::tableData()
 {
     auto td = new DynamicTableData;
     td->strings = m_stringTable.data();
-    td->byteArrays = m_byteArrayTable.data();
     td->theInstructions = m_instructions.data();
     td->theEvaluators = m_evaluators.data();
     td->theAssignments = m_assignments.data();
@@ -573,11 +572,6 @@ DynamicTableData *Builder::tableData()
 QString DynamicTableData::string(StringId id) const
 {
     return id == NoString ? QString() : strings.at(id);
-}
-
-QByteArray DynamicTableData::byteArray(ByteArrayId id) const
-{
-    return id == NoByteArray ? QByteArray() : byteArrays.at(id);
 }
 
 Instructions DynamicTableData::instructions() const
@@ -625,11 +619,6 @@ QVector<qint32> DynamicTableData::instructionTable() const
 QVector<QString> DynamicTableData::stringTable() const
 {
     return strings;
-}
-
-QVector<QByteArray> DynamicTableData::byteArrayTable() const
-{
-    return byteArrays;
 }
 
 QVector<EvaluatorInfo> DynamicTableData::evaluators() const

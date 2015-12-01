@@ -54,8 +54,7 @@ public:
 
         if (info.error) {
             *ok = false;
-            static QByteArray sendid;
-            q->stateMachine()->submitError(QByteArray("error.execution"), info.str, sendid);
+            q->stateMachine()->submitError(QStringLiteral("error.execution"), info.str);
             return false;
         }
 

@@ -159,13 +159,13 @@ struct Q_SCXML_EXPORT InstructionSequences: Instruction
 struct Q_SCXML_EXPORT Send: Instruction
 {
     StringId instructionLocation;
-    ByteArrayId event;
+    StringId event;
     EvaluatorId eventexpr;
     StringId type;
     EvaluatorId typeexpr;
     StringId target;
     EvaluatorId targetexpr;
-    ByteArrayId id;
+    StringId id;
     StringId idLocation;
     StringId delay;
     EvaluatorId delayexpr;
@@ -186,7 +186,7 @@ struct Q_SCXML_EXPORT Send: Instruction
 
 struct Q_SCXML_EXPORT Raise: Instruction
 {
-    ByteArrayId event;
+    StringId event;
 
     static InstructionType kind() { return Instruction::Raise; }
     int size() const { return sizeof(Raise) / sizeof(qint32); }
@@ -250,7 +250,7 @@ struct Q_SCXML_EXPORT Foreach: Instruction
 
 struct Q_SCXML_EXPORT Cancel: Instruction
 {
-    ByteArrayId sendid;
+    StringId sendid;
     EvaluatorId sendidexpr;
 
     static InstructionType kind() { return Instruction::Cancel; }
@@ -273,7 +273,6 @@ class Q_SCXML_EXPORT DynamicTableData:
 
 public:
     QString string(StringId id) const Q_DECL_OVERRIDE;
-    QByteArray byteArray(ByteArrayId id) const Q_DECL_OVERRIDE;
     Instructions instructions() const Q_DECL_OVERRIDE;
     EvaluatorInfo evaluatorInfo(EvaluatorId evaluatorId) const Q_DECL_OVERRIDE;
     AssignmentInfo assignmentInfo(EvaluatorId assignmentId) const Q_DECL_OVERRIDE;
@@ -284,7 +283,6 @@ public:
 
     QVector<qint32> instructionTable() const;
     QVector<QString> stringTable() const;
-    QVector<QByteArray> byteArrayTable() const;
     QVector<EvaluatorInfo> evaluators() const;
     QVector<AssignmentInfo> assignments() const;
     QVector<ForeachInfo> foreaches() const;
@@ -293,7 +291,6 @@ public:
 private:
     friend class Builder;
     QVector<QString> strings;
-    QVector<QByteArray> byteArrays;
     QVector<qint32> theInstructions;
     QVector<EvaluatorInfo> theEvaluators;
     QVector<AssignmentInfo> theAssignments;
@@ -344,9 +341,6 @@ protected:
     StringId addString(const QString &str)
     { return str.isEmpty() ? NoString : m_stringTable.add(str); }
 
-    ByteArrayId addByteArray(const QByteArray &ba)
-    { return ba.isEmpty() ? NoByteArray : m_byteArrayTable.add(ba); }
-
     void setInitialSetup(ContainerId id)
     { m_initialSetup = id; }
 
@@ -394,7 +388,6 @@ private:
         }
     };
     Table<QString, StringId> m_stringTable;
-    Table<QByteArray, ByteArrayId> m_byteArrayTable;
 
     struct SequenceInfo {
         int location;

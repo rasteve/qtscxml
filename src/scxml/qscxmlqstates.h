@@ -123,9 +123,9 @@ class Q_SCXML_EXPORT QScxmlBaseTransition: public QAbstractTransition
 
 public:
     QScxmlBaseTransition(QState * sourceState = Q_NULLPTR,
-                         const QList<QByteArray> &eventSelector = QList<QByteArray>());
+                         const QStringList &eventSelector = QStringList());
     QScxmlBaseTransition(QAbstractTransitionPrivate &dd, QState *parent,
-                         const QList<QByteArray> &eventSelector = QList<QByteArray>());
+                         const QStringList &eventSelector = QStringList());
     ~QScxmlBaseTransition();
 
     QScxmlStateMachine *stateMachine() const;
@@ -147,8 +147,8 @@ class Q_SCXML_EXPORT QScxmlTransition: public QScxmlBaseTransition
 
 public:
     QScxmlTransition(QState * sourceState = Q_NULLPTR,
-                     const QList<QByteArray> &eventSelector = QList<QByteArray>());
-    QScxmlTransition(const QList<QByteArray> &eventSelector);
+                     const QStringList &eventSelector = QStringList());
+    QScxmlTransition(const QStringList &eventSelector);
     ~QScxmlTransition();
 
     void addTransitionTo(QScxmlState *state);

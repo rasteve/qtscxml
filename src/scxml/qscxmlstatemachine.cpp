@@ -65,7 +65,7 @@ public:
         }
     }
 
-    int eventIdForDelayedEvent(const QByteArray &scxmlEventId);
+    int eventIdForDelayedEvent(const QString &sendId);
 
     QScxmlStateMachine *stateMachine() const
     { return m_stateMachine; }
@@ -670,7 +670,7 @@ void QScxmlInternal::WrappedQStateMachinePrivate::exitInterpreter()
             if (finalState->parent() == q) {
                 if (auto psm = stateMachinePrivate()->m_parentStateMachine) {
                     auto done = new QScxmlEvent;
-                    done->setName(QByteArray("done.invoke.") + m_stateMachine->sessionId().toUtf8());
+                    done->setName(QStringLiteral("done.invoke.") + m_stateMachine->sessionId());
                     done->setInvokeId(m_stateMachine->sessionId());
                     qCDebug(scxmlLog) << "submitting event" << done->name() << "to" << psm->name();
                     psm->submitEvent(done);
@@ -703,14 +703,14 @@ void QScxmlInternal::WrappedQStateMachinePrivate::startupHook()
 
 #endif // QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
 
-int QScxmlInternal::WrappedQStateMachinePrivate::eventIdForDelayedEvent(const QByteArray &scxmlEventId)
+int QScxmlInternal::WrappedQStateMachinePrivate::eventIdForDelayedEvent(const QString &sendId)
 {
     QMutexLocker locker(&delayedEventsMutex);
 
     QHash<int, DelayedEvent>::const_iterator it;
     for (it = delayedEvents.constBegin(); it != delayedEvents.constEnd(); ++it) {
         if (QScxmlEvent *e = dynamic_cast<QScxmlEvent *>(it->event)) {
-            if (e->sendId() == scxmlEventId) {
+            if (e->sendId() == sendId) {
                 return it.key();
             }
         }
@@ -846,10 +846,10 @@ QString QScxmlStateMachine::name() const
  *            errorMessage
  * \param sendid The sendid of the message causing the error, if it has one.
  */
-void QScxmlStateMachine::submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid)
+void QScxmlStateMachine::submitError(const QString &type, const QString &msg, const QString &sendid)
 {
     qCDebug(scxmlLog) << this << "had error" << type << ":" << msg;
-    if (!type.startsWith("error."))
+    if (!type.startsWith(QStringLiteral("error.")))
         qCWarning(scxmlLog) << this << "Message type of error message does not start with 'error.'!";
     submitEvent(QScxmlEventBuilder::errorEvent(this, type, msg, sendid));
 }
@@ -932,10 +932,10 @@ void QScxmlStateMachine::submitEvent(QScxmlEvent *event)
 }
 
 /*!
- * \brief Utility method to create and submit an external event with the givent \a eventName as
+ * \brief Utility method to create and submit an external event with the given \a eventName as
  *        the name.
  */
-void QScxmlStateMachine::submitEvent(const QByteArray &eventName)
+void QScxmlStateMachine::submitEvent(const QString &eventName)
 {
     QScxmlEvent *e = new QScxmlEvent;
     e->setName(eventName);
@@ -944,10 +944,10 @@ void QScxmlStateMachine::submitEvent(const QByteArray &eventName)
 }
 
 /*!
- * \brief Utility method to create and submit an external event with the givent \a eventName as
+ * \brief Utility method to create and submit an external event with the given \a eventName as
  *        the name and \a data as the payload data.
  */
-void QScxmlStateMachine::submitEvent(const QByteArray &event, const QVariant &data)
+void QScxmlStateMachine::submitEvent(const QString &eventName, const QVariant &data)
 {
     QVariant incomingData = data;
     if (incomingData.canConvert<QJSValue>()) {
@@ -955,22 +955,22 @@ void QScxmlStateMachine::submitEvent(const QByteArray &event, const QVariant &da
     }
 
     QScxmlEvent *e = new QScxmlEvent;
-    e->setName(event);
+    e->setName(eventName);
     e->setEventType(QScxmlEvent::ExternalEvent);
     e->setData(incomingData);
     submitEvent(e);
 }
 
 /*!
- * \brief Cancels a delayed event with the given \a sendid.
+ * \brief Cancels a delayed event with the given \a sendId.
  */
-void QScxmlStateMachine::cancelDelayedEvent(const QByteArray &sendid)
+void QScxmlStateMachine::cancelDelayedEvent(const QString &sendId)
 {
     Q_D(QScxmlStateMachine);
 
-    int id = d->m_qStateMachine->eventIdForDelayedEvent(sendid);
+    int id = d->m_qStateMachine->eventIdForDelayedEvent(sendId);
 
-    qCDebug(scxmlLog) << this << "canceling event" << sendid << "with id" << id;
+    qCDebug(scxmlLog) << this << "canceling event" << sendId << "with id" << id;
 
     if (id != -1)
         d->m_qStateMachine->cancelDelayedEvent(id);
@@ -999,10 +999,10 @@ void QScxmlInternal::WrappedQStateMachine::submitQueuedEvents()
     }
 }
 
-int QScxmlInternal::WrappedQStateMachine::eventIdForDelayedEvent(const QByteArray &scxmlEventId)
+int QScxmlInternal::WrappedQStateMachine::eventIdForDelayedEvent(const QString &sendId)
 {
     Q_D(WrappedQStateMachine);
-    return d->eventIdForDelayedEvent(scxmlEventId);
+    return d->eventIdForDelayedEvent(sendId);
 }
 
 void QScxmlInternal::WrappedQStateMachine::removeAndDestroyService(QScxmlInvokableService *service)

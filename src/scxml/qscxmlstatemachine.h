@@ -105,13 +105,13 @@ public:
     QScxmlEventFilter *scxmlEventFilter() const;
     void setScxmlEventFilter(QScxmlEventFilter *newFilter);
 
-    Q_INVOKABLE void submitError(const QByteArray &type, const QString &msg, const QByteArray &sendid);
+    Q_INVOKABLE void submitError(const QString &type, const QString &msg, const QString &sendid = QString());
 
     Q_INVOKABLE void routeEvent(QScxmlEvent *event);
     Q_INVOKABLE void submitEvent(QScxmlEvent *event);
-    Q_INVOKABLE void submitEvent(const QByteArray &eventName);
-    Q_INVOKABLE void submitEvent(const QByteArray &event, const QVariant &data);
-    void cancelDelayedEvent(const QByteArray &event);
+    Q_INVOKABLE void submitEvent(const QString &eventName);
+    Q_INVOKABLE void submitEvent(const QString &eventName, const QVariant &data);
+    void cancelDelayedEvent(const QString &sendId);
 
     bool isDispatchableTarget(const QString &target) const;
 

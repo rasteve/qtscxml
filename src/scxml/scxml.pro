@@ -7,7 +7,7 @@ load(qt_module)
 QMAKE_DOCS = $$PWD/doc/qtscxml.qdocconf
 
 CONFIG  += $$MODULE_CONFIG
-DEFINES += QT_NO_CAST_FROM_ASCII
+DEFINES += QT_NO_CAST_FROM_ASCII QT_NO_CAST_TO_ASCII
 
 HEADERS += \
     qscxmlparser.h \

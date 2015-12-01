@@ -56,7 +56,7 @@ public:
 
     void queueEvent(QScxmlEvent *event, QStateMachine::EventPriority priority);
     void submitQueuedEvents();
-    int eventIdForDelayedEvent(const QByteArray &scxmlEventId);
+    int eventIdForDelayedEvent(const QString &sendId);
 
     Q_INVOKABLE void removeAndDestroyService(QScxmlInvokableService *service);
 

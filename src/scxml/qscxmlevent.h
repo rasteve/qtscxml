@@ -51,16 +51,16 @@ public:
         ExternalEvent
     };
 
-    QByteArray name() const;
-    void setName(const QByteArray &name);
+    QString name() const;
+    void setName(const QString &name);
 
     EventType eventType() const;
     void setEventType(const EventType &type);
 
     QString scxmlType() const;
 
-    QByteArray sendId() const;
-    void setSendId(const QByteArray &sendId);
+    QString sendId() const;
+    void setSendId(const QString &sendId);
 
     QString origin() const;
     void setOrigin(const QString &origin);

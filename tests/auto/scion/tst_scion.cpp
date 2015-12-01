@@ -305,7 +305,7 @@ static bool playEvent(QScxmlStateMachine *stateMachine, const QJsonObject &event
 
     Q_ASSERT(eventDescription.contains(QLatin1String("event")));
     auto event = eventDescription.value(QLatin1String("event")).toObject();
-    auto eventName = event.value(QLatin1String("name")).toString().toUtf8();
+    auto eventName = event.value(QLatin1String("name")).toString();
     Q_ASSERT(!eventName.isEmpty());
     QScxmlEvent::EventType type = QScxmlEvent::ExternalEvent;
     if (event.contains(QLatin1String("type"))) {
@@ -324,18 +324,18 @@ static bool playEvent(QScxmlStateMachine *stateMachine, const QJsonObject &event
     if (event.contains(QLatin1String("data"))) {
         data = event.value(QLatin1String("data")).toVariant();
     }
-    QByteArray sendid;
+    QString sendid;
     if (event.contains(QLatin1String("sendid")))
-        sendid = event.value(QLatin1String("sendid")).toString().toUtf8();
+        sendid = event.value(QLatin1String("sendid")).toString();
     QString origin;
     if (event.contains(QLatin1String("origin")))
         origin = event.value(QLatin1String("origin")).toString();
     QString origintype;
     if (event.contains(QLatin1String("origintype")))
         origintype = event.value(QLatin1String("origintype")).toString();
-    QByteArray invokeid;
+    QString invokeid;
     if (event.contains(QLatin1String("invokeid")))
-        invokeid = event.value(QLatin1String("invokeid")).toString().toUtf8();
+        invokeid = event.value(QLatin1String("invokeid")).toString();
     QScxmlEvent *e = new QScxmlEvent;
     e->setName(eventName);
     e->setEventType(type);
