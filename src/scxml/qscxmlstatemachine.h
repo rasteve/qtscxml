@@ -95,7 +95,6 @@ public:
     QString name() const;
     QStringList activeStates(bool compress = true);
     bool isActive(const QString &scxmlStateName) const;
-    bool hasState(const QString &scxmlStateName) const;
 
     using QObject::connect;
     QMetaObject::Connection connect(const QString &scxmlStateName, const char *signal,

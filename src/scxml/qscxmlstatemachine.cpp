@@ -827,15 +827,6 @@ bool QScxmlStateMachine::isActive(const QString &scxmlStateName) const
     return false;
 }
 
-/*!
- * \return Returns true if the state-machine has a state named \a scxmlStateName , false otherwise.
- */
-bool QScxmlStateMachine::hasState(const QString &scxmlStateName) const
-{
-    Q_D(const QScxmlStateMachine);
-    return findState(scxmlStateName, d->m_qStateMachine) != Q_NULLPTR;
-}
-
 QMetaObject::Connection QScxmlStateMachine::connect(const QString &scxmlStateName, const char *signal,
                                             const QObject *receiver, const char *method,
                                             Qt::ConnectionType type)
