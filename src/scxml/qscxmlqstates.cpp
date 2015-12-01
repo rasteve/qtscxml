@@ -134,10 +134,6 @@ void QScxmlState::onExit(QEvent *event)
     QState::onExit(event);
 }
 
-QScxmlInitialState::QScxmlInitialState(QState *theParent)
-    : QScxmlState(theParent)
-{}
-
 QScxmlFinalState::QScxmlFinalState(QState *parent)
     : QFinalState(parent)
     , d(new Data)

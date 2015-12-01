@@ -87,13 +87,6 @@ private:
     QScxmlStatePrivate *d;
 };
 
-class Q_SCXML_EXPORT QScxmlInitialState: public QScxmlState
-{
-    Q_OBJECT
-public:
-    QScxmlInitialState(QState *theParent);
-};
-
 class Q_SCXML_EXPORT QScxmlFinalState: public QFinalState
 {
     Q_OBJECT
