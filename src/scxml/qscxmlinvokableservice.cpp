@@ -53,14 +53,14 @@ bool QScxmlInvokableService::autoforward() const
     return d->service->autoforward();
 }
 
-QScxmlStateMachine *QScxmlInvokableService::parent() const
+QScxmlStateMachine *QScxmlInvokableService::parentStateMachine() const
 {
     return d->parent;
 }
 
 void QScxmlInvokableService::finalize()
 {
-    auto smp = QScxmlStateMachinePrivate::get(parent());
+    auto smp = QScxmlStateMachinePrivate::get(parentStateMachine());
     smp->m_executionEngine->execute(d->service->finalizeContent());
 }
 
@@ -205,7 +205,7 @@ QScxmlInvokableScxml::QScxmlInvokableScxml(QScxmlInvokableServiceFactory *servic
     : QScxmlInvokableService(service, parent)
     , m_stateMachine(stateMachine)
 {
-    stateMachine->setParentStateMachine(parent);
+    QScxmlStateMachinePrivate::get(stateMachine)->m_parentStateMachine = parent;
 }
 
 QScxmlInvokableScxml::~QScxmlInvokableScxml()
@@ -215,24 +215,24 @@ QScxmlInvokableScxml::~QScxmlInvokableScxml()
 
 bool QScxmlInvokableScxml::start()
 {
-    qCDebug(scxmlLog) << parent() << "preparing to start" << m_stateMachine;
+    qCDebug(scxmlLog) << parentStateMachine() << "preparing to start" << m_stateMachine;
 
     bool ok = false;
-    auto id = service()->calculateId(parent(), &ok);
+    auto id = service()->calculateId(parentStateMachine(), &ok);
     if (!ok)
         return false;
-    auto data = service()->calculateData(parent(), &ok);
+    auto data = service()->calculateData(parentStateMachine(), &ok);
     if (!ok)
         return false;
 
     m_stateMachine->setSessionId(id);
     if (m_stateMachine->init(data)) {
-        qCDebug(scxmlLog) << parent() << "starting" << m_stateMachine;
+        qCDebug(scxmlLog) << parentStateMachine() << "starting" << m_stateMachine;
         m_stateMachine->start();
         return true;
     }
 
-    qCDebug(scxmlLog) << parent() << "failed to start" << m_stateMachine;
+    qCDebug(scxmlLog) << parentStateMachine() << "failed to start" << m_stateMachine;
     return false;
 }
 

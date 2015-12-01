@@ -36,11 +36,11 @@ class QScxmlInvokableServiceFactory;
 class Q_SCXML_EXPORT QScxmlInvokableService
 {
 public:
-    QScxmlInvokableService(QScxmlInvokableServiceFactory *service, QScxmlStateMachine *parent);
+    QScxmlInvokableService(QScxmlInvokableServiceFactory *service, QScxmlStateMachine *parentStateMachine);
     virtual ~QScxmlInvokableService();
 
     bool autoforward() const;
-    QScxmlStateMachine *parent() const;
+    QScxmlStateMachine *parentStateMachine() const;
 
     virtual bool start() = 0;
     virtual QString id() const = 0;
@@ -109,7 +109,7 @@ class Q_SCXML_EXPORT QScxmlInvokableScxml: public QScxmlInvokableService
 public:
     QScxmlInvokableScxml(QScxmlInvokableServiceFactory *service,
                          QScxmlStateMachine *stateMachine,
-                         QScxmlStateMachine *parent);
+                         QScxmlStateMachine *parentStateMachine);
     virtual ~QScxmlInvokableScxml();
 
     bool start() Q_DECL_OVERRIDE;

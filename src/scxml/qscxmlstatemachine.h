@@ -88,9 +88,6 @@ public:
 
     BindingMethod dataBinding() const;
 
-    QScxmlStateMachine *parentStateMachine() const;
-    void setParentStateMachine(QScxmlStateMachine *parent);
-
     bool init(const QVariantMap &initialDataValues = QVariantMap());
 
     bool isRunning() const;

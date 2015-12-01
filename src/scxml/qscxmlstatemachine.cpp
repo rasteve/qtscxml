@@ -495,25 +495,6 @@ void QScxmlStateMachine::setTableData(QScxmlTableData *tableData)
     }
 }
 
-/*!
- * \return Returns the parent state-machine if there is one, otherwise it returns null.
- */
-QScxmlStateMachine *QScxmlStateMachine::parentStateMachine() const
-{
-    Q_D(const QScxmlStateMachine);
-    return d->m_parentStateMachine;
-}
-
-/*!
- * \brief Sets the \a parent of the state-machine. When set, this implies that the state-machine
- * is started by <invoke> tag.
- */
-void QScxmlStateMachine::setParentStateMachine(QScxmlStateMachine *parent)
-{
-    Q_D(QScxmlStateMachine);
-    d->m_parentStateMachine = parent;
-}
-
 void QScxmlInternal::WrappedQStateMachine::beginSelectTransitions(QEvent *event)
 {
     Q_D(WrappedQStateMachine);
@@ -687,8 +668,7 @@ void QScxmlInternal::WrappedQStateMachinePrivate::exitInterpreter()
 
         if (QScxmlFinalState *finalState = qobject_cast<QScxmlFinalState *>(s)) {
             if (finalState->parent() == q) {
-                auto psm = m_stateMachine->parentStateMachine();
-                if (psm) {
+                if (auto psm = stateMachinePrivate()->m_parentStateMachine) {
                     auto done = new QScxmlEvent;
                     done->setName(QByteArray("done.invoke.") + m_stateMachine->sessionId().toUtf8());
                     done->setInvokeId(m_stateMachine->sessionId());
@@ -891,7 +871,7 @@ void QScxmlStateMachine::routeEvent(QScxmlEvent *event)
 
     QString origin = event->origin();
     if (origin == QStringLiteral("#_parent")) {
-        if (auto psm = parentStateMachine()) {
+        if (auto psm = d->m_parentStateMachine) {
             qCDebug(scxmlLog) << this << "routing event" << event->name() << "from" << name() << "to parent" << psm->name();
             psm->submitEvent(event);
         } else {
