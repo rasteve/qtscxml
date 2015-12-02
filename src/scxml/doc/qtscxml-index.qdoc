@@ -34,8 +34,8 @@
 
     \section1 Getting Started
 
-    Both the dynamically created and the compiled state machines act the
-    same, have the same properties, states, data model, and so on. They only
+    Both the dynamically created and the compiled state machines behave in the
+    same way, have the same properties, states, data model, and so on. They only
     differ in the way they are instantiated. To dynamically create one in C++
     from an SCXML file, you can use:
 
@@ -114,7 +114,7 @@
     }
     \endqml
 
-    When you want to be notified when a state machine sends out an event, you
+    If you want to be notified when a state machine sends out an event, you
     can connect to the corresponding signal. For example, for a media player
     state machine which indicates that playback has stopped by sending an
     event, you can write:
@@ -208,6 +208,5 @@
     \list
       \li \l {Qt SCXML C++ Classes} {C++ Classes and Namespaces}
       \li \l {Qt SCXML QML Types} {QML Types}
-      \li \l{Using the Qt SCXML Compiler (qscxmlc)} {Qt SCXML Compiler (qscxmlc)}
     \endlist
 */

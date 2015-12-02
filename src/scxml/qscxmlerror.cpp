@@ -39,7 +39,7 @@ public:
 
 /*!
  * \class QScxmlError
- * \brief Describes the errors returned by the QScxmlStateMachine when parsing an Scxml file.
+ * \brief Describes the errors returned by the QScxmlStateMachine when parsing an SCXML file.
  * \since 5.6
  * \inmodule QtScxml
  *
