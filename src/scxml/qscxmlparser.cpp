@@ -28,6 +28,7 @@
 #include <QJsonObject>
 #include <QFile>
 #include <QVector>
+#include <QString>
 
 #ifndef BUILD_QSCXMLC
 #include "qscxmlnulldatamodel.h"
@@ -785,7 +786,7 @@ private:
         } else {
             parentState = currentParent();
         }
-        auto newTransition = new QScxmlTransition(parentState, toUtf8(node->events));
+        auto newTransition = new QScxmlTransition(parentState, node->events);
         parentState->addTransition(newTransition);
 #endif
 
@@ -1544,7 +1545,7 @@ void QScxmlParserPrivate::parse()
                     scxml->dataModel = DocumentModel::Scxml::CppDataModel;
                     int firstColon = datamodel.indexOf(QLatin1Char(':'));
                     if (firstColon == -1) {
-                        scxml->cppDataModelClassName = attributes.value(QStringLiteral("name")) + QStringLiteral("DataModel");
+                        scxml->cppDataModelClassName = attributes.value(QStringLiteral("name")).toString() + QStringLiteral("DataModel");
                         scxml->cppDataModelHeaderName = scxml->cppDataModelClassName + QStringLiteral(".h");
                     } else {
                         int lastColon = datamodel.lastIndexOf(QLatin1Char(':'));
