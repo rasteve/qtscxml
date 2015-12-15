@@ -166,7 +166,7 @@ QScxmlEventFilter::~QScxmlEventFilter()
 
 /*!
  * \class QScxmlStateMachine
- * \brief Event filter for a QScxmlStateMachine
+ * \brief Provides an interface to the state machines created from SCXML files.
  * \since 5.6
  * \inmodule QtScxml
  *
