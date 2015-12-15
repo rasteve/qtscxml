@@ -282,7 +282,7 @@ void TestScion::compiled()
 
 static bool verifyStates(QScxmlStateMachine *stateMachine, const QJsonObject &stateDescription, const QString &key, int counter)
 {
-    auto current = stateMachine->activeStates();
+    auto current = stateMachine->activeStateNames();
     std::sort(current.begin(), current.end());
     auto expected = getStates(stateDescription, key);
     if (current == expected)

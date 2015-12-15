@@ -565,7 +565,7 @@ void QScxmlInternal::WrappedQStateMachine::beginMicrostep(QEvent *event)
     Q_D(WrappedQStateMachine);
 
     qCDebug(qscxmlLog) << d->m_stateMachine
-                      << "started microstep from state" << d->m_stateMachine->activeStates()
+                      << "started microstep from state" << d->m_stateMachine->activeStateNames()
                       << "with event" << stateMachinePrivate()->m_event.name()
                       << "and event type" << event->type();
 }
@@ -576,7 +576,7 @@ void QScxmlInternal::WrappedQStateMachine::endMicrostep(QEvent *event)
     Q_UNUSED(event);
 
     qCDebug(qscxmlLog) << d->m_stateMachine
-                      << "finished microstep in state (" << d->m_stateMachine->activeStates() << ")";
+                      << "finished microstep in state (" << d->m_stateMachine->activeStateNames() << ")";
 }
 
 // This is a slightly modified copy of QStateMachinePrivate::event()
@@ -621,13 +621,13 @@ bool QScxmlInternal::WrappedQStateMachine::event(QEvent *e)
 void QScxmlInternal::WrappedQStateMachinePrivate::noMicrostep()
 {
     qCDebug(qscxmlLog) << m_stateMachine
-                      << "had no transition, stays in state (" << m_stateMachine->activeStates() << ")";
+                      << "had no transition, stays in state (" << m_stateMachine->activeStateNames() << ")";
 }
 
 void QScxmlInternal::WrappedQStateMachinePrivate::processedPendingEvents(bool didChange)
 {
     qCDebug(qscxmlLog) << m_stateMachine << "finishedPendingEvents" << didChange << "in state ("
-                      << m_stateMachine->activeStates() << ")";
+                      << m_stateMachine->activeStateNames() << ")";
     emit m_stateMachine->reachedStableState(didChange);
 }
 
@@ -638,7 +638,7 @@ void QScxmlInternal::WrappedQStateMachinePrivate::beginMacrostep()
 void QScxmlInternal::WrappedQStateMachinePrivate::endMacrostep(bool didChange)
 {
     qCDebug(qscxmlLog) << m_stateMachine << "endMacrostep" << didChange
-                      << "in state (" << m_stateMachine->activeStates() << ")";
+                      << "in state (" << m_stateMachine->activeStateNames() << ")";
 
     { // handle <invoke>s
         QVector<QScxmlState*> &sti = stateMachinePrivate()->m_statesToInvoke;
@@ -793,9 +793,9 @@ int QScxmlInternal::WrappedQStateMachinePrivate::eventIdForDelayedEvent(const QS
  * is true (the default), these parent states will be filtered out and only the "leaf states" will
  * be returned. Passing in false for \a compress will return the full list of active states.
  */
-QStringList QScxmlStateMachine::activeStates(bool compress)
+QStringList QScxmlStateMachine::activeStateNames(bool compress) const
 {
-    Q_D(QScxmlStateMachine);
+    Q_D(const QScxmlStateMachine);
 
     QSet<QAbstractState *> config = QStateMachinePrivate::get(d->m_qStateMachine)->configuration;
     if (compress)
