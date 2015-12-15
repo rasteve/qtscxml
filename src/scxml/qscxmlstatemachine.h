@@ -93,6 +93,7 @@ public:
     bool isRunning() const;
 
     QString name() const;
+    QStringList stateNames(bool compress = true) const;
     QStringList activeStateNames(bool compress = true) const;
     bool isActive(const QString &scxmlStateName) const;
 

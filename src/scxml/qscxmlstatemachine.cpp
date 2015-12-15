@@ -787,6 +787,34 @@ int QScxmlInternal::WrappedQStateMachinePrivate::eventIdForDelayedEvent(const QS
 }
 
 /*!
+ * \brief Retrieves a list of state names of all states.
+ *
+ * When \a compress is true (the default), the states which contain child states
+ * will be filtered out and only the "leaf states" will be returned.
+ * Passing in false for \a compress will return the full list of all states.
+ */
+QStringList QScxmlStateMachine::stateNames(bool compress) const
+{
+    Q_D(const QScxmlStateMachine);
+
+    QList<QObject *> worklist;
+    worklist.reserve(d->m_qStateMachine->children().size() + d->m_qStateMachine->configuration().size());
+    worklist.append(d->m_qStateMachine->children());
+
+    QStringList res;
+    while (!worklist.isEmpty()) {
+        QObject *obj = worklist.takeLast();
+        if (QAbstractState *state = qobject_cast<QAbstractState *>(obj)) {
+            if (!compress || !obj->children().count())
+                res.append(state->objectName());
+            worklist.append(obj->children());
+        }
+    }
+    std::sort(res.begin(), res.end());
+    return res;
+}
+
+/*!
  * \brief Retrieves a list of state names of all active states.
  *
  * When a state is active, then by definition all its parent states are active too. When \a compress

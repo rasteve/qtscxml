@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/tst_statemachine">
+        <file>test1.scxml</file>
+    </qresource>
+</RCC>
