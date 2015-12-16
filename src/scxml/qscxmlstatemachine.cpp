@@ -201,7 +201,7 @@ void QScxmlStateMachinePrivate::setQStateMachine(QScxmlInternal::WrappedQStateMa
     m_qStateMachine = stateMachine;
 }
 
-static QScxmlState *findState(const QString &scxmlName, QStateMachine *parent)
+static QAbstractState *findState(const QString &scxmlName, QStateMachine *parent)
 {
     QList<QObject *> worklist;
     worklist.reserve(parent->children().size() + parent->configuration().size());
@@ -209,7 +209,7 @@ static QScxmlState *findState(const QString &scxmlName, QStateMachine *parent)
 
     while (!worklist.isEmpty()) {
         QObject *obj = worklist.takeLast();
-        if (QScxmlState *state = qobject_cast<QScxmlState *>(obj)) {
+        if (QAbstractState *state = qobject_cast<QAbstractState *>(obj)) {
             if (state->objectName() == scxmlName)
                 return state;
         }
@@ -860,7 +860,7 @@ QMetaObject::Connection QScxmlStateMachine::connect(const QString &scxmlStateNam
                                             Qt::ConnectionType type)
 {
     Q_D(QScxmlStateMachine);
-    QScxmlState *state = findState(scxmlStateName, d->m_qStateMachine);
+    QAbstractState *state = findState(scxmlStateName, d->m_qStateMachine);
     return QObject::connect(state, signal, receiver, method, type);
 }
 

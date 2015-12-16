@@ -1,11 +1,13 @@
 <?xml version="1.0" ?>
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0"
        name="test1">
-    <state id="a">
-        <state id="a1"/>
-        <state id="a2"/>
-    </state>
-    <state id="b">
-        <final id="final"/>
-    </state>
+    <parallel id="top">
+        <state id="a">
+            <state id="a1"/>
+            <state id="a2"/>
+        </state>
+        <state id="b">
+            <final id="final"/>
+        </state>
+    </parallel>
 </scxml>
