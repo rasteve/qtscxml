@@ -161,7 +161,7 @@ QScxmlEventFilter::~QScxmlEventFilter()
 /*!
  * \fn QScxmlEventFilter::handle(QScxmlEvent *event, QScxmlStateMachine *stateMachine)
  *
- * \return Returns true when the \a event can be submitted to the \a stateMachine , false otherwise.
+ * \return true when the \a event can be submitted to the \a stateMachine , false otherwise.
  */
 
 /*!
@@ -172,6 +172,26 @@ QScxmlEventFilter::~QScxmlEventFilter()
  *
  * QScxmlStateMachine is an implementation of
  * \l{http://www.w3.org/TR/scxml/}{State Chart XML (SCXML)}.
+ *
+ * All states which are defined in the SCXML file
+ * are accessible as properties of QScxmlStateMachine.
+ * The type of these properties is a pointer to
+ * QAbstractState. Every occurience of
+ * a \c - character in the state's name inside SCXML file
+ * is replaced with \c _dash_ sequence in the property name.
+ *
+ * All external signals defined inside SCXML file,
+ * which are of "qt:signal" type, are accessible
+ * as signals of QScxmlStateMachine.
+ * The only argument of these signals
+ * is always QVariant, which is of QMap<QString, QVariant>
+ * type containing the content of all \c <param>
+ * elements specified as children of \c <send> tag.
+ * The signal names of QScxmlStateMachine
+ * correspond to those defined in SCXML file
+ * but are prefixed with \c event_, and \c -
+ * characters are escaped with \c _dash_ sequence,
+ * like in case of states' property names.
  */
 
 QAtomicInt QScxmlStateMachinePrivate::m_sessionIdCounter = QAtomicInt(0);
@@ -351,7 +371,7 @@ QScxmlStateMachine *QScxmlStateMachine::fromData(QIODevice *data, const QString 
 }
 
 /*!
- * \return Returns the list of parse errors that occurred while creating a state-machine from an
+ * \return the list of parse errors that occurred while creating a state-machine from an
  *         SCXML file.
  */
 QVector<QScxmlError> QScxmlStateMachine::parseErrors() const
@@ -467,7 +487,7 @@ bool QScxmlStateMachine::isInvoked() const
 }
 
 /*!
- * \return Returns the data-model used by the state-machine.
+ * \return the data-model used by the state-machine.
  */
 QScxmlDataModel *QScxmlStateMachine::dataModel() const
 {
@@ -499,7 +519,7 @@ QScxmlStateMachine::BindingMethod QScxmlStateMachine::dataBinding() const
 /*!
  * \internal This is used internally in order to execute the executable content.
  *
- * \return Returns the data tables used by the state-machine.
+ * \return the data tables used by the state-machine.
  */
 QScxmlTableData *QScxmlStateMachine::tableData() const
 {
@@ -512,7 +532,7 @@ QScxmlTableData *QScxmlStateMachine::tableData() const
  * \internal This is used when generating C++ from an SCXML file. The class implementing the
  * state-machine will use this method to pass in the table data (which is also generated).
  *
- * \return Returns the data tables used by the state-machine.
+ * \return the data tables used by the state-machine.
  */
 void QScxmlStateMachine::setTableData(QScxmlTableData *tableData)
 {
@@ -841,7 +861,7 @@ QStringList QScxmlStateMachine::activeStateNames(bool compress) const
 }
 
 /*!
- * \return Returns true if the state named \a scxmlStateName is active, false otherwise.
+ * \return true if the state named \a scxmlStateName is active, false otherwise.
  */
 bool QScxmlStateMachine::isActive(const QString &scxmlStateName) const
 {
@@ -855,6 +875,12 @@ bool QScxmlStateMachine::isActive(const QString &scxmlStateName) const
     return false;
 }
 
+/*!
+ * Creates a connection of the given \a type from the \a signal
+ * in the sender QAbstractState object identified by \a scxmlStateName
+ * to the \a method in the \a receiver object.
+ * \return a handle to the connection that can be used to disconnect it later.
+ */
 QMetaObject::Connection QScxmlStateMachine::connect(const QString &scxmlStateName, const char *signal,
                                             const QObject *receiver, const char *method,
                                             Qt::ConnectionType type)
@@ -865,7 +891,7 @@ QMetaObject::Connection QScxmlStateMachine::connect(const QString &scxmlStateNam
 }
 
 /*!
- * \return Returns the SCXML event filter if one is set, otherwise it returns null.
+ * \return the SCXML event filter if one is set, otherwise it returns null.
  */
 QScxmlEventFilter *QScxmlStateMachine::scxmlEventFilter() const
 {
@@ -890,7 +916,7 @@ void QScxmlStateMachine::setScxmlEventFilter(QScxmlEventFilter *newFilter)
  *
  * \param initialDataValues Any initial values for data elements as passed in by the <invoke> tag.
  *        These values will be used instead of the initial values of the <data> elements.
- * \return Returns false if there were parse errors, or if any of the initialization steps fail.
+ * \return false if there were parse errors, or if any of the initialization steps fail.
  *         Returns true otherwise.
  */
 bool QScxmlStateMachine::init(const QVariantMap &initialDataValues)
@@ -907,7 +933,7 @@ bool QScxmlStateMachine::init(const QVariantMap &initialDataValues)
 }
 
 /*!
- * \return Returns true if the state-machine is running, false otherwise.
+ * \return true if the state-machine is running, false otherwise.
  */
 bool QScxmlStateMachine::isRunning() const
 {
