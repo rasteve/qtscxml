@@ -38,31 +38,20 @@
 **
 ****************************************************************************/
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#include "pinball.h"
+#include "mainwindow.h"
 
-#include <QWidget>
+#include <QApplication>
 
-QT_BEGIN_NAMESPACE
-namespace Ui {
-class MainWindow;
-}
-class QScxmlStateMachine;
-QT_END_NAMESPACE
-
-
-class MainWindow : public QWidget
+int main(int argc, char **argv)
 {
-    Q_OBJECT
+    QApplication app(argc, argv);
 
-public:
-    explicit MainWindow(QScxmlStateMachine *machine, QWidget *parent = 0);
-    ~MainWindow();
+    Pinball machine;
+    MainWindow mainWindow(&machine);
+    machine.init();
 
-private:
-    void initAndConnect(const QString &state, QWidget *widget);
-    QT_PREPEND_NAMESPACE(Ui::MainWindow) *ui;
-    QScxmlStateMachine *m_machine;
-};
-
-#endif // MAINWINDOW_H
+    machine.start();
+    mainWindow.show();
+    return app.exec();
+}
