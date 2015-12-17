@@ -120,7 +120,7 @@
     event, you can write:
 
     \code
-    QObject::connect(stateMachine, &MediaPlayer::playbackStopped, [](){
+    QObject::connect(stateMachine, &MediaPlayer::event_playbackStopped, [](){
         qDebug() << "Stopped!";
     });
     \endcode
@@ -193,7 +193,16 @@
     The Qt SCXML implementation extends SCXML in the following ways:
 
     \list
-    \li If the event is an error event, _event.errorMessage will contain a more
+    \li For communication purposes the \c <send> tag supports an extra
+        value \c "qt:signal" accepted by the attribute \c type.
+        The generated state machine or the state machine which has loaded
+        the SCXML file dynamically will contain corresponding
+        signal, which name will consist of the \c event_ prefix
+        followed by the value of the \c event attribute inside the \c <send> tag.
+        All of the \c <param> children will be placed inside the
+        QMap<QString, QVariant> map, and this map will be passed as a
+        QVariant argument of the mentioned signal.
+    \li If the event is an error event, \c _event.errorMessage will contain a more
         detailed description of the error.
     \endlist
 
