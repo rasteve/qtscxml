@@ -47,3 +47,18 @@ SOURCES += \
     qscxmlerror.cpp \
     qscxmlinvokableservice.cpp \
     qscxmltabledata.cpp
+
+FEATURES += ../../mkspecs/features/qscxmlc.prf
+features.files = $$FEATURES
+features.path = $$[QT_HOST_DATA]/mkspecs/features/
+INSTALLS += features
+
+!force_independent:if(!debug_and_release|!build_all|CONFIG(release, debug|release)) {
+    # Copy qscxmlc.prf to the qtbase build directory (for non-installed developer builds)
+    prf2build.input = FEATURES
+    prf2build.output = $$[QT_INSTALL_DATA/get]/mkspecs/features/${QMAKE_FILE_BASE}${QMAKE_FILE_EXT}
+    prf2build.commands = $$QMAKE_COPY ${QMAKE_FILE_IN} ${QMAKE_FILE_OUT}
+    prf2build.name = COPY ${QMAKE_FILE_IN}
+    prf2build.CONFIG = no_link no_clean target_predeps
+    QMAKE_EXTRA_COMPILERS += prf2build
+}
