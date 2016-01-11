@@ -26,9 +26,18 @@
 ****************************************************************************/
 
 /*!
-    \example calculator-widgets-static
-    \title Qt SCXML: Calculator Example (Static)
+    \example calculator
+    \title Qt SCXML Calculator Example
     \ingroup examples-qtscxml
 
-    \brief Demonstrates...
+    \image calculator.png
+
+    \brief Implements the Calculator example presented in the SCXML
+    Specification.
+
+    \e {Calculator} uses Qt SCXML to implement the
+    \l{SCXML Specification - Calculator Example}{Calculator Example}
+    presented in the SCXML Specification.
+
+    \include examples-run.qdocinc
 */

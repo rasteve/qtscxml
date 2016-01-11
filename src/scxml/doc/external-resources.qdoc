@@ -28,3 +28,8 @@
     \externalpage http://www.w3.org/TR/scxml/
     \title SCXML Specification
 */
+
+/*!
+    \externalpage http://www.w3.org/TR/scxml/#N11630
+    \title SCXML Specification - Calculator Example
+*/

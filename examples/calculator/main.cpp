@@ -49,7 +49,7 @@
 ****************************************************************************/
 
 #include "calculator.h"
-#include "../calculator-common/mainwindow.h"
+#include "mainwindow.h"
 
 #include <QApplication>
 

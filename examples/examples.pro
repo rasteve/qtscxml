@@ -6,8 +6,8 @@ qtHaveModule(widgets) {
     SUBDIRS +=  trafficlight-widgets-dynamic
     SUBDIRS +=  mediaplayer-widgets-static
     SUBDIRS +=  mediaplayer-widgets-dynamic
+    SUBDIRS +=  calculator
     SUBDIRS +=  pinball
-    SUBDIRS +=  calculator-widgets-static
 }
 
 qtHaveModule(qml) {
