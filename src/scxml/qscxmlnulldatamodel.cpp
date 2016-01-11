@@ -208,7 +208,7 @@ void QScxmlNullDataModel::setEvent(const QScxmlEvent &event)
 
 /*!
  * \brief The null data-model does not support properties.
- * \return Returns an invalid variant.
+ * \return an invalid variant.
  */
 QVariant QScxmlNullDataModel::property(const QString &name) const
 {
@@ -218,7 +218,7 @@ QVariant QScxmlNullDataModel::property(const QString &name) const
 
 /*!
  * \brief The null data-model does not support properties.
- * \return Returns false.
+ * \return false.
  */
 bool QScxmlNullDataModel::hasProperty(const QString &name) const
 {
@@ -228,7 +228,7 @@ bool QScxmlNullDataModel::hasProperty(const QString &name) const
 
 /*!
  * \brief The null data-model does not support properties.
- * \return Returns false.
+ * \return false.
  */
 bool QScxmlNullDataModel::setProperty(const QString &name, const QVariant &value, const QString &context)
 {

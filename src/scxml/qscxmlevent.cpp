@@ -266,7 +266,7 @@ QScxmlEvent::~QScxmlEvent()
 }
 
 /*!
- * \return Returns the event type.
+ * \return the event type.
  */
 QString QScxmlEvent::scxmlType() const
 {

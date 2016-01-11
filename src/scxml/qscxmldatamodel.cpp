@@ -139,7 +139,7 @@ void QScxmlDataModelPrivate::setStateMachine(QScxmlStateMachine *stateMachine)
 /*!
  * \fn QScxmlDataModel::hasProperty(const QString &name) const
  *
- * \return Returns true if a property with the given \a name exists, false otherwise.
+ * \return true if a property with the given \a name exists, false otherwise.
  */
 
 /*!
@@ -151,5 +151,5 @@ void QScxmlDataModelPrivate::setStateMachine(QScxmlStateMachine *stateMachine)
  * \param value The new value for the property.
  * \param context A string that is used in error messages to indicate a location in the SCXML file
  *        where the error occurred.
- * \return Returns true if successful, otherwise false if any error occurred.
+ * \return true if successful, otherwise false if any error occurred.
  */

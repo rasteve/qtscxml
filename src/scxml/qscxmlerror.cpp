@@ -126,7 +126,7 @@ QScxmlError::~QScxmlError()
 }
 
 /*!
- * \return Returns true when the error is valid, false otherwise. An invalid error can only be
+ * \return true when the error is valid, false otherwise. An invalid error can only be
  *         created by calling the default constructor, or by assigning an invalid error.
  */
 bool QScxmlError::isValid() const

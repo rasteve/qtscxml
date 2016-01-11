@@ -997,7 +997,7 @@ QScxmlParser::~QScxmlParser()
 }
 
 /*!
- * \return Returns the file name associated with the current input.
+ * \return the file name associated with the current input.
  */
 QString QScxmlParser::fileName() const
 {
@@ -1086,7 +1086,7 @@ void QScxmlParser::instantiateDataModel(QScxmlStateMachine *stateMachine) const
 }
 
 /*!
- * \return Returns the current parser state.
+ * \return the current parser state.
  */
 QScxmlParser::State QScxmlParser::state() const
 {
@@ -1094,7 +1094,7 @@ QScxmlParser::State QScxmlParser::state() const
 }
 
 /*!
- * \return Returns the list of parse errors.
+ * \return the list of parse errors.
  */
 QVector<QScxmlError> QScxmlParser::errors() const
 {
@@ -1405,7 +1405,7 @@ QScxmlParser::Loader::~Loader()
 {}
 
 /*!
- * \return Returns the parser to which this loader is associated.
+ * \return the parser to which this loader is associated.
  */
 QScxmlParser *QScxmlParser::Loader::parser() const
 {
@@ -1414,10 +1414,10 @@ QScxmlParser *QScxmlParser::Loader::parser() const
 
 /*!
  * \fn QScxmlParser::Loader::load(const QString &name, const QString &baseDir, bool *ok)
- * \param name The URI to resolve & load.
+ * \param name The URI to resolve and load from.
  * \param baseDir The directory of the SCXML file that is being parsed.
  * \param ok A boolean to indicate whether loading was successful or not.
- * \return Returns a QByteArray with the contents of the file.
+ * \return a QByteArray with the contents of the file.
  */
 
 QScxmlParserPrivate *QScxmlParserPrivate::get(QScxmlParser *parser)
