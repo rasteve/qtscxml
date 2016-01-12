@@ -54,12 +54,18 @@ void tst_StateMachine::stateNames_data()
     QTest::addColumn<bool>("compressed");
     QTest::addColumn<QStringList>("expectedStates");
 
-    QTest::newRow("test1-compressed") << QString(":/tst_statemachine/test1.scxml")
+    QTest::newRow("stateNames-compressed") << QString(":/tst_statemachine/statenames.scxml")
                                       << true
                                       << (QStringList() << QString("a1") << QString("a2") << QString("final"));
-    QTest::newRow("test1-not-compressed") << QString(":/tst_statemachine/test1.scxml")
+    QTest::newRow("stateNames-notCompressed") << QString(":/tst_statemachine/statenames.scxml")
                                       << false
                                       << (QStringList() << QString("a") << QString("a1") << QString("a2") << QString("b") << QString("final") << QString("top"));
+    QTest::newRow("stateNamesNested-compressed") << QString(":/tst_statemachine/statenamesnested.scxml")
+                                      << true
+                                      << (QStringList() << QString("a") << QString("b"));
+    QTest::newRow("stateNamesNested-notCompressed") << QString(":/tst_statemachine/statenamesnested.scxml")
+                                      << false
+                                      << (QStringList() << QString("a") << QString("b") << QString("super_top"));
 }
 
 void tst_StateMachine::stateNames()
@@ -70,6 +76,7 @@ void tst_StateMachine::stateNames()
 
     QScopedPointer<QScxmlStateMachine> stateMachine(QScxmlStateMachine::fromFile(scxmlFileName));
     QVERIFY(!stateMachine.isNull());
+    QVERIFY(!stateMachine->parseErrors().count());
 
     QCOMPARE(stateMachine->stateNames(compressed), expectedStates);
 }
@@ -80,12 +87,18 @@ void tst_StateMachine::activeStateNames_data()
     QTest::addColumn<bool>("compressed");
     QTest::addColumn<QStringList>("expectedStates");
 
-    QTest::newRow("test1-compressed") << QString(":/tst_statemachine/test1.scxml")
+    QTest::newRow("stateNames-compressed") << QString(":/tst_statemachine/statenames.scxml")
                                       << true
                                       << (QStringList() << QString("a1") << QString("final"));
-    QTest::newRow("test1-not-compressed") << QString(":/tst_statemachine/test1.scxml")
+    QTest::newRow("stateNames-notCompressed") << QString(":/tst_statemachine/statenames.scxml")
                                       << false
                                       << (QStringList() << QString("a") << QString("a1") << QString("b") << QString("final") << QString("top"));
+    QTest::newRow("stateNamesNested-compressed") << QString(":/tst_statemachine/statenamesnested.scxml")
+                                      << true
+                                      << (QStringList() << QString("a")<< QString("b"));
+    QTest::newRow("stateNamesNested-notCompressed") << QString(":/tst_statemachine/statenamesnested.scxml")
+                                      << false
+                                      << (QStringList() << QString("a") << QString("b") << QString("super_top"));
 }
 
 void tst_StateMachine::activeStateNames()
@@ -109,7 +122,7 @@ void tst_StateMachine::activeStateNames()
 
 void tst_StateMachine::connectToFinal()
 {
-    QScopedPointer<QScxmlStateMachine> stateMachine(QScxmlStateMachine::fromFile(QString(":/tst_statemachine/test1.scxml")));
+    QScopedPointer<QScxmlStateMachine> stateMachine(QScxmlStateMachine::fromFile(QString(":/tst_statemachine/statenames.scxml")));
     QVERIFY(!stateMachine.isNull());
 
     QState dummy;

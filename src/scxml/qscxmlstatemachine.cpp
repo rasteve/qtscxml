@@ -852,6 +852,8 @@ int QScxmlInternal::WrappedQStateMachinePrivate::eventIdForDelayedEvent(const QS
  * When \a compress is true (the default), the states which contain child states
  * will be filtered out and only the "leaf states" will be returned.
  * Passing in false for \a compress will return the full list of all states.
+ *
+ * The returned list doesn't contain states of possible sub state machines.
  */
 QStringList QScxmlStateMachine::stateNames(bool compress) const
 {
