@@ -19,6 +19,7 @@
 **
 ******************************************************************************/
 
+#include "qscxmlglobals_p.h"
 #include "qscxmlexecutablecontent_p.h"
 #include "qscxmlparser_p.h"
 #include "qscxmlevent_p.h"

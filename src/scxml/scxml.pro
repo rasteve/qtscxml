@@ -15,6 +15,7 @@ HEADERS += \
     qscxmlstatemachine.h \
     qscxmlstatemachine_p.h \
     qscxmlglobals.h \
+    qscxmlglobals_p.h \
     qscxmlnulldatamodel.h \
     qscxmlecmascriptdatamodel.h \
     qscxmlecmascriptplatformproperties_p.h \

@@ -19,6 +19,7 @@
 **
 ******************************************************************************/
 
+#include "qscxmlglobals_p.h"
 #include "qscxmlecmascriptdatamodel.h"
 #include "qscxmlecmascriptplatformproperties_p.h"
 #include "qscxmlexecutablecontent_p.h"

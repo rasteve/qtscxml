@@ -29,17 +29,13 @@
 
 #include <QString>
 #include <QVector>
-#include <QLoggingCategory>
 #include <QUrl>
 #include <QVariantList>
 
 QT_BEGIN_NAMESPACE
+class QIODevice;
 class QXmlStreamWriter;
 class QTextStream;
-
-Q_SCXML_EXPORT Q_DECLARE_LOGGING_CATEGORY(qscxmlLog)
-Q_SCXML_EXPORT Q_DECLARE_LOGGING_CATEGORY(scxmlLog)
-
 class QScxmlEventBuilder;
 class QScxmlInvokableServiceFactory;
 class QScxmlInvokableService;

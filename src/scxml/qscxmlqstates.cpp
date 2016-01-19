@@ -19,6 +19,7 @@
 **
 ******************************************************************************/
 
+#include "qscxmlglobals_p.h"
 #include "qscxmlqstates_p.h"
 #include "qscxmlstatemachine_p.h"
 
