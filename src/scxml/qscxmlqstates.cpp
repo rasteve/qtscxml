@@ -49,12 +49,6 @@
 
 QT_BEGIN_NAMESPACE
 
-class QScxmlBaseTransition::Data
-{
-public:
-    QStringList eventSelector;
-};
-
 static QStringList filterEmpty(const QStringList &events) {
     QStringList res;
     int oldI = 0;
@@ -71,20 +65,27 @@ static QStringList filterEmpty(const QStringList &events) {
     return events;
 }
 
+QScxmlStatePrivate::QScxmlStatePrivate()
+    : initInstructions(QScxmlExecutableContent::NoInstruction)
+    , onEntryInstructions(QScxmlExecutableContent::NoInstruction)
+    , onExitInstructions(QScxmlExecutableContent::NoInstruction)
+{}
+
+QScxmlStatePrivate::~QScxmlStatePrivate()
+{
+    qDeleteAll(invokableServiceFactories);
+}
+
 QScxmlState::QScxmlState(QState *parent)
-    : QState(parent)
-    , d(new QScxmlStatePrivate(this))
+    : QState(*new QScxmlStatePrivate, parent)
 {}
 
 QScxmlState::QScxmlState(QScxmlStateMachine *parent)
-    : QState(QScxmlStateMachinePrivate::get(parent)->m_qStateMachine)
-    , d(new QScxmlStatePrivate(this))
+    : QState(*new QScxmlStatePrivate, QScxmlStateMachinePrivate::get(parent)->m_qStateMachine)
 {}
 
 QScxmlState::~QScxmlState()
-{
-    delete d;
-}
+{}
 
 void QScxmlState::setAsInitialStateFor(QScxmlState *state)
 {
@@ -107,26 +108,32 @@ QString QScxmlState::stateLocation() const
 
 void QScxmlState::setInitInstructions(QScxmlExecutableContent::ContainerId instructions)
 {
+    Q_D(QScxmlState);
     d->initInstructions = instructions;
 }
 
 void QScxmlState::setOnEntryInstructions(QScxmlExecutableContent::ContainerId instructions)
 {
+    Q_D(QScxmlState);
     d->onEntryInstructions = instructions;
 }
 
 void QScxmlState::setOnExitInstructions(QScxmlExecutableContent::ContainerId instructions)
 {
+    Q_D(QScxmlState);
     d->onExitInstructions = instructions;
 }
 
 void QScxmlState::setInvokableServiceFactories(const QVector<QScxmlInvokableServiceFactory *> &factories)
 {
+    Q_D(QScxmlState);
     d->invokableServiceFactories = factories;
 }
 
 void QScxmlState::onEntry(QEvent *event)
 {
+    Q_D(QScxmlState);
+
     auto sp = QScxmlStateMachinePrivate::get(stateMachine());
     if (d->initInstructions != QScxmlExecutableContent::NoInstruction) {
         sp->m_executionEngine->execute(d->initInstructions);
@@ -147,26 +154,33 @@ void QScxmlState::onEntry(QEvent *event)
 
 void QScxmlState::onExit(QEvent *event)
 {
+    Q_D(QScxmlState);
+
     emit willExit();
     auto sm = stateMachine();
     QScxmlStateMachinePrivate::get(sm)->m_executionEngine->execute(d->onExitInstructions);
     QState::onExit(event);
 }
 
+QScxmlFinalStatePrivate::QScxmlFinalStatePrivate()
+    : doneData(QScxmlExecutableContent::NoInstruction)
+    , onEntryInstructions(QScxmlExecutableContent::NoInstruction)
+    , onExitInstructions(QScxmlExecutableContent::NoInstruction)
+{}
+
+QScxmlFinalStatePrivate::~QScxmlFinalStatePrivate()
+{}
+
 QScxmlFinalState::QScxmlFinalState(QState *parent)
-    : QFinalState(parent)
-    , d(new Data)
+    : QFinalState(*new QScxmlFinalStatePrivate, parent)
 {}
 
 QScxmlFinalState::QScxmlFinalState(QScxmlStateMachine *parent)
-    : QFinalState(QScxmlStateMachinePrivate::get(parent)->m_qStateMachine)
-    , d(new Data)
+    : QFinalState(*new QScxmlFinalStatePrivate, QScxmlStateMachinePrivate::get(parent)->m_qStateMachine)
 {}
 
 QScxmlFinalState::~QScxmlFinalState()
-{
-    delete d;
-}
+{}
 
 void QScxmlFinalState::setAsInitialStateFor(QScxmlState *state)
 {
@@ -184,26 +198,32 @@ QScxmlStateMachine *QScxmlFinalState::stateMachine() const {
 
 QScxmlExecutableContent::ContainerId QScxmlFinalState::doneData() const
 {
+    Q_D(const QScxmlFinalState);
     return d->doneData;
 }
 
 void QScxmlFinalState::setDoneData(QScxmlExecutableContent::ContainerId doneData)
 {
+    Q_D(QScxmlFinalState);
     d->doneData = doneData;
 }
 
 void QScxmlFinalState::setOnEntryInstructions(QScxmlExecutableContent::ContainerId instructions)
 {
+    Q_D(QScxmlFinalState);
     d->onEntryInstructions = instructions;
 }
 
 void QScxmlFinalState::setOnExitInstructions(QScxmlExecutableContent::ContainerId instructions)
 {
+    Q_D(QScxmlFinalState);
     d->onExitInstructions = instructions;
 }
 
 void QScxmlFinalState::onEntry(QEvent *event)
 {
+    Q_D(QScxmlFinalState);
+
     QFinalState::onEntry(event);
     auto smp = QScxmlStateMachinePrivate::get(stateMachine());
     smp->m_executionEngine->execute(d->onEntryInstructions);
@@ -211,29 +231,29 @@ void QScxmlFinalState::onEntry(QEvent *event)
 
 void QScxmlFinalState::onExit(QEvent *event)
 {
+    Q_D(QScxmlFinalState);
+
     QFinalState::onExit(event);
     QScxmlStateMachinePrivate::get(stateMachine())->m_executionEngine->execute(d->onExitInstructions);
 }
 
 QScxmlBaseTransition::QScxmlBaseTransition(QState *sourceState, const QStringList &eventSelector)
-    : QAbstractTransition(sourceState)
-    , d(new Data)
+    : QAbstractTransition(*new QScxmlBaseTransitionPrivate, sourceState)
 {
+    Q_D(QScxmlBaseTransition);
     d->eventSelector = eventSelector;
 }
 
-QScxmlBaseTransition::QScxmlBaseTransition(QAbstractTransitionPrivate &dd, QState *parent,
+QScxmlBaseTransition::QScxmlBaseTransition(QScxmlBaseTransitionPrivate &dd, QState *parent,
                                            const QStringList &eventSelector)
     : QAbstractTransition(dd, parent)
-    , d(new Data)
 {
+    Q_D(QScxmlBaseTransition);
     d->eventSelector = eventSelector;
 }
 
 QScxmlBaseTransition::~QScxmlBaseTransition()
-{
-    delete d;
-}
+{}
 
 QScxmlStateMachine *QScxmlBaseTransition::stateMachine() const {
     if (QScxmlInternal::WrappedQStateMachine *t = qobject_cast<QScxmlInternal::WrappedQStateMachine *>(parent()))
@@ -255,6 +275,8 @@ QString QScxmlBaseTransition::transitionLocation() const {
 
 bool QScxmlBaseTransition::eventTest(QEvent *event)
 {
+    Q_D(QScxmlBaseTransition);
+
     if (d->eventSelector.isEmpty())
         return true;
     if (event->type() == QEvent::None)
@@ -287,32 +309,24 @@ void QScxmlBaseTransition::onTransition(QEvent *event)
     Q_UNUSED(event);
 }
 
-class QScxmlTransition::Data
-{
-public:
-    Data()
-        : conditionalExp(QScxmlExecutableContent::NoEvaluator)
-        , instructionsOnTransition(QScxmlExecutableContent::NoInstruction)
-    {}
+QScxmlTransitionPrivate::QScxmlTransitionPrivate()
+    : conditionalExp(QScxmlExecutableContent::NoEvaluator)
+    , instructionsOnTransition(QScxmlExecutableContent::NoInstruction)
+{}
 
-    QScxmlExecutableContent::EvaluatorId conditionalExp;
-    QScxmlExecutableContent::ContainerId instructionsOnTransition;
-};
+QScxmlTransitionPrivate::~QScxmlTransitionPrivate()
+{}
 
 QScxmlTransition::QScxmlTransition(QState *sourceState, const QStringList &eventSelector)
-    : QScxmlBaseTransition(sourceState, filterEmpty(eventSelector))
-    , d(new Data)
+    : QScxmlBaseTransition(*new QScxmlTransitionPrivate, sourceState, filterEmpty(eventSelector))
 {}
 
 QScxmlTransition::QScxmlTransition(const QStringList &eventSelector)
-    : QScxmlBaseTransition(Q_NULLPTR, filterEmpty(eventSelector))
-    , d(new Data)
+    : QScxmlBaseTransition(*new QScxmlTransitionPrivate, Q_NULLPTR, filterEmpty(eventSelector))
 {}
 
 QScxmlTransition::~QScxmlTransition()
-{
-    delete d;
-}
+{}
 
 void QScxmlTransition::addTransitionTo(QScxmlState *state)
 {
@@ -326,6 +340,8 @@ void QScxmlTransition::addTransitionTo(QScxmlStateMachine *stateMachine)
 
 bool QScxmlTransition::eventTest(QEvent *event)
 {
+    Q_D(QScxmlTransition);
+
 #ifdef DUMP_EVENT
     if (auto edm = dynamic_cast<QScxmlEcmaScriptDataModel *>(stateMachine()->dataModel()))
         qCDebug(qscxmlLog) << qPrintable(edm->engine()->evaluate(QLatin1String("JSON.stringify(_event)")).toString());
@@ -343,6 +359,8 @@ bool QScxmlTransition::eventTest(QEvent *event)
 
 void QScxmlTransition::onTransition(QEvent *)
 {
+    Q_D(QScxmlTransition);
+
     QScxmlStateMachinePrivate::get(stateMachine())->m_executionEngine->execute(d->instructionsOnTransition);
 }
 
@@ -355,11 +373,13 @@ QScxmlStateMachine *QScxmlTransition::stateMachine() const {
 
 void QScxmlTransition::setInstructionsOnTransition(QScxmlExecutableContent::ContainerId instructions)
 {
+    Q_D(QScxmlTransition);
     d->instructionsOnTransition = instructions;
 }
 
 void QScxmlTransition::setConditionalExpression(QScxmlExecutableContent::EvaluatorId evaluator)
 {
+    Q_D(QScxmlTransition);
     d->conditionalExp = evaluator;
 }
 

@@ -52,25 +52,22 @@
 //
 
 #include <QtScxml/qscxmlqstates.h>
+#include <QtCore/private/qabstracttransition_p.h>
+#include <QtCore/private/qstate_p.h>
+#include <QtCore/private/qfinalstate_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QScxmlStatePrivate
+class QScxmlStatePrivate: public QStatePrivate
 {
+    Q_DECLARE_PUBLIC(QScxmlState)
+
 public:
-    static QScxmlStatePrivate *get(QScxmlState *s) { return s->d; }
+    static QScxmlStatePrivate *get(QScxmlState *s) { return s ? s->d_func() : nullptr; }
 
-    QScxmlStatePrivate(QScxmlState *state)
-        : m_state(state)
-        , initInstructions(QScxmlExecutableContent::NoInstruction)
-        , onEntryInstructions(QScxmlExecutableContent::NoInstruction)
-        , onExitInstructions(QScxmlExecutableContent::NoInstruction)
-    {}
+    QScxmlStatePrivate();
+    ~QScxmlStatePrivate();
 
-    ~QScxmlStatePrivate()
-    { qDeleteAll(invokableServiceFactories); }
-
-    QScxmlState *m_state;
     QScxmlExecutableContent::ContainerId initInstructions;
     QScxmlExecutableContent::ContainerId onEntryInstructions;
     QScxmlExecutableContent::ContainerId onExitInstructions;
@@ -79,20 +76,37 @@ public:
     QVector<QScxmlInvokableService *> servicesWaitingToStart;
 };
 
-class QScxmlFinalState::Data
+class QScxmlFinalStatePrivate: public QFinalStatePrivate
 {
-public:
-    static Data *get(QScxmlFinalState *s) { return s->d; }
+    Q_DECLARE_PUBLIC(QScxmlFinalState)
 
-    Data()
-        : doneData(QScxmlExecutableContent::NoInstruction)
-        , onEntryInstructions(QScxmlExecutableContent::NoInstruction)
-        , onExitInstructions(QScxmlExecutableContent::NoInstruction)
-    {}
+public:
+    static QScxmlFinalStatePrivate *get(QScxmlFinalState *s) { return s ? s->d_func() : nullptr; }
+
+    QScxmlFinalStatePrivate();
+    ~QScxmlFinalStatePrivate();
 
     QScxmlExecutableContent::ContainerId doneData;
     QScxmlExecutableContent::ContainerId onEntryInstructions;
     QScxmlExecutableContent::ContainerId onExitInstructions;
+};
+
+class QScxmlBaseTransitionPrivate: public QAbstractTransitionPrivate
+{
+    Q_DECLARE_PUBLIC(QScxmlBaseTransition)
+
+public:
+    QStringList eventSelector;
+};
+
+class QScxmlTransitionPrivate: public QScxmlBaseTransitionPrivate
+{
+public:
+    QScxmlTransitionPrivate();
+    ~QScxmlTransitionPrivate();
+
+    QScxmlExecutableContent::EvaluatorId conditionalExp;
+    QScxmlExecutableContent::ContainerId instructionsOnTransition;
 };
 
 QT_END_NAMESPACE

@@ -780,7 +780,7 @@ void QScxmlInternal::WrappedQStateMachinePrivate::exitInterpreter()
         QScxmlExecutableContent::ContainerId onExitInstructions = QScxmlExecutableContent::NoInstruction;
         if (QScxmlFinalState *finalState = qobject_cast<QScxmlFinalState *>(s)) {
             stateMachinePrivate()->m_executionEngine->execute(finalState->doneData(), QVariant());
-            onExitInstructions = QScxmlFinalState::Data::get(finalState)->onExitInstructions;
+            onExitInstructions = QScxmlFinalStatePrivate::get(finalState)->onExitInstructions;
         } else if (QScxmlState *state = qobject_cast<QScxmlState *>(s)) {
             onExitInstructions = QScxmlStatePrivate::get(state)->onExitInstructions;
         }

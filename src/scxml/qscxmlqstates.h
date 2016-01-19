@@ -101,16 +101,15 @@ protected:
     void onExit(QEvent * event) Q_DECL_OVERRIDE;
 
 private:
-    friend class QScxmlStatePrivate;
-    QScxmlStatePrivate *d;
+    Q_DECLARE_PRIVATE(QScxmlState)
 };
 
+class QScxmlFinalStatePrivate;
 class Q_SCXML_EXPORT QScxmlFinalState: public QFinalState
 {
     Q_OBJECT
-public:
-    class Data;
 
+public:
     QScxmlFinalState(QState *parent = Q_NULLPTR);
     QScxmlFinalState(QScxmlStateMachine *parent);
     ~QScxmlFinalState();
@@ -131,9 +130,10 @@ protected:
     void onExit(QEvent * event) Q_DECL_OVERRIDE;
 
 private:
-    Data *d;
+    Q_DECLARE_PRIVATE(QScxmlFinalState)
 };
 
+class QScxmlBaseTransitionPrivate;
 class Q_SCXML_EXPORT QScxmlBaseTransition: public QAbstractTransition
 {
     Q_OBJECT
@@ -141,8 +141,6 @@ class Q_SCXML_EXPORT QScxmlBaseTransition: public QAbstractTransition
 
 public:
     QScxmlBaseTransition(QState * sourceState = Q_NULLPTR,
-                         const QStringList &eventSelector = QStringList());
-    QScxmlBaseTransition(QAbstractTransitionPrivate &dd, QState *parent,
                          const QStringList &eventSelector = QStringList());
     ~QScxmlBaseTransition();
 
@@ -154,14 +152,17 @@ public:
 protected:
     void onTransition(QEvent *event) Q_DECL_OVERRIDE;
 
+    QScxmlBaseTransition(QScxmlBaseTransitionPrivate &dd, QState *parent,
+                         const QStringList &eventSelector = QStringList());
+
 private:
-    Data *d;
+    Q_DECLARE_PRIVATE(QScxmlBaseTransition)
 };
 
+class QScxmlTransitionPrivate;
 class Q_SCXML_EXPORT QScxmlTransition: public QScxmlBaseTransition
 {
     Q_OBJECT
-    class Data;
 
 public:
     QScxmlTransition(QState * sourceState = Q_NULLPTR,
@@ -182,7 +183,7 @@ protected:
     void onTransition(QEvent *event) Q_DECL_OVERRIDE;
 
 private:
-    Data *d;
+    Q_DECLARE_PRIVATE(QScxmlTransition)
 };
 
 QT_END_NAMESPACE
