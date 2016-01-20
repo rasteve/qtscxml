@@ -56,6 +56,15 @@ class QScxmlEventPrivate;
 
 class Q_SCXML_EXPORT QScxmlEvent: public QEvent
 {
+    Q_GADGET
+    Q_PROPERTY(QString name READ name CONSTANT)
+    Q_PROPERTY(QString eventType READ scxmlType CONSTANT)
+    Q_PROPERTY(QString sendId READ sendId CONSTANT)
+    Q_PROPERTY(QString origin READ origin CONSTANT)
+    Q_PROPERTY(QString originType READ originType CONSTANT)
+    Q_PROPERTY(QString invokeId READ invokeId CONSTANT)
+    Q_PROPERTY(QVariant data READ data CONSTANT)
+
 public:
     QScxmlEvent();
     ~QScxmlEvent();
