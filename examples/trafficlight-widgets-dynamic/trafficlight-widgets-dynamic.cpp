@@ -40,9 +40,9 @@
 
 #include "../trafficlight-common/trafficlight.h"
 
-#include <QScxmlNullDataModel>
-
 #include <QApplication>
+#include <QScxmlNullDataModel>
+#include <QTextStream>
 
 int main(int argc, char **argv)
 {
