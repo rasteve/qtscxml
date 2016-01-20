@@ -408,11 +408,13 @@ struct ScxmlDocument
     QVector<Node *> allNodes;
     QVector<InstructionSequence *> allSequences;
     QVector<ScxmlDocument *> allSubDocuments; // weak pointers
+    bool qtMode;
     bool isVerified;
 
     ScxmlDocument(const QString &fileName)
         : fileName(fileName)
         , root(Q_NULLPTR)
+        , qtMode(false)
         , isVerified(false)
     {}
 

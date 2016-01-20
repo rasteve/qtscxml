@@ -50,6 +50,7 @@
 **
 ****************************************************************************/
 -->
+<!-- enable-qt-mode: yes -->
 <scxml
     xmlns="http://www.w3.org/2005/07/scxml"
     xmlns:qt="http://theqtcompany.com/scxml/2015/06/"
@@ -60,32 +61,32 @@
     <state id="working" initial="yellow">
         <state id="red">
             <onentry>
-                <send event="start-going-green" delay="3s"/>
+                <send event="startGoingGreen" delay="3s"/>
             </onentry>
-            <transition event="start-going-green" target="redGoingGreen"/>
+            <transition event="startGoingGreen" target="redGoingGreen"/>
         </state>
 
         <state id="yellow" initial="greenGoingRed">
             <state id="redGoingGreen">
                 <onentry>
-                    <send event="go-green" delay="1s"/>
+                    <send event="goGreen" delay="1s"/>
                 </onentry>
-                <transition event="go-green" target="green"/>
+                <transition event="goGreen" target="green"/>
             </state>
 
             <state id="greenGoingRed">
                 <onentry>
-                    <send event="go-red" delay="1s"/>
+                    <send event="goRed" delay="1s"/>
                 </onentry>
-                <transition event="go-red" target="red"/>
+                <transition event="goRed" target="red"/>
             </state>
         </state>
 
         <state id="green">
             <onentry>
-                <send event="start-going-red" delay="3s"/>
+                <send event="startGoingRed" delay="3s"/>
             </onentry>
-            <transition event="start-going-red" target="greenGoingRed"/>
+            <transition event="startGoingRed" target="greenGoingRed"/>
         </state>
 
         <transition event="smash" target="broken"/>
@@ -96,10 +97,10 @@
             <onentry>
                 <send event="unblink" delay="1s"/>
             </onentry>
-            <transition event="unblink" target="not-blinking"/>
+            <transition event="unblink" target="unblinking"/>
         </state>
 
-        <state id="not-blinking">
+        <state id="unblinking">
             <onentry>
                 <send event="blink" delay="1s"/>
             </onentry>

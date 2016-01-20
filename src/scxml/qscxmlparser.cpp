@@ -143,6 +143,10 @@ private:
     {
         Q_ASSERT(state->initialStates.isEmpty());
 
+        if (m_doc->qtMode && !isValidCppIdentifier(state->id)) {
+            error(state->xmlLocation,  QStringLiteral("state id '%1' is not a valid C++ identifier in Qt mode").arg(state->id));
+        }
+
         if (state->initial.isEmpty()) {
             if (auto firstChild = firstAbstractState(state)) {
                 state->initialStates += firstChild;
@@ -253,6 +257,10 @@ private:
 
     bool visit(DocumentModel::Send *node) Q_DECL_OVERRIDE
     {
+        if (m_doc->qtMode && node->type == QStringLiteral("qt:signal") && !isValidCppIdentifier(node->event)) {
+            error(node->xmlLocation,  QStringLiteral("event name '%1' is not a valid C++ identifier in Qt mode").arg(node->event));
+        }
+
         checkExpr(node->xmlLocation, QStringLiteral("send"), QStringLiteral("eventexpr"), node->eventexpr);
         return true;
     }
@@ -335,6 +343,115 @@ private:
         }
 
         return Q_NULLPTR;
+    }
+
+    static bool isValidCppIdentifier(const QString &str)
+    {
+        static const QStringList keywords = QStringList()
+                << QStringLiteral("alignas")
+                << QStringLiteral("alignof")
+                << QStringLiteral("asm")
+                << QStringLiteral("auto")
+                << QStringLiteral("bool")
+                << QStringLiteral("break")
+                << QStringLiteral("case")
+                << QStringLiteral("catch")
+                << QStringLiteral("char")
+                << QStringLiteral("char16_t")
+                << QStringLiteral("char32_t")
+                << QStringLiteral("class")
+                << QStringLiteral("const")
+                << QStringLiteral("constexpr")
+                << QStringLiteral("const_cast")
+                << QStringLiteral("continue")
+                << QStringLiteral("decltype")
+                << QStringLiteral("default")
+                << QStringLiteral("delete")
+                << QStringLiteral("double")
+                << QStringLiteral("do")
+                << QStringLiteral("dynamic_cast")
+                << QStringLiteral("else")
+                << QStringLiteral("enum")
+                << QStringLiteral("explicit")
+                << QStringLiteral("export")
+                << QStringLiteral("extern")
+                << QStringLiteral("false")
+                << QStringLiteral("float")
+                << QStringLiteral("for")
+                << QStringLiteral("friend")
+                << QStringLiteral("goto")
+                << QStringLiteral("if")
+                << QStringLiteral("inline")
+                << QStringLiteral("int")
+                << QStringLiteral("long")
+                << QStringLiteral("mutable")
+                << QStringLiteral("namespace")
+                << QStringLiteral("new")
+                << QStringLiteral("noexcept")
+                << QStringLiteral("nullptr")
+                << QStringLiteral("operator")
+                << QStringLiteral("private")
+                << QStringLiteral("protected")
+                << QStringLiteral("public")
+                << QStringLiteral("register")
+                << QStringLiteral("reinterpret_cast")
+                << QStringLiteral("return")
+                << QStringLiteral("short")
+                << QStringLiteral("signed")
+                << QStringLiteral("sizeof")
+                << QStringLiteral("static")
+                << QStringLiteral("static_assert")
+                << QStringLiteral("static_cast")
+                << QStringLiteral("struct")
+                << QStringLiteral("switch")
+                << QStringLiteral("template")
+                << QStringLiteral("this")
+                << QStringLiteral("thread_local")
+                << QStringLiteral("throw")
+                << QStringLiteral("true")
+                << QStringLiteral("try")
+                << QStringLiteral("typedef")
+                << QStringLiteral("typeid")
+                << QStringLiteral("typename")
+                << QStringLiteral("union")
+                << QStringLiteral("unsigned")
+                << QStringLiteral("using")
+                << QStringLiteral("virtual")
+                << QStringLiteral("void")
+                << QStringLiteral("volatile")
+                << QStringLiteral("wchar_t")
+                << QStringLiteral("while");
+
+        if (keywords.contains(str)) {
+            return false;
+        }
+
+        auto isNonDigit = [](QChar ch) -> bool {
+            return (ch >= QLatin1Char('A') && ch <= QLatin1Char('Z'))
+                    || (ch >= QLatin1Char('a') && ch <= QLatin1Char('z'))
+                    || (ch == QLatin1Char('_'));
+        };
+
+        QChar ch = str.at(0);
+        if (!isNonDigit(ch)) {
+            return false;
+        }
+        for (int i = 1, ei = str.size(); i != ei; ++i) {
+            ch = str.at(i);
+            if (!isNonDigit(ch) && !ch.isDigit()) {
+                return false;
+            }
+        }
+
+        if (str.startsWith(QLatin1Char('_')) && str.size() > 1) {
+            QChar ch = str.at(1);
+            if (ch == QLatin1Char('_')
+                    || (ch >= QLatin1Char('A') && ch <= QLatin1Char('Z'))) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
 private:
@@ -1487,6 +1604,16 @@ void QScxmlParserPrivate::parseSubDocument(DocumentModel::Invoke *parentInvoke, 
         m_state = QScxmlParser::ParsingError;
 }
 
+static bool isWordEnd(const QStringRef &str, int start)
+{
+    if (str.size() <= start) {
+        return true;
+    }
+
+    QChar ch = str.at(start);
+    return ch.isSpace();
+}
+
 void QScxmlParserPrivate::parse()
 {
     m_doc.reset(new DocumentModel::ScxmlDocument(fileName()));
@@ -1495,6 +1622,29 @@ void QScxmlParserPrivate::parse()
     while (!m_reader->atEnd()) {
         QXmlStreamReader::TokenType tt = m_reader->readNext();
         switch (tt) {
+        case QXmlStreamReader::Comment: {
+            static const QString qtModeSwitch = QStringLiteral("enable-qt-mode:");
+            QStringRef commentText = m_reader->text();
+            int qtModeIdx = commentText.indexOf(qtModeSwitch);
+            if (qtModeIdx != -1) {
+                qtModeIdx += qtModeSwitch.size();
+                while (qtModeIdx < commentText.size()) {
+                    if (commentText.at(qtModeIdx).isSpace()) {
+                        ++qtModeIdx;
+                    } else {
+                        break;
+                    }
+                }
+                QStringRef value = commentText.mid(qtModeIdx);
+                if (value.startsWith(QStringLiteral("yes")) && isWordEnd(value, 3)) {
+                    m_doc->qtMode = true;
+                } else if (value.startsWith(QStringLiteral("no")) && isWordEnd(value, 2)) {
+                    m_doc->qtMode = false;
+                } else {
+                    addError(QStringLiteral("expected 'yes' or 'no' after enable-qt-mode in comment"));
+                }
+            }
+        } break;
         case QXmlStreamReader::NoToken:
             // The reader has not yet read anything.
             continue;
@@ -2087,9 +2237,6 @@ void QScxmlParserPrivate::parse()
                 break;
             if (m_stack.last().collectChars())
                 m_stack.last().chars.append(m_reader->text());
-            break;
-        case QXmlStreamReader::Comment:
-            // The reader reports a comment in text().
             break;
         case QXmlStreamReader::DTD:
             // The reader reports a DTD in text(), notation declarations in notationDeclarations(),
