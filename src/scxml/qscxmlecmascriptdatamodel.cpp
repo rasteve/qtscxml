@@ -23,6 +23,7 @@
 #include "qscxmlecmascriptdatamodel.h"
 #include "qscxmlecmascriptplatformproperties_p.h"
 #include "qscxmlexecutablecontent_p.h"
+#include "qscxmlstatemachine_p.h"
 
 #include <QJSEngine>
 #include <QJsonDocument>
@@ -87,8 +88,8 @@ public:
         QJSValue v = engine()->evaluate(QStringLiteral("'use strict'; ") + script, QStringLiteral("<expr>"), 0);
         if (v.isError()) {
             *ok = false;
-            stateMachine()->submitError(QStringLiteral("error.execution"),
-                                        QStringLiteral("%1 in %2").arg(v.toString(), context));
+            submitError(QStringLiteral("error.execution"),
+                        QStringLiteral("%1 in %2").arg(v.toString(), context));
             return QJSValue(QJSValue::UndefinedValue);
         } else {
             *ok = true;
@@ -224,8 +225,13 @@ public:
             Q_UNREACHABLE();
         }
 
-        stateMachine()->submitError(QStringLiteral("error.execution"), msg.arg(name, context));
+        submitError(QStringLiteral("error.execution"), msg.arg(name, context));
         return false;
+    }
+
+    void submitError(const QString &type, const QString &msg, const QString &sendid = QString())
+    {
+        QScxmlStateMachinePrivate::get(stateMachine())->submitError(type, msg, sendid);
     }
 
 public:
@@ -406,8 +412,8 @@ void QScxmlEcmaScriptDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
             *ok = d->setProperty(dest, v, d->string(info.context));
     } else {
         *ok = false;
-        stateMachine()->submitError(QStringLiteral("error.execution"),
-                                    QStringLiteral("%1 in %2 does not exist").arg(dest, d->string(info.context)));
+        d->submitError(QStringLiteral("error.execution"),
+                       QStringLiteral("%1 in %2 does not exist").arg(dest, d->string(info.context)));
     }
 }
 
@@ -431,15 +437,15 @@ bool QScxmlEcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, Foreac
 
     QJSValue jsArray = d->property(d->string(info.array));
     if (!jsArray.isArray()) {
-        stateMachine()->submitError(QStringLiteral("error.execution"), QStringLiteral("invalid array '%1' in %2").arg(d->string(info.array), d->string(info.context)));
+        d->submitError(QStringLiteral("error.execution"), QStringLiteral("invalid array '%1' in %2").arg(d->string(info.array), d->string(info.context)));
         *ok = false;
         return false;
     }
 
     QString item = d->string(info.item);
     if (engine()->evaluate(QStringLiteral("(function(){var %1 = 0})()").arg(item)).isError()) {
-        stateMachine()->submitError(QStringLiteral("error.execution"), QStringLiteral("invalid item '%1' in %2")
-                                    .arg(d->string(info.item), d->string(info.context)));
+        d->submitError(QStringLiteral("error.execution"), QStringLiteral("invalid item '%1' in %2")
+                      .arg(d->string(info.item), d->string(info.context)));
         *ok = false;
         return false;
     }

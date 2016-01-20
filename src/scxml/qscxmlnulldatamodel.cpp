@@ -21,7 +21,7 @@
 
 #include "qscxmlnulldatamodel.h"
 #include "qscxmlevent.h"
-#include "qscxmlstatemachine.h"
+#include "qscxmlstatemachine_p.h"
 #include "qscxmltabledata.h"
 
 class QScxmlNullDataModel::Data
@@ -54,7 +54,7 @@ public:
 
         if (info.error) {
             *ok = false;
-            q->stateMachine()->submitError(QStringLiteral("error.execution"), info.str);
+            QScxmlStateMachinePrivate::get(q->stateMachine())->submitError(QStringLiteral("error.execution"), info.str);
             return false;
         }
 

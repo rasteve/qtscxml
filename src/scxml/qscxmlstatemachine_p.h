@@ -114,6 +114,7 @@ public:
 
     void routeEvent(QScxmlEvent *event);
     void postEvent(QScxmlEvent *event);
+    void submitError(const QString &type, const QString &msg, const QString &sendid = QString());
 
 public: // types & data fields:
     QString m_sessionId;

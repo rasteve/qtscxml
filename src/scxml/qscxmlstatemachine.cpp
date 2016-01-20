@@ -326,6 +326,24 @@ void QScxmlStateMachinePrivate::postEvent(QScxmlEvent *event)
 }
 
 /*!
+ * \internal
+ * \brief Submits an error event to the external event queue of this state-machine.
+ *
+ * \param type The error message type, e.g. "error.execution". The type has to start with "error.".
+ * \param msg A string describing the nature of the error. This is passed to the event as the
+ *            errorMessage
+ * \param sendid The sendid of the message causing the error, if it has one.
+ */
+void QScxmlStateMachinePrivate::submitError(const QString &type, const QString &msg, const QString &sendid)
+{
+    Q_Q(QScxmlStateMachine);
+    qCDebug(qscxmlLog) << q << "had error" << type << ":" << msg;
+    if (!type.startsWith(QStringLiteral("error.")))
+        qCWarning(qscxmlLog) << q << "Message type of error message does not start with 'error.'!";
+    q->submitEvent(QScxmlEventBuilder::errorEvent(q, type, msg, sendid));
+}
+
+/*!
  * \brief Creates a state-machine from a SCXML file.
  *
  * This method will always return a state-machine. When errors occur while reading the SCXML file,
@@ -948,22 +966,6 @@ bool QScxmlStateMachine::isRunning() const
 QString QScxmlStateMachine::name() const
 {
     return tableData()->name();
-}
-
-/*!
- * \brief Submits an error event to the external event queue of this state-machine.
- *
- * \param type The error message type, e.g. "error.execution". The type has to start with "error.".
- * \param msg A string describing the nature of the error. This is passed to the event as the
- *            errorMessage
- * \param sendid The sendid of the message causing the error, if it has one.
- */
-void QScxmlStateMachine::submitError(const QString &type, const QString &msg, const QString &sendid)
-{
-    qCDebug(qscxmlLog) << this << "had error" << type << ":" << msg;
-    if (!type.startsWith(QStringLiteral("error.")))
-        qCWarning(qscxmlLog) << this << "Message type of error message does not start with 'error.'!";
-    submitEvent(QScxmlEventBuilder::errorEvent(this, type, msg, sendid));
 }
 
 /*!

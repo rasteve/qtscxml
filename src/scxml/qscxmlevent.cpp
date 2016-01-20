@@ -21,6 +21,7 @@
 
 #include "qscxmlexecutablecontent_p.h"
 #include "qscxmlevent_p.h"
+#include "qscxmlstatemachine_p.h"
 
 QT_USE_NAMESPACE
 
@@ -93,17 +94,17 @@ QScxmlEvent *QScxmlEventBuilder::buildEvent()
         // allow sending messages to the parent, independently of whether we're invoked or not.
     } else if (!origin.startsWith(QLatin1Char('#'))) {
         // [6.2.4] and test194.
-        stateMachine->submitError(QStringLiteral("error.execution"),
-                                  QStringLiteral("Error in %1: %2 is not a legal target")
-                                  .arg(tableData->string(instructionLocation), origin),
-                                  sendid);
+        submitError(QStringLiteral("error.execution"),
+                    QStringLiteral("Error in %1: %2 is not a legal target")
+                    .arg(tableData->string(instructionLocation), origin),
+                    sendid);
         return Q_NULLPTR;
     } else if (!stateMachine->isDispatchableTarget(origin)) {
         // [6.2.4] and test521.
-        stateMachine->submitError(QStringLiteral("error.communication"),
-                                  QStringLiteral("Error in %1: cannot dispatch to target '%2'")
-                                  .arg(tableData->string(instructionLocation), origin),
-                                  sendid);
+        submitError(QStringLiteral("error.communication"),
+                    QStringLiteral("Error in %1: cannot dispatch to target '%2'")
+                    .arg(tableData->string(instructionLocation), origin),
+                    sendid);
         return Q_NULLPTR;
     }
 
@@ -121,10 +122,10 @@ QScxmlEvent *QScxmlEventBuilder::buildEvent()
             && origintype != QStringLiteral("qt:signal")
             && origintype != QStringLiteral("http://www.w3.org/TR/scxml/#SCXMLEventProcessor")) {
         // [6.2.5] and test199
-        stateMachine->submitError(QStringLiteral("error.execution"),
-                                  QStringLiteral("Error in %1: %2 is not a valid type")
-                                  .arg(tableData->string(instructionLocation), origintype),
-                                  sendid);
+        submitError(QStringLiteral("error.execution"),
+                    QStringLiteral("Error in %1: %2 is not a valid type")
+                    .arg(tableData->string(instructionLocation), origintype),
+                    sendid);
         return Q_NULLPTR;
     }
 
@@ -183,9 +184,9 @@ bool QScxmlEventBuilder::evaluate(const Param &param, QScxmlStateMachine *stateM
         keyValues.insert(tableData->string(param.name), dataModel->property(loc));
         return true;
     } else {
-        stateMachine->submitError(QStringLiteral("error.execution"),
-                                  QStringLiteral("Error in <param>: %1 is not a valid location")
-                                  .arg(loc));
+        submitError(QStringLiteral("error.execution"),
+                    QStringLiteral("Error in <param>: %1 is not a valid location")
+                    .arg(loc));
         return false;
     }
 }
@@ -202,6 +203,11 @@ bool QScxmlEventBuilder::evaluate(const QScxmlExecutableContent::Array<Param> *p
     }
 
     return true;
+}
+
+void QScxmlEventBuilder::submitError(const QString &type, const QString &msg, const QString &sendid)
+{
+    QScxmlStateMachinePrivate::get(stateMachine)->submitError(type, msg, sendid);
 }
 
 /*!

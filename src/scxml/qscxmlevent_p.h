@@ -124,11 +124,13 @@ public:
     static QScxmlEvent *errorEvent(QScxmlStateMachine *stateMachine, const QString &name,
                                    const QString &message, const QString &sendid);
 
-    static bool evaluate(const QScxmlExecutableContent::Param &param, QScxmlStateMachine *stateMachine,
-                         QVariantMap &keyValues);
+    bool evaluate(const QScxmlExecutableContent::Param &param, QScxmlStateMachine *stateMachine,
+                  QVariantMap &keyValues);
 
-    static bool evaluate(const QScxmlExecutableContent::Array<QScxmlExecutableContent::Param> *params,
-                         QScxmlStateMachine *stateMachine, QVariantMap &keyValues);
+    bool evaluate(const QScxmlExecutableContent::Array<QScxmlExecutableContent::Param> *params,
+                  QScxmlStateMachine *stateMachine, QVariantMap &keyValues);
+
+    void submitError(const QString &type, const QString &msg, const QString &sendid = QString());
 };
 #endif // BUILD_QSCXMLC
 
