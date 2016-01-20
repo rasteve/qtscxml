@@ -604,10 +604,13 @@ void QScxmlInternal::WrappedQStateMachine::beginSelectTransitions(QEvent *event)
             }
         }
 
-        auto e = static_cast<QScxmlEvent *>(event);
-        if (smp->m_eventFilter && !smp->m_eventFilter->handle(e, d->stateMachine())) {
-            e->makeIgnorable();
-            e->clear();
+        if (scxmlEvent->eventType() == QScxmlEvent::ExternalEvent) {
+            emit d->stateMachine()->eventOccurred(*scxmlEvent);
+        }
+
+        if (smp->m_eventFilter && !smp->m_eventFilter->handle(scxmlEvent, d->stateMachine())) {
+            scxmlEvent->makeIgnorable();
+            scxmlEvent->clear();
             smp->m_event.clear();
             return;
         }

@@ -131,6 +131,7 @@ Q_SIGNALS:
     void log(const QString &label, const QString &msg);
     void reachedStableState(bool didChange);
     void finished();
+    void eventOccurred(const QScxmlEvent &event);
 
 public Q_SLOTS:
     void start();
