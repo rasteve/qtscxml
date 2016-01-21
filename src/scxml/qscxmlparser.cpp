@@ -586,7 +586,7 @@ private:
 
         // signals
         foreach (const QString &eventName, eventSignals) {
-            QByteArray signalName = QByteArray("event_") + eventName.toUtf8() + "(const QVariant &)";
+            QByteArray signalName = eventName.toUtf8() + "(const QVariant &)";
             QMetaMethodBuilder signalBuilder = b.addSignal(signalName);
             signalBuilder.setParameterNames(init("data"));
             int idx = signalBuilder.index();
@@ -616,7 +616,7 @@ private:
         // slots
         m_firstSlot = m_eventNamesByIndex.size();
         foreach (const QString &eventName, eventSlots) {
-            QByteArray slotName = QByteArray("event_") + eventName.toUtf8() + "(const QVariant &)";
+            QByteArray slotName = eventName.toUtf8() + "(const QVariant &)";
             QMetaMethodBuilder slotBuilder = b.addSlot(slotName);
             slotBuilder.setParameterNames(init("data"));
             int idx = slotBuilder.index();
@@ -626,7 +626,7 @@ private:
 
         m_firstSlotWithoutData = m_eventNamesByIndex.size();
         foreach (const QString &eventName, eventSlots) {
-            QByteArray slotName = QByteArray("event_") + eventName.toUtf8() + "()";
+            QByteArray slotName = eventName.toUtf8() + "()";
             QMetaMethodBuilder slotBuilder = b.addSlot(slotName);
             int idx = slotBuilder.index();
             m_eventNamesByIndex.resize(std::max(idx + 1, m_eventNamesByIndex.size()));
@@ -757,6 +757,7 @@ public:
         : m_stateMachine(Q_NULLPTR)
         , m_currentTransition(Q_NULLPTR)
         , m_bindLate(false)
+        , m_qtMode(false)
     {}
 
     QScxmlStateMachine *build(DocumentModel::ScxmlDocument *doc)
@@ -765,6 +766,7 @@ public:
         m_parents.reserve(32);
         m_allTransitions.reserve(doc->allTransitions.size());
         m_docStatesToQStates.reserve(doc->allStates.size());
+        m_qtMode = doc->qtMode;
 
         doc->root->accept(this);
         wireTransitions();
@@ -939,8 +941,11 @@ private:
 
     bool visit(DocumentModel::Transition *node) Q_DECL_OVERRIDE
     {
+        if (m_qtMode) {
+            m_eventSlots.unite(node->events.toSet());
+        }
+
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-        m_eventSlots.unite(node->events.toSet());
         auto newTransition = new QScxmlTransition(node->events);
         if (QHistoryState *parent = qobject_cast<QHistoryState*>(m_parents.last())) {
             parent->setDefaultTransition(newTransition);
@@ -1016,7 +1021,7 @@ private:
 
     bool visit(DocumentModel::Send *node) Q_DECL_OVERRIDE
     {
-        if (node->type == QStringLiteral("qt:signal")) {
+        if (m_qtMode && node->type == QStringLiteral("qt:signal")) {
             m_eventSignals.insert(node->event);
         }
 
@@ -1088,6 +1093,7 @@ private:
     QAbstractTransition *m_currentTransition;
     QVector<QPair<QState *, DocumentModel::AbstractState *>> m_initialStates;
     bool m_bindLate;
+    bool m_qtMode;
     QVector<DocumentModel::DataElement *> m_dataElements;
     QSet<QString> m_eventSignals;
     QSet<QString> m_eventSlots;

@@ -197,6 +197,7 @@ public:
         , clazz(clazz)
         , translationUnit(tu)
         , m_bindLate(false)
+        , m_qtMode(false)
     {
         if (!tu->namespaceName.isEmpty()) {
             namespacePrefix += QStringLiteral("%1::").arg(tu->namespaceName);
@@ -208,6 +209,7 @@ public:
         Q_ASSERT(doc);
 
         clazz.className = translationUnit->classnameForDocument.value(doc);
+        m_qtMode = doc->qtMode;
 
         doc->root->accept(this);
 
@@ -536,10 +538,10 @@ protected:
 
     bool visit(Send *node) Q_DECL_OVERRIDE
     {
-        if (node->type == QStringLiteral("qt:signal")) {
+        if (m_qtMode && node->type == QStringLiteral("qt:signal")) {
             if (!m_signals.contains(node->event)) {
                 m_signals.insert(node->event);
-                clazz.signalMethods << QStringLiteral("void event_%1(const QVariant &data);").arg(CppDumper::mangleId(node->event));
+                clazz.signalMethods << QStringLiteral("void %1(const QVariant &data);").arg(node->event);
             }
         }
 
@@ -669,32 +671,36 @@ private:
     {
         QStringList knownEventsList = m_knownEvents.toList();
         std::sort(knownEventsList.begin(), knownEventsList.end());
-        foreach (const QString &event, knownEventsList) {
-            if (event.startsWith(QStringLiteral("done.")) || event.startsWith(QStringLiteral("qsignal."))
-                    || event.startsWith(QStringLiteral("qevent."))) {
-                continue;
-            }
-            if (event.contains(QLatin1Char('*')))
-                continue;
+        if (m_qtMode) {
+            foreach (const QString &event, knownEventsList) {
+                if (event.startsWith(QStringLiteral("done.")) || event.startsWith(QStringLiteral("qsignal."))
+                        || event.startsWith(QStringLiteral("qevent."))) {
+                    continue;
+                }
+                if (event.contains(QLatin1Char('*')))
+                    continue;
 
-            clazz.publicSlotDeclarations << QStringLiteral("void event_") + CppDumper::mangleId(event) + QStringLiteral("(const QVariant &eventData = QVariant());");
-            clazz.publicSlotDefinitions << QStringLiteral("void ") + clazz.className
-                                           + QStringLiteral("::event_")
-                                           + CppDumper::mangleId(event)
-                                           + QStringLiteral("(const QVariant &eventData)\n{ submitEvent(data->") + qba(event)
-                                           + QStringLiteral(", eventData); }");
+                clazz.publicSlotDeclarations << QStringLiteral("void ") + event + QStringLiteral("(const QVariant &eventData = QVariant());");
+                clazz.publicSlotDefinitions << QStringLiteral("void ") + clazz.className
+                                               + QStringLiteral("::")
+                                               + event
+                                               + QStringLiteral("(const QVariant &eventData)\n{ submitEvent(data->") + qba(event)
+                                               + QStringLiteral(", eventData); }");
+            }
         }
 
         if (!m_signals.isEmpty()) {
             clazz.needsEventFilter = true;
             clazz.init.impl << QStringLiteral("stateMachine.setScxmlEventFilter(this);");
             auto &dm = clazz.dataMethods;
-            dm << QStringLiteral("bool handle(QScxmlEvent *event, QScxmlStateMachine *stateMachine) Q_DECL_OVERRIDE  {")
-               << QStringLiteral("    if (event->originType() != QStringLiteral(\"qt:signal\")) { return true; }")
-               << QStringLiteral("    %1 *m = qobject_cast<%1 *>(stateMachine);").arg(clazz.className);
-            foreach (const QString &s, m_signals) {
-                dm << QStringLiteral("    if (event->name() == %1) { emit m->event_%2(event->data()); return false; }")
-                      .arg(qba(s), CppDumper::mangleId(s));
+            dm << QStringLiteral("bool handle(QScxmlEvent *event, QScxmlStateMachine *stateMachine) Q_DECL_OVERRIDE  {");
+            if (m_qtMode) {
+                dm << QStringLiteral("    if (event->originType() != QStringLiteral(\"qt:signal\")) { return true; }")
+                   << QStringLiteral("    %1 *m = qobject_cast<%1 *>(stateMachine);").arg(clazz.className);
+                foreach (const QString &s, m_signals) {
+                    dm << QStringLiteral("    if (event->name() == %1) { emit m->%2(event->data()); return false; }")
+                          .arg(qba(s), CppDumper::mangleId(s));
+                }
             }
             dm << QStringLiteral("    return true;")
                << QStringLiteral("}")
@@ -1037,6 +1043,7 @@ private:
     QSet<QString> m_signals;
     QString m_currentTransitionName;
     bool m_bindLate;
+    bool m_qtMode;
     QVector<DocumentModel::DataElement *> m_dataElements;
 };
 } // anonymous namespace

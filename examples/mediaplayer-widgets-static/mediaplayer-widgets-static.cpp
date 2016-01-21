@@ -62,10 +62,10 @@ int main(int argc, char **argv)
     MainWindow mainWindow;
 
     QObject::connect(&mainWindow, &MainWindow::tap,
-                     &machine, &MediaPlayerStateMachine::event_tap);
-    QObject::connect(&machine, &MediaPlayerStateMachine::event_playbackStarted,
+                     &machine, &MediaPlayerStateMachine::tap);
+    QObject::connect(&machine, &MediaPlayerStateMachine::playbackStarted,
                      &mainWindow, &MainWindow::started);
-    QObject::connect(&machine, &MediaPlayerStateMachine::event_playbackStopped,
+    QObject::connect(&machine, &MediaPlayerStateMachine::playbackStopped,
                      &mainWindow, &MainWindow::stopped);
 
     machine.start();

@@ -63,10 +63,10 @@ int main(int argc, char **argv)
     machine->setParent(&mainWindow);
 
     QObject::connect(&mainWindow, SIGNAL(tap(const QVariant &)),
-                     machine, SLOT(event_tap(const QVariant &)));
-    QObject::connect(machine, SIGNAL(event_playbackStarted(const QVariant &)),
+                     machine, SLOT(tap(const QVariant &)));
+    QObject::connect(machine, SIGNAL(playbackStarted(const QVariant &)),
                      &mainWindow, SLOT(started(const QVariant &)));
-    QObject::connect(machine, SIGNAL(event_playbackStopped(const QVariant &)),
+    QObject::connect(machine, SIGNAL(playbackStopped(const QVariant &)),
                      &mainWindow, SLOT(stopped(const QVariant &)));
 
     machine->start();

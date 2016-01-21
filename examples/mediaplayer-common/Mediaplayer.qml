@@ -117,21 +117,21 @@ Window {
 
     Connections {
         target: stateMachine
-        onEvent_playbackStarted: {
+        onPlaybackStarted: {
             var media = data.media
             theText.text = "Playing '" + media + "'"
-            theLog.text = theLog.text + "\nevent_playbackStarted with data: " + JSON.stringify(data)
+            theLog.text = theLog.text + "\nplaybackStarted with data: " + JSON.stringify(data)
         }
-        onEvent_playbackStopped: {
+        onPlaybackStopped: {
             var media = data.media
             theText.text = "Stopped '" + media + "'"
-            theLog.text = theLog.text + "\nevent_playbackStopped with data: " + JSON.stringify(data)
+            theLog.text = theLog.text + "\nplaybackStopped with data: " + JSON.stringify(data)
         }
     }
 
     function tap(idx) {
         var media = theModel.get(idx).media
         var data = { "media": media }
-        stateMachine.event_tap(data)
+        stateMachine.tap(data)
     }
 }

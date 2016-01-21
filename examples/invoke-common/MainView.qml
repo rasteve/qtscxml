@@ -69,7 +69,7 @@ Window {
             text: "Go Nowhere"
             width: parent.width
             height: parent.height / 2
-            onClicked: stateMachine.event_goNowhere()
+            onClicked: stateMachine.goNowhere()
             enabled: stateMachine.somewhere
         }
 
@@ -79,7 +79,7 @@ Window {
             width: parent.width
             height: parent.height / 2
             y: parent.height / 2
-            onClicked: stateMachine.event_goSomewhere()
+            onClicked: stateMachine.goSomewhere()
             enabled: stateMachine.nowhere
         }
     }

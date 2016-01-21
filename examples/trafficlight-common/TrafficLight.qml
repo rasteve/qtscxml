@@ -109,9 +109,9 @@ Window {
 
         onClicked: {
             if (stateMachine.working)
-                stateMachine.event_smash()
+                stateMachine.smash()
             else
-                stateMachine.event_repair()
+                stateMachine.repair()
         }
     }
 }
