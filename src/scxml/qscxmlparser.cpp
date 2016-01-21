@@ -496,10 +496,20 @@ private:
     {
         if (_c == QMetaObject::InvokeMetaMethod) {
             DynamicStateMachine *_t = static_cast<DynamicStateMachine *>(_o);
-            if (_id >= _t->m_eventNamesByIndex.size() ||
-                    (_id >= _t->m_firstSubStateMachineSignal && _id < _t->m_firstSlot)) {
-                Q_UNREACHABLE();
+            if (_id >= _t->m_eventNamesByIndex.size() || _id < 0) {
+                // out of bounds
+                return;
             }
+            if (_id >= _t->m_firstSubStateMachineSignal && _id < _t->m_firstSlot) {
+                // these signals are only emitted, not activated by another signal
+                return;
+            }
+            if (_id >= _t->m_firstStateChangedSignal && _id < _t->m_firstSubStateMachineSignal) {
+                // re-propagate QAbstractState::activeChanged as stateChanged
+                QMetaObject::activate(_t, _t->m_metaObject, _id, _a);
+                return;
+            }
+            // We have 1 kind of slots: those to submit events.
             const QString &event = _t->m_eventNamesByIndex.at(_id);
             if (!event.isEmpty()) {
                 if (_id < _t->m_firstSlotWithoutData) {
@@ -513,14 +523,23 @@ private:
                 }
             }
         } else if (_c == QMetaObject::RegisterPropertyMetaType) {
-            *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType<QAbstractState *>();
+            DynamicStateMachine *_t = static_cast<DynamicStateMachine *>(_o);
+            if (_id < _t->m_firstSubStateMachineProperty) {
+                *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType<bool>();
+            } else {
+                *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType<QScxmlStateMachine *>();
+            }
         } else if (_c == QMetaObject::ReadProperty) {
             DynamicStateMachine *_t = static_cast<DynamicStateMachine *>(_o);
             void *_v = _a[0];
             if (_id >= 0 && _id < _t->m_propertyNamesByIndex.size()) {
                 if (_id < _t->m_firstSubStateMachineProperty) {
-                    *reinterpret_cast<QAbstractState**>(_v) = QScxmlStateMachinePrivate::get(_t)->stateByScxmlName(_t->m_propertyNamesByIndex.at(_id));
+                    // getter for the state
+                    auto smp = QScxmlStateMachinePrivate::get(_t);
+                    auto name = _t->m_propertyNamesByIndex.at(_id);
+                    *reinterpret_cast<bool*>(_v) = smp->stateByScxmlName(name)->active();
                 } else {
+                    // getter for a child statemachine
                     int idx = _id - _t->m_firstSubStateMachineProperty;
                     *reinterpret_cast<QScxmlStateMachine **>(_v) = _t->m_subStateMachines.at(idx);
                 }
@@ -550,7 +569,7 @@ private:
 
     void initDynamicParts(const QSet<QString> &eventSignals,
                           const QSet<QString> &eventSlots,
-                          const QSet<QString> &stateNames,
+                          const QList<QString> &stateNames,
                           const QList<QString> &subStateMachineNames)
     {
         // Release the temporary QMetaObject.
@@ -575,6 +594,16 @@ private:
             m_eventNamesByIndex[idx] = eventName;
         }
 
+        m_firstStateChangedSignal = m_eventNamesByIndex.size();
+        foreach (const QString &stateName, stateNames) {
+            auto name = stateName.toUtf8();
+            QByteArray signalName = name + "Changed(bool)";
+            QMetaMethodBuilder signalBuilder = b.addSignal(signalName);
+            signalBuilder.setParameterNames(init("active"));
+            int idx = signalBuilder.index();
+            m_eventNamesByIndex.resize(std::max(idx + 1, m_eventNamesByIndex.size()));
+        }
+
         m_firstSubStateMachineSignal = m_eventNamesByIndex.size();
         foreach (const QString &machineName, subStateMachineNames) {
             auto name = machineName.toUtf8();
@@ -582,7 +611,6 @@ private:
             QMetaMethodBuilder signalBuilder = b.addSignal(signalName);
             int idx = signalBuilder.index();
             m_eventNamesByIndex.resize(std::max(idx + 1, m_eventNamesByIndex.size()));
-//            m_eventNamesByIndex[idx] = name;
         }
 
         // slots
@@ -606,13 +634,14 @@ private:
         }
 
         // properties
+        int stateNotifier = m_firstStateChangedSignal;
         foreach (const QString &stateName, stateNames) {
-            QMetaPropertyBuilder prop = b.addProperty(stateName.toUtf8(), "QAbstractState *");
+            QMetaPropertyBuilder prop = b.addProperty(stateName.toUtf8(), "bool", stateNotifier);
             prop.setWritable(false);
-            prop.setConstant(true);
             int idx = prop.index();
             m_propertyNamesByIndex.resize(std::max(idx + 1, m_propertyNamesByIndex.size()));
             m_propertyNamesByIndex[idx] = stateName;
+            ++stateNotifier;
         }
 
         m_firstSubStateMachineProperty = m_propertyNamesByIndex.size();
@@ -692,6 +721,7 @@ private:
     QVector<QString> m_propertyNamesByIndex;
     QVector<QScxmlStateMachine *> m_subStateMachines;
     int m_firstSubStateMachineSignal;
+    int m_firstStateChangedSignal;
     int m_firstSlot;
     int m_firstSlotWithoutData;
     int m_firstSubStateMachineProperty;
@@ -743,7 +773,13 @@ public:
         QScxmlExecutableContent::DynamicTableData *td = tableData();
         td->setParent(m_stateMachine);
         m_stateMachine->setTableData(td);
-        m_stateMachine->initDynamicParts(m_eventSignals, m_eventSlots, m_stateNames, m_subStateMachineNames.toList());
+        m_stateMachine->initDynamicParts(m_eventSignals, m_eventSlots, m_stateNames.keys(), m_subStateMachineNames.toList());
+
+        const auto signalCode = QByteArray::number(QSIGNAL_CODE);
+        for (auto it = m_stateNames.constBegin(), eit = m_stateNames.constEnd(); it != eit; ++it) {
+            QByteArray signal = signalCode + it.key().toUtf8() + "Changed(bool)";
+            QObject::connect(it.value(), SIGNAL(activeChanged(bool)), m_stateMachine, signal.constData());
+        }
 
         m_parents.clear();
         m_allTransitions.clear();
@@ -830,7 +866,7 @@ private:
         }
 
         newState->setObjectName(node->id);
-        m_stateNames.insert(node->id);
+        m_stateNames.insert(node->id, newState);
 
         m_docStatesToQStates.insert(node, newState);
         m_parents.append(newState);
@@ -1055,7 +1091,7 @@ private:
     QVector<DocumentModel::DataElement *> m_dataElements;
     QSet<QString> m_eventSignals;
     QSet<QString> m_eventSlots;
-    QSet<QString> m_stateNames;
+    QHash<QString, QAbstractState *> m_stateNames;
     QSet<QString> m_subStateMachineNames;
 };
 

@@ -70,7 +70,7 @@ Window {
             width: parent.width
             height: parent.height / 2
             onClicked: stateMachine.event_goNowhere()
-            enabled: stateMachine.somewhere.active
+            enabled: stateMachine.somewhere
         }
 
         Button {
@@ -80,13 +80,13 @@ Window {
             height: parent.height / 2
             y: parent.height / 2
             onClicked: stateMachine.event_goSomewhere()
-            enabled: stateMachine.nowhere.active
+            enabled: stateMachine.nowhere
         }
     }
 
     Loader {
         source: "SubView.qml"
-        active: stateMachine.somewhere.active
+        active: stateMachine.somewhere
 
         x: parent.width / 2
         width: parent.width / 2

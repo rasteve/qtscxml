@@ -76,21 +76,21 @@ Window {
             id: redLight
             anchors.top: parent.top
             color: "red"
-            visible: stateMachine.red.active || stateMachine.redGoingGreen.active
+            visible: stateMachine.red || stateMachine.redGoingGreen
         }
 
         Light {
             id: yellowLight
             anchors.top: redLight.bottom
             color: "yellow"
-            visible: stateMachine.yellow.active || stateMachine.blinking.active
+            visible: stateMachine.yellow || stateMachine.blinking
         }
 
         Light {
             id: greenLight
             anchors.top: yellowLight.bottom
             color: "green"
-            visible: stateMachine.green.active
+            visible: stateMachine.green
         }
     }
 
@@ -101,14 +101,14 @@ Window {
         anchors.bottom: parent.bottom
 
         text: {
-            if (stateMachine.working.active)
+            if (stateMachine.working)
                 "Pause"
             else
                 "Unpause"
         }
 
         onClicked: {
-            if (stateMachine.working.active)
+            if (stateMachine.working)
                 stateMachine.event_smash()
             else
                 stateMachine.event_repair()

@@ -53,7 +53,7 @@ import QtQuick 2.5
 Item {
     Button {
         id: here
-        enabled: anywhere.here.active
+        enabled: anywhere.here
         text: "Go There"
         width: parent.width / 2
         height: parent.height
@@ -62,7 +62,7 @@ Item {
 
     Button {
         id: there
-        enabled: anywhere.there.active
+        enabled: anywhere.there
         text: "Go Here"
         width: parent.width / 2
         height: parent.height

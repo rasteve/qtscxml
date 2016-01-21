@@ -108,7 +108,7 @@ Window {
         anchors.right: parent.right;
         anchors.top:  parent.top
         text: "Stopped"
-        color: stateMachine.playing.active ? "green" : "red"
+        color: stateMachine.playing ? "green" : "red"
     }
 
     Scxml.StateMachineLoader {
