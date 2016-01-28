@@ -124,8 +124,7 @@ MainWindow::~MainWindow()
 void MainWindow::initAndConnect(const QString &state, QWidget *widget)
 {
     widget->setEnabled(m_machine->isActive(state));
-    m_machine->connect(state, SIGNAL(activeChanged(bool)),
-                       widget, SLOT(setEnabled(bool)));
+    m_machine->connectToState(state, widget, SLOT(setEnabled(bool)));
 }
 
 void MainWindow::updateScore(const QVariant &data)

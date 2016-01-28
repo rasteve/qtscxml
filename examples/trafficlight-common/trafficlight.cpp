@@ -101,15 +101,15 @@ TrafficLight::TrafficLight(QScxmlStateMachine *machine, QWidget *parent)
 
     Q_ASSERT(machine->init());
 
-    machine->connect(QStringLiteral("red"), SIGNAL(activeChanged(bool)),
+    machine->connectToState(QStringLiteral("red"),
                      widget->redLight(), SLOT(switchLight(bool)));
-    machine->connect(QStringLiteral("redGoingGreen"), SIGNAL(activeChanged(bool)),
+    machine->connectToState(QStringLiteral("redGoingGreen"),
                      widget->redLight(), SLOT(switchLight(bool)));
-    machine->connect(QStringLiteral("yellow"), SIGNAL(activeChanged(bool)),
+    machine->connectToState(QStringLiteral("yellow"),
                      widget->yellowLight(), SLOT(switchLight(bool)));
-    machine->connect(QStringLiteral("blinking"), SIGNAL(activeChanged(bool)),
+    machine->connectToState(QStringLiteral("blinking"),
                      widget->yellowLight(), SLOT(switchLight(bool)));
-    machine->connect(QStringLiteral("green"), SIGNAL(activeChanged(bool)),
+    machine->connectToState(QStringLiteral("green"),
                      widget->greenLight(), SLOT(switchLight(bool)));
 }
 

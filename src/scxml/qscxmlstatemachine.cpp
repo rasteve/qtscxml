@@ -916,18 +916,19 @@ bool QScxmlStateMachine::isActive(const QString &scxmlStateName) const
 }
 
 /*!
- * Creates a connection of the given \a type from the \a signal
- * in the sender QAbstractState object identified by \a scxmlStateName
- * to the \a method in the \a receiver object.
+ * Creates a connection of the given \a type from the state identified by \a scxmlStateName
+ * to the \a method in the \a receiver object. The receiver's \a method
+ * may contain a boolean argument that indicates whether the state connected
+ * became active or inactive.
  * \return a handle to the connection that can be used to disconnect it later.
  */
-QMetaObject::Connection QScxmlStateMachine::connect(const QString &scxmlStateName, const char *signal,
+QMetaObject::Connection QScxmlStateMachine::connectToState(const QString &scxmlStateName,
                                             const QObject *receiver, const char *method,
                                             Qt::ConnectionType type)
 {
     Q_D(QScxmlStateMachine);
     QAbstractState *state = findState(scxmlStateName, d->m_qStateMachine);
-    return QObject::connect(state, signal, receiver, method, type);
+    return QObject::connect(state, SIGNAL(activeChanged(bool)), receiver, method, type);
 }
 
 /*!

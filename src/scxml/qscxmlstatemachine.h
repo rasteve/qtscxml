@@ -111,8 +111,7 @@ public:
     QStringList activeStateNames(bool compress = true) const;
     bool isActive(const QString &scxmlStateName) const;
 
-    using QObject::connect;
-    QMetaObject::Connection connect(const QString &scxmlStateName, const char *signal,
+    QMetaObject::Connection connectToState(const QString &scxmlStateName,
                                     const QObject *receiver, const char *method,
                                     Qt::ConnectionType type = Qt::AutoConnection);
 

@@ -113,7 +113,7 @@ void tst_StateMachine::connectToFinal()
     QVERIFY(!stateMachine.isNull());
 
     QState dummy;
-    QVERIFY(stateMachine->connect(QString("final"), SIGNAL(entered()), &dummy, SLOT(deleteLater())));
+    QVERIFY(stateMachine->connectToState(QString("final"), &dummy, SLOT(deleteLater())));
 }
 
 QTEST_MAIN(tst_StateMachine)
