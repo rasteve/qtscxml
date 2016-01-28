@@ -448,9 +448,13 @@ protected:
         const QString tName = transitionName(node);
         if (m_qtMode) {
             foreach (const QString &event, node->events) {
-                if (isValidCppIdentifier(event)) {
-                    m_knownEvents.insert(event);
-                }
+                if (!DocumentModel::isEventToBeGenerated(event))
+                    continue;
+
+                // If the event name is not filtered out, is was already validated inside:
+                // bool ScxmlVerifier::visit(DocumentModel::Transition *transition)
+                // by a call to: validateEventName();
+                m_knownEvents.insert(event);
             }
         }
 
@@ -732,13 +736,6 @@ private:
         std::sort(knownEventsList.begin(), knownEventsList.end());
         if (m_qtMode) {
             foreach (const QString &event, knownEventsList) {
-                if (event.startsWith(QStringLiteral("done.")) || event.startsWith(QStringLiteral("qsignal."))
-                        || event.startsWith(QStringLiteral("qevent."))) {
-                    continue;
-                }
-                if (event.contains(QLatin1Char('*')))
-                    continue;
-
                 clazz.publicSlotDeclarations << QStringLiteral("void ") + event + QStringLiteral("(const QVariant &eventData = QVariant());");
                 clazz.publicSlotDefinitions << QStringLiteral("void ") + clazz.className
                                                + QStringLiteral("::")

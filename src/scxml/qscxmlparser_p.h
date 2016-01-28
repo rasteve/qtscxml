@@ -547,6 +547,7 @@ public:
 
 Q_SCXML_EXPORT bool isValidCppIdentifier(const QString &str);
 Q_SCXML_EXPORT bool isValidQPropertyName(const QString &str);
+Q_SCXML_EXPORT bool isEventToBeGenerated(const QString &event);
 
 } // DocumentModel namespace
 
