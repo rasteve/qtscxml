@@ -69,9 +69,6 @@ public:
     explicit MainWindow(QScxmlStateMachine *machine, QWidget *parent = 0);
     ~MainWindow();
 
-public slots:
-    void updateDisplay(const QVariant &data);
-
 private:
     QT_PREPEND_NAMESPACE(Ui::MainWindow) *ui;
     QScxmlStateMachine *m_machine;

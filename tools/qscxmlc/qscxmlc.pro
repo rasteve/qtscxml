@@ -2,15 +2,17 @@ option(host_build)
 
 TARGET = qscxmlc
 CONFIG += console c++11
-QT = core
+QT = core-private
 
 DEFINES += BUILD_QSCXMLC
 
 SOURCES += \
+    generator.cpp \
     qscxmlc.cpp \
     scxmlcppdumper.cpp
 
 HEADERS += \
+    moc.h generator.h outputrevision.h utils.h \
     scxmlcppdumper.h
 
 HEADERS += \

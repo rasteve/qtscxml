@@ -69,9 +69,11 @@ public:
     explicit MainWindow(Pinball *machine, QWidget *parent = 0);
     ~MainWindow();
 
+private slots:
+    void updateScore(const QVariant &data);
+
 private:
     void initAndConnect(const QString &state, QWidget *widget);
-    void updateScore(const QVariant &data);
     QT_PREPEND_NAMESPACE(Ui::MainWindow) *m_ui;
     Pinball *m_machine;
 };

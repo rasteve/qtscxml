@@ -32,6 +32,9 @@
 #include <algorithm>
 #include <functional>
 #include <QFileInfo>
+#include <QBuffer>
+
+#include "generator.h"
 
 QT_BEGIN_NAMESPACE
 struct StringListDumper {
@@ -98,9 +101,9 @@ struct ClassDump {
     Method init;
     Method initDataModel;
     StringListDumper dataMethods;
+    StringListDumper classMethods;
     Method constructor;
     Method destructor;
-    StringListDumper properties;
     StringListDumper signalMethods;
     QList<Method> publicMethods;
     QList<Method> protectedMethods;
@@ -112,6 +115,8 @@ struct ClassDump {
     ClassDump()
         : needsEventFilter(false)
     {}
+
+    QByteArray metaData;
 };
 
 namespace {
@@ -170,7 +175,6 @@ static QString toHex(const QString &str)
 
 static const char *headerStart =
         "#include <QScxmlStateMachine>\n"
-        "#include <QAbstractState>\n"
         "#include <QString>\n"
         "#include <QByteArray>\n"
         "\n";
@@ -216,6 +220,7 @@ public:
         addSubStateMachineProperties(doc);
         addEvents();
 
+        generateMetaObject();
         generateTables();
     }
 
@@ -318,11 +323,12 @@ protected:
         QString name = mangledName(node);
         QString stateName = QStringLiteral("state_") + name;
         // Property stuff:
-        clazz.properties << QStringLiteral("Q_PROPERTY(QAbstractState *%1 READ %1() CONSTANT)").arg(name);
-        Method getter(QStringLiteral("QAbstractState *%1() const").arg(name));
-        getter.impl << QStringLiteral("QAbstractState *%2::%1() const").arg(name)
-                    << QStringLiteral("{ return &data->%1; }").arg(stateName);
-        clazz.publicMethods << getter;
+        if (m_qtMode) {
+            Method getter(QStringLiteral("bool %1() const").arg(name));
+            getter.impl << QStringLiteral("bool %2::%1() const").arg(name)
+                        << QStringLiteral("{ return data->%1.active(); }").arg(stateName);
+            clazz.publicMethods << getter;
+        }
 
         // Declaration:
         if (node->type == State::Final) {
@@ -345,6 +351,16 @@ protected:
         if (node->type == State::Parallel) {
             clazz.init.impl << stateName + QStringLiteral(".setChildMode(QState::ParallelStates);");
         }
+        if (!node->id.isEmpty()) {
+            clazz.init.impl << QStringLiteral("QObject::connect(&")
+                               + stateName
+                               + QStringLiteral(", SIGNAL(activeChanged(bool)), &stateMachine, SIGNAL(")
+                               + node->id
+                               + QStringLiteral("Changed(bool)));");
+        }
+
+        m_stateNames.append(node->id);
+        m_stateFieldNames.append(stateName);
 
         // visit the kids:
         m_parents.append(node);
@@ -417,7 +433,13 @@ protected:
     bool visit(Transition *node) Q_DECL_OVERRIDE
     {
         const QString tName = transitionName(node);
-        m_knownEvents.unite(node->events.toSet());
+        if (m_qtMode) {
+            foreach (const QString &event, node->events) {
+                if (isValidCppIdentifier(event)) {
+                    m_knownEvents.insert(event);
+                }
+            }
+        }
 
         // Declaration:
         clazz.classFields << QStringLiteral("QScxmlTransition ") + tName + QLatin1Char(';');
@@ -541,6 +563,7 @@ protected:
         if (m_qtMode && node->type == QStringLiteral("qt:signal")) {
             if (!m_signals.contains(node->event)) {
                 m_signals.insert(node->event);
+                m_signalNames.append(node->event);
                 clazz.signalMethods << QStringLiteral("void %1(const QVariant &data);").arg(node->event);
             }
         }
@@ -637,33 +660,29 @@ private:
 
     void addSubStateMachineProperties(ScxmlDocument *doc)
     {
-        QStringList serviceProps;
         foreach (ScxmlDocument *subDocs, doc->allSubDocuments) {
             QString name = subDocs->root->name;
             if (name.isEmpty())
                 continue;
+            auto mangledName = CppDumper::mangleId(name);
+            auto qualifiedName = namespacePrefix + mangledName;
+            if (m_serviceProps.contains(qMakePair(mangledName, qualifiedName)))
+                continue;
+            m_serviceProps.append(qMakePair(mangledName, qualifiedName));
+            clazz.classFields << QStringLiteral("%1 *%2;").arg(qualifiedName, mangledName);
+            clazz.constructor.initializer << QStringLiteral("%1(Q_NULLPTR)").arg(mangledName);
 
-            serviceProps.append(name);
-            clazz.classFields << QStringLiteral("%1%2 *%2;").arg(namespacePrefix, name);
-            clazz.constructor.initializer << QStringLiteral("%1(Q_NULLPTR)").arg(name);
-            clazz.properties << QStringLiteral("Q_PROPERTY(%1%2 *%2 READ %2() NOTIFY %2Changed())").arg(namespacePrefix, name);
-            Method getter(QStringLiteral("%1%2 *%2() const").arg(namespacePrefix, name));
-            getter.impl << QStringLiteral("%1%2 *%3::%2() const").arg(namespacePrefix, name, clazz.className)
-                        << QStringLiteral("{ return data->%1; }").arg(name);
-            clazz.publicMethods << getter;
-            clazz.signalMethods << QStringLiteral("void %1Changed();").arg(name);
-        }
-
-        if (!serviceProps.isEmpty()) {
-            Method reg(QStringLiteral("void setService(const QString &id, QScxmlInvokableService *service) Q_DECL_OVERRIDE Q_DECL_FINAL"));
-            reg.impl << QStringLiteral("void %1::setService(const QString &id, QScxmlInvokableService *service) {").arg(clazz.className);
-            foreach (const QString &prop, serviceProps) {
-                reg.impl << QStringLiteral("    SET_SERVICE_PROP(%1, %2, %3%2, %2Changed)")
-                            .arg(addString(prop))
-                            .arg(prop, namespacePrefix);
+            if (m_qtMode) {
+                Method getter(QStringLiteral("%1 *%2() const").arg(qualifiedName, mangledName));
+                getter.impl << QStringLiteral("%1 *%2::%3() const").arg(qualifiedName, clazz.className, mangledName)
+                            << QStringLiteral("{ return data->%1; }").arg(mangledName);
+                clazz.publicMethods << getter;
+                clazz.signalMethods << QStringLiteral("void %1Changed(%2 *statemachine);").arg(mangledName, qualifiedName);
             }
-            reg.impl << QStringLiteral("}");
-            clazz.protectedMethods.append(reg);
+
+            clazz.dataMethods << QStringLiteral("%1 *machine_%2() const").arg(qualifiedName, mangledName)
+                              << QStringLiteral("{ return %1; }").arg(name)
+                              << QString();
         }
     }
 
@@ -689,17 +708,17 @@ private:
             }
         }
 
-        if (!m_signals.isEmpty()) {
+        if (!m_signalNames.isEmpty()) {
             clazz.needsEventFilter = true;
             clazz.init.impl << QStringLiteral("stateMachine.setScxmlEventFilter(this);");
             auto &dm = clazz.dataMethods;
             dm << QStringLiteral("bool handle(QScxmlEvent *event, QScxmlStateMachine *stateMachine) Q_DECL_OVERRIDE  {");
             if (m_qtMode) {
                 dm << QStringLiteral("    if (event->originType() != QStringLiteral(\"qt:signal\")) { return true; }")
-                   << QStringLiteral("    %1 *m = qobject_cast<%1 *>(stateMachine);").arg(clazz.className);
-                foreach (const QString &s, m_signals) {
+                   << QStringLiteral("    %1 *m = static_cast<%1 *>(stateMachine);").arg(clazz.className);
+                foreach (const QString &signalName, m_signalNames) {
                     dm << QStringLiteral("    if (event->name() == %1) { emit m->%2(event->data()); return false; }")
-                          .arg(qba(s), CppDumper::mangleId(s));
+                          .arg(qba(signalName), CppDumper::mangleId(signalName));
                 }
             }
             dm << QStringLiteral("    return true;")
@@ -995,7 +1014,7 @@ private:
                 for (int i = 0, ei = strings.size(); i < ei; ++i) {
                     QString s = strings.at(i);
                     QString comment = cEscape(s);
-                    t << QStringLiteral("QT_UNICODE_LITERAL_II(\"%1\") // %2").arg(toHex(s) + QStringLiteral("\\x00"), comment);
+                    t << QStringLiteral("QT_UNICODE_LITERAL_II(\"%1\") // %3: %2").arg(toHex(s) + QStringLiteral("\\x00"), comment, QString::number(i));
                 }
             }
             t << QStringLiteral("};") << QStringLiteral("");
@@ -1021,6 +1040,159 @@ private:
         }
     }
 
+    void generateMetaObject()
+    {
+        ClassDef classDef;
+        classDef.classname = clazz.className.toUtf8();
+        classDef.qualified = classDef.classname;
+        classDef.superclassList << qMakePair(QByteArray("QScxmlStateMachine"), FunctionDef::Public);
+        classDef.hasQObject = true;
+
+        // Event signals:
+        foreach (const QString &signalName, m_signalNames) {
+            FunctionDef signal;
+            signal.type.name = "void";
+            signal.type.rawName = signal.type.name;
+            signal.normalizedType = signal.type.name;
+            signal.name = signalName.toUtf8();
+            signal.access = FunctionDef::Public;
+            signal.isSignal = true;
+
+            ArgumentDef arg;
+            arg.type.name = "const QVariant &";
+            arg.type.rawName = arg.type.name;
+            arg.normalizedType = "QVariant";
+            arg.name = "data";
+            arg.typeNameForCast = arg.normalizedType + "*";
+            signal.arguments << arg;
+
+            classDef.signalList << signal;
+        }
+
+        // stateNames:
+        foreach (const QString &stateName, m_stateNames) {
+            if (stateName.isEmpty())
+                continue;
+
+            QByteArray mangledStateName = CppDumper::mangleId(stateName).toUtf8();
+
+            FunctionDef signal;
+            signal.type.name = "void";
+            signal.type.rawName = signal.type.name;
+            signal.normalizedType = signal.type.name;
+            signal.name = mangledStateName + "Changed";
+            signal.access = FunctionDef::Private;
+            signal.isSignal = true;
+            if (!m_qtMode) {
+                signal.implementation = "QMetaObject::activate(_o, &staticMetaObject, %d, _a);";
+            } else {
+                clazz.signalMethods << QStringLiteral("void %1Changed(bool active);").arg(stateName);
+            }
+            ArgumentDef arg;
+            arg.type.name = "bool";
+            arg.type.rawName = arg.type.name;
+            arg.normalizedType = arg.type.name;
+            arg.name = "active";
+            arg.typeNameForCast = arg.type.name + "*";
+            signal.arguments << arg;
+            classDef.signalList << signal;
+
+            ++classDef.notifyableProperties;
+            PropertyDef prop;
+            prop.name = stateName.toUtf8();
+            prop.type = "bool";
+            prop.read = "data->state_" + mangledStateName + ".active";
+            prop.notify = mangledStateName + "Changed";
+            prop.notifyId = classDef.signalList.size() - 1;
+            prop.gspec = PropertyDef::ValueSpec;
+            prop.scriptable = "true";
+            classDef.propertyList << prop;
+        }
+
+        // event slots:
+        foreach (const QString &eventName, m_knownEvents) {
+            FunctionDef slot;
+            slot.type.name = "void";
+            slot.type.rawName = slot.type.name;
+            slot.normalizedType = slot.type.name;
+            slot.name = eventName.toUtf8();
+            slot.access = FunctionDef::Public;
+            slot.isSlot = true;
+
+            classDef.slotList << slot;
+
+            ArgumentDef arg;
+            arg.type.name = "const QVariant &";
+            arg.type.rawName = arg.type.name;
+            arg.normalizedType = "QVariant";
+            arg.name = "data";
+            arg.typeNameForCast = arg.normalizedType + "*";
+            slot.arguments << arg;
+
+            classDef.slotList << slot;
+        }
+
+        // sub-statemachines:
+        QHash<QByteArray, QByteArray> knownQObjectClasses;
+        knownQObjectClasses.insert(QByteArray("QScxmlStateMachine"), QByteArray());
+        Method reg(QStringLiteral("void setService(const QString &id, QScxmlInvokableService *service) Q_DECL_OVERRIDE Q_DECL_FINAL"));
+        reg.impl << QStringLiteral("void %1::setService(const QString &id, QScxmlInvokableService *service) {").arg(clazz.className);
+        if (m_serviceProps.isEmpty()) {
+            reg.impl << QStringLiteral("    Q_UNUSED(id);")
+                     << QStringLiteral("    Q_UNUSED(service);");
+        }
+        for (const auto &service : m_serviceProps) {
+            auto serviceName = service.first;
+            QString fqServiceClass = service.second;
+            QByteArray serviceClass = fqServiceClass.toUtf8();
+            knownQObjectClasses.insert(serviceClass, "");
+
+            reg.impl << QStringLiteral("    SET_SERVICE_PROP(%1, %2, %3%2, %4)")
+                        .arg(addString(serviceName))
+                        .arg(serviceName, namespacePrefix).arg(classDef.signalList.size());
+
+            QByteArray mangledServiceName = CppDumper::mangleId(serviceName).toUtf8();
+
+            FunctionDef signal;
+            signal.type.name = "void";
+            signal.type.rawName = signal.type.name;
+            signal.normalizedType = signal.type.name;
+            signal.name = mangledServiceName + "Changed";
+            signal.access = FunctionDef::Private;
+            signal.isSignal = true;
+            if (!m_qtMode) {
+                signal.implementation = "QMetaObject::activate(_o, &staticMetaObject, %d, _a);";
+            }
+            ArgumentDef arg;
+            arg.type.name = serviceClass + " *";
+            arg.type.rawName = arg.type.name;
+            arg.type.referenceType = Type::Pointer;
+            arg.normalizedType = serviceClass + "*(*)";
+            arg.name = "statemachine";
+            arg.typeNameForCast = arg.type.name + "*";
+            signal.arguments << arg;
+            classDef.signalList << signal;
+
+            ++classDef.notifyableProperties;
+            PropertyDef prop;
+            prop.name = serviceName.toUtf8();
+            prop.type = serviceClass + "*";
+            prop.read = "data->machine_" + mangledServiceName;
+            prop.notify = mangledServiceName + "Changed";
+            prop.notifyId = classDef.signalList.size() - 1;
+            prop.gspec = PropertyDef::ValueSpec;
+            prop.scriptable = "true";
+            classDef.propertyList << prop;
+        }
+        reg.impl << QStringLiteral("}");
+        clazz.protectedMethods.append(reg);
+
+        QBuffer buf(&clazz.metaData);
+        buf.open(QIODevice::WriteOnly);
+        QTextStream out(&buf);
+        Generator(&classDef, QList<QByteArray>(), knownQObjectClasses, QHash<QByteArray, QByteArray>(), out).generateCode();
+    }
+
     QString qba(const QString &bytes)
     {
         return QStringLiteral("string(%1)").arg(addString(bytes));
@@ -1039,8 +1211,12 @@ private:
     TranslationUnit *translationUnit;
     QHash<AbstractState *, QString> m_mangledNames;
     QVector<Node *> m_parents;
+    QList<QPair<QString, QString>> m_serviceProps;
     QSet<QString> m_knownEvents;
     QSet<QString> m_signals;
+    QStringList m_signalNames;
+    QStringList m_stateNames;
+    QStringList m_stateFieldNames;
     QString m_currentTransitionName;
     bool m_bindLate;
     bool m_qtMode;
@@ -1085,7 +1261,7 @@ void CppDumper::dump(TranslationUnit *unit)
     writeImplEnd();
 }
 
-QString CppDumper::mangleId(const QString &id)
+QString CppDumper::mangleId(const QString &id) // TODO: remove
 {
     QString mangled(id);
     mangled = mangled.replace(QLatin1Char('_'), QLatin1String("__"));
@@ -1116,9 +1292,13 @@ void CppDumper::writeHeaderStart(const QString &headerGuard, const QStringList &
 void CppDumper::writeClass(const ClassDump &clazz)
 {
     h << l("class ") << clazz.className << QStringLiteral(": public QScxmlStateMachine\n{") << endl;
-    h << QLatin1String("    Q_OBJECT\n");
-    clazz.properties.write(h, QStringLiteral("    "), QStringLiteral("\n"));
-    h << QLatin1String("\npublic:\n");
+    h << QStringLiteral("public:") << endl
+      << QStringLiteral("    /* qmake ignore Q_OBJECT */") << endl
+      << QStringLiteral("    Q_OBJECT") << endl
+         ;
+
+    h << endl
+      << QStringLiteral("public:") << endl;
     h << l("    ") << clazz.className << l("(QObject *parent = 0);") << endl;
     h << l("    ~") << clazz.className << "();" << endl;
 
@@ -1203,9 +1383,12 @@ void CppDumper::writeImplBody(const ClassDump &clazz)
     }
     cpp << l(" {") << endl;
 
-    cpp << QStringLiteral("    Data(%1 &stateMachine)\n        : stateMachine(stateMachine)").arg(clazz.className) << endl;
+    cpp << QStringLiteral("    Data(%1 &stateMachine)").arg(clazz.className) << endl
+        << QStringLiteral("        : stateMachine(stateMachine)") << endl;
     clazz.constructor.initializer.write(cpp, QStringLiteral("        , "), QStringLiteral("\n"));
-    cpp << l("    { init(); }") << endl;
+    cpp << l("    {") << endl;
+    clazz.constructor.impl.write(cpp, QStringLiteral("        "), QStringLiteral("\n"));
+    cpp << l("    }") << endl;
 
     cpp << endl;
     cpp << l("    void init() {\n");
@@ -1220,10 +1403,12 @@ void CppDumper::writeImplBody(const ClassDump &clazz)
 
     cpp << l("};") << endl
         << endl;
+    clazz.classMethods.write(cpp, QStringLiteral(""), QStringLiteral("\n"));
+
     cpp << clazz.className << l("::") << clazz.className << l("(QObject *parent)") << endl
         << QStringLiteral("    : QScxmlStateMachine(parent)") << endl
         << QStringLiteral("    , data(new Data(*this))") << endl
-        << QStringLiteral("{ qRegisterMetaType<%1 *>(); qRegisterMetaType<QAbstractState *>(); }").arg(clazz.className) << endl
+        << QStringLiteral("{ qRegisterMetaType<%1 *>(); data->init(); }").arg(clazz.className) << endl
         << endl;
     cpp << clazz.className << l("::~") << clazz.className << l("()") << endl
         << l("{ delete data; }") << endl
@@ -1239,7 +1424,8 @@ void CppDumper::writeImplBody(const ClassDump &clazz)
                "        fq *casted = machine ? dynamic_cast<fq*>(machine->stateMachine()) : Q_NULLPTR; \\\n"
                "        if (data->n != casted) { \\\n"
                "            data->n = casted; \\\n"
-               "            emit sig(); \\\n"
+               "            void *_a[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&casted)) }; \\\n"
+               "            QMetaObject::activate(this, &staticMetaObject, sig, _a); \\\n"
                "        } \\\n"
                "        return; \\\n"
                "    }\n"
@@ -1267,6 +1453,8 @@ void CppDumper::writeImplBody(const ClassDump &clazz)
             m.impl.write(cpp, QStringLiteral(""), QStringLiteral("\n"));
         }
     }
+
+    cpp << endl << clazz.metaData;
 }
 
 void CppDumper::writeImplEnd()

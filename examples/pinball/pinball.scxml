@@ -50,6 +50,7 @@
 **
 ****************************************************************************/
 -->
+<!-- enable-qt-mode: yes -->
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0"
        name="Pinball" datamodel="ecmascript">
     <datamodel>
@@ -130,7 +131,7 @@
                     <parallel id="lettersState">
                         <state id="cLetter">
                             <state id="cLetterOff">
-                                <transition event="letterTriggered.C" cond="In('onState')" target="cLetterOn"/>
+                                <transition event="cLetterTriggered" cond="In('onState')" target="cLetterOn"/>
                             </state>
                             <final id="cLetterOn">
                                 <onentry>
@@ -140,7 +141,7 @@
                         </state>
                         <state id="rLetter">
                             <state id="rLetterOff">
-                                <transition event="letterTriggered.R" cond="In('onState')" target="rLetterOn"/>
+                                <transition event="rLetterTriggered" cond="In('onState')" target="rLetterOn"/>
                             </state>
                             <final id="rLetterOn">
                                 <onentry>
@@ -150,7 +151,7 @@
                         </state>
                         <state id="aLetter">
                             <state id="aLetterOff">
-                                <transition event="letterTriggered.A" cond="In('onState')" target="aLetterOn"/>
+                                <transition event="aLetterTriggered" cond="In('onState')" target="aLetterOn"/>
                             </state>
                             <final id="aLetterOn">
                                 <onentry>
@@ -160,7 +161,7 @@
                         </state>
                         <state id="zLetter">
                             <state id="zLetterOff">
-                                <transition event="letterTriggered.Z" cond="In('onState')" target="zLetterOn"/>
+                                <transition event="zLetterTriggered" cond="In('onState')" target="zLetterOn"/>
                             </state>
                             <final id="zLetterOn">
                                 <onentry>
@@ -170,7 +171,7 @@
                         </state>
                         <state id="yLetter">
                             <state id="yLetterOff">
-                                <transition event="letterTriggered.Y" cond="In('onState')" target="yLetterOn"/>
+                                <transition event="yLetterTriggered" cond="In('onState')" target="yLetterOn"/>
                             </state>
                             <final id="yLetterOn">
                                 <onentry>

@@ -545,6 +545,8 @@ public:
     }
 };
 
+Q_SCXML_EXPORT bool isValidCppIdentifier(const QString &str);
+
 } // DocumentModel namespace
 
 class Q_SCXML_EXPORT QScxmlParserPrivate

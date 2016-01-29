@@ -34,18 +34,6 @@ qscxmlc_sm.CONFIG += target_predeps
 QMAKE_EXTRA_COMPILERS += qscxmlc_sm
 }
 
-{
-load(moc)
-qscxmlc_moc.name = sc_$$moc_header.name
-qscxmlc_moc.input = QSCXMLC_HEADERS
-qscxmlc_moc.variable_out = $$moc_header.variable_out
-qscxmlc_moc.commands = $$moc_header.commands
-qscxmlc_moc.output = $$moc_header.output
-qscxmlc_moc.dependency_type = $$moc_header.dependency_type
-
-QMAKE_EXTRA_COMPILERS += qscxmlc_moc
-}
-
 !isEmpty(STATECHARTS) {
     INCLUDEPATH += $$absolute_path($$QSCXMLC_DIR, $$OUT_PWD)
 }

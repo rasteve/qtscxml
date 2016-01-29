@@ -273,10 +273,10 @@
     substate will be set to \c cLetterOff.
 
     The \c cLetterOff defines a transition, which will be triggered by
-    the \c {letterTriggered.C} event. This transition activates the \c cLetterOn,
+    the \c {cLetterTriggered} event. This transition activates the \c cLetterOn,
     the other child of \c cLetter, only when the machine is in \c onState
     (which will be defined later, but in short: when the pinball game is running).
-    The \c {letterTriggered.C} event is expected to be an event posted into the state machine
+    The \c {cLetterTriggered} event is expected to be an event posted into the state machine
     from outside of the state machine. This event should be generated when
     the ball hits the \uicontrol C letter target. In our example we mimic
     it by the pressing \uicontrol C letter button.
@@ -530,7 +530,7 @@
     the widget is disabled. We do that for all lights, targets
     and description lables.
 
-    We also connect to the \c event_updateScore propagated
+    We also connect to the \c updateScore propagated
     by the state machine and update the score displays
     with the values passed with the event.
 

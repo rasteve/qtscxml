@@ -47,17 +47,6 @@ myscxml_hdr.depends = scxml/${QMAKE_FUNC_nameTheNamespace}_${QMAKE_FILE_IN_BASE}
 myscxml_hdr.output = scxml/${QMAKE_FUNC_nameTheNamespace}_${QMAKE_FILE_IN_BASE}.h
 QMAKE_EXTRA_COMPILERS += myscxml_hdr
 
-qtPrepareTool(QMAKE_MOC, moc)
-#scxml_moc_source.CONFIG = no_link
-scxml_moc_source.dependency_type = TYPE_C
-scxml_moc_source.commands = $$QMAKE_MOC ${QMAKE_FILE_IN} -o ${QMAKE_FILE_OUT}
-scxml_moc_source.output = scxml/$${QMAKE_H_MOD_MOC}${QMAKE_FILE_BASE}$${first(QMAKE_EXT_CPP)}
-scxml_moc_source.input = SCXML_HEADERS
-#scxml_moc_source.depends += $$WIN_INCLUDETEMP
-scxml_moc_source.variable_out = SOURCES
-silent:scxml_moc_source.commands = @echo moc ${QMAKE_FILE_IN} && $$scxml_moc_source.commands
-QMAKE_EXTRA_COMPILERS += scxml_moc_source
-
 SCXMLS_DIR += $$absolute_path($$PWD/../../3rdparty/scion-tests/scxml-test-framework/test)
 ALLSCXMLS = $$files($$SCXMLS_DIR/*.scxml, true)
 

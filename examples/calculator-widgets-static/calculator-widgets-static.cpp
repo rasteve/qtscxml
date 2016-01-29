@@ -61,9 +61,6 @@ int main(int argc, char **argv)
     machine.init();
     MainWindow mainWindow(&machine);
 
-    QObject::connect(&machine, &Calculator::event_updateDisplay,
-                     &mainWindow, &MainWindow::updateDisplay);
-
     machine.start();
     mainWindow.show();
     return app.exec();

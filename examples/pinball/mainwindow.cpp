@@ -89,24 +89,24 @@ MainWindow::MainWindow(Pinball *machine, QWidget *parent) :
     initAndConnect(QLatin1String("onState"), m_ui->ballOutButton);
 
     // datamodel update
-    connect(m_machine, &Pinball::event_updateScore,
-            this, &MainWindow::updateScore);
+    connect(m_machine, SIGNAL(updateScore(const QVariant &)),
+            this, SLOT(updateScore(const QVariant &)));
 
     // gui interaction
     connect(m_ui->cButton, &QAbstractButton::clicked,
-            [this] { m_machine->submitEvent("letterTriggered.C");
+            [this] { m_machine->submitEvent("cLetterTriggered");
             });
     connect(m_ui->rButton, &QAbstractButton::clicked,
-            [this] { m_machine->submitEvent("letterTriggered.R");
+            [this] { m_machine->submitEvent("rLetterTriggered");
             });
     connect(m_ui->aButton, &QAbstractButton::clicked,
-            [this] { m_machine->submitEvent("letterTriggered.A");
+            [this] { m_machine->submitEvent("aLetterTriggered");
             });
     connect(m_ui->zButton, &QAbstractButton::clicked,
-            [this] { m_machine->submitEvent("letterTriggered.Z");
+            [this] { m_machine->submitEvent("zLetterTriggered");
             });
     connect(m_ui->yButton, &QAbstractButton::clicked,
-            [this] { m_machine->submitEvent("letterTriggered.Y");
+            [this] { m_machine->submitEvent("yLetterTriggered");
             });
     connect(m_ui->startButton, &QAbstractButton::clicked,
             [this] { m_machine->submitEvent("startTriggered");

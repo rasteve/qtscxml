@@ -143,7 +143,7 @@ private:
     {
         Q_ASSERT(state->initialStates.isEmpty());
 
-        if (m_doc->qtMode && !isValidCppIdentifier(state->id)) {
+        if (m_doc->qtMode && !DocumentModel::isValidCppIdentifier(state->id)) {
             error(state->xmlLocation,  QStringLiteral("state id '%1' is not a valid C++ identifier in Qt mode").arg(state->id));
         }
 
@@ -224,6 +224,13 @@ private:
                 error(transition->xmlLocation, QStringLiteral("unknown state '%1' in target").arg(target));
             }
         }
+        foreach (const QString &event, transition->events) {
+            if (event.contains(QLatin1Char('.'))) {
+                continue;
+            } else if (m_doc->qtMode && !DocumentModel::isValidCppIdentifier(event)) {
+                error(transition->xmlLocation,  QStringLiteral("event name '%1' is not a valid C++ identifier in Qt mode").arg(event));
+            }
+        }
 
         m_parentNodes.append(transition);
         return true;
@@ -257,7 +264,7 @@ private:
 
     bool visit(DocumentModel::Send *node) Q_DECL_OVERRIDE
     {
-        if (m_doc->qtMode && node->type == QStringLiteral("qt:signal") && !isValidCppIdentifier(node->event)) {
+        if (m_doc->qtMode && node->type == QStringLiteral("qt:signal") && !DocumentModel::isValidCppIdentifier(node->event)) {
             error(node->xmlLocation,  QStringLiteral("event name '%1' is not a valid C++ identifier in Qt mode").arg(node->event));
         }
 
@@ -343,115 +350,6 @@ private:
         }
 
         return Q_NULLPTR;
-    }
-
-    static bool isValidCppIdentifier(const QString &str)
-    {
-        static const QStringList keywords = QStringList()
-                << QStringLiteral("alignas")
-                << QStringLiteral("alignof")
-                << QStringLiteral("asm")
-                << QStringLiteral("auto")
-                << QStringLiteral("bool")
-                << QStringLiteral("break")
-                << QStringLiteral("case")
-                << QStringLiteral("catch")
-                << QStringLiteral("char")
-                << QStringLiteral("char16_t")
-                << QStringLiteral("char32_t")
-                << QStringLiteral("class")
-                << QStringLiteral("const")
-                << QStringLiteral("constexpr")
-                << QStringLiteral("const_cast")
-                << QStringLiteral("continue")
-                << QStringLiteral("decltype")
-                << QStringLiteral("default")
-                << QStringLiteral("delete")
-                << QStringLiteral("double")
-                << QStringLiteral("do")
-                << QStringLiteral("dynamic_cast")
-                << QStringLiteral("else")
-                << QStringLiteral("enum")
-                << QStringLiteral("explicit")
-                << QStringLiteral("export")
-                << QStringLiteral("extern")
-                << QStringLiteral("false")
-                << QStringLiteral("float")
-                << QStringLiteral("for")
-                << QStringLiteral("friend")
-                << QStringLiteral("goto")
-                << QStringLiteral("if")
-                << QStringLiteral("inline")
-                << QStringLiteral("int")
-                << QStringLiteral("long")
-                << QStringLiteral("mutable")
-                << QStringLiteral("namespace")
-                << QStringLiteral("new")
-                << QStringLiteral("noexcept")
-                << QStringLiteral("nullptr")
-                << QStringLiteral("operator")
-                << QStringLiteral("private")
-                << QStringLiteral("protected")
-                << QStringLiteral("public")
-                << QStringLiteral("register")
-                << QStringLiteral("reinterpret_cast")
-                << QStringLiteral("return")
-                << QStringLiteral("short")
-                << QStringLiteral("signed")
-                << QStringLiteral("sizeof")
-                << QStringLiteral("static")
-                << QStringLiteral("static_assert")
-                << QStringLiteral("static_cast")
-                << QStringLiteral("struct")
-                << QStringLiteral("switch")
-                << QStringLiteral("template")
-                << QStringLiteral("this")
-                << QStringLiteral("thread_local")
-                << QStringLiteral("throw")
-                << QStringLiteral("true")
-                << QStringLiteral("try")
-                << QStringLiteral("typedef")
-                << QStringLiteral("typeid")
-                << QStringLiteral("typename")
-                << QStringLiteral("union")
-                << QStringLiteral("unsigned")
-                << QStringLiteral("using")
-                << QStringLiteral("virtual")
-                << QStringLiteral("void")
-                << QStringLiteral("volatile")
-                << QStringLiteral("wchar_t")
-                << QStringLiteral("while");
-
-        if (keywords.contains(str)) {
-            return false;
-        }
-
-        auto isNonDigit = [](QChar ch) -> bool {
-            return (ch >= QLatin1Char('A') && ch <= QLatin1Char('Z'))
-                    || (ch >= QLatin1Char('a') && ch <= QLatin1Char('z'))
-                    || (ch == QLatin1Char('_'));
-        };
-
-        QChar ch = str.at(0);
-        if (!isNonDigit(ch)) {
-            return false;
-        }
-        for (int i = 1, ei = str.size(); i != ei; ++i) {
-            ch = str.at(i);
-            if (!isNonDigit(ch) && !ch.isDigit()) {
-                return false;
-            }
-        }
-
-        if (str.startsWith(QLatin1Char('_')) && str.size() > 1) {
-            QChar ch = str.at(1);
-            if (ch == QLatin1Char('_')
-                    || (ch >= QLatin1Char('A') && ch <= QLatin1Char('Z'))) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
 private:
@@ -607,8 +505,9 @@ private:
         m_firstSubStateMachineSignal = m_eventNamesByIndex.size();
         foreach (const QString &machineName, subStateMachineNames) {
             auto name = machineName.toUtf8();
-            QByteArray signalName = name + "Changed()";
+            QByteArray signalName = name + "Changed(QScxmlStateMachine *)";
             QMetaMethodBuilder signalBuilder = b.addSignal(signalName);
+            signalBuilder.setParameterNames(init("statemachine"));
             int idx = signalBuilder.index();
             m_eventNamesByIndex.resize(std::max(idx + 1, m_eventNamesByIndex.size()));
         }
@@ -701,7 +600,8 @@ protected:
         if (m_subStateMachines.at(idx) != machine) {
             m_subStateMachines[idx] = machine;
             // emit changed signal:
-            QMetaObject::activate(this, metaObject(), m_firstSubStateMachineSignal + idx, Q_NULLPTR);
+            void *argv[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&machine)) };
+            QMetaObject::activate(this, metaObject(), m_firstSubStateMachineSignal + idx, argv);
         }
     }
 
@@ -1541,6 +1441,115 @@ void DocumentModel::Scxml::accept(DocumentModel::NodeVisitor *visitor)
 DocumentModel::NodeVisitor::~NodeVisitor()
 {}
 
+bool DocumentModel::isValidCppIdentifier(const QString &str)
+{
+    static const QStringList keywords = QStringList()
+            << QStringLiteral("alignas")
+            << QStringLiteral("alignof")
+            << QStringLiteral("asm")
+            << QStringLiteral("auto")
+            << QStringLiteral("bool")
+            << QStringLiteral("break")
+            << QStringLiteral("case")
+            << QStringLiteral("catch")
+            << QStringLiteral("char")
+            << QStringLiteral("char16_t")
+            << QStringLiteral("char32_t")
+            << QStringLiteral("class")
+            << QStringLiteral("const")
+            << QStringLiteral("constexpr")
+            << QStringLiteral("const_cast")
+            << QStringLiteral("continue")
+            << QStringLiteral("decltype")
+            << QStringLiteral("default")
+            << QStringLiteral("delete")
+            << QStringLiteral("double")
+            << QStringLiteral("do")
+            << QStringLiteral("dynamic_cast")
+            << QStringLiteral("else")
+            << QStringLiteral("enum")
+            << QStringLiteral("explicit")
+            << QStringLiteral("export")
+            << QStringLiteral("extern")
+            << QStringLiteral("false")
+            << QStringLiteral("float")
+            << QStringLiteral("for")
+            << QStringLiteral("friend")
+            << QStringLiteral("goto")
+            << QStringLiteral("if")
+            << QStringLiteral("inline")
+            << QStringLiteral("int")
+            << QStringLiteral("long")
+            << QStringLiteral("mutable")
+            << QStringLiteral("namespace")
+            << QStringLiteral("new")
+            << QStringLiteral("noexcept")
+            << QStringLiteral("nullptr")
+            << QStringLiteral("operator")
+            << QStringLiteral("private")
+            << QStringLiteral("protected")
+            << QStringLiteral("public")
+            << QStringLiteral("register")
+            << QStringLiteral("reinterpret_cast")
+            << QStringLiteral("return")
+            << QStringLiteral("short")
+            << QStringLiteral("signed")
+            << QStringLiteral("sizeof")
+            << QStringLiteral("static")
+            << QStringLiteral("static_assert")
+            << QStringLiteral("static_cast")
+            << QStringLiteral("struct")
+            << QStringLiteral("switch")
+            << QStringLiteral("template")
+            << QStringLiteral("this")
+            << QStringLiteral("thread_local")
+            << QStringLiteral("throw")
+            << QStringLiteral("true")
+            << QStringLiteral("try")
+            << QStringLiteral("typedef")
+            << QStringLiteral("typeid")
+            << QStringLiteral("typename")
+            << QStringLiteral("union")
+            << QStringLiteral("unsigned")
+            << QStringLiteral("using")
+            << QStringLiteral("virtual")
+            << QStringLiteral("void")
+            << QStringLiteral("volatile")
+            << QStringLiteral("wchar_t")
+            << QStringLiteral("while");
+
+    if (keywords.contains(str)) {
+        return false;
+    }
+
+    auto isNonDigit = [](QChar ch) -> bool {
+        return (ch >= QLatin1Char('A') && ch <= QLatin1Char('Z'))
+                || (ch >= QLatin1Char('a') && ch <= QLatin1Char('z'))
+                || (ch == QLatin1Char('_'));
+    };
+
+    QChar ch = str.at(0);
+    if (!isNonDigit(ch)) {
+        return false;
+    }
+    for (int i = 1, ei = str.size(); i != ei; ++i) {
+        ch = str.at(i);
+        if (!isNonDigit(ch) && !ch.isDigit()) {
+            return false;
+        }
+    }
+
+    if (str.startsWith(QLatin1Char('_')) && str.size() > 1) {
+        QChar ch = str.at(1);
+        if (ch == QLatin1Char('_')
+                || (ch >= QLatin1Char('A') && ch <= QLatin1Char('Z'))) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 /*!
  * \class QScxmlParser::Loader
  * \brief A URI resolver and resource loader for the QScxmlParser .
@@ -2005,6 +2014,7 @@ void QScxmlParserPrivate::parse()
                         break;
                     }
                     parseSubDocument(i, m_reader, m_fileName);
+                    i->content->qtMode = m_doc->qtMode;
                 } break;
                 default:
                     addError(QStringLiteral("unexpected parent of content %1").arg(m_stack.last().kind));
