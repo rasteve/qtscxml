@@ -165,6 +165,7 @@ int main(int argc, char *argv[])
     docs.insert(mainDoc, mainClassname);
 
     TranslationUnit tu = options;
+    tu.scxmlFileName = QFileInfo(file).fileName();
     tu.mainDocument = mainDoc;
     tu.outHFileName = outHFileName;
     tu.outCppFileName = outCppFileName;

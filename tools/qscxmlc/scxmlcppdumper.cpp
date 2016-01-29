@@ -37,6 +37,27 @@
 #include "generator.h"
 
 QT_BEGIN_NAMESPACE
+
+enum { qscxmlcOutputRevision = 1 };
+
+static const QString doNotEditComment = QString::fromLatin1(
+            "//\n"
+            "// Statemachine code from reading SCXML file '%1'\n"
+            "// Created by: The Qt SCXML Compiler version %2 (Qt %3)\n"
+            "// WARNING! All changes made in this file will be lost!\n"
+            "//\n"
+            );
+
+static const QString revisionCheck = QString::fromLatin1(
+            "#if !defined(Q_QSCXMLC_OUTPUT_REVISION)\n"
+            "#error \"The header file '%1' doesn't include <qscxmlqstates.h>.\"\n"
+            "#elif Q_QSCXMLC_OUTPUT_REVISION != %2\n"
+            "#error \"This file was generated using the qscxmlc from %3. It\"\n"
+            "#error \"cannot be used with the include files from this version of Qt.\"\n"
+            "#error \"(The qscxmlc has changed too much.)\"\n"
+            "#endif\n"
+            );
+
 struct StringListDumper {
     StringListDumper &operator <<(const QString &s) {
         text.append(s);
@@ -1274,6 +1295,9 @@ QString CppDumper::mangleId(const QString &id) // TODO: remove
 
 void CppDumper::writeHeaderStart(const QString &headerGuard, const QStringList &forwardDecls)
 {
+    h << doNotEditComment.arg(m_translationUnit->scxmlFileName, QString::number(qscxmlcOutputRevision), QString::fromLatin1(QT_VERSION_STR))
+      << endl;
+
     h << QStringLiteral("#ifndef ") << headerGuard << endl
       << QStringLiteral("#define ") << headerGuard << endl
       << endl;
@@ -1356,6 +1380,9 @@ void CppDumper::writeHeaderEnd(const QString &headerGuard, const QStringList &me
 
 void CppDumper::writeImplStart(const QVector<ClassDump> &allClazzes)
 {
+    cpp << doNotEditComment.arg(m_translationUnit->scxmlFileName, QString::number(qscxmlcOutputRevision), QString::fromLatin1(QT_VERSION_STR))
+        << endl;
+
     StringListDumper includes;
     foreach (const ClassDump &clazz, allClazzes) {
         includes.text += clazz.implIncludes.text;
@@ -1371,6 +1398,9 @@ void CppDumper::writeImplStart(const QVector<ClassDump> &allClazzes)
         includes.write(cpp, QStringLiteral("#include <"), QStringLiteral(">\n"));
         cpp << endl;
     }
+    cpp << endl
+        << revisionCheck.arg(m_translationUnit->scxmlFileName, QString::number(qscxmlcOutputRevision), QString::fromLatin1(QT_VERSION_STR))
+        << endl;
     if (!m_translationUnit->namespaceName.isEmpty())
         cpp << l("namespace ") << m_translationUnit->namespaceName << l(" {") << endl << endl;
 }

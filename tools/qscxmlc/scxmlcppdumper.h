@@ -46,6 +46,7 @@ struct TranslationUnit
         , mainDocument(Q_NULLPTR)
     {}
 
+    QString scxmlFileName;
     QString outHFileName, outCppFileName;
     QString namespaceName;
     bool useCxx11;
