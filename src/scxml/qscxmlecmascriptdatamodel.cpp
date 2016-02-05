@@ -336,18 +336,20 @@ private:
 
 /*!
  * \class QScxmlEcmaScriptDataModel
- * \brief The EcmaScript data-model for a QScxmlStateMachine
+ * \brief The QScxmlEcmaScriptDataModel class is the ECMAScript data model for
+ * a Qt SCXML state machine.
  * \since 5.6
  * \inmodule QtScxml
  *
- * This class implements the EcmaScript data-model as described in the SCXML specification. It can
- * be subclassed to do custom initialization.
+ * This class implements the ECMAScript data model as described in
+ * \l {SCXML Specification}. It can be subclassed to perform custom
+ * initialization.
  *
  * \sa QScxmlStateMachine QScxmlDataModel
  */
 
 /*!
- * \brief Creates a new QScxmlEcmaScriptDataModel.
+ * Creates a new ECMAScript data model for the state machine \a stateMachine.
  */
 QScxmlEcmaScriptDataModel::QScxmlEcmaScriptDataModel(QScxmlStateMachine *stateMachine)
     : QScxmlDataModel(stateMachine)
@@ -355,7 +357,7 @@ QScxmlEcmaScriptDataModel::QScxmlEcmaScriptDataModel(QScxmlStateMachine *stateMa
 {}
 
 /*!
- * \brief Destroys a QScxmlEcmaScriptDataModel
+ * Destroys an ECMAScript data model.
  */
 QScxmlEcmaScriptDataModel::~QScxmlEcmaScriptDataModel()
 {
@@ -363,6 +365,7 @@ QScxmlEcmaScriptDataModel::~QScxmlEcmaScriptDataModel()
 }
 
 /*!
+  \reimp
  */
 bool QScxmlEcmaScriptDataModel::setup(const QVariantMap &initialDataValues)
 {
@@ -491,6 +494,7 @@ bool QScxmlEcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, Foreac
 }
 
 /*!
+ * \reimp
  */
 void QScxmlEcmaScriptDataModel::setEvent(const QScxmlEvent &event)
 {
@@ -498,6 +502,7 @@ void QScxmlEcmaScriptDataModel::setEvent(const QScxmlEvent &event)
 }
 
 /*!
+ * \reimp
  */
 QVariant QScxmlEcmaScriptDataModel::property(const QString &name) const
 {
@@ -505,6 +510,7 @@ QVariant QScxmlEcmaScriptDataModel::property(const QString &name) const
 }
 
 /*!
+ * \reimp
  */
 bool QScxmlEcmaScriptDataModel::hasProperty(const QString &name) const
 {
@@ -512,6 +518,7 @@ bool QScxmlEcmaScriptDataModel::hasProperty(const QString &name) const
 }
 
 /*!
+ * \reimp
  */
 bool QScxmlEcmaScriptDataModel::setProperty(const QString &name, const QVariant &value, const QString &context)
 {
@@ -521,7 +528,7 @@ bool QScxmlEcmaScriptDataModel::setProperty(const QString &name, const QVariant 
 }
 
 /*!
- * \return The JavaScript engine used by this data-model.
+ * Returns the JavaScript engine used by this data model.
  */
 QJSEngine *QScxmlEcmaScriptDataModel::engine() const
 {
@@ -529,7 +536,7 @@ QJSEngine *QScxmlEcmaScriptDataModel::engine() const
 }
 
 /*!
- * \brief Sets the JavaScript engine used by this data-model to \a engine .
+ * Sets the JavaScript engine used by this data model to \a engine.
  */
 void QScxmlEcmaScriptDataModel::setEngine(QJSEngine *engine)
 {
