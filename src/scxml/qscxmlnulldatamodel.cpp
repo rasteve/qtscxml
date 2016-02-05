@@ -112,17 +112,21 @@ private:
 
 /*!
  * \class QScxmlNullDataModel
- * \brief The "null" data-model for a QScxmlStateMachine
+ * \brief The QScxmlNullDataModel class is the null data model for a Qt SCXML
+ * stateMachine
  * \since 5.6
  * \inmodule QtScxml
  *
- * This class implements the "null" data-model as described in the SCXML specification.
+ * This class implements the null data model as described in the
+ * \l {SCXML Specification}. Using the value \c "null" for the \e datamodel
+ * attribute of the \c <scxml> element means that there is no underlying data
+ * model.
  *
  * \sa QScxmlStateMachine QScxmlDataModel
  */
 
 /*!
- * \brief Creates a new QScxmlNullDataModel .
+ * Creates a new Qt SCXML data model for the state machine \a stateMachine.
  */
 QScxmlNullDataModel::QScxmlNullDataModel(QScxmlStateMachine *stateMachine)
     : QScxmlDataModel(stateMachine)
@@ -130,7 +134,7 @@ QScxmlNullDataModel::QScxmlNullDataModel(QScxmlStateMachine *stateMachine)
 {}
 
 /*!
- * \brief Destroys a QScxmlNullDataModel .
+ * Destroys a Qt SCXML data model.
  */
 QScxmlNullDataModel::~QScxmlNullDataModel()
 {
@@ -138,6 +142,7 @@ QScxmlNullDataModel::~QScxmlNullDataModel()
 }
 
 /*!
+  \reimp
  */
 bool QScxmlNullDataModel::setup(const QVariantMap &initialDataValues)
 {
@@ -200,6 +205,7 @@ bool QScxmlNullDataModel::evaluateForeach(QScxmlExecutableContent::EvaluatorId i
 }
 
 /*!
+ * \reimp
  */
 void QScxmlNullDataModel::setEvent(const QScxmlEvent &event)
 {
@@ -207,8 +213,9 @@ void QScxmlNullDataModel::setEvent(const QScxmlEvent &event)
 }
 
 /*!
- * \brief The null data-model does not support properties.
- * \return an invalid variant.
+ * \reimp
+ * Returns an invalid variant, because the null data model does not support
+ * properties.
  */
 QVariant QScxmlNullDataModel::property(const QString &name) const
 {
@@ -217,8 +224,8 @@ QVariant QScxmlNullDataModel::property(const QString &name) const
 }
 
 /*!
- * \brief The null data-model does not support properties.
- * \return false.
+ * \reimp
+ * Returns \c false, because the null data model does not support properties.
  */
 bool QScxmlNullDataModel::hasProperty(const QString &name) const
 {
@@ -227,8 +234,8 @@ bool QScxmlNullDataModel::hasProperty(const QString &name) const
 }
 
 /*!
- * \brief The null data-model does not support properties.
- * \return false.
+ * \reimp
+ * Returns \c false, because the null data model does not support properties.
  */
 bool QScxmlNullDataModel::setProperty(const QString &name, const QVariant &value, const QString &context)
 {
