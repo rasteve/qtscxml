@@ -56,7 +56,7 @@ QScxmlDataModel::ForeachLoopBody::~ForeachLoopBody()
  * \class QScxmlDataModel
  * \brief The QScxmlDataModel class is the data model base class for a Qt SCXML
  * state machine.
- * \since 5.6
+ * \since 5.7
  * \inmodule QtScxml
  *
  * SCXML data models are described in the \l {SCXML Specification}. For more

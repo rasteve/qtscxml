@@ -1016,7 +1016,7 @@ inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(QScxmlStateMach
 /*!
  * \class QScxmlParser
  * \brief The QScxmlParser class is a parser for SCXML files.
- * \since 5.6
+ * \since 5.7
  * \inmodule QtScxml
  *
  * Parses an \l{SCXML Specification}{SCXML} file. It can also dynamically instantiate a
@@ -1556,7 +1556,7 @@ bool DocumentModel::isValidCppIdentifier(const QString &str)
 /*!
  * \class QScxmlParser::Loader
  * \brief The Loader class is a URI resolver and resource loader for an SCXML parser.
- * \since 5.6
+ * \since 5.7
  * \inmodule QtScxml
  */
 

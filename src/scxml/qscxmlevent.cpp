@@ -240,7 +240,7 @@ void QScxmlEventBuilder::submitError(const QString &type, const QString &msg, co
 /*!
  * \class QScxmlEvent
  * \brief Event for an QScxmlStateMachine
- * \since 5.6
+ * \since 5.7
  * \inmodule QtScxml
  *
  * See section 5.10.1 "The Internal Structure of Events" in the Scxml specification for more detail.

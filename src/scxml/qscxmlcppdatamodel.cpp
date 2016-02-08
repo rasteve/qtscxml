@@ -47,7 +47,7 @@ using namespace QScxmlExecutableContent;
 /*!
    \class QScxmlCppDataModel
    \brief The QScxmlCppDataModel class is a C++ data model for a Qt SCXML state machine.
-   \since 5.6
+   \since 5.7
    \inmodule QtScxml
 
    \sa QScxmlStateMachine QScxmlDataModel

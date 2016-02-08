@@ -338,7 +338,7 @@ private:
  * \class QScxmlEcmaScriptDataModel
  * \brief The QScxmlEcmaScriptDataModel class is the ECMAScript data model for
  * a Qt SCXML state machine.
- * \since 5.6
+ * \since 5.7
  * \inmodule QtScxml
  *
  * This class implements the ECMAScript data model as described in

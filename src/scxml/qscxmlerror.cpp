@@ -59,7 +59,7 @@ public:
  * \class QScxmlError
  * \brief The QScxmlError class describes the errors returned by the Qt SCXML
  * state machine when parsing an SCXML file.
- * \since 5.6
+ * \since 5.7
  * \inmodule QtScxml
  *
  * \sa QScxmlStateMachine QScxmlParser
