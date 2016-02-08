@@ -44,24 +44,31 @@
 
 QT_USE_NAMESPACE
 
+/*!
+ * \class QScxmlDataModel::ForeachLoopBody
+ * \internal
+ */
+
 QScxmlDataModel::ForeachLoopBody::~ForeachLoopBody()
 {}
 
 /*!
  * \class QScxmlDataModel
- * \brief Data-model base-class for a QScxmlStateMachine
+ * \brief The QScxmlDataModel class is the data model base class for a Qt SCXML
+ * state machine.
  * \since 5.6
  * \inmodule QtScxml
  *
- * SCXML data models are described in the SCXML specification.
+ * SCXML data models are described in the \l {SCXML Specification}. For more
+ * information about supported data models, see \l {SCXML Compliance}.
  *
- * One data-model can only belong to one state machine.
+ * One data model can only belong to one state machine.
  *
  * \sa QScxmlStateMachine QScxmlCppDataModel QScxmlEcmaScriptDataModel QScxmlNullDataModel
  */
 
 /*!
- * \brief Creates a new data model.
+ * Creates a new data model for the state machine \a stateMachine.
  */
 QScxmlDataModel::QScxmlDataModel(QScxmlStateMachine *stateMachine)
     : d(new QScxmlDataModelPrivate(stateMachine))
@@ -70,7 +77,7 @@ QScxmlDataModel::QScxmlDataModel(QScxmlStateMachine *stateMachine)
 }
 
 /*!
- * \brief Destroys the data model.
+ * Destroys the data model.
  */
 QScxmlDataModel::~QScxmlDataModel()
 {
@@ -78,7 +85,7 @@ QScxmlDataModel::~QScxmlDataModel()
 }
 
 /*!
- * \return the state machine to which this data-model is associated.
+ * Returns the state machine associated with the data model.
  */
 QScxmlStateMachine *QScxmlDataModel::stateMachine() const
 {
@@ -121,13 +128,17 @@ void QScxmlDataModelPrivate::setStateMachine(QScxmlStateMachine *stateMachine)
 /*!
  * \fn QScxmlDataModel::setup(const QVariantMap &initialDataValues)
  *
- * Initializes the data model.
+ * Initializes the data model with the initial values specified by
+ * \a initialDataValues.
+ *
+ * Returns \c false if parse errors occur or if any of the initialization steps
+ * fail. Returns \c true otherwise.
  */
 
 /*!
  * \fn QScxmlDataModel::setEvent(const QScxmlEvent &event)
  *
- * Sets the event to use in subsequent executable content execution.
+ * Sets the \a event to use in the subsequent executable content execution.
  */
 
 /*!
@@ -139,17 +150,17 @@ void QScxmlDataModelPrivate::setStateMachine(QScxmlStateMachine *stateMachine)
 /*!
  * \fn QScxmlDataModel::hasProperty(const QString &name) const
  *
- * \return true if a property with the given \a name exists, false otherwise.
+ * Returns \c true if a property with the given \a name exists, \c false
+ * otherwise.
  */
 
 /*!
  * \fn QScxmlDataModel::setProperty(const QString &name, const QVariant &value, const QString &context)
  *
- * Sets a property to the given value.
+ * Sets a the value \a value for the property \a name.
  *
- * \param name The name of the property to set.
- * \param value The new value for the property.
- * \param context A string that is used in error messages to indicate a location in the SCXML file
- *        where the error occurred.
- * \return true if successful, otherwise false if any error occurred.
+ * The \a context is a string that is used in error messages to indicate the
+ * location in the SCXML file where the error occurred.
+ *
+ * Returns \c true if successful or \c false if an error occurred.
  */
