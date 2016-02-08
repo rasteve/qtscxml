@@ -38,6 +38,9 @@
     the state machine. It also contains functionality to support data models
     and executable content.
 
+    \note In Qt 5.7 the Qt SCXML module is relased as Technology Preview.
+    This means that the API may still change in subsequent releases.
+
     \section1 Getting Started
 
     Both the dynamically created and the compiled state machines behave in the
