@@ -57,7 +57,8 @@ public:
 
 /*!
  * \class QScxmlError
- * \brief Describes the errors returned by the QScxmlStateMachine when parsing an SCXML file.
+ * \brief The QScxmlError class describes the errors returned by the Qt SCXML
+ * state machine when parsing an SCXML file.
  * \since 5.6
  * \inmodule QtScxml
  *
@@ -65,19 +66,16 @@ public:
  */
 
 /*!
- * \brief Creates a new invalid QScxmlError.
+ * Creates a new invalid SCXML error.
  */
 QScxmlError::QScxmlError()
     : d(Q_NULLPTR)
 {}
 
 /*!
- * \brief Creates a new (valid) QScxmlError.
- *
- * \param fileName The name of the file in which the error occurred.
- * \param line The line on which the error occurred.
- * \param column The column in which the error occurred.
- * \param description The error message.
+ * Creates a new valid SCXML error that contains the error message,
+ * \a description, as well as the \a fileName, \a line, and \a column where the
+ * error occurred.
  */
 QScxmlError::QScxmlError(const QString &fileName, int line, int column, const QString &description)
     : d(new ScxmlErrorPrivate)
@@ -89,7 +87,7 @@ QScxmlError::QScxmlError(const QString &fileName, int line, int column, const QS
 }
 
 /*!
- * \brief Copies a QScxmlError.
+ * Constructs a copy of \a other.
  */
 QScxmlError::QScxmlError(const QScxmlError &other)
     : d(Q_NULLPTR)
@@ -98,7 +96,8 @@ QScxmlError::QScxmlError(const QScxmlError &other)
 }
 
 /*!
- * \brief Copies a QScxmlError.
+ * Assigns \a other to this SCXML error and returns a reference to this SCXML
+ * error.
  */
 QScxmlError &QScxmlError::operator=(const QScxmlError &other)
 {
@@ -117,7 +116,7 @@ QScxmlError &QScxmlError::operator=(const QScxmlError &other)
 }
 
 /*!
- * \brief Destroys a QScxmlError.
+ * Destroys the SCXML error.
  */
 QScxmlError::~QScxmlError()
 {
@@ -126,8 +125,9 @@ QScxmlError::~QScxmlError()
 }
 
 /*!
- * \return true when the error is valid, false otherwise. An invalid error can only be
- *         created by calling the default constructor, or by assigning an invalid error.
+ * Returns \c true if the error is valid, \c false otherwise. An invalid error
+ * can only be created by calling the default constructor or by assigning an
+ * invalid error.
  */
 bool QScxmlError::isValid() const
 {
@@ -135,7 +135,7 @@ bool QScxmlError::isValid() const
 }
 
 /*!
- * \return The name of the file in which the error occurred.
+ * Returns the name of the file in which the error occurred.
  */
 QString QScxmlError::fileName() const
 {
@@ -143,7 +143,7 @@ QString QScxmlError::fileName() const
 }
 
 /*!
- * \return The line on which the error occurred.
+ * Returns the line on which the error occurred.
  */
 int QScxmlError::line() const
 {
@@ -151,7 +151,7 @@ int QScxmlError::line() const
 }
 
 /*!
- * \return The column in which the error occurred.
+ * Returns the column in which the error occurred.
  */
 int QScxmlError::column() const
 {
@@ -159,7 +159,7 @@ int QScxmlError::column() const
 }
 
 /*!
- * \return The error message.
+ * Returns the error message.
  */
 QString QScxmlError::description() const
 {
@@ -167,8 +167,9 @@ QString QScxmlError::description() const
 }
 
 /*!
- * \brief Convenience method to convert an error to a string.
- * \return The error message formatted as: "filename:line:column: error: description"
+ * This convenience method converts an error to a string.
+ * Returns the error message formatted as:
+ * \e {"filename:line:column: error: description"}
  */
 QString QScxmlError::toString() const
 {
