@@ -50,7 +50,7 @@
 **
 ****************************************************************************/
 -->
-<!-- enable-qt-mode: yes -->
+<!-- enable-qt-mode: no -->
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0"
        name="Pinball" datamodel="ecmascript">
     <datamodel>
@@ -129,55 +129,35 @@
             <parallel id="logicalState">
                 <state id="letterState">
                     <parallel id="lettersState">
-                        <state id="cLetter">
+                        <state id="letter.C">
                             <state id="cLetterOff">
                                 <transition event="cLetterTriggered" cond="In('onState')" target="cLetterOn"/>
                             </state>
-                            <final id="cLetterOn">
-                                <onentry>
-                                    <raise event="letterOn"/>
-                                </onentry>
-                            </final>
+                            <final id="cLetterOn"/>
                         </state>
-                        <state id="rLetter">
+                        <state id="letter.R">
                             <state id="rLetterOff">
                                 <transition event="rLetterTriggered" cond="In('onState')" target="rLetterOn"/>
                             </state>
-                            <final id="rLetterOn">
-                                <onentry>
-                                    <raise event="letterOn"/>
-                                </onentry>
-                            </final>
+                            <final id="rLetterOn"/>
                         </state>
-                        <state id="aLetter">
+                        <state id="letter.A">
                             <state id="aLetterOff">
                                 <transition event="aLetterTriggered" cond="In('onState')" target="aLetterOn"/>
                             </state>
-                            <final id="aLetterOn">
-                                <onentry>
-                                    <raise event="letterOn"/>
-                                </onentry>
-                            </final>
+                            <final id="aLetterOn"/>
                         </state>
-                        <state id="zLetter">
+                        <state id="letter.Z">
                             <state id="zLetterOff">
                                 <transition event="zLetterTriggered" cond="In('onState')" target="zLetterOn"/>
                             </state>
-                            <final id="zLetterOn">
-                                <onentry>
-                                    <raise event="letterOn"/>
-                                </onentry>
-                            </final>
+                            <final id="zLetterOn"/>
                         </state>
-                        <state id="yLetter">
+                        <state id="letter.Y">
                             <state id="yLetterOff">
                                 <transition event="yLetterTriggered" cond="In('onState')" target="yLetterOn"/>
                             </state>
-                            <final id="yLetterOn">
-                                <onentry>
-                                    <raise event="letterOn"/>
-                                </onentry>
-                            </final>
+                            <final id="yLetterOn"/>
                         </state>
                         <transition event="resetLetters" target="lettersState"/>
                     </parallel>
@@ -264,7 +244,7 @@
                     <transition event="lightImpulse" cond="In('lightImpulseOff')" target="lightImpulseOn"/>
                 </state>
 
-                <transition event="letterOn">
+                <transition event="done.state.letter.*">
                     <if cond="In('hurryStateOff')">
                         <assign location="score" expr="score + 1000"/>
                     <elseif cond="In('hurryStateOn')"/>

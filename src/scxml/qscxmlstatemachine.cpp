@@ -194,10 +194,8 @@ QScxmlEventFilter::~QScxmlEventFilter()
  *
  * All states which are defined in the SCXML file
  * are accessible as properties of QScxmlStateMachine.
- * The type of these properties is a pointer to
- * QAbstractState. Every occurience of
- * a \c - character in the state's name inside SCXML file
- * is replaced with \c _dash_ sequence in the property name.
+ * These properties are of bool type which indicates
+ * whether the state is active or inactive.
  *
  * All external signals defined inside SCXML file,
  * which are of "qt:signal" type, are accessible
@@ -206,11 +204,9 @@ QScxmlEventFilter::~QScxmlEventFilter()
  * is always QVariant, which is of QMap<QString, QVariant>
  * type containing the content of all \c <param>
  * elements specified as children of \c <send> tag.
- * The signal names of QScxmlStateMachine
- * correspond to those defined in SCXML file
- * but are prefixed with \c event_, and \c -
- * characters are escaped with \c _dash_ sequence,
- * like in case of states' property names.
+ * The name of each QScxmlStateMachine signal
+ * corresponds to the value defined in the
+ * \e event attribute of one \c <send> tag in the SCXML file.
  */
 
 QAtomicInt QScxmlStateMachinePrivate::m_sessionIdCounter = QAtomicInt(0);

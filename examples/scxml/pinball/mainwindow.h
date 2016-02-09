@@ -57,6 +57,7 @@ QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
 }
+class QScxmlEvent;
 QT_END_NAMESPACE
 
 class Pinball;
@@ -70,7 +71,7 @@ public:
     ~MainWindow();
 
 private slots:
-    void updateScore(const QVariant &data);
+    void eventOccurred(const QScxmlEvent &event);
 
 private:
     void initAndConnect(const QString &state, QWidget *widget);

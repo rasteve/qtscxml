@@ -105,11 +105,11 @@
     \printuntil scxml
 
     In this example we've chosen ecmascript data model
-    ("datamodel" attribute of <scxml> element).
+    ("datamodel" attribute of \c <scxml> element).
     This data model enables declaring variables with
     initial values, which can be modified later.
     We declare two variables in our model: "highscore" and "score",
-    with initial values of 0 (two <data> elements inside <datamodel> element).
+    with initial values of 0 (two \c <data> elements inside \c <datamodel> element).
     We also define a root parallel state "global",
     with two child states: \c guiControl and \c internalState,
     which are also parallel. Since the top \c global state is
@@ -158,7 +158,7 @@
     As mentioned before, \c guiControl state is always active, and since
     it is of parallel type, all its direct children are always active too.
     So, \c cLight state is always active, however,
-    only one of \c cLightOn or \c cLightOff it active at a time.
+    only one of \c cLightOn or \c cLightOff is active at a time.
     The same applies to other children of \c guiControl state.
     In addition, we define transitions between on and off substates, e.g.
     whenever the active state is \c cLightOn and someone posts \c turnOffC event,
@@ -215,16 +215,16 @@
     \quotefromfile pinball/pinball.scxml
     \skipto letterState
     \printuntil lettersState
-    \printuntil rLetter
+    \printuntil letter.R
     \dots 28
     \skipto /^\ {24}<\//
-    \printuntil aLetter
+    \printuntil letter.A
     \dots 28
     \skipto /^\ {24}<\//
-    \printuntil zLetter
+    \printuntil letter.Z
     \dots 28
     \skipto /^\ {24}<\//
-    \printuntil yLetter
+    \printuntil letter.Y
     \dots 28
     \skipto /^\ {24}<\//
     \printuntil /^\ {16}<\//
@@ -262,40 +262,34 @@
     correspond to five different letters. The content
     for other letters states than C, which is omitted here, is analogous.
 
-    The \c cLetter contains two substates reflecting its off and on states:
-    \c cLetterOff and \c cLetterOn. The "cLetter" state inside its parallel
-    parent \c lettersState is always active (under condition that
+    The \c {letter.C} contains two substates reflecting its off and on states:
+    \c cLetterOff and \c cLetterOn. The \c {letter.C} state inside its parallel
+    parent \c lettersState is always active (under the condition that
     \c lettersState is active, too, what was described before), however,
     only one of its child states is active at a time: \c cLetterOff or \c cLetterOn.
-    The initial substate of \c cLetter state is \c cLetterOff meaning
-    that whenever \c cLetter state is being activated (what happens
+    The initial substate of \c {letter.C} state is \c cLetterOff meaning
+    that whenever \c {letter.C} state is being activated (what happens
     initially and after \c resetLetters event) its active
     substate will be set to \c cLetterOff.
 
     The \c cLetterOff defines a transition, which will be triggered by
     the \c {cLetterTriggered} event. This transition activates the \c cLetterOn,
-    the other child of \c cLetter, only when the machine is in \c onState
+    the other child of \c {letter.C}, only when the machine is in \c onState
     (which will be defined later, but in short: when the pinball game is running).
     The \c {cLetterTriggered} event is expected to be an event posted into the state machine
     from outside of the state machine. This event should be generated when
     the ball hits the \uicontrol C letter target. In our example we mimic
     it by the pressing \uicontrol C letter button.
 
-    The \c cLetterOn state defines additional action. The action is defined
-    inside \c onentry element of the state, which means it will be executed
-    when the state machine enters this state. The action will generate
-    the event \c letterOn, which is common for all other letter states
-    defined in \c lettersState. This event will be used in further part
-    for updating the current score. So, whenever any of letters will switch
-    its state from off to on (but not vice versa), the \c letterOn
-    event will be posted.
-
     The \c cLetterOn state is defined as a final state, which means that
-    whenever this state is activated the \c {done.state.cLetter} event
-    will be automatically posted by the state machine. Moreover,
-    when all \c lettersState children reach their final state,
+    whenever this state is activated the \c {done.state.letter.C} event
+    will be automatically posted by the state machine. This event will be used
+    later for updating the current score.
+
+    Moreover, when all \c lettersState children reach their final state,
     the state machine will automatically post \c {done.state.lettersState} event.
-    Later, we will make use of it.
+    This event will be used later, too, for updating the current score
+    and for turning on or off the hurry state.
 
     \quotefromfile pinball/pinball.scxml
     \skipto modeState
@@ -348,8 +342,8 @@
     \c resetLetters and \c update (the same as we generate when entering the \c onState).
     In addition when we enter the \c hurryStateOn we send a delayed event
     \c goToHurryOff with a delay of 5s, marked with \c hurryId. It means, that after 5s we just
-    switch the state back to \c hurryStateOff. In this way we implement
-    the five seconds hurry feature of the pinball table.
+    switch the state back to \c hurryStateOff without granting the bonus points.
+    In this way we implement the five seconds hurry feature of the pinball table.
     We also define transitions: \c hurryStateOff -> \c hurryStateOn
     when \c goToHurryOn event occurs and the opposite,
     \c hurryStateOn -> \c hurryStateOff when \c goToHurryOff event occurs.
@@ -377,10 +371,10 @@
 
     \quotefromfile pinball/pinball.scxml
     \skipto workflow
-    \printuntil letterOn
+    \printuntil done.state.letter.*
     \dots 20
     \skipto /^\ {16}<\//
-    \printuntil lettersState
+    \printuntil done.state.lettersState
     \dots 20
     \skipto /^\ {16}<\//
     \printuntil updateLights
@@ -416,13 +410,19 @@
 
     \quotefromfile pinball/pinball.scxml
     \skipto workflow
-    \skipto letterOn
+    \skipto done.state.letter.*
     \printuntil /^\ {16}<\//
     \printuntil /^\ {16}<\//
 
-    Whenever we receive the \c letterOn event we update the current score.
-    The transition for the \c letterOn event is targetless, since we just
-    listen for that event and update the internal data accordingly
+    Whenever we receive the event the name of which matches the
+    \c {done.state.letter.*} we update the current score.
+    When the machine enters the final substate of the \c {letter.C}
+    it emits the \c {done.state.letter.C} event. The same happens for
+    all other letters we have previously defined. We capture here
+    the events for all letters, that is why we've used an asterisk
+    after a dot in the event name.
+    The transition above is targetless, since we just
+    listen for matching events and update the internal data accordingly
     without changing any active state. The new score is being
     increased by 1.000 or 10.000 points, depending if we currently are
     in \c hurryStateOff or \c hurryStateOn.
@@ -471,7 +471,7 @@
 
     When we receive \c updateLights event, we first want to send a
     \c updateScore signal outside of the state machine. We pass
-    to the signal current value of highscore and score variables.
+    the current value of highscore and score variables to the signal.
     This signal is received by the cpp part.
 
     Next, depending if we are in \c jackpotStateOn or \c jackpotStateOff
@@ -530,9 +530,10 @@
     the widget is disabled. We do that for all lights, targets
     and description lables.
 
-    We also connect to the \c updateScore propagated
-    by the state machine and update the score displays
-    with the values passed with the event.
+    We also connect to the \c eventOccurred() signal, propagated
+    by the state machine and intercept the \c updateScore
+    event sent from the SCXML document in order to update
+    the score displays with the values passed with the event.
 
     The info about hitting any GUI target needs to be passed
     to the state machine and we do that by connecting

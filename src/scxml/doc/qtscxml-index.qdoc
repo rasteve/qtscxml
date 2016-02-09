@@ -119,7 +119,7 @@
     Light {
         id: greenLight
         color: "green"
-        visible: stateMachine.green.active
+        visible: stateMachine.green
     }
     \endqml
 
@@ -129,7 +129,7 @@
     event, you can write:
 
     \code
-    QObject::connect(stateMachine, &MediaPlayer::event_playbackStopped, [](){
+    QObject::connect(stateMachine, &MediaPlayer::playbackStopped, [](){
         qDebug() << "Stopped!";
     });
     \endcode
@@ -139,7 +139,7 @@
     \qml
     Connections {
         target: stateMachine
-        onEvent_playbackStopped: console.log("Stopped!")
+        onPlaybackStopped: console.log("Stopped!")
     }
     \endqml
 
@@ -147,17 +147,17 @@
     connect to) the slot:
 
     \code
-    stateMachine->event_tap_song(QVariantMap({
+    stateMachine->tap(QVariantMap({
         std::make_pair("artist", "Fatboy Slim"),
         std::make_pair("title", "The Rockafeller Skank")
     });
     \endcode
 
-    This will generate a "tap_song" event with the map contents available in
+    This will generate a "tap" event with the map contents available in
     _event.data inside the state machine. In QML:
 
     \code
-    stateMacine.event_tap_song({
+    stateMacine.tap({
         "artist": "Fatboy Slim"
         "title": "The Rockafeller Skank"
     })
@@ -206,8 +206,8 @@
         value \c "qt:signal" accepted by the attribute \c type.
         The generated state machine or the state machine which has loaded
         the SCXML file dynamically will contain corresponding
-        signal, which name will consist of the \c event_ prefix
-        followed by the value of the \c event attribute inside the \c <send> tag.
+        signal, the name of which will be equal to the value of the
+        \e event attribute inside the \c <send> tag.
         All of the \c <param> children will be placed inside the
         QMap<QString, QVariant> map, and this map will be passed as a
         QVariant argument of the mentioned signal.

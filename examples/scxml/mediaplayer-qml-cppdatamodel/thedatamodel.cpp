@@ -57,9 +57,6 @@ TheDataModel::TheDataModel(QScxmlStateMachine *stateMachine)
 {
 }
 
-TheDataModel::~TheDataModel()
-{}
-
 bool TheDataModel::isValidMedia() const
 {
     QString eventMedia = eventData().value(QStringLiteral("media")).toString();
