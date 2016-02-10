@@ -667,6 +667,10 @@ void QScxmlInternal::WrappedQStateMachine::beginSelectTransitions(QEvent *event)
             emit d->stateMachine()->eventOccurred(*scxmlEvent);
         }
 
+        if (scxmlEvent->originType() == QLatin1String("qt:signal")) {
+            emit d->stateMachine()->externalEventOccurred(*scxmlEvent);
+        }
+
         if (smp->m_eventFilter && !smp->m_eventFilter->handle(scxmlEvent, d->stateMachine())) {
             scxmlEvent->makeIgnorable();
             scxmlEvent->clear();

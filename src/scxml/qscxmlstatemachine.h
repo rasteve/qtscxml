@@ -141,6 +141,7 @@ Q_SIGNALS:
     void dataModelChanged(QScxmlDataModel *model);
     void initialValuesChanged(const QVariantMap &initialValues);
     void initializedChanged(bool initialized);
+    void externalEventOccurred(const QScxmlEvent &event);
 
 public Q_SLOTS:
     void start();
