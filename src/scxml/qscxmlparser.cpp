@@ -1015,18 +1015,18 @@ inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(QScxmlStateMach
 
 /*!
  * \class QScxmlParser
- * \brief Parser for SCXML files.
+ * \brief The QScxmlParser class is a parser for SCXML files.
  * \since 5.6
  * \inmodule QtScxml
  *
- * Parses an \l{http://www.w3.org/TR/scxml/}{SCXML} file. It can also dynamically instantiate a
- * state-machine for a successfully parsed SCXML file. If parsing failed and
- * instantiateStateMachine() is called, the new state-machine cannot start and will have all
- * errors as QScxmlStateMachine::parseErrors() .
+ * Parses an \l{SCXML Specification}{SCXML} file. It can also dynamically instantiate a
+ * state machine for a successfully parsed SCXML file. If parsing failed and
+ * instantiateStateMachine() is called, the new state machine cannot start. All errors are
+ * returned by QScxmlStateMachine::parseErrors().
  *
  * To load an SCXML file, QScxmlStateMachine::fromFile or QScxmlStateMachine::fromData should be
  * used. Using QScxmlParser directly is only needed when the parser needs to use a custom
- * QScxmlParser::Loader .
+ * QScxmlParser::Loader.
  */
 
 /*!
@@ -1034,21 +1034,25 @@ inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(QScxmlStateMach
 
     This enum specifies the state the parser is in.
 
-    \value StartingParsing This is the state before \a parse() is called.
-    \value ParsingScxml The state when parsing, before any error has occurred.
-    \value ParsingError Final state, indicating a problem while parsing.
-    \value FinishedParsing Final state, indicating that all is fine.
+    \value  StartingParsing
+            The state before parse() is called.
+    \value  ParsingScxml
+            The state when parsing, before any errors have occurred.
+    \value  ParsingError
+            The final state, indicating that an error occurred while parsing.
+    \value  FinishedParsing
+            The final state, indicating that the file was successfully parsed.
  */
 
 /*!
- * \brief Creates a new QScxmlParser for the given \a reader .
+ * Creates a new SCXML parser for the specified \a reader.
  */
 QScxmlParser::QScxmlParser(QXmlStreamReader *reader)
     : p(new QScxmlParserPrivate(this, reader))
 { }
 
 /*!
- * \brief Destroys a QScxmlParser.
+ * Destroys the SCXML parser.
  */
 QScxmlParser::~QScxmlParser()
 {
@@ -1056,7 +1060,7 @@ QScxmlParser::~QScxmlParser()
 }
 
 /*!
- * \return the file name associated with the current input.
+ * Returns the file name associated with the current input.
  */
 QString QScxmlParser::fileName() const
 {
@@ -1064,9 +1068,9 @@ QString QScxmlParser::fileName() const
 }
 
 /*!
- * \brief Sets the file name for the current input.
+ * Sets the file name for the current input to \a fileName.
  *
- * The file name is used for error reporting, and for resolving relative path URIs.
+ * The file name is used for error reporting and for resolving relative path URIs.
  */
 void QScxmlParser::setFileName(const QString &fileName)
 {
@@ -1074,7 +1078,7 @@ void QScxmlParser::setFileName(const QString &fileName)
 }
 
 /*!
- * \brief Returns the loader that is currently used to resolve and load URIs.
+ * Returns the loader that is currently used to resolve and load URIs.
  */
 QScxmlParser::Loader *QScxmlParser::loader() const
 {
@@ -1082,7 +1086,7 @@ QScxmlParser::Loader *QScxmlParser::loader() const
 }
 
 /*!
- * \brief Sets \a newLoader to be used for resolving and loading URIs.
+ * Sets \a newLoader to be used for resolving and loading URIs.
  */
 void QScxmlParser::setLoader(QScxmlParser::Loader *newLoader)
 {
@@ -1090,7 +1094,7 @@ void QScxmlParser::setLoader(QScxmlParser::Loader *newLoader)
 }
 
 /*!
- * \brief The one and only big lever that has to be pulled to process the SCXML file.
+ * Parses an SCXML file.
  */
 void QScxmlParser::parse()
 {
@@ -1098,12 +1102,12 @@ void QScxmlParser::parse()
 }
 
 /*!
- * \brief Instantiates a new state-machine from the parsed SCXML.
+ * Instantiates a new state machine from the parsed SCXML.
  *
- * When parsing is successful, the returned state-machine can be initialized and started. When
- * parsing failed, QScxmlStateMachine::parseErrors() can be used to retrieve a list of errors.
+ * If parsing is successful, the returned state machine can be initialized and started. If
+ * parsing fails, QScxmlStateMachine::parseErrors() can be used to retrieve a list of errors.
  *
- * \note The instantiated state-machine will not have an associated data-model set.
+ * \note The instantiated state machine will not have an associated data model set.
  * \sa QScxmlParser::instantiateDataModel
  */
 QScxmlStateMachine *QScxmlParser::instantiateStateMachine() const
@@ -1128,9 +1132,9 @@ QScxmlStateMachine *QScxmlParser::instantiateStateMachine() const
 }
 
 /*!
- * \brief Instantiates the data-model as described in the SCXML file.
+ * Instantiates the data model as described in the SCXML file.
  *
- * After instantiation, the \a stateMachine takes ownership of the data-model.
+ * After instantiation, the \a stateMachine takes ownership of the data model.
  */
 void QScxmlParser::instantiateDataModel(QScxmlStateMachine *stateMachine) const
 {
@@ -1145,7 +1149,7 @@ void QScxmlParser::instantiateDataModel(QScxmlStateMachine *stateMachine) const
 }
 
 /*!
- * \return the current parser state.
+ * Returns the current parser state.
  */
 QScxmlParser::State QScxmlParser::state() const
 {
@@ -1153,7 +1157,7 @@ QScxmlParser::State QScxmlParser::state() const
 }
 
 /*!
- * \return the list of parse errors.
+ * Returns the list of parse errors.
  */
 QVector<QScxmlError> QScxmlParser::errors() const
 {
@@ -1161,11 +1165,10 @@ QVector<QScxmlError> QScxmlParser::errors() const
 }
 
 /*!
- * \brief Adds an error.
+ * Adds the error message \a msg.
  *
- * The line and column for the error message are the current line and column of the QXmlStreamReader .
- *
- * \param The error message.
+ * The line and column numbers for the error message are the current line and
+ * column numbers of the QXmlStreamReader.
  */
 void QScxmlParser::addError(const QString &msg)
 {
@@ -1552,13 +1555,13 @@ bool DocumentModel::isValidCppIdentifier(const QString &str)
 
 /*!
  * \class QScxmlParser::Loader
- * \brief A URI resolver and resource loader for the QScxmlParser .
+ * \brief The Loader class is a URI resolver and resource loader for an SCXML parser.
  * \since 5.6
  * \inmodule QtScxml
  */
 
 /*!
- * \brief Creates a new loader for the given \a parser .
+ * Creates a new loader for the specified \a parser.
  */
 QScxmlParser::Loader::Loader(QScxmlParser *parser)
     : m_parser(parser)
@@ -1567,13 +1570,13 @@ QScxmlParser::Loader::Loader(QScxmlParser *parser)
 }
 
 /*!
- * \brief Destroys a loader.
+ * Destroys the loader.
  */
 QScxmlParser::Loader::~Loader()
 {}
 
 /*!
- * \return the parser to which this loader is associated.
+ * Returns the parser that is associated with this loader.
  */
 QScxmlParser *QScxmlParser::Loader::parser() const
 {
@@ -1582,10 +1585,11 @@ QScxmlParser *QScxmlParser::Loader::parser() const
 
 /*!
  * \fn QScxmlParser::Loader::load(const QString &name, const QString &baseDir, bool *ok)
- * \param name The URI to resolve and load from.
- * \param baseDir The directory of the SCXML file that is being parsed.
- * \param ok A boolean to indicate whether loading was successful or not.
- * \return a QByteArray with the contents of the file.
+ * Resolves the URI \a name and loads an SCXML file from the directory
+ * specified by \a baseDir. The boolean parameter \a ok indicates whether
+ * the loading was successful.
+ *
+ * Returns a QByteArray that stores the contents of the file.
  */
 
 QScxmlParserPrivate *QScxmlParserPrivate::get(QScxmlParser *parser)
