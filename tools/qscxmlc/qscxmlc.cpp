@@ -31,6 +31,7 @@
 #include "scxmlcppdumper.h"
 
 #include <QCoreApplication>
+#include <QCommandLineParser>
 #include <QFile>
 #include <QFileInfo>
 
@@ -85,56 +86,82 @@ int main(int argc, char *argv[])
     a.setApplicationVersion(QString::fromLatin1("%1 (Qt %2)").arg(
                             QString::number(Q_QSCXMLC_OUTPUT_REVISION),
                             QString::fromLatin1(QT_VERSION_STR)));
-    QStringList args = a.arguments();
-    QString usage = QStringLiteral("\nUsage: %1 [-no-c++11] [-namespace <namespace>] [-o <base/out/name>] [-oh <header/out>] [-ocpp <cpp/out>] [-use-private-api]\n").arg(QFileInfo(args.value(0)).baseName());
-           usage += QStringLiteral("         [-classname <stateMachineClassName>] <input.scxml>\n\n");
-           usage += QStringLiteral("compiles the given input.scxml file to a header and cpp file\n");
 
     QTextStream errs(stderr, QIODevice::WriteOnly);
 
+    QCommandLineParser cmdParser;
+
+    cmdParser.setSingleDashWordOptionMode(QCommandLineParser::ParseAsLongOptions);
+    cmdParser.addHelpOption();
+    cmdParser.addVersionOption();
+    cmdParser.setApplicationDescription(QCoreApplication::translate("main",
+                       "Compiles the given input.scxml file to a header and cpp file."));
+
+    QCommandLineOption optionNoCxx11(QLatin1String("no-c++11"),
+                       QCoreApplication::translate("main", "Don't use C++11 in generated code."));
+    QCommandLineOption optionNamespace(QLatin1String("namespace"),
+                       QCoreApplication::translate("main", "Put generated code into <namespace>."),
+                       QCoreApplication::translate("main", "namespace"));
+    QCommandLineOption optionOutputBaseName(QLatin1String("o"),
+                       QCoreApplication::translate("main", "Generate <name>.h and <name>.cpp files."),
+                       QCoreApplication::translate("main", "name"));
+    QCommandLineOption optionOutputHeaderName(QLatin1String("oh"),
+                       QCoreApplication::translate("main", "Generate <name> for the header file."),
+                       QCoreApplication::translate("main", "name"));
+    QCommandLineOption optionOutputSourceName(QLatin1String("ocpp"),
+                       QCoreApplication::translate("main", "Generate <name> for the source file."),
+                       QCoreApplication::translate("main", "name"));
+    QCommandLineOption optionClassName(QLatin1String("classname"),
+                       QCoreApplication::translate("main", "Generate <name> for state machine class name."),
+                       QCoreApplication::translate("main", "name"));
+
+    cmdParser.addPositionalArgument(QLatin1String("input"),
+                       QCoreApplication::translate("main", "Input SCXML file."));
+    cmdParser.addOption(optionNoCxx11);
+    cmdParser.addOption(optionNamespace);
+    cmdParser.addOption(optionOutputBaseName);
+    cmdParser.addOption(optionOutputHeaderName);
+    cmdParser.addOption(optionOutputSourceName);
+    cmdParser.addOption(optionClassName);
+
+    cmdParser.process(a);
+
+    const QStringList inputFiles = cmdParser.positionalArguments();
+
+    if (inputFiles.count() < 1) {
+        errs << QCoreApplication::translate("main", "Error: no input file.") << endl;
+        cmdParser.showHelp(NoInputFilesError);
+    }
+
+    if (inputFiles.count() > 1) {
+        errs << QCoreApplication::translate("main", "Error: unexpected argument(s): %1")
+                .arg(inputFiles.mid(1).join(QLatin1Char(' '))) << endl;
+        cmdParser.showHelp(NoInputFilesError);
+    }
+
+    const QString scxmlFileName = inputFiles.at(0);
+
     TranslationUnit options;
-    QString scxmlFileName;
-    QString outFileName;
-    QString outHFileName;
-    QString outCppFileName;
-    QString mainClassname;
-    for (int iarg = 1; iarg < args.size(); ++iarg) {
-        QString arg = args.at(iarg);
-        if (arg == QStringLiteral("-no-c++11")) {
-            options.useCxx11 = false;
-        } else if (arg == QLatin1String("-namespace")) {
-            options.namespaceName = args.value(++iarg);
-        } else if (arg == QLatin1String("-o")) {
-            outFileName = args.value(++iarg);
-        } else if (arg == QLatin1String("-oh")) {
-            outHFileName = args.value(++iarg);
-        } else if (arg == QLatin1String("-ocpp")) {
-            outCppFileName = args.value(++iarg);
-        } else if (arg == QLatin1String("-classname")) {
-            mainClassname = args.value(++iarg);
-        } else if (scxmlFileName.isEmpty()) {
-            scxmlFileName = arg;
-        } else {
-            errs << QStringLiteral("Unexpected argument: %1").arg(arg) << endl;
-            errs << usage;
-            return CommandLineArgumentsError;
-        }
-    }
-    if (scxmlFileName.isEmpty()) {
-        errs << QStringLiteral("Error: no input files.") << endl;
-        exit(NoInputFilesError);
-    }
-    QFile file(scxmlFileName);
-    if (!file.open(QFile::ReadOnly)) {
-        errs << QStringLiteral("Error: cannot open input file %1").arg(scxmlFileName);
-        exit(CannotOpenInputFileError);
-    }
+    options.useCxx11 = !cmdParser.isSet(optionNoCxx11);
+    if (cmdParser.isSet(optionNamespace))
+        options.namespaceName = cmdParser.value(optionNamespace);
+    QString outFileName = cmdParser.value(optionOutputBaseName);
+    QString outHFileName = cmdParser.value(optionOutputHeaderName);
+    QString outCppFileName = cmdParser.value(optionOutputSourceName);
+    QString mainClassName = cmdParser.value(optionClassName);
+
     if (outFileName.isEmpty())
         outFileName = QFileInfo(scxmlFileName).baseName();
     if (outHFileName.isEmpty())
         outHFileName = outFileName + QLatin1String(".h");
     if (outCppFileName.isEmpty())
         outCppFileName = outFileName + QLatin1String(".cpp");
+
+    QFile file(scxmlFileName);
+    if (!file.open(QFile::ReadOnly)) {
+        errs << QStringLiteral("Error: cannot open input file %1").arg(scxmlFileName);
+        exit(CannotOpenInputFileError);
+    }
 
     QXmlStreamReader reader(&file);
     QScxmlParser parser(&reader);
@@ -158,15 +185,15 @@ int main(int argc, char *argv[])
 
     QMap<DocumentModel::ScxmlDocument *, QString> docs;
     collectAllDocuments(mainDoc, &docs);
-    if (mainClassname.isEmpty())
-        mainClassname = mainDoc->root->name;
-    if (mainClassname.isEmpty()) {
-        mainClassname = QFileInfo(scxmlFileName).fileName();
-        int dot = mainClassname.indexOf(QLatin1Char('.'));
+    if (mainClassName.isEmpty())
+        mainClassName = mainDoc->root->name;
+    if (mainClassName.isEmpty()) {
+        mainClassName = QFileInfo(scxmlFileName).fileName();
+        int dot = mainClassName.indexOf(QLatin1Char('.'));
         if (dot != -1)
-            mainClassname = mainClassname.left(dot);
+            mainClassName = mainClassName.left(dot);
     }
-    docs.insert(mainDoc, mainClassname);
+    docs.insert(mainDoc, mainClassName);
 
     TranslationUnit tu = options;
     tu.scxmlFileName = QFileInfo(file).fileName();
@@ -176,7 +203,7 @@ int main(int argc, char *argv[])
     for (QMap<DocumentModel::ScxmlDocument *, QString>::const_iterator i = docs.begin(), ei = docs.end(); i != ei; ++i) {
         auto name = i.value();
         if (name.isEmpty()) {
-            name = QStringLiteral("%1_StateMachine_%2").arg(mainClassname).arg(tu.classnameForDocument.size() + 1);
+            name = QStringLiteral("%1_StateMachine_%2").arg(mainClassName).arg(tu.classnameForDocument.size() + 1);
         }
         tu.classnameForDocument.insert(i.key(), name);
     }
