@@ -1182,6 +1182,16 @@ void QScxmlParser::addError(const QString &msg)
     p->addError(msg);
 }
 
+QScxmlParser::QtMode QScxmlParser::qtMode() const
+{
+    return p->qtMode();
+}
+
+void QScxmlParser::setQtMode(QScxmlParser::QtMode mode)
+{
+    p->setQtMode(mode);
+}
+
 bool QScxmlParserPrivate::ParserState::collectChars() {
     switch (kind) {
     case Content:
@@ -1612,6 +1622,7 @@ QScxmlParserPrivate::QScxmlParserPrivate(QScxmlParser *parser, QXmlStreamReader 
     , m_loader(&m_defaultLoader)
     , m_reader(reader)
     , m_state(QScxmlParser::StartingParsing)
+    , m_qtMode(QScxmlParser::QtModeFromInputFile)
 {}
 
 QScxmlParser *QScxmlParserPrivate::parser() const
@@ -1679,6 +1690,10 @@ static bool isWordEnd(const QStringRef &str, int start)
 void QScxmlParserPrivate::parse()
 {
     m_doc.reset(new DocumentModel::ScxmlDocument(fileName()));
+    if (m_qtMode == QScxmlParser::QtModeEnabled)
+        m_doc->qtMode = true;
+    else if (m_qtMode == QScxmlParser::QtModeDisabled)
+        m_doc->qtMode = false;
     m_currentParent = m_doc->root;
     m_currentState = m_doc->root;
     while (!m_reader->atEnd()) {
@@ -1699,9 +1714,11 @@ void QScxmlParserPrivate::parse()
                 }
                 QStringRef value = commentText.mid(qtModeIdx);
                 if (value.startsWith(QStringLiteral("yes")) && isWordEnd(value, 3)) {
-                    m_doc->qtMode = true;
+                    if (m_qtMode == QScxmlParser::QtModeFromInputFile)
+                        m_doc->qtMode = true;
                 } else if (value.startsWith(QStringLiteral("no")) && isWordEnd(value, 2)) {
-                    m_doc->qtMode = false;
+                    if (m_qtMode == QScxmlParser::QtModeFromInputFile)
+                        m_doc->qtMode = false;
                 } else {
                     addError(QStringLiteral("expected 'yes' or 'no' after enable-qt-mode in comment"));
                 }
@@ -2346,6 +2363,16 @@ void QScxmlParserPrivate::addError(const DocumentModel::XmlLocation &location, c
 {
     m_errors.append(QScxmlError(m_fileName, location.line, location.column, msg));
     m_state = QScxmlParser::ParsingError;
+}
+
+QScxmlParser::QtMode QScxmlParserPrivate::qtMode() const
+{
+    return m_qtMode;
+}
+
+void QScxmlParserPrivate::setQtMode(QScxmlParser::QtMode mode)
+{
+    m_qtMode = mode;
 }
 
 DocumentModel::AbstractState *QScxmlParserPrivate::currentParent() const
