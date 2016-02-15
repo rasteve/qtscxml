@@ -107,7 +107,8 @@ public:
             }
         }
 
-        doc->root->accept(this);
+        if (doc->root)
+            doc->root->accept(this);
         return !m_hasErrors;
     }
 
@@ -1115,7 +1116,8 @@ QScxmlStateMachine *QScxmlParser::instantiateStateMachine() const
 #ifdef BUILD_QSCXMLC
     return Q_NULLPTR;
 #else // BUILD_QSCXMLC
-    if (DocumentModel::ScxmlDocument *doc = p->scxmlDocument()) {
+    DocumentModel::ScxmlDocument *doc = p->scxmlDocument();
+    if (doc && doc->root) {
         return QStateMachineBuilder().build(doc);
     } else {
         class InvalidStateMachine: public QScxmlStateMachine {
@@ -1141,9 +1143,14 @@ void QScxmlParser::instantiateDataModel(QScxmlStateMachine *stateMachine) const
 #ifdef BUILD_QSCXMLC
     Q_UNUSED(stateMachine)
 #else
-    QScxmlDataModel *dm = QScxmlDataModelPrivate::instantiateDataModel(p->scxmlDocument()->root->dataModel, stateMachine);
-    if (dm == Q_NULLPTR) {
-        qWarning() << "No data-model instantiated!";
+    auto root = p->scxmlDocument()->root;
+    if (root == Q_NULLPTR) {
+        qWarning() << "SCXML document has no root element";
+    } else {
+        QScxmlDataModel *dm = QScxmlDataModelPrivate::instantiateDataModel(root->dataModel,
+                                                                           stateMachine);
+        if (dm == Q_NULLPTR)
+            qWarning() << "No data-model instantiated";
     }
 #endif // BUILD_QSCXMLC
 }

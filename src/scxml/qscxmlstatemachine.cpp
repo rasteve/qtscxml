@@ -969,7 +969,7 @@ bool QScxmlStateMachine::init(const QVariantMap &initialDataValues)
     if (!parseErrors().isEmpty())
         return false;
 
-    if (!dataModel()->setup(initialDataValues))
+    if (!dataModel() || !dataModel()->setup(initialDataValues))
         return false;
 
     return d->executeInitialSetup();

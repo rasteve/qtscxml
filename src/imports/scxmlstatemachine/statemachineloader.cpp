@@ -133,7 +133,7 @@ bool QScxmlStateMachineLoader::parse(const QUrl &filename)
         return false;
     }
 
-    m_stateMachine = QScxmlStateMachine::fromData(&buf);
+    m_stateMachine = QScxmlStateMachine::fromData(&buf, filename.toString());
     m_stateMachine->setParent(this);
     m_stateMachine->init();
 
