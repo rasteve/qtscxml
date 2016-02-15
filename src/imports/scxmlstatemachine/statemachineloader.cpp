@@ -128,7 +128,11 @@ bool QScxmlStateMachineLoader::parse(const QUrl &filename)
 
     QByteArray data(scxmlFile.dataByteArray());
     QBuffer buf(&data);
-    Q_ASSERT(buf.open(QIODevice::ReadOnly));
+    if (!buf.open(QIODevice::ReadOnly)) {
+        qmlInfo(this) << QStringLiteral("ERROR: cannot open input buffer for reading");
+        return false;
+    }
+
     m_stateMachine = QScxmlStateMachine::fromData(&buf);
     m_stateMachine->setParent(this);
     m_stateMachine->init();
