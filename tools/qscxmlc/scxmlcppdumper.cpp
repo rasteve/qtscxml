@@ -38,8 +38,6 @@
 
 QT_BEGIN_NAMESPACE
 
-enum { qscxmlcOutputRevision = 1 };
-
 static const QString doNotEditComment = QString::fromLatin1(
             "//\n"
             "// Statemachine code from reading SCXML file '%1'\n"
@@ -50,7 +48,7 @@ static const QString doNotEditComment = QString::fromLatin1(
 
 static const QString revisionCheck = QString::fromLatin1(
             "#if !defined(Q_QSCXMLC_OUTPUT_REVISION)\n"
-            "#error \"The header file '%1' doesn't include <qscxmlqstates.h>.\"\n"
+            "#error \"The header file '%1' doesn't include <qscxmltabledata.h>.\"\n"
             "#elif Q_QSCXMLC_OUTPUT_REVISION != %2\n"
             "#error \"This file was generated using the qscxmlc from %3. It\"\n"
             "#error \"cannot be used with the include files from this version of Qt.\"\n"
@@ -1295,7 +1293,7 @@ QString CppDumper::mangleId(const QString &id) // TODO: remove
 
 void CppDumper::writeHeaderStart(const QString &headerGuard, const QStringList &forwardDecls)
 {
-    h << doNotEditComment.arg(m_translationUnit->scxmlFileName, QString::number(qscxmlcOutputRevision), QString::fromLatin1(QT_VERSION_STR))
+    h << doNotEditComment.arg(m_translationUnit->scxmlFileName, QString::number(Q_QSCXMLC_OUTPUT_REVISION), QString::fromLatin1(QT_VERSION_STR))
       << endl;
 
     h << QStringLiteral("#ifndef ") << headerGuard << endl
@@ -1380,7 +1378,7 @@ void CppDumper::writeHeaderEnd(const QString &headerGuard, const QStringList &me
 
 void CppDumper::writeImplStart(const QVector<ClassDump> &allClazzes)
 {
-    cpp << doNotEditComment.arg(m_translationUnit->scxmlFileName, QString::number(qscxmlcOutputRevision), QString::fromLatin1(QT_VERSION_STR))
+    cpp << doNotEditComment.arg(m_translationUnit->scxmlFileName, QString::number(Q_QSCXMLC_OUTPUT_REVISION), QString::fromLatin1(QT_VERSION_STR))
         << endl;
 
     StringListDumper includes;
@@ -1399,7 +1397,7 @@ void CppDumper::writeImplStart(const QVector<ClassDump> &allClazzes)
         cpp << endl;
     }
     cpp << endl
-        << revisionCheck.arg(m_translationUnit->scxmlFileName, QString::number(qscxmlcOutputRevision), QString::fromLatin1(QT_VERSION_STR))
+        << revisionCheck.arg(m_translationUnit->scxmlFileName, QString::number(Q_QSCXMLC_OUTPUT_REVISION), QString::fromLatin1(QT_VERSION_STR))
         << endl;
     if (!m_translationUnit->namespaceName.isEmpty())
         cpp << l("namespace ") << m_translationUnit->namespaceName << l(" {") << endl << endl;

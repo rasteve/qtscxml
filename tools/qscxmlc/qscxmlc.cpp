@@ -27,6 +27,7 @@
 ****************************************************************************/
 
 #include <QtScxml/private/qscxmlparser_p.h>
+#include <QtScxml/qscxmltabledata.h>
 #include "scxmlcppdumper.h"
 
 #include <QCoreApplication>
@@ -81,6 +82,9 @@ static void collectAllDocuments(DocumentModel::ScxmlDocument *doc, QMap<Document
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
+    a.setApplicationVersion(QString::fromLatin1("%1 (Qt %2)").arg(
+                            QString::number(Q_QSCXMLC_OUTPUT_REVISION),
+                            QString::fromLatin1(QT_VERSION_STR)));
     QStringList args = a.arguments();
     QString usage = QStringLiteral("\nUsage: %1 [-no-c++11] [-namespace <namespace>] [-o <base/out/name>] [-oh <header/out>] [-ocpp <cpp/out>] [-use-private-api]\n").arg(QFileInfo(args.value(0)).baseName());
            usage += QStringLiteral("         [-classname <stateMachineClassName>] <input.scxml>\n\n");

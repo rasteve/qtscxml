@@ -44,6 +44,10 @@
 
 #include <QString>
 
+#ifndef Q_QSCXMLC_OUTPUT_REVISION
+#define Q_QSCXMLC_OUTPUT_REVISION 1
+#endif
+
 QT_BEGIN_NAMESPACE
 
 class Q_SCXML_EXPORT QScxmlTableData
