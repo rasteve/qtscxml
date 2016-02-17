@@ -91,7 +91,6 @@ int main(int argc, char *argv[])
 
     QCommandLineParser cmdParser;
 
-    cmdParser.setSingleDashWordOptionMode(QCommandLineParser::ParseAsLongOptions);
     cmdParser.addHelpOption();
     cmdParser.addVersionOption();
     cmdParser.setApplicationDescription(QCoreApplication::translate("main",
@@ -102,13 +101,13 @@ int main(int argc, char *argv[])
     QCommandLineOption optionNamespace(QLatin1String("namespace"),
                        QCoreApplication::translate("main", "Put generated code into <namespace>."),
                        QCoreApplication::translate("main", "namespace"));
-    QCommandLineOption optionOutputBaseName(QLatin1String("o"),
+    QCommandLineOption optionOutputBaseName(QStringList() << QLatin1String("o") << QLatin1String("output"),
                        QCoreApplication::translate("main", "Generate <name>.h and <name>.cpp files."),
                        QCoreApplication::translate("main", "name"));
-    QCommandLineOption optionOutputHeaderName(QLatin1String("oh"),
+    QCommandLineOption optionOutputHeaderName(QLatin1String("header"),
                        QCoreApplication::translate("main", "Generate <name> for the header file."),
                        QCoreApplication::translate("main", "name"));
-    QCommandLineOption optionOutputSourceName(QLatin1String("ocpp"),
+    QCommandLineOption optionOutputSourceName(QLatin1String("impl"),
                        QCoreApplication::translate("main", "Generate <name> for the source file."),
                        QCoreApplication::translate("main", "name"));
     QCommandLineOption optionClassName(QLatin1String("classname"),
