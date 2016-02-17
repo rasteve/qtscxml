@@ -518,9 +518,6 @@ void QScxmlStateMachinePrivate::returnDoneEvent(QScxmlExecutableContent::Contain
 bool QScxmlStateMachinePrivate::nameMatch(const StateTable::Array &patterns,
                                           QScxmlEvent *event) const
 {
-    if (event->type() == QEvent::None)
-        return false;
-
     const QString eventName = event->name();
     bool selected = false;
     for (int eventSelectorIter = 0; eventSelectorIter < patterns.size(); ++eventSelectorIter) {

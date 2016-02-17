@@ -42,7 +42,6 @@
 
 #include <QtScxml/qscxmlglobals.h>
 
-#include <QEvent>
 #include <QStringList>
 #include <QVariantList>
 
@@ -54,7 +53,7 @@ class WrappedQStateMachine;
 
 class QScxmlEventPrivate;
 
-class Q_SCXML_EXPORT QScxmlEvent: public QEvent
+class Q_SCXML_EXPORT QScxmlEvent
 {
     Q_GADGET
     Q_PROPERTY(QString name READ name CONSTANT)
@@ -110,15 +109,8 @@ public:
     QString errorMessage() const;
     void setErrorMessage(const QString &message);
 
-protected:
-    friend class QScxmlInternal::WrappedQStateMachine;
-#ifndef Q_QDOC
-    static QEvent::Type scxmlEventType;
-    static QEvent::Type ignoreEventType;
-    void makeIgnorable();
-#endif // Q_QDOC
-
 private:
+    friend class QScxmlInternal::WrappedQStateMachine;
     QScxmlEventPrivate *d;
 
 };

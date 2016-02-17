@@ -48,9 +48,6 @@ QT_BEGIN_NAMESPACE
 
 using namespace QScxmlExecutableContent;
 
-QEvent::Type QScxmlEvent::scxmlEventType = (QEvent::Type) QEvent::registerEventType();
-QEvent::Type QScxmlEvent::ignoreEventType = (QEvent::Type) QEvent::registerEventType();
-
 QAtomicInt QScxmlEventBuilder::idCounter = QAtomicInt(0);
 
 QScxmlEvent *QScxmlEventBuilder::buildEvent()
@@ -267,7 +264,7 @@ void QScxmlEventBuilder::submitError(const QString &type, const QString &msg, co
  * Creates a new external SCXML event.
  */
 QScxmlEvent::QScxmlEvent()
-    : QEvent(scxmlEventType), d(new QScxmlEventPrivate)
+    : d(new QScxmlEventPrivate)
 { }
 
 /*!
@@ -308,7 +305,6 @@ void QScxmlEvent::clear()
  */
 QScxmlEvent &QScxmlEvent::operator=(const QScxmlEvent &other)
 {
-    QEvent::operator=(other);
     *d = *other.d;
     return *this;
 }
@@ -317,7 +313,7 @@ QScxmlEvent &QScxmlEvent::operator=(const QScxmlEvent &other)
  * Constructs a copy of \a other.
  */
 QScxmlEvent::QScxmlEvent(const QScxmlEvent &other)
-    : QEvent(other), d(new QScxmlEventPrivate(*other.d))
+    : d(new QScxmlEventPrivate(*other.d))
 {
 }
 
@@ -560,11 +556,6 @@ void QScxmlEvent::setErrorMessage(const QString &message)
 {
     if (isErrorEvent())
         d->data = message;
-}
-
-void QScxmlEvent::makeIgnorable()
-{
-    t = ignoreEventType;
 }
 
 QByteArray QScxmlEventPrivate::debugString(QScxmlEvent *event)
