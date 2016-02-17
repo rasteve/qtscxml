@@ -28,6 +28,7 @@ defineReplace(nameTheClass) {
 win32 {
 QSCXMLC_DEP=$$[QT_HOST_BINS]/qscxmlc.exe
 QSCXMLC_CMD=$$QSCXMLC_DEP -no-c++11
+msvc: QMAKE_CXXFLAGS += /bigobj
 } else {
 QSCXMLC_DEP=$$[QT_HOST_BINS]/qscxmlc
 QSCXMLC_CMD=$$QSCXMLC_DEP
