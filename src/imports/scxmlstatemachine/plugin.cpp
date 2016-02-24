@@ -38,6 +38,7 @@
 ****************************************************************************/
 
 #include "statemachineloader.h"
+#include "qscxmlevent.h"
 
 #include <QQmlExtensionPlugin>
 #include <qqml.h>
@@ -52,6 +53,13 @@ class QScxmlStateMachinePlugin : public QQmlExtensionPlugin
 public:
     void registerTypes(const char *uri)
     {
+        // Do not rely on RegisterMethodArgumentMetaType meta-call to register the QScxmlEvent type.
+        // This registration is required for the receiving end of the signal emission that carries
+        // parameters of this type to be able to treat them correctly as a gadget. This is because the
+        // receiving end of the signal is a generic method in the QML engine, at which point it's too late
+        // to do a meta-type registration.
+        static const int qScxmlEventMetaTypeId = qMetaTypeId<QScxmlEvent>();
+        Q_UNUSED(qScxmlEventMetaTypeId)
         qmlRegisterType<QScxmlStateMachineLoader>(uri, 1, 0, "StateMachineLoader");
         qmlProtectModule(uri, 1);
     }
