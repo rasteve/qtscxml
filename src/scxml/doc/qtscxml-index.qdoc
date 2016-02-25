@@ -43,6 +43,27 @@
 
     \section1 Getting Started
 
+    To include the definitions of the module's classes, use the following directive:
+
+    \code
+    #include <QScxmlStateMachine>
+    \endcode
+
+    To import the QML types into your application, use the following import statement
+    in your .qml file:
+
+    \code
+    import Scxml 1.0
+    \endcode
+
+    To link against the module, add this line to your qmake .pro file:
+
+    \code
+    QT += scxml
+    \endcode
+
+    \section1 Instantiating State Machines
+
     Both the dynamically created and the compiled state machines behave in the
     same way, have the same properties, states, data model, and so on. They only
     differ in the way they are instantiated. To dynamically create one in C++
