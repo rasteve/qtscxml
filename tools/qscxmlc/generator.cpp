@@ -47,6 +47,7 @@ void fprintf(QTextStream &out, const char *fmt, ...)
     const int bufSize = 4096;
     char buf[bufSize];
     vsnprintf(buf, bufSize, fmt, argp);
+    va_end(argp);
     out << buf;
 }
 
