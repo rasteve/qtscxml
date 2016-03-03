@@ -39,5 +39,54 @@
     \l{SCXML Specification - Calculator Example}{Calculator Example}
     presented in the SCXML Specification.
 
+    The state machine is specified in the \e calculator.scxml file and compiled
+    into the \c Calculator class. The user interface is created using
+    Qt Widgets.
+
     \include examples-run.qdocinc
+
+    \section1 Compiling the State Machine
+
+    We link against the Qt SCXML module by adding the following line to the
+    \e calculator.pro file:
+
+    \quotefromfile calculator/calculator.pro
+    \printuntil scxml
+
+    We then specify the state machine to compile:
+
+    \skipto STATECHARTS
+    \printline calculator
+
+    We also tell qmake to run \c qscxmlc, which generates \e calculator.h and
+    \e calculator.cpp, and adds them to the \c HEADERS and \c SOURCES variables
+    for compilation:
+
+    \skipto load
+    \printline qscxmlc
+
+    \section1 Instantiating the State Machine
+
+    We instantiate the generated \c Calculator class in the \e main.cpp file, as
+    follows:
+
+    \quotefromfile calculator/main.cpp
+    \skipto #include
+    \printuntil }
+
+    \section1 Connecting to Active Properties
+
+    After instantiating the state machine, we can connect to the active
+    properties of the states, as follows:
+
+    \quotefromfile calculator/mainwindow.cpp
+    \skipto connect
+    \printuntil digit2
+    \printuntil }
+
+    To be notified when a state machine sends out an event, we connect to the
+    corresponding signal:
+
+    \skipto eventOccurred
+    \printuntil });
 */
