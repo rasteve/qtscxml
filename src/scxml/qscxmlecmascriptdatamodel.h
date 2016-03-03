@@ -51,7 +51,7 @@ class Q_SCXML_EXPORT QScxmlEcmaScriptDataModel: public QScxmlDataModel
     Q_OBJECT
     Q_DECLARE_PRIVATE(QScxmlEcmaScriptDataModel)
 public:
-    QScxmlEcmaScriptDataModel(QObject *parent = 0);
+    explicit QScxmlEcmaScriptDataModel(QObject *parent = nullptr);
 
     bool setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;
 
