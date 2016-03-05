@@ -764,7 +764,7 @@ public:
     }
 
 private:
-    Q_DECL_HIDDEN static void qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+    static void qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
     {
         if (_c == QMetaObject::InvokeMetaMethod) {
             DynamicStateMachine *_t = static_cast<DynamicStateMachine *>(_o);
