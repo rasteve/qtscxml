@@ -28,8 +28,7 @@
 /*!
     \page qtscxml-index.html
     \title Qt SCXML
-    \brief The Qt SCXML module provides functionality to create state machines
-           from SCXML files.
+    \brief Provides functionality to create state machines from SCXML files.
 
     The Qt SCXML module provides functionality to create state machines from
     \l {SCXML Specification}{SCXML} files. This includes both dynamically
@@ -62,194 +61,13 @@
     QT += scxml
     \endcode
 
-    \section1 Instantiating State Machines
-
-    Both the dynamically created and the compiled state machines behave in the
-    same way, have the same properties, states, data model, and so on. They only
-    differ in the way they are instantiated. To dynamically create one in C++
-    from an SCXML file, you can use:
-
-    \code
-    auto *stateMachine = QScxmlStateMachine::fromFile("MyStatemachine.scxml");
-    \endcode
-
-    Or, in QML:
-
-    \qml
-    import Scxml 1.0
-
-    Item {
-        property QtObject stateMachine: scxmlLoader.stateMachine
-
-        StateMachineLoader {
-            id: scxmlLoader
-            filename: "statemachine.scxml"
-        }
-    }
-    \endqml
-
-    A compiled state machine can be instantiated the same way as any C++
-    object:
-
-    \code
-    auto *stateMachine = new MyStatemachine;
-    \endcode
-
-    Or:
-
-    \code
-    MyStatemachine stateMachine;
-    \endcode
-
-    To use a compiled state machine in QML, you can assign it to a context
-    property:
-
-    \code
-    MyStatemachine stateMachine;
-    QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("stateMachine", &stateMachine);
-    \endcode
-
-    To compile a state machine, the following lines have to be added to a
-    .pro file:
-
-    \badcode
-    QT += scxml
-    STATECHARTS = MyStatemachine.scxml
-    \endcode
-
-    This will tell qmake to run \e qscxmlc which generates MyStatemachine.h
-    and MyStatemachine.cpp, and adds them to \l [QMake] HEADERS and
-    \l [QMake] SOURCES variables.
-
-    After instantiating a state machine, you can connect to any state's
-    active property as follows. For example, if the state machine for a
-    traffic light has a state indicating that the light is red (which has the
-    convenient id "red" in the scxml file), you can write:
-
-    \code
-    QObject::connect(stateMachine->red(), &QAbstractState::activeChanged,
-        [stateMachine](){
-            qDebug() << (stateMachine->red()->active() ? "entered" : "exited") << "the red state";
-    });
-    \endcode
-
-    And in QML:
-
-    \qml
-    Light {
-        id: greenLight
-        color: "green"
-        visible: stateMachine.green
-    }
-    \endqml
-
-    If you want to be notified when a state machine sends out an event, you
-    can connect to the corresponding signal. For example, for a media player
-    state machine which indicates that playback has stopped by sending an
-    event, you can write:
-
-    \code
-    QObject::connect(stateMachine, &MediaPlayer::playbackStopped, [](){
-        qDebug() << "Stopped!";
-    });
-    \endcode
-
-    And in QML:
-
-    \qml
-    Connections {
-        target: stateMachine
-        onPlaybackStopped: console.log("Stopped!")
-    }
-    \endqml
-
-    Sending events to a state machine is equally simple. You can call (or
-    connect to) the slot:
-
-    \code
-    stateMachine->tap(QVariantMap({
-        std::make_pair("artist", "Fatboy Slim"),
-        std::make_pair("title", "The Rockafeller Skank")
-    });
-    \endcode
-
-    This will generate a "tap" event with the map contents available in
-    _event.data inside the state machine. In QML:
-
-    \code
-    stateMacine.tap({
-        "artist": "Fatboy Slim"
-        "title": "The Rockafeller Skank"
-    })
-    \endcode
-
-    Any invoked state machine with a name property will also show up as a
-    property on its parent state machine.
-
-    \section1 SCXML Compliance
-
-    Qt SCXML supports the following data models:
+    \section1 Articles and Guides
 
     \list
-      \li null data model, as described in B.1 of the \l {SCXML specification}
-      \li ECMAScript data model, as described in B.2 of the
-          \l {SCXML specification}
-      \li C++ data model, as described in the QScxmlCppDataModel documentation
+      \li \l {Qt SCXML Overview}
+      \li \l {Instantiating State Machines}
+      \li \l {SCXML Compliance}
     \endlist
-
-    The Qt SCXML implementation is SCXML compliant, with a few exceptions:
-
-    \list
-    \li Event data (\c _event.data) is implemented as a QVariant. If parameters
-        are passed to \c <send>, the QVariant holds a QVariantMap, so multiple
-        parameters with the same name are not supported.
-    \li There is no "raw" representation of an event.
-    \li The (optional) basic http event I/O processor is not supported.
-    \li The contents of a \c <script> tag and a \c <data> tag must be valid for
-        the chosen data model. So, as an example: XML content inside <data> is
-        not supported. However, the ECMAScript data model does support data in
-        JSON format.
-    \li The only service that can be instantiated with \c <invoke> is another
-        SCXML state machine.
-    \li To keep the behavior of dynamically created state machines and compiled
-        state machines the same, the \e typeexpr and \e srcexpr attributes are
-        not supported. Moreover, if a \c <content> tag is
-        used inside an \c <invoke> tag, that content must be XML. Specifically,
-        dynamically creating SCXML, for example by concatenating strings with
-        the ECMAScript data model, is not supported.
-    \endlist
-
-    The Qt SCXML implementation extends SCXML in the following ways:
-
-    \list
-    \li For communication purposes the \c <send> tag supports an extra
-        value \c "qt:signal" accepted by the attribute \c type.
-        The generated state machine or the state machine which has loaded
-        the SCXML file dynamically will contain corresponding
-        signal, the name of which will be equal to the value of the
-        \e event attribute inside the \c <send> tag.
-        All of the \c <param> children will be placed inside the
-        QMap<QString, QVariant> map, and this map will be passed as a
-        QVariant argument of the mentioned signal.
-    \li If the event is an error event, \c _event.errorMessage will contain a more
-        detailed description of the error.
-    \endlist
-
-    \section1 Logging Categories
-
-    The QtScxml module exports the following logging categories:
-    \table
-    \header
-        \li Logging Category
-        \li Description
-    \row
-        \li qscxmlLog
-        \li Enables QtScxml module log
-    \row
-        \li scxmlLog
-        \li Enables log of scxml documents
-    \endtable
 
     \section1 Examples
 
