@@ -1463,6 +1463,9 @@ DocumentModel::NodeVisitor::~NodeVisitor()
 
 bool DocumentModel::isValidCppIdentifier(const QString &str)
 {
+    if (str.isEmpty())
+        return false;
+
     static const QStringList keywords = QStringList()
             << QStringLiteral("alignas")
             << QStringLiteral("alignof")
