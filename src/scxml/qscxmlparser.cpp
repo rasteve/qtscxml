@@ -144,7 +144,8 @@ private:
     {
         Q_ASSERT(state->initialStates.isEmpty());
 
-        if (m_doc->qtMode && !DocumentModel::isValidCppIdentifier(state->id)) {
+        if (m_doc->qtMode && state->type != DocumentModel::State::Initial
+                && !DocumentModel::isValidCppIdentifier(state->id)) {
             error(state->xmlLocation,  QStringLiteral("state id '%1' is not a valid C++ identifier in Qt mode").arg(state->id));
         }
 
