@@ -95,10 +95,9 @@
     convenient id "red" in the scxml file), you can write:
 
     \code
-    QObject::connect(stateMachine->red(), &QAbstractState::activeChanged,
-        [stateMachine](){
-            qDebug() << (stateMachine->red()->active() ? "entered" : "exited") << "the red state";
-    });
+    QObject::connect(stateMachine, &TrafficLightStateMachine::redChanged,
+        [](bool active) {
+       qDebug() << (active ? "entered" : "exited") << "the red state";
     \endcode
 
     And in QML:
@@ -107,7 +106,7 @@
     Light {
         id: greenLight
         color: "green"
-        visible: stateMachine.green.active
+        visible: stateMachine.green
     }
     \endqml
 
@@ -117,7 +116,7 @@
     event, you can write:
 
     \code
-    QObject::connect(stateMachine, &MediaPlayer::event_playbackStopped, [](){
+    QObject::connect(stateMachine, &MediaPlayer::playbackStopped, [](){
         qDebug() << "Stopped!";
     });
     \endcode
