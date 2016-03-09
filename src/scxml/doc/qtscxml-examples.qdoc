@@ -31,9 +31,19 @@
 \brief Examples for the Qt SCXML module.
 \ingroup all-examples
 
-Here is a list of example applications demonstrating the functionality
-provided by the \l{Qt SCXML} module. Some examples come in multiple flavors,
-e.g. the traffic-light example. All of these use the same SCXML file, but
-implement the UI differently (C++ versus QML), or load the SCXML dynamically
-versus compiling it to C++ first (the "static" versions).
+The Qt SCXML example applications demonstrate the functionality provided by the
+\l{Qt SCXML} module.
+
+There are multiple versions of the \e Invoke, \e {Media Player}, and
+\e {Traffic Light} example applications. Each application has some common files
+that are stored in a common folder, in addition to the files stored in the
+example version folder.
+
+All versions of an example application have the same appearance and
+fuctionality. They demonstrate the different options for creating user
+interfaces (using Qt Widgets or Qt Quick) and for loading the SCXML dynamically
+versus first compiling it to a C++ class (the \e static versions).
+
+In addition, the Media Player example versions demonstrate how to access the C++
+and ECMAScript data models.
 */
