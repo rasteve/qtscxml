@@ -27,8 +27,31 @@
 
 /*!
     \example mediaplayer-qml-static
-    \title Qt SCXML: Media Player QML Example (Static)
+    \title Qt SCXML Media Player QML Example (Static)
     \ingroup examples-qtscxml
 
-    \brief Demonstrates how to send/receive data to/from EcmaScript data-model.
+    \brief A Qt Quick application that sends data to and receives it from a
+    compiled ECMAScript data model.
+
+    \image mediaplayer.png
+
+    \e {Media Player QML Example (Static)} demonstrates how to access data from
+    an ECMAScript data model that is compiled into a C++ class.
+
+    The UI is created using Qt Quick.
+
+    \include examples-run.qdocinc
+
+    \include mediaplayer-ecmascript-data-model.qdocinc
+
+    \include mediaplayer-compiling.qdocinc
+
+    \section1 Instantiating the State Machine
+
+    We instantiate the generated \c MediaPlayerStateMachine class in
+    \e mediaplayer-qml-static.cpp:
+
+    \quotefromfile mediaplayer-qml-static/mediaplayer-qml-static.cpp
+    \skipto mediaplayer.h
+    \printuntil }
 */

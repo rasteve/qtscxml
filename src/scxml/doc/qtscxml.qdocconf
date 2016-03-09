@@ -37,7 +37,10 @@ qhp.QtScxml.indexRoot           =
 depends += qtcore qtdeclarative qtdoc qmake qtwidgets
 
 headerdirs = .. ../../imports/scxmlstatemachine
-sourcedirs += .. ../../imports/scxmlstatemachine ../../../tools/qscxmlc/doc
+sourcedirs += .. \
+              ../../imports/scxmlstatemachine \
+              ../../../tools/qscxmlc/doc \
+              ../../../examples/scxml
 
 tagfile = qtscxml.tags
 
