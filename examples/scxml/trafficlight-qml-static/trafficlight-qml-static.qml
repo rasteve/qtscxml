@@ -48,6 +48,10 @@
 **
 ****************************************************************************/
 
+import TrafficLightStateMachine 1.0
+
 TrafficLight {
-    stateMachine: trafficLightStateMachine
+    stateMachine: TrafficLightStateMachine {
+        running: true
+    }
 }

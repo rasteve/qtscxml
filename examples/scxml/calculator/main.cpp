@@ -58,7 +58,6 @@ int main(int argc, char **argv)
     QApplication app(argc, argv);
 
     Calculator machine;
-    machine.init();
     MainWindow mainWindow(&machine);
 
     machine.start();

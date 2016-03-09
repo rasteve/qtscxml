@@ -58,15 +58,12 @@ int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    TrafficLightStateMachine stateMachine;
+    qmlRegisterType<TrafficLightStateMachine>("TrafficLightStateMachine", 1, 0, "TrafficLightStateMachine");
 
     QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty(QStringLiteral("trafficLightStateMachine"), &stateMachine);
     engine.load(QUrl(QStringLiteral("qrc:/trafficlight-qml-static.qml")));
     if (engine.rootObjects().isEmpty())
         return -1;
-
-    stateMachine.start();
 
     return app.exec();
 }

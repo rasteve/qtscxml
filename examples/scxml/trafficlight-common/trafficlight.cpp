@@ -102,8 +102,6 @@ TrafficLight::TrafficLight(QScxmlStateMachine *machine, QWidget *parent)
     TrafficLightWidget *widget = new TrafficLightWidget(this);
     setFixedSize(widget->sizeHint());
 
-    Q_ASSERT(machine->init());
-
     machine->connectToState(QStringLiteral("red"),
                      widget->redLight(), SLOT(switchLight(bool)));
     machine->connectToState(QStringLiteral("redGoingGreen"),

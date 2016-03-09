@@ -48,6 +48,16 @@
 **
 ****************************************************************************/
 
+import MediaPlayerStateMachine 1.0
+import MediaPlayerDataModel 1.0
+
 Mediaplayer {
-    stateMachine: mediaPlayerStateMachine
+    MediaPlayerDataModel {
+        id: model
+    }
+
+    stateMachine: MediaPlayerStateMachine {
+        onDataModelChanged: start()
+        dataModel: model
+    }
 }

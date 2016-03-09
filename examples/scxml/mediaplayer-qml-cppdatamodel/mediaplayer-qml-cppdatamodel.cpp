@@ -59,14 +59,10 @@ int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    MediaPlayerStateMachine stateMachine;
-    TheDataModel dataModel;
-    stateMachine.setDataModel(&dataModel);
-    stateMachine.init();
-    stateMachine.start();
+    qmlRegisterType<TheDataModel>("MediaPlayerDataModel", 1, 0, "MediaPlayerDataModel");
+    qmlRegisterType<MediaPlayerStateMachine>("MediaPlayerStateMachine", 1, 0, "MediaPlayerStateMachine");
 
     QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty(QStringLiteral("mediaPlayerStateMachine"), &stateMachine);
     engine.load(QUrl(QStringLiteral("qrc:///mediaplayer-qml-cppdatamodel.qml")));
 
     return app.exec();

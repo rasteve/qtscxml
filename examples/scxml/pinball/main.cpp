@@ -59,7 +59,6 @@ int main(int argc, char **argv)
 
     Pinball machine;
     MainWindow mainWindow(&machine);
-    machine.init();
 
     machine.start();
     mainWindow.show();
