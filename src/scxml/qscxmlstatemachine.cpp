@@ -588,7 +588,7 @@ void QScxmlInternal::WrappedQStateMachine::beginSelectTransitions(QEvent *event)
 
     if (event && event->type() == QScxmlEvent::scxmlEventType) {
         stateMachinePrivate()->m_event = *static_cast<QScxmlEvent *>(event);
-        d->stateMachine()->dataModel()->setEvent(stateMachinePrivate()->m_event);
+        d->stateMachine()->dataModel()->setScxmlEvent(stateMachinePrivate()->m_event);
 
         auto scxmlEvent = static_cast<QScxmlEvent *>(event);
         auto smp = stateMachinePrivate();
@@ -616,7 +616,7 @@ void QScxmlInternal::WrappedQStateMachine::beginSelectTransitions(QEvent *event)
         }
     } else {
         stateMachinePrivate()->m_event.clear();
-        d->stateMachine()->dataModel()->setEvent(stateMachinePrivate()->m_event);
+        d->stateMachine()->dataModel()->setScxmlEvent(stateMachinePrivate()->m_event);
     }
 }
 

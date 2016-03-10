@@ -79,7 +79,7 @@ QScxmlEvent *QScxmlEventBuilder::buildEvent()
             if (namelist) {
                 for (qint32 i = 0; i < namelist->count; ++i) {
                     QString name = tableData->string(namelist->const_data()[i]);
-                    keyValues.insert(name, dataModel->property(name));
+                    keyValues.insert(name, dataModel->scxmlProperty(name));
                 }
             }
             data = keyValues;
@@ -93,7 +93,7 @@ QScxmlEvent *QScxmlEventBuilder::buildEvent()
     QString sendid = id;
     if (!idLocation.isEmpty()) {
         sendid = generateId();
-        ok = stateMachine->dataModel()->setProperty(idLocation, sendid, tableData->string(instructionLocation));
+        ok = stateMachine->dataModel()->setScxmlProperty(idLocation, sendid, tableData->string(instructionLocation));
         if (!ok)
             return Q_NULLPTR;
     }
@@ -198,8 +198,8 @@ bool QScxmlEventBuilder::evaluate(const Param &param, QScxmlStateMachine *stateM
         return false;
     }
 
-    if (dataModel->hasProperty(loc)) {
-        keyValues.insert(tableData->string(param.name), dataModel->property(loc));
+    if (dataModel->hasScxmlProperty(loc)) {
+        keyValues.insert(tableData->string(param.name), dataModel->scxmlProperty(loc));
         return true;
     } else {
         submitError(QStringLiteral("error.execution"),

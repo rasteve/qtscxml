@@ -53,9 +53,10 @@ class QScxmlStateMachine;
 class QScxmlTableData;
 
 class QScxmlDataModelPrivate;
-class Q_SCXML_EXPORT QScxmlDataModel
+class Q_SCXML_EXPORT QScxmlDataModel : public QObject
 {
-    Q_DISABLE_COPY(QScxmlDataModel)
+    Q_OBJECT
+    Q_DECLARE_PRIVATE(QScxmlDataModel)
 
 public:
     class ForeachLoopBody
@@ -67,7 +68,6 @@ public:
 
 public:
     QScxmlDataModel(QScxmlStateMachine *stateMachine);
-    virtual ~QScxmlDataModel();
 
     QScxmlStateMachine *stateMachine() const;
 
@@ -83,20 +83,17 @@ public:
     virtual bool evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) = 0;
 #endif // Q_QDOC
 
-    virtual void setEvent(const QScxmlEvent &event) = 0;
+    virtual void setScxmlEvent(const QScxmlEvent &event) = 0;
 
-    virtual QVariant property(const QString &name) const = 0;
-    virtual bool hasProperty(const QString &name) const = 0;
-    virtual bool setProperty(const QString &name, const QVariant &value, const QString &context) = 0;
+    virtual QVariant scxmlProperty(const QString &name) const = 0;
+    virtual bool hasScxmlProperty(const QString &name) const = 0;
+    virtual bool setScxmlProperty(const QString &name, const QVariant &value, const QString &context) = 0;
 
 protected:
+    QScxmlDataModel(QScxmlDataModelPrivate &dd);
 #ifndef Q_QDOC
     QScxmlTableData *tableData() const;
 #endif // Q_QDOC
-
-private:
-    friend class QScxmlDataModelPrivate;
-    QScxmlDataModelPrivate *d;
 };
 
 QT_END_NAMESPACE

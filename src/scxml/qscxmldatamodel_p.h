@@ -53,10 +53,11 @@
 
 #include "qscxmldatamodel.h"
 #include "qscxmlparser_p.h"
+#include <private/qobject_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QScxmlDataModelPrivate
+class QScxmlDataModelPrivate : public QObjectPrivate
 {
 public:
     QScxmlDataModelPrivate(QScxmlStateMachine *stateMachine)
@@ -64,9 +65,6 @@ public:
     {
         Q_ASSERT(stateMachine != Q_NULLPTR);
     }
-
-    static QScxmlDataModelPrivate *get(QScxmlDataModel *dataModel)
-    { return dataModel->d; }
 
     static QScxmlDataModel *instantiateDataModel(DocumentModel::Scxml::DataModelType type,
                                                  QScxmlStateMachine *stateMachine);

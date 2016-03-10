@@ -42,6 +42,7 @@
 #include "qscxmlecmascriptplatformproperties_p.h"
 #include "qscxmlexecutablecontent_p.h"
 #include "qscxmlstatemachine_p.h"
+#include "qscxmldatamodel_p.h"
 
 #include <QJSEngine>
 #include <QJsonDocument>
@@ -60,11 +61,12 @@ typedef std::function<QVariant (bool *)> ToVariantEvaluator;
 typedef std::function<void (bool *)> ToVoidEvaluator;
 typedef std::function<bool (bool *, std::function<bool ()>)> ForeachEvaluator;
 
-class QScxmlEcmaScriptDataModelPrivate
+class QScxmlEcmaScriptDataModelPrivate : public QScxmlDataModelPrivate
 {
+    Q_DECLARE_PUBLIC(QScxmlEcmaScriptDataModel)
 public:
-    QScxmlEcmaScriptDataModelPrivate(QScxmlEcmaScriptDataModel *q)
-        : q(q)
+    QScxmlEcmaScriptDataModelPrivate(QScxmlStateMachine *stateMachine)
+        : QScxmlDataModelPrivate(stateMachine)
         , jsEngine(Q_NULLPTR)
     {}
 
@@ -198,7 +200,10 @@ public:
     }
 
     QScxmlStateMachine *stateMachine() const
-    { return q->stateMachine(); }
+    {
+        Q_Q(const QScxmlEcmaScriptDataModel);
+        return q->stateMachine();
+    }
 
     QJSEngine *engine() const
     {
@@ -213,7 +218,10 @@ public:
     { jsEngine = engine; }
 
     QString string(StringId id) const
-    { return q->tableData()->string(id); }
+    {
+        Q_Q(const QScxmlEcmaScriptDataModel);
+        return q->tableData()->string(id);
+    }
 
     QScxmlStateMachine::BindingMethod dataBinding() const
     { return stateMachine()->dataBinding(); }
@@ -329,7 +337,6 @@ private: // Uses private API
     }
 
 private:
-    QScxmlEcmaScriptDataModel *q;
     mutable QJSEngine *jsEngine;
     QJSValue dataModel;
 };
@@ -352,23 +359,15 @@ private:
  * Creates a new ECMAScript data model for the state machine \a stateMachine.
  */
 QScxmlEcmaScriptDataModel::QScxmlEcmaScriptDataModel(QScxmlStateMachine *stateMachine)
-    : QScxmlDataModel(stateMachine)
-    , d(new QScxmlEcmaScriptDataModelPrivate(this))
+    : QScxmlDataModel(*(new QScxmlEcmaScriptDataModelPrivate(stateMachine)))
 {}
-
-/*!
- * Destroys an ECMAScript data model.
- */
-QScxmlEcmaScriptDataModel::~QScxmlEcmaScriptDataModel()
-{
-    delete d;
-}
 
 /*!
   \reimp
  */
 bool QScxmlEcmaScriptDataModel::setup(const QVariantMap &initialDataValues)
 {
+    Q_D(QScxmlEcmaScriptDataModel);
     d->setupDataModel();
 
     bool ok = true;
@@ -393,6 +392,7 @@ bool QScxmlEcmaScriptDataModel::setup(const QVariantMap &initialDataValues)
 
 QString QScxmlEcmaScriptDataModel::evaluateToString(EvaluatorId id, bool *ok)
 {
+    Q_D(QScxmlEcmaScriptDataModel);
     const EvaluatorInfo &info = tableData()->evaluatorInfo(id);
 
     return d->evalStr(d->string(info.expr), d->string(info.context), ok);
@@ -400,6 +400,7 @@ QString QScxmlEcmaScriptDataModel::evaluateToString(EvaluatorId id, bool *ok)
 
 bool QScxmlEcmaScriptDataModel::evaluateToBool(EvaluatorId id, bool *ok)
 {
+    Q_D(QScxmlEcmaScriptDataModel);
     const EvaluatorInfo &info = tableData()->evaluatorInfo(id);
 
     return d->evalBool(d->string(info.expr), d->string(info.context), ok);
@@ -407,6 +408,7 @@ bool QScxmlEcmaScriptDataModel::evaluateToBool(EvaluatorId id, bool *ok)
 
 QVariant QScxmlEcmaScriptDataModel::evaluateToVariant(EvaluatorId id, bool *ok)
 {
+    Q_D(QScxmlEcmaScriptDataModel);
     const EvaluatorInfo &info = tableData()->evaluatorInfo(id);
 
     return d->evalJSValue(d->string(info.expr), d->string(info.context), ok).toVariant();
@@ -414,6 +416,7 @@ QVariant QScxmlEcmaScriptDataModel::evaluateToVariant(EvaluatorId id, bool *ok)
 
 void QScxmlEcmaScriptDataModel::evaluateToVoid(EvaluatorId id, bool *ok)
 {
+    Q_D(QScxmlEcmaScriptDataModel);
     const EvaluatorInfo &info = tableData()->evaluatorInfo(id);
 
     d->eval(d->string(info.expr), d->string(info.context), ok);
@@ -421,13 +424,14 @@ void QScxmlEcmaScriptDataModel::evaluateToVoid(EvaluatorId id, bool *ok)
 
 void QScxmlEcmaScriptDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
 {
+    Q_D(QScxmlEcmaScriptDataModel);
     Q_ASSERT(ok);
 
     const AssignmentInfo &info = tableData()->assignmentInfo(id);
 
     QString dest = d->string(info.dest);
 
-    if (hasProperty(dest)) {
+    if (hasScxmlProperty(dest)) {
         QJSValue v = d->evalJSValue(d->string(info.expr), d->string(info.context), ok);
         if (*ok)
             *ok = d->setProperty(dest, v, d->string(info.context));
@@ -440,6 +444,7 @@ void QScxmlEcmaScriptDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
 
 void QScxmlEcmaScriptDataModel::evaluateInitialization(EvaluatorId id, bool *ok)
 {
+    Q_D(QScxmlEcmaScriptDataModel);
     const AssignmentInfo &info = tableData()->assignmentInfo(id);
     QString dest = d->string(info.dest);
     if (d->initialDataNames.contains(dest)) {
@@ -452,6 +457,7 @@ void QScxmlEcmaScriptDataModel::evaluateInitialization(EvaluatorId id, bool *ok)
 
 bool QScxmlEcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body)
 {
+    Q_D(QScxmlEcmaScriptDataModel);
     Q_ASSERT(ok);
     Q_ASSERT(body);
     const ForeachInfo &info = tableData()->foreachInfo(id);
@@ -496,34 +502,40 @@ bool QScxmlEcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, Foreac
 /*!
  * \reimp
  */
-void QScxmlEcmaScriptDataModel::setEvent(const QScxmlEvent &event)
+void QScxmlEcmaScriptDataModel::setScxmlEvent(const QScxmlEvent &event)
 {
+    Q_D(QScxmlEcmaScriptDataModel);
     d->assignEvent(event);
 }
 
 /*!
  * \reimp
  */
-QVariant QScxmlEcmaScriptDataModel::property(const QString &name) const
+QVariant QScxmlEcmaScriptDataModel::scxmlProperty(const QString &name) const
 {
+    Q_D(const QScxmlEcmaScriptDataModel);
     return d->property(name).toVariant();
 }
 
 /*!
  * \reimp
  */
-bool QScxmlEcmaScriptDataModel::hasProperty(const QString &name) const
+bool QScxmlEcmaScriptDataModel::hasScxmlProperty(const QString &name) const
 {
+    Q_D(const QScxmlEcmaScriptDataModel);
     return d->hasProperty(name);
 }
 
 /*!
  * \reimp
  */
-bool QScxmlEcmaScriptDataModel::setProperty(const QString &name, const QVariant &value, const QString &context)
+bool QScxmlEcmaScriptDataModel::setScxmlProperty(const QString &name, const QVariant &value,
+                                                 const QString &context)
 {
-    Q_ASSERT(hasProperty(name));
-    QJSValue v = d->engine()->toScriptValue(value);
+    Q_D(QScxmlEcmaScriptDataModel);
+    Q_ASSERT(hasScxmlProperty(name));
+    QJSValue v = d->engine()->toScriptValue(
+                value.canConvert<QJSValue>() ? value.value<QJSValue>().toVariant() : value);
     return d->setProperty(name, v, context);
 }
 
@@ -532,6 +544,7 @@ bool QScxmlEcmaScriptDataModel::setProperty(const QString &name, const QVariant 
  */
 QJSEngine *QScxmlEcmaScriptDataModel::engine() const
 {
+    Q_D(const QScxmlEcmaScriptDataModel);
     return d->engine();
 }
 
@@ -540,6 +553,7 @@ QJSEngine *QScxmlEcmaScriptDataModel::engine() const
  */
 void QScxmlEcmaScriptDataModel::setEngine(QJSEngine *engine)
 {
+    Q_D(QScxmlEcmaScriptDataModel);
     d->setEngine(engine);
 }
 

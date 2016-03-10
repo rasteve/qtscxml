@@ -48,9 +48,10 @@ QT_BEGIN_NAMESPACE
 class QScxmlEcmaScriptDataModelPrivate;
 class Q_SCXML_EXPORT QScxmlEcmaScriptDataModel: public QScxmlDataModel
 {
+    Q_OBJECT
+    Q_DECLARE_PRIVATE(QScxmlEcmaScriptDataModel)
 public:
     QScxmlEcmaScriptDataModel(QScxmlStateMachine *stateMachine);
-    ~QScxmlEcmaScriptDataModel() Q_DECL_OVERRIDE;
 
     bool setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;
 
@@ -64,18 +65,14 @@ public:
     bool evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) Q_DECL_OVERRIDE Q_DECL_FINAL;
 #endif // Q_QDOC
 
-    void setEvent(const QScxmlEvent &event) Q_DECL_OVERRIDE;
+    void setScxmlEvent(const QScxmlEvent &event) Q_DECL_OVERRIDE;
 
-    QVariant property(const QString &name) const Q_DECL_OVERRIDE;
-    bool hasProperty(const QString &name) const Q_DECL_OVERRIDE;
-    bool setProperty(const QString &name, const QVariant &value, const QString &context) Q_DECL_OVERRIDE;
+    QVariant scxmlProperty(const QString &name) const Q_DECL_OVERRIDE;
+    bool hasScxmlProperty(const QString &name) const Q_DECL_OVERRIDE;
+    bool setScxmlProperty(const QString &name, const QVariant &value, const QString &context) Q_DECL_OVERRIDE;
 
     QJSEngine *engine() const;
     void setEngine(QJSEngine *engine);
-
-private:
-    friend QScxmlEcmaScriptDataModelPrivate;
-    QScxmlEcmaScriptDataModelPrivate *d;
 };
 
 QT_END_NAMESPACE

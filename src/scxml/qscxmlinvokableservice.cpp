@@ -144,7 +144,7 @@ QString QScxmlInvokableServiceFactory::calculateId(QScxmlStateMachine *parent, b
     if (d->idlocation != QScxmlExecutableContent::NoString) {
         auto idloc = stateMachine->string(d->idlocation);
         auto ctxt = stateMachine->string(d->invokeLocation);
-        *ok = parent->dataModel()->setProperty(idloc, id, ctxt);
+        *ok = parent->dataModel()->setScxmlProperty(idloc, id, ctxt);
         if (!*ok)
             return QString();
     }
@@ -181,7 +181,7 @@ QVariantMap QScxmlInvokableServiceFactory::calculateData(QScxmlStateMachine *par
                 return QVariantMap();
             }
 
-            auto v = dataModel->property(loc);
+            auto v = dataModel->scxmlProperty(loc);
             result.insert(name, v);
         }
     }
@@ -196,8 +196,8 @@ QVariantMap QScxmlInvokableServiceFactory::calculateData(QScxmlStateMachine *par
             *ok = false;
             return QVariantMap();
         }
-        if (dataModel->hasProperty(loc)) {
-            auto v = dataModel->property(loc);
+        if (dataModel->hasScxmlProperty(loc)) {
+            auto v = dataModel->scxmlProperty(loc);
             result.insert(loc, v);
         } else {
             *ok = false;

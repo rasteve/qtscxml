@@ -55,6 +55,7 @@
 
 class TheDataModel: public QScxmlCppDataModel
 {
+    Q_OBJECT
     Q_SCXML_DATAMODEL
 
 public:

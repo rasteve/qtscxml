@@ -65,5 +65,5 @@ bool TheDataModel::isValidMedia() const
 
 QVariantMap TheDataModel::eventData() const
 {
-    return event().data().value<QVariantMap>();
+    return scxmlEvent().data().value<QVariantMap>();
 }

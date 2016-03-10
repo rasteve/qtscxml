@@ -55,9 +55,10 @@ QT_BEGIN_NAMESPACE
 class QScxmlCppDataModelPrivate;
 class Q_SCXML_EXPORT QScxmlCppDataModel: public QScxmlDataModel
 {
+    Q_OBJECT
+    Q_DECLARE_PRIVATE(QScxmlCppDataModel)
 public:
     QScxmlCppDataModel(QScxmlStateMachine *stateMachine);
-    ~QScxmlCppDataModel();
 
     bool setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;
 
@@ -67,17 +68,14 @@ public:
     bool evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) Q_DECL_OVERRIDE Q_DECL_FINAL;
 #endif // Q_QDOC
 
-    void setEvent(const QScxmlEvent &event) Q_DECL_OVERRIDE Q_DECL_FINAL;
-    const QScxmlEvent &event() const;
+    void setScxmlEvent(const QScxmlEvent &scxmlEvent) Q_DECL_OVERRIDE Q_DECL_FINAL;
+    const QScxmlEvent &scxmlEvent() const;
 
-    QVariant property(const QString &name) const Q_DECL_OVERRIDE;
-    bool hasProperty(const QString &name) const Q_DECL_OVERRIDE;
-    bool setProperty(const QString &name, const QVariant &value, const QString &context) Q_DECL_OVERRIDE;
+    QVariant scxmlProperty(const QString &name) const Q_DECL_OVERRIDE;
+    bool hasScxmlProperty(const QString &name) const Q_DECL_OVERRIDE;
+    bool setScxmlProperty(const QString &name, const QVariant &value, const QString &context) Q_DECL_OVERRIDE;
 
     bool In(const QString &stateName) const;
-
-private:
-    QScxmlCppDataModelPrivate *data;
 };
 
 QT_END_NAMESPACE

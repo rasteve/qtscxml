@@ -72,17 +72,18 @@ QScxmlDataModel::ForeachLoopBody::~ForeachLoopBody()
  * Creates a new data model for the state machine \a stateMachine.
  */
 QScxmlDataModel::QScxmlDataModel(QScxmlStateMachine *stateMachine)
-    : d(new QScxmlDataModelPrivate(stateMachine))
+    : QObject(*(new QScxmlDataModelPrivate(stateMachine)))
 {
     QScxmlStateMachinePrivate::get(stateMachine)->m_dataModel = this;
 }
 
 /*!
- * Destroys the data model.
+ * \internal
  */
-QScxmlDataModel::~QScxmlDataModel()
+QScxmlDataModel::QScxmlDataModel(QScxmlDataModelPrivate &dd) :
+    QObject(dd)
 {
-    delete d;
+    QScxmlStateMachinePrivate::get(dd.m_stateMachine)->m_dataModel = this;
 }
 
 /*!
@@ -90,6 +91,7 @@ QScxmlDataModel::~QScxmlDataModel()
  */
 QScxmlStateMachine *QScxmlDataModel::stateMachine() const
 {
+    Q_D(const QScxmlDataModel);
     return d->m_stateMachine;
 }
 
@@ -137,26 +139,28 @@ void QScxmlDataModelPrivate::setStateMachine(QScxmlStateMachine *stateMachine)
  */
 
 /*!
- * \fn QScxmlDataModel::setEvent(const QScxmlEvent &event)
+ * \fn QScxmlDataModel::setScxmlEvent(const QScxmlEvent &event)
  *
  * Sets the \a event to use in the subsequent executable content execution.
  */
 
 /*!
- * \fn QScxmlDataModel::property(const QString &name) const
+ * \fn QScxmlDataModel::scxmlProperty(const QString &name) const
  *
  * Returns the value of the property \a name.
  */
 
 /*!
- * \fn QScxmlDataModel::hasProperty(const QString &name) const
+ * \fn QScxmlDataModel::hasScxmlProperty(const QString &name) const
  *
  * Returns \c true if a property with the given \a name exists, \c false
  * otherwise.
  */
 
 /*!
- * \fn QScxmlDataModel::setProperty(const QString &name, const QVariant &value, const QString &context)
+ * \fn QScxmlDataModel::setScxmlProperty(const QString &name,
+ *                                       const QVariant &value,
+ *                                       const QString &context)
  *
  * Sets a the value \a value for the property \a name.
  *
