@@ -227,7 +227,7 @@ private:
             }
         }
         foreach (const QString &event, transition->events) {
-            if (event.contains(QLatin1Char('.'))) {
+            if (event.contains(QLatin1Char('.')) || event == QLatin1String("*")) {
                 continue;
             } else if (m_doc->qtMode && !DocumentModel::isValidCppIdentifier(event)) {
                 error(transition->xmlLocation,  QStringLiteral("event name '%1' is not a valid C++ identifier in Qt mode").arg(event));
