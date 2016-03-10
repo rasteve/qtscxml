@@ -978,12 +978,27 @@ bool QScxmlStateMachine::init(const QVariantMap &initialDataValues)
 
 /*!
  * Returns \c true if the state machine is running, \c false otherwise.
+ *
+ * \sa setRunning(), runningChanged()
  */
 bool QScxmlStateMachine::isRunning() const
 {
     Q_D(const QScxmlStateMachine);
 
     return d->m_qStateMachine->isRunning();
+}
+
+/*!
+ * Starts the state machine if \a running is \c true, or stops it otherwise.
+ *
+ * \sa start(), stop(), isRunning(), runningChanged()
+ */
+void QScxmlStateMachine::setRunning(bool running)
+{
+    if (running)
+        start();
+    else
+        stop();
 }
 
 /*!
@@ -1178,7 +1193,7 @@ bool QScxmlStateMachine::isDispatchableTarget(const QString &target) const
   the main application event loop started with QCoreApplication::exec() or
   QApplication::exec().
 
-  \sa runningChanged(), finished()
+  \sa runningChanged(), setRunning(), stop(), finished()
 */
 void QScxmlStateMachine::start()
 {
@@ -1188,6 +1203,18 @@ void QScxmlStateMachine::start()
         return;
 
     d->m_qStateMachine->start();
+}
+
+/*!
+  Stops this state machine. The machine will not execute any further state
+  transitions. Its \c running property is set to \c false.
+
+  \sa runningChanged(), start(), setRunning()
+ */
+void QScxmlStateMachine::stop()
+{
+    Q_D(QScxmlStateMachine);
+    d->m_qStateMachine->stop();
 }
 
 /*!
