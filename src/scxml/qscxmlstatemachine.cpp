@@ -456,6 +456,22 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
  */
 
 /*!
+    \property QScxmlStateMachine::dataModel
+
+    \brief The data model to be used for this state machine.
+
+    SCXML data models are described in
+    \l {SCXML Specification - 5 Data Model and Data Manipulation}. For more
+    information about supported data models, see \l {SCXML Compliance}.
+
+    Changing the data model while the state machine is \c running is not
+    specified in the SCXML standard and leads to undefined behavior.
+
+    \sa QScxmlDataModel, QScxmlNullDataModel, QScxmlEcmaScriptDataModel,
+        QScxmlCppDataModel
+*/
+
+/*!
     \enum QScxmlStateMachine::BindingMethod
 
     This enum specifies the binding method. The binding method controls the point in time
@@ -517,6 +533,24 @@ bool QScxmlStateMachine::isInvoked() const
 {
     Q_D(const QScxmlStateMachine);
     return d->m_isInvoked;
+}
+
+/*!
+ * Sets the data model for this state machine to \a model. There is a 1:1
+ * relation between state machines and models. After setting the model once you
+ * cannot change it anymore. Any further attempts to set the model using this
+ * method will be ignored.
+ */
+void QScxmlStateMachine::setDataModel(QScxmlDataModel *model)
+{
+    Q_D(QScxmlStateMachine);
+
+    if (d->m_dataModel == Q_NULLPTR && model != Q_NULLPTR) {
+        d->m_dataModel = model;
+        if (model)
+            model->setStateMachine(this);
+        emit dataModelChanged(model);
+    }
 }
 
 /*!

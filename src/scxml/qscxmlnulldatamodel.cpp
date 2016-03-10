@@ -59,10 +59,6 @@ class QScxmlNullDataModelPrivate : public QScxmlDataModelPrivate
     };
 
 public:
-    QScxmlNullDataModelPrivate(QScxmlStateMachine *stateMachine)
-        : QScxmlDataModelPrivate(stateMachine)
-    {}
-
     bool evalBool(QScxmlExecutableContent::EvaluatorId id, bool *ok)
     {
         Q_Q(QScxmlNullDataModel);
@@ -132,10 +128,10 @@ private:
  */
 
 /*!
- * Creates a new Qt SCXML data model for the state machine \a stateMachine.
+ * Creates a new Qt SCXML data model, with the parent object \a parent.
  */
-QScxmlNullDataModel::QScxmlNullDataModel(QScxmlStateMachine *stateMachine)
-    : QScxmlDataModel(*(new QScxmlNullDataModelPrivate(stateMachine)))
+QScxmlNullDataModel::QScxmlNullDataModel(QObject *parent)
+    : QScxmlDataModel(*(new QScxmlNullDataModelPrivate), parent)
 {}
 
 /*!

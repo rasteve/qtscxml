@@ -60,8 +60,6 @@ QT_BEGIN_NAMESPACE
 class Q_SCXML_EXPORT QScxmlCppDataModelPrivate : public QScxmlDataModelPrivate
 {
 public:
-    QScxmlCppDataModelPrivate(QScxmlStateMachine *stateMachine) :
-        QScxmlDataModelPrivate(stateMachine) {}
     QScxmlEvent event;
 };
 

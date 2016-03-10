@@ -57,6 +57,7 @@ class Q_SCXML_EXPORT QScxmlDataModel : public QObject
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(QScxmlDataModel)
+    Q_PROPERTY(QScxmlStateMachine *stateMachine READ stateMachine WRITE setStateMachine NOTIFY stateMachineChanged)
 
 public:
     class ForeachLoopBody
@@ -67,8 +68,9 @@ public:
     };
 
 public:
-    QScxmlDataModel(QScxmlStateMachine *stateMachine);
+    QScxmlDataModel(QObject *parent = 0);
 
+    void setStateMachine(QScxmlStateMachine *stateMachine);
     QScxmlStateMachine *stateMachine() const;
 
     virtual bool setup(const QVariantMap &initialDataValues) = 0;
@@ -89,8 +91,11 @@ public:
     virtual bool hasScxmlProperty(const QString &name) const = 0;
     virtual bool setScxmlProperty(const QString &name, const QVariant &value, const QString &context) = 0;
 
+Q_SIGNALS:
+    void stateMachineChanged(QScxmlStateMachine *stateMachine);
+
 protected:
-    QScxmlDataModel(QScxmlDataModelPrivate &dd);
+    QScxmlDataModel(QScxmlDataModelPrivate &dd, QObject *parent = 0);
 #ifndef Q_QDOC
     QScxmlTableData *tableData() const;
 #endif // Q_QDOC

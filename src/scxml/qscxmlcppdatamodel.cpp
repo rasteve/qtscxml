@@ -128,10 +128,10 @@ void TheDataModel::evaluateToVoid(QScxmlExecutableContent::EvaluatorId id, bool 
  */
 
 /*!
- * Creates a new C++ data model with the state machine \a stateMachine.
+ * Creates a new C++ data model with the parent object \a parent.
  */
-QScxmlCppDataModel::QScxmlCppDataModel(QScxmlStateMachine *stateMachine)
-    : QScxmlDataModel(*(new QScxmlCppDataModelPrivate(stateMachine)))
+QScxmlCppDataModel::QScxmlCppDataModel(QObject *parent)
+    : QScxmlDataModel(*(new QScxmlCppDataModelPrivate), parent)
 {}
 
 /*!

@@ -65,9 +65,8 @@ class QScxmlEcmaScriptDataModelPrivate : public QScxmlDataModelPrivate
 {
     Q_DECLARE_PUBLIC(QScxmlEcmaScriptDataModel)
 public:
-    QScxmlEcmaScriptDataModelPrivate(QScxmlStateMachine *stateMachine)
-        : QScxmlDataModelPrivate(stateMachine)
-        , jsEngine(Q_NULLPTR)
+    QScxmlEcmaScriptDataModelPrivate()
+        : jsEngine(Q_NULLPTR)
     {}
 
     QString evalStr(const QString &expr, const QString &context, bool *ok)
@@ -356,10 +355,10 @@ private:
  */
 
 /*!
- * Creates a new ECMAScript data model for the state machine \a stateMachine.
+ * Creates a new ECMAScript data model, with the parent object \a parent.
  */
-QScxmlEcmaScriptDataModel::QScxmlEcmaScriptDataModel(QScxmlStateMachine *stateMachine)
-    : QScxmlDataModel(*(new QScxmlEcmaScriptDataModelPrivate(stateMachine)))
+QScxmlEcmaScriptDataModel::QScxmlEcmaScriptDataModel(QObject *parent)
+    : QScxmlDataModel(*(new QScxmlEcmaScriptDataModelPrivate), parent)
 {}
 
 /*!

@@ -1007,7 +1007,9 @@ inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(QScxmlStateMach
 {
     auto child = QStateMachineBuilder().build(m_content.data());
 
-    QScxmlDataModelPrivate::instantiateDataModel(m_content->root->dataModel, child);
+    auto dm = QScxmlDataModelPrivate::instantiateDataModel(m_content->root->dataModel);
+    dm->setParent(child);
+    child->setDataModel(dm);
 
     return finishInvoke(child, parent);
 }
@@ -1148,8 +1150,9 @@ void QScxmlParser::instantiateDataModel(QScxmlStateMachine *stateMachine) const
     if (root == Q_NULLPTR) {
         qWarning() << "SCXML document has no root element";
     } else {
-        QScxmlDataModel *dm = QScxmlDataModelPrivate::instantiateDataModel(root->dataModel,
-                                                                           stateMachine);
+        QScxmlDataModel *dm = QScxmlDataModelPrivate::instantiateDataModel(root->dataModel);
+        QScxmlStateMachinePrivate::get(stateMachine)->parserData()->m_ownedDataModel.reset(dm);
+        stateMachine->setDataModel(dm);
         if (dm == Q_NULLPTR)
             qWarning() << "No data-model instantiated";
     }

@@ -75,6 +75,7 @@ class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
     Q_OBJECT
     Q_ENUMS(BindingMethod)
     Q_PROPERTY(bool running READ isRunning WRITE setRunning NOTIFY runningChanged)
+    Q_PROPERTY(QScxmlDataModel *dataModel READ dataModel WRITE setDataModel NOTIFY dataModelChanged)
 
 protected:
 #ifndef Q_QDOC
@@ -98,6 +99,7 @@ public:
 
     bool isInvoked() const;
 
+    void setDataModel(QScxmlDataModel *model);
     QScxmlDataModel *dataModel() const;
 
     BindingMethod dataBinding() const;
@@ -132,6 +134,7 @@ Q_SIGNALS:
     void reachedStableState();
     void finished();
     void eventOccurred(const QScxmlEvent &event);
+    void dataModelChanged(QScxmlDataModel *model);
 
 public Q_SLOTS:
     void start();

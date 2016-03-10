@@ -320,12 +320,12 @@ protected:
             case Scxml::NullDataModel:
                 clazz.classFields << QStringLiteral("QScxmlNullDataModel dataModel;");
                 clazz.implIncludes << QStringLiteral("QScxmlNullDataModel");
-                clazz.constructor.initializer << QStringLiteral("dataModel(&stateMachine)");
+                clazz.init.impl << QStringLiteral("stateMachine.setDataModel(&dataModel);");
                 break;
             case Scxml::JSDataModel:
                 clazz.classFields << QStringLiteral("QScxmlEcmaScriptDataModel dataModel;");
                 clazz.implIncludes << QStringLiteral("QScxmlEcmaScriptDataModel");
-                clazz.constructor.initializer << QStringLiteral("dataModel(&stateMachine)");
+                clazz.init.impl << QStringLiteral("stateMachine.setDataModel(&dataModel);");
                 break;
             case Scxml::CppDataModel:
                 clazz.dataModelClassName = node->cppDataModelClassName;

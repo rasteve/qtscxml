@@ -60,16 +60,9 @@ QT_BEGIN_NAMESPACE
 class QScxmlDataModelPrivate : public QObjectPrivate
 {
 public:
-    QScxmlDataModelPrivate(QScxmlStateMachine *stateMachine)
-        : m_stateMachine(stateMachine)
-    {
-        Q_ASSERT(stateMachine != Q_NULLPTR);
-    }
+    QScxmlDataModelPrivate() : m_stateMachine(Q_NULLPTR) {}
 
-    static QScxmlDataModel *instantiateDataModel(DocumentModel::Scxml::DataModelType type,
-                                                 QScxmlStateMachine *stateMachine);
-
-    void setStateMachine(QScxmlStateMachine *stateMachine);
+    static QScxmlDataModel *instantiateDataModel(DocumentModel::Scxml::DataModelType type);
 
 public:
     QScxmlStateMachine *m_stateMachine;

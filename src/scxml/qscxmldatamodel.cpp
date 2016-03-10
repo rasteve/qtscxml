@@ -69,21 +69,49 @@ QScxmlDataModel::ForeachLoopBody::~ForeachLoopBody()
  */
 
 /*!
- * Creates a new data model for the state machine \a stateMachine.
+  \property QScxmlDataModel::stateMachine
+
+  \brief The state machine this data model belongs to.
+
+  A data model can only belong to a single state machine and a state machine
+  can only have one data model. This relation needs to be set up before the
+  state machine is started. Setting this property on a data model will
+  automatically set the corresponding \c dataModel property on the
+  \a stateMachine.
+*/
+
+/*!
+ * Creates a new data model, with the parent object \a parent.
  */
-QScxmlDataModel::QScxmlDataModel(QScxmlStateMachine *stateMachine)
-    : QObject(*(new QScxmlDataModelPrivate(stateMachine)))
+QScxmlDataModel::QScxmlDataModel(QObject *parent)
+    : QObject(*(new QScxmlDataModelPrivate), parent)
 {
-    QScxmlStateMachinePrivate::get(stateMachine)->m_dataModel = this;
 }
 
 /*!
  * \internal
  */
-QScxmlDataModel::QScxmlDataModel(QScxmlDataModelPrivate &dd) :
-    QObject(dd)
+QScxmlDataModel::QScxmlDataModel(QScxmlDataModelPrivate &dd, QObject *parent) :
+    QObject(dd, parent)
 {
-    QScxmlStateMachinePrivate::get(dd.m_stateMachine)->m_dataModel = this;
+}
+
+/*!
+ * Sets the state machine this model belongs to to \a stateMachine. There is a
+ * 1:1 relation between state machines and models. After setting the state
+ * machine once you cannot change it anymore. Any further attempts to set the
+ * state machine using this method will be ignored.
+ */
+void QScxmlDataModel::setStateMachine(QScxmlStateMachine *stateMachine)
+{
+    Q_D(QScxmlDataModel);
+
+    if (d->m_stateMachine == Q_NULLPTR && stateMachine != Q_NULLPTR) {
+        d->m_stateMachine = stateMachine;
+        if (stateMachine)
+            stateMachine->setDataModel(this);
+        emit stateMachineChanged(stateMachine);
+    }
 }
 
 /*!
@@ -100,32 +128,23 @@ QScxmlTableData *QScxmlDataModel::tableData() const
     return stateMachine()->tableData();
 }
 
-QScxmlDataModel *QScxmlDataModelPrivate::instantiateDataModel(
-        DocumentModel::Scxml::DataModelType type, QScxmlStateMachine *stateMachine)
+QScxmlDataModel *QScxmlDataModelPrivate::instantiateDataModel(DocumentModel::Scxml::DataModelType type)
 {
-    Q_ASSERT(stateMachine);
-
     QScxmlDataModel *dataModel = Q_NULLPTR;
     switch (type) {
     case DocumentModel::Scxml::NullDataModel:
-        dataModel = new QScxmlNullDataModel(stateMachine);
+        dataModel = new QScxmlNullDataModel;
         break;
     case DocumentModel::Scxml::JSDataModel:
-        dataModel = new QScxmlEcmaScriptDataModel(stateMachine);
+        dataModel = new QScxmlEcmaScriptDataModel;
         break;
     case DocumentModel::Scxml::CppDataModel:
         break;
     default:
         Q_UNREACHABLE();
     }
-    QScxmlStateMachinePrivate::get(stateMachine)->parserData()->m_ownedDataModel.reset(dataModel);
 
     return dataModel;
-}
-
-void QScxmlDataModelPrivate::setStateMachine(QScxmlStateMachine *stateMachine)
-{
-    m_stateMachine = stateMachine;
 }
 
 /*!

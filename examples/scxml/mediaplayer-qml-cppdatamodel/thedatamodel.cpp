@@ -52,11 +52,6 @@
 
 #include <QScxmlEvent>
 
-TheDataModel::TheDataModel(QScxmlStateMachine *stateMachine)
-    : QScxmlCppDataModel(stateMachine)
-{
-}
-
 bool TheDataModel::isValidMedia() const
 {
     QString eventMedia = eventData().value(QStringLiteral("media")).toString();
