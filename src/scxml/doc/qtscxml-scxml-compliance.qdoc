@@ -80,6 +80,10 @@
         All of the \c <param> children will be placed inside the
         QMap<QString, QVariant> map, and this map will be passed as a
         QVariant argument of the specified signal.
+    \li State machines that are compatible with Qt can be compiled or loaded in
+        the \e {Qt mode} to fully benefit from Qt. The Qt mode is enabled by
+        adding the following line to the beginning of the SCXML file:
+        \c {<!-- enable-qt-mode: yes -->}.
     \li If the event is an error event, \c _event.errorMessage will contain a
         more detailed description of the error.
     \endlist
