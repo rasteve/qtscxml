@@ -135,7 +135,6 @@ bool QScxmlStateMachineLoader::parse(const QUrl &filename)
 
     m_stateMachine = QScxmlStateMachine::fromData(&buf, filename.toString());
     m_stateMachine->setParent(this);
-    m_stateMachine->init();
 
     if (m_stateMachine->parseErrors().isEmpty()) {
         emit stateMachineChanged();

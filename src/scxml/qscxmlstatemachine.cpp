@@ -223,6 +223,7 @@ QScxmlStateMachinePrivate::QScxmlStateMachinePrivate()
     : QObjectPrivate()
     , m_sessionId(QScxmlStateMachine::generateSessionId(QStringLiteral("session-")))
     , m_isInvoked(false)
+    , m_isInitialized(false)
     , m_dataModel(Q_NULLPTR)
     , m_dataBinding(QScxmlStateMachine::EarlyBinding)
     , m_executionEngine(Q_NULLPTR)
@@ -464,11 +465,29 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
     \l {SCXML Specification - 5 Data Model and Data Manipulation}. For more
     information about supported data models, see \l {SCXML Compliance}.
 
-    Changing the data model while the state machine is \c running is not
-    specified in the SCXML standard and leads to undefined behavior.
+    Changing the data model when the state machine has been \c initialized is
+    not specified in the SCXML standard and leads to undefined behavior.
 
     \sa QScxmlDataModel, QScxmlNullDataModel, QScxmlEcmaScriptDataModel,
         QScxmlCppDataModel
+*/
+
+/*!
+    \property QScxmlStateMachine::initialized
+
+    \brief Whether the state machine has been initialized.
+
+    It is \c true if the state machine has been initialized, \c false otherwise.
+
+    \sa QScxmlStateMachine::init(), QScxmlDataModel
+*/
+
+/*!
+    \property QScxmlStateMachine::initialValues
+
+    \brief The initial values to be used for setting up the data model.
+
+    \sa QScxmlStateMachine::init(), QScxmlDataModel
 */
 
 /*!
@@ -533,6 +552,12 @@ bool QScxmlStateMachine::isInvoked() const
 {
     Q_D(const QScxmlStateMachine);
     return d->m_isInvoked;
+}
+
+bool QScxmlStateMachine::isInitialized() const
+{
+    Q_D(const QScxmlStateMachine);
+    return d->m_isInitialized;
 }
 
 /*!
@@ -990,25 +1015,31 @@ void QScxmlStateMachine::setScxmlEventFilter(QScxmlEventFilter *newFilter)
  * Initializes the state machine.
  *
  * State machine initialization consists of calling QScxmlDataModel::setup(), setting the initial
- * values for \c <data> elements, and executing any \c <script> tags of the \c <scxml> tag.
- *
- * \a initialDataValues contains initial values for data elements from the \c <invoke> tag.
- * These values will be used instead of the initial values from the \c <data> elements.
+ * values for \c <data> elements, and executing any \c <script> tags of the \c <scxml> tag. The
+ * initial data values are taken from the \c initialValues property.
  *
  * Returns \c false if parse errors occur or if any of the initialization steps fail.
  * Returns \c true otherwise.
  */
-bool QScxmlStateMachine::init(const QVariantMap &initialDataValues)
+bool QScxmlStateMachine::init()
 {
     Q_D(QScxmlStateMachine);
+
+    if (d->m_isInitialized)
+        return false;
 
     if (!parseErrors().isEmpty())
         return false;
 
-    if (!dataModel() || !dataModel()->setup(initialDataValues))
+    if (!dataModel() || !dataModel()->setup(d->m_initialValues))
         return false;
 
-    return d->executeInitialSetup();
+    if (!d->executeInitialSetup())
+        return false;
+
+    d->m_isInitialized = true;
+    emit initializedChanged(true);
+    return true;
 }
 
 /*!
@@ -1034,6 +1065,21 @@ void QScxmlStateMachine::setRunning(bool running)
         start();
     else
         stop();
+}
+
+QVariantMap QScxmlStateMachine::initialValues()
+{
+    Q_D(const QScxmlStateMachine);
+    return d->m_initialValues;
+}
+
+void QScxmlStateMachine::setInitialValues(const QVariantMap &initialValues)
+{
+    Q_D(QScxmlStateMachine);
+    if (initialValues != d->m_initialValues) {
+        d->m_initialValues = initialValues;
+        emit initialValuesChanged(initialValues);
+    }
 }
 
 /*!
@@ -1236,6 +1282,10 @@ void QScxmlStateMachine::start()
 
     if (!parseErrors().isEmpty())
         return;
+
+    // Failure to initialize doesn't prevent start(). See w3c-ecma/test487 in the scion test suite.
+    if (!isInitialized() && !init())
+        qCDebug(qscxmlLog) << this << "cannot be initialized on start(). Starting anyway ...";
 
     d->m_qStateMachine->start();
 }

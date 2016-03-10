@@ -245,7 +245,8 @@ bool QScxmlInvokableScxml::start()
         return false;
 
     m_stateMachine->setSessionId(id);
-    if (m_stateMachine->init(data)) {
+    m_stateMachine->setInitialValues(data);
+    if (m_stateMachine->init()) {
         qCDebug(qscxmlLog) << parentStateMachine() << "starting" << m_stateMachine;
         m_stateMachine->start();
         return true;
