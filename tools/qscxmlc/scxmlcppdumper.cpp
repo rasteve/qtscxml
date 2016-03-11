@@ -123,6 +123,7 @@ struct ClassDump {
     StringListDumper classMethods;
     Method constructor;
     Method destructor;
+    StringListDumper properties;
     StringListDumper signalMethods;
     QList<Method> publicMethods;
     QList<Method> protectedMethods;
@@ -342,6 +343,8 @@ protected:
         QString name = mangledName(node);
         QString stateName = QStringLiteral("state_") + name;
         // Property stuff:
+        clazz.properties << QStringLiteral("Q_PROPERTY(bool %1 READ %1 NOTIFY %1Changed)")
+                            .arg(node->id);
         if (m_qtMode) {
             Method getter(QStringLiteral("bool %1() const").arg(name));
             getter.impl << QStringLiteral("bool %2::%1() const").arg(name)
@@ -691,6 +694,8 @@ private:
             clazz.classFields << QStringLiteral("%1 *%2;").arg(qualifiedName, mangledName);
             clazz.constructor.initializer << QStringLiteral("%1(Q_NULLPTR)").arg(mangledName);
 
+            clazz.properties << QStringLiteral("Q_PROPERTY(%1%2 *%2 READ %2 NOTIFY %2Changed)")
+                                .arg(namespacePrefix, name);
             if (m_qtMode) {
                 Method getter(QStringLiteral("%1 *%2() const").arg(qualifiedName, mangledName));
                 getter.impl << QStringLiteral("%1 *%2::%3() const").arg(qualifiedName, clazz.className, mangledName)
@@ -1316,8 +1321,8 @@ void CppDumper::writeClass(const ClassDump &clazz)
     h << l("class ") << clazz.className << QStringLiteral(": public QScxmlStateMachine\n{") << endl;
     h << QStringLiteral("public:") << endl
       << QStringLiteral("    /* qmake ignore Q_OBJECT */") << endl
-      << QStringLiteral("    Q_OBJECT") << endl
-         ;
+      << QStringLiteral("    Q_OBJECT") << endl;
+    clazz.properties.write(h, QStringLiteral("    "), QStringLiteral("\n"));
 
     h << endl
       << QStringLiteral("public:") << endl;
