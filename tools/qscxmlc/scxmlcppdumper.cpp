@@ -343,8 +343,10 @@ protected:
         QString name = mangledName(node);
         QString stateName = QStringLiteral("state_") + name;
         // Property stuff:
-        clazz.properties << QStringLiteral("Q_PROPERTY(bool %1 READ %1 NOTIFY %1Changed)")
-                            .arg(node->id);
+        if (isValidQPropertyName(node->id)) {
+            clazz.properties << QStringLiteral("Q_PROPERTY(bool %1 READ %1 NOTIFY %1Changed)")
+                                .arg(node->id);
+        }
         if (m_qtMode) {
             Method getter(QStringLiteral("bool %1() const").arg(name));
             getter.impl << QStringLiteral("bool %2::%1() const").arg(name)
@@ -377,7 +379,7 @@ protected:
             clazz.init.impl << QStringLiteral("QObject::connect(&")
                                + stateName
                                + QStringLiteral(", SIGNAL(activeChanged(bool)), &stateMachine, SIGNAL(")
-                               + node->id
+                               + mangledName(node)
                                + QStringLiteral("Changed(bool)));");
         }
 
@@ -693,9 +695,10 @@ private:
             m_serviceProps.append(qMakePair(mangledName, qualifiedName));
             clazz.classFields << QStringLiteral("%1 *%2;").arg(qualifiedName, mangledName);
             clazz.constructor.initializer << QStringLiteral("%1(Q_NULLPTR)").arg(mangledName);
-
-            clazz.properties << QStringLiteral("Q_PROPERTY(%1%2 *%2 READ %2 NOTIFY %2Changed)")
-                                .arg(namespacePrefix, name);
+            if (isValidQPropertyName(name)) {
+                clazz.properties << QStringLiteral("Q_PROPERTY(%1%2 *%2 READ %2 NOTIFY %2Changed)")
+                                    .arg(namespacePrefix, name);
+            }
             if (m_qtMode) {
                 Method getter(QStringLiteral("%1 *%2() const").arg(qualifiedName, mangledName));
                 getter.impl << QStringLiteral("%1 *%2::%3() const").arg(qualifiedName, clazz.className, mangledName)
@@ -1293,6 +1296,9 @@ QString CppDumper::mangleId(const QString &id) // TODO: remove
     mangled = mangled.replace(QLatin1Char('-'), QLatin1String("_dash_"));
     mangled = mangled.replace(QLatin1Char('@'), QLatin1String("_at_"));
     mangled = mangled.replace(QLatin1Char('.'), QLatin1String("_dot_"));
+    mangled = mangled.replace(QLatin1Char(','), QLatin1String("_comma_"));
+    mangled = mangled.replace(QLatin1Char('('), QLatin1String("_lparen_"));
+    mangled = mangled.replace(QLatin1Char(')'), QLatin1String("_rparen_"));
     return mangled;
 }
 

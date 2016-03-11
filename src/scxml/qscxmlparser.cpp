@@ -1462,6 +1462,11 @@ void DocumentModel::Scxml::accept(DocumentModel::NodeVisitor *visitor)
 DocumentModel::NodeVisitor::~NodeVisitor()
 {}
 
+bool DocumentModel::isValidQPropertyName(const QString &str)
+{
+    return !str.isEmpty() && !str.contains(QLatin1Char('(')) && !str.contains(QLatin1Char(')'));
+}
+
 bool DocumentModel::isValidCppIdentifier(const QString &str)
 {
     if (str.isEmpty())
