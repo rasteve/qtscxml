@@ -27,8 +27,46 @@
 
 /*!
     \example trafficlight-widgets-dynamic
-    \title Qt SCXML: Traffic Light Example (Dynamic)
+    \title Qt SCXML Traffic Light Example (Dynamic)
     \ingroup examples-qtscxml
 
-    \brief Demonstrates using a state-machine for a simple traffic light.
+    \brief A widget-based application that uses a dynamically loaded state
+     machine to implement a traffic light.
+
+    \image trafficlight.png
+
+    \e{Traffic Light Example (Dynamic)} demonstrates how to connect to the
+    active properties of a state in a dynamically loaded state machine.
+
+    The UI is created using Qt Widgets.
+
+    \include examples-run.qdocinc
+
+    \section1 Dynamically Loading the State Machine
+
+    We link against the Qt SCXML module by adding the following line to the
+    example \e .pro file:
+
+    \quotefromfile trafficlight-widgets-dynamic/trafficlight-widgets-dynamic.pro
+    \skipto QT
+    \printline scxml
+
+    We dynamically create the state machine in
+    \e trafficlight-widgets-dynamic.cpp:
+
+    \quotefromfile trafficlight-widgets-dynamic/trafficlight-widgets-dynamic.cpp
+    \skipto trafficlight.h
+    \printuntil /^ {4}\}/
+
+    And then instantiate it:
+
+    \printuntil /^\}/
+
+    \include trafficlight-state-machine.qdocinc
+
+    We connect to the states as follows:
+
+    \quotefromfile trafficlight-common/trafficlight.cpp
+    \skipto connectToState
+    \printuntil greenLight
 */
