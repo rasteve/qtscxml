@@ -118,9 +118,9 @@ private:
  * \inmodule QtScxml
  *
  * This class implements the null data model as described in the
- * \l {SCXML Specification}. Using the value \c "null" for the \e datamodel
- * attribute of the \c <scxml> element means that there is no underlying data
- * model.
+ * \l {SCXML Specification - B.1 The Null Data Model}. Using the value \c "null"
+ * for the \e datamodel attribute of the \c <scxml> element means that there is
+ * no underlying data model.
  *
  * \sa QScxmlStateMachine QScxmlDataModel
  */

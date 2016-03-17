@@ -194,8 +194,8 @@ void QScxmlCppDataModel::setEvent(const QScxmlEvent &event)
  * Holds the current event that is being processed by the
  *        state machine.
  *
- * See also section 5.10 in the \l {SCXML Specification} for the description of the \c _event
- * variable.
+ * See also \l {SCXML Specification - 5.10 System Variables} for the description
+ * of the \c _event variable.
  *
  * Returns the event currently being processed.
  */

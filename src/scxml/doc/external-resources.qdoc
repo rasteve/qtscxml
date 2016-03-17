@@ -30,6 +30,31 @@
 */
 
 /*!
+    \externalpage https://www.w3.org/TR/scxml/#data-module
+    \title SCXML Specification - 5 Data Model and Data Manipulation
+*/
+
+/*!
+    \externalpage https://www.w3.org/TR/scxml/#SystemVariables
+    \title SCXML Specification - 5.10 System Variables
+*/
+
+/*!
+    \externalpage https://www.w3.org/TR/scxml/#InternalStructureofEvents
+    \title SCXML Specification - 5.10.1 The Internal Structure of Events
+*/
+
+/*!
+    \externalpage https://www.w3.org/TR/scxml/#minimal-profile
+    \title SCXML Specification - B.1 The Null Data Model
+*/
+
+/*!
+    \externalpage https://www.w3.org/TR/scxml/#ecma-profile
+    \title SCXML Specification - B.2 The ECMAScript Data Model
+*/
+
+/*!
     \externalpage http://www.w3.org/TR/scxml/#N11630
     \title SCXML Specification - Calculator Example
 */

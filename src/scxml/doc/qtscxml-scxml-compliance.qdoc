@@ -36,9 +36,10 @@
     Qt SCXML supports the following data models:
 
     \list
-      \li null data model, as described in B.1 of the \l {SCXML specification}
-      \li ECMAScript data model, as described in B.2 of the
-          \l {SCXML specification}
+      \li null data model, as described in
+        \l {SCXML Specification - B.1 The Null Data Model}
+      \li ECMAScript data model, as described in
+        \l {SCXML Specification - B.2 The ECMAScript Data Model}
       \li C++ data model, as described in the QScxmlCppDataModel documentation
     \endlist
 

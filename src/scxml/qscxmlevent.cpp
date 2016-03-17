@@ -238,9 +238,10 @@ void QScxmlEventBuilder::submitError(const QString &type, const QString &msg, co
  * \c <raise> and \c <send> elements in the application. The state machine
  * automatically generates some mandatory events, such as errors.
  *
- * For more information, see section 5.10.1 "The Internal Structure of
- * Events" in the \l {SCXML Specification}. For more information about how the
- * Qt SCXML API differs from the specification, see \l {SCXML Compliance}.
+ * For more information, see
+ * \l {SCXML Specification - 5.10.1 The Internal Structure of Events}.
+ * For more information about how the Qt SCXML API differs from the
+ * specification, see \l {SCXML Compliance}.
  *
  * \sa QScxmlStateMachine
  */
