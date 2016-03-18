@@ -1783,10 +1783,6 @@ void QScxmlParserPrivate::parse()
                     addError(QStringLiteral("default namespace must be set with xmlns=\"%1\" in the scxml tag").arg(scxmlNamespace));
                     return;
                 }
-                if (attributes.value(QLatin1String("version")) != QLatin1String("1.0")) {
-                    addError(QStringLiteral("unsupported scxml version, expected 1.0 in scxml tag"));
-                    return;
-                }
                 ParserState pNew = ParserState(ParserState::Scxml);
                 if (attributes.hasAttribute(QStringLiteral("initial"))) {
                     QString initial = attributes.value(QStringLiteral("initial")).toString();
