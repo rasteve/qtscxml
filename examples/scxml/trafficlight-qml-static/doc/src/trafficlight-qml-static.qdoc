@@ -58,7 +58,7 @@
     We connect to the states as follows:
 
     \quotefromfile trafficlight-common/TrafficLight.qml
-    \skipto Light
+    \skipto /^ {8}Image/
     \printuntil greenLight
-    \printuntil /^ {4}\}/
+    \printuntil /^ {8}\}/
 */

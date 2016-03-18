@@ -50,31 +50,13 @@
 
 import QtQuick 2.5
 
-Item {
+Image {
     id: button
     signal clicked
-    property string text: "hello"
 
-    Rectangle {
-        x: 5
-        y: 5
-        width: parent.width - 10
-        height: parent.height - 10
-        radius: 5
-        color: "blue"
-
-        Text {
-            anchors.fill: parent
-            color: "white"
-            text: button.text
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-        }
-
-        MouseArea {
-            id: mouse
-            anchors.fill: parent
-            onClicked: button.clicked()
-        }
+    MouseArea {
+        id: mouse
+        anchors.fill: parent
+        onClicked: button.clicked()
     }
 }

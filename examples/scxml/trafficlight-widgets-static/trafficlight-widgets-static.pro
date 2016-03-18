@@ -12,3 +12,6 @@ SOURCES += trafficlight-widgets-static.cpp
 # install
 target.path = $$[QT_INSTALL_EXAMPLES]/scxml/trafficlight-widgets-static
 INSTALLS += target
+
+RESOURCES += \
+    trafficlight-widgets-static.qrc

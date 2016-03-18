@@ -55,14 +55,14 @@
 
     \quotefromfile trafficlight-qml-dynamic/trafficlight-qml-dynamic.qml
     \skipto import Scxml
-    \printuntil }
+    \printuntil /^\}/
 
     \include trafficlight-state-machine.qdocinc
 
     We connect to the states as follows:
 
     \quotefromfile trafficlight-common/TrafficLight.qml
-    \skipto Light
+    \skipto /^ {8}Image/
     \printuntil greenLight
-    \printuntil /^ {4}\}/
+    \printuntil /^ {8}\}/
 */

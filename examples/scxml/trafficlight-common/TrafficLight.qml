@@ -56,14 +56,13 @@ Window {
     property QtObject stateMachine
 
     visible: true
-    width: 100
-    height: 350
     color: "black"
+    width: lights.width
+    height: lights.height
 
-    Item {
+    Image {
         id: lights
-        width: parent.width
-        height: 300
+        source: "qrc:///background.png"
 
         MouseArea {
             anchors.fill: parent
@@ -72,40 +71,38 @@ Window {
             }
         }
 
-        Light {
+        Image {
             id: redLight
-            anchors.top: parent.top
-            color: "red"
+            x: (lights.width - width) / 2
+            y: 40
+            source: "qrc:///red.png"
             visible: stateMachine.red || stateMachine.redGoingGreen
         }
 
-        Light {
+        Image {
             id: yellowLight
-            anchors.top: redLight.bottom
-            color: "yellow"
+            x: (lights.width - width) / 2
+            y: 135
+            source: "qrc:///yellow.png"
             visible: stateMachine.yellow || stateMachine.blinking
         }
 
-        Light {
+        Image {
             id: greenLight
-            anchors.top: yellowLight.bottom
-            color: "green"
+            x: (lights.width - width) / 2
+            y: 230
+            source: "qrc:///green.png"
             visible: stateMachine.green
         }
     }
 
     Button {
         id: button
-        width: parent.width
-        anchors.top: lights.bottom
+        anchors.right: parent.right
         anchors.bottom: parent.bottom
+        anchors.margins: 20
 
-        text: {
-            if (stateMachine.working)
-                "Pause"
-            else
-                "Unpause"
-        }
+        source: stateMachine.working ? "qrc:///pause.png" : "qrc:///play.png"
 
         onClicked: {
             if (stateMachine.working)

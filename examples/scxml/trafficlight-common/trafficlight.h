@@ -54,6 +54,7 @@
 #include <QScxmlStateMachine>
 
 #include <QWidget>
+#include <QAbstractButton>
 
 class TrafficLight : public QWidget
 {
@@ -75,7 +76,7 @@ class LightWidget: public QWidget
     Q_PROPERTY(bool on READ isOn WRITE setOn)
 
 public:
-    LightWidget(const QColor &color, QWidget *parent = 0);
+    LightWidget(const QString &image, QWidget *parent = 0);
 
     bool isOn() const;
     void setOn(bool on);
@@ -85,10 +86,26 @@ public slots:
 
 protected:
     virtual void paintEvent(QPaintEvent *) Q_DECL_OVERRIDE;
+    virtual QSize sizeHint() const Q_DECL_OVERRIDE;
 
 private:
-    QColor m_color;
+    QImage m_image;
     bool m_on;
+};
+
+class ButtonWidget : public QAbstractButton
+{
+    Q_OBJECT
+public:
+    ButtonWidget(QWidget *parent = 0);
+
+protected:
+    virtual void paintEvent(QPaintEvent *) Q_DECL_OVERRIDE;
+    virtual QSize sizeHint() const Q_DECL_OVERRIDE;
+
+private:
+    QImage m_playIcon;
+    QImage m_pauseIcon;
 };
 
 #endif // TRAFFICLIGHT_H
