@@ -513,7 +513,7 @@
 
     \quotefromfile pinball/mainwindow.cpp
     \skipto #include
-    \printuntil /}$/
+    \printuntil /\}$/
 
     The constructor of the MainWindow class
     instantiates the GUI part of the application
@@ -542,7 +542,7 @@
 
     \quotefromfile pinball/main.cpp
     \skipto #include
-    \printuntil /}$/
+    \printuntil /\}$/
 
     Finally, there is main.cpp file with the main() function
     inside which we instantiate the
