@@ -1049,10 +1049,30 @@ inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(QScxmlStateMach
  */
 
 /*!
+    \enum QScxmlParser::QtMode
+
+    This enum specifies if the document should be parsed in Qt mode. In Qt
+    mode, event and state names have to be valid C++ identifiers. If that is
+    the case some additional convenience methods are generated. If not, the
+    parser will reject the document. Qt mode can be enabled in the document
+    itself by adding an XML comment of the form:
+
+    \c {<!-- enable-qt-mode: yes -->}
+
+    \value QtModeDisabled
+           Ignore the XML comment and do not generate additional methods.
+    \value QtModeEnabled
+           Force parsing in Qt mode and try to generate the additional methods,
+           no matter if the XML comment is present.
+    \value QtModeFromInputFile
+           Enable Qt mode only if the XML comment is present in the document.
+ */
+
+/*!
  * Creates a new SCXML parser for the specified \a reader.
  */
 QScxmlParser::QScxmlParser(QXmlStreamReader *reader)
-    : p(new QScxmlParserPrivate(this, reader))
+    : d(new QScxmlParserPrivate(this, reader))
 { }
 
 /*!
@@ -1060,41 +1080,49 @@ QScxmlParser::QScxmlParser(QXmlStreamReader *reader)
  */
 QScxmlParser::~QScxmlParser()
 {
-    delete p;
+    delete d;
 }
 
 /*!
  * Returns the file name associated with the current input.
+ *
+ * \sa setFileName()
  */
 QString QScxmlParser::fileName() const
 {
-    return p->fileName();
+    return d->fileName();
 }
 
 /*!
  * Sets the file name for the current input to \a fileName.
  *
  * The file name is used for error reporting and for resolving relative path URIs.
+ *
+ * \sa fileName()
  */
 void QScxmlParser::setFileName(const QString &fileName)
 {
-    p->setFileName(fileName);
+    d->setFileName(fileName);
 }
 
 /*!
  * Returns the loader that is currently used to resolve and load URIs.
+ *
+ * \sa setLoader()
  */
 QScxmlParser::Loader *QScxmlParser::loader() const
 {
-    return p->loader();
+    return d->loader();
 }
 
 /*!
  * Sets \a newLoader to be used for resolving and loading URIs.
+ *
+ * \sa loader()
  */
 void QScxmlParser::setLoader(QScxmlParser::Loader *newLoader)
 {
-    p->setLoader(newLoader);
+    d->setLoader(newLoader);
 }
 
 /*!
@@ -1102,7 +1130,8 @@ void QScxmlParser::setLoader(QScxmlParser::Loader *newLoader)
  */
 void QScxmlParser::parse()
 {
-    p->parse();
+    d->parse();
+    d->verifyDocument();
 }
 
 /*!
@@ -1119,7 +1148,7 @@ QScxmlStateMachine *QScxmlParser::instantiateStateMachine() const
 #ifdef BUILD_QSCXMLC
     return Q_NULLPTR;
 #else // BUILD_QSCXMLC
-    DocumentModel::ScxmlDocument *doc = p->scxmlDocument();
+    DocumentModel::ScxmlDocument *doc = d->scxmlDocument();
     if (doc && doc->root) {
         return QStateMachineBuilder().build(doc);
     } else {
@@ -1146,7 +1175,8 @@ void QScxmlParser::instantiateDataModel(QScxmlStateMachine *stateMachine) const
 #ifdef BUILD_QSCXMLC
     Q_UNUSED(stateMachine)
 #else
-    auto root = p->scxmlDocument()->root;
+    auto doc = d->scxmlDocument();
+    auto root = doc ? doc->root : Q_NULLPTR;
     if (root == Q_NULLPTR) {
         qWarning() << "SCXML document has no root element";
     } else {
@@ -1164,7 +1194,7 @@ void QScxmlParser::instantiateDataModel(QScxmlStateMachine *stateMachine) const
  */
 QScxmlParser::State QScxmlParser::state() const
 {
-    return p->state();
+    return d->state();
 }
 
 /*!
@@ -1172,7 +1202,7 @@ QScxmlParser::State QScxmlParser::state() const
  */
 QVector<QScxmlError> QScxmlParser::errors() const
 {
-    return p->errors();
+    return d->errors();
 }
 
 /*!
@@ -1183,17 +1213,32 @@ QVector<QScxmlError> QScxmlParser::errors() const
  */
 void QScxmlParser::addError(const QString &msg)
 {
-    p->addError(msg);
+    d->addError(msg);
 }
 
+/*!
+ * Returns how the parser decides if the SCXML document should conform to Qt
+ * mode.
+ *
+ * \sa QtMode
+ */
 QScxmlParser::QtMode QScxmlParser::qtMode() const
 {
-    return p->qtMode();
+    return d->qtMode();
 }
 
+/*!
+ * Sets the \c qtMode to \a mode. This property overrides the XML comment. You
+ * can force Qt mode to be used by setting it to \c QtModeEnabled or force any
+ * XML comments to be ignored and Qt mode to be used by setting it to
+ * \c QtModeDisabled. The default is \c QtModeFromInputFile, which will switch
+ * Qt mode on if the XML comment is present in the source file.
+ *
+ * \sa QtMode
+ */
 void QScxmlParser::setQtMode(QScxmlParser::QtMode mode)
 {
-    p->setQtMode(mode);
+    d->setQtMode(mode);
 }
 
 bool QScxmlParserPrivate::ParserState::collectChars() {
@@ -1623,12 +1668,11 @@ QScxmlParser *QScxmlParser::Loader::parser() const
 
 QScxmlParserPrivate *QScxmlParserPrivate::get(QScxmlParser *parser)
 {
-    return parser->p;
+    return parser->d;
 }
 
 QScxmlParserPrivate::QScxmlParserPrivate(QScxmlParser *parser, QXmlStreamReader *reader)
-    : m_parser(parser)
-    , m_currentParent(Q_NULLPTR)
+    : m_currentParent(Q_NULLPTR)
     , m_currentState(Q_NULLPTR)
     , m_defaultLoader(parser)
     , m_loader(&m_defaultLoader)
@@ -1637,24 +1681,24 @@ QScxmlParserPrivate::QScxmlParserPrivate(QScxmlParser *parser, QXmlStreamReader 
     , m_qtMode(QScxmlParser::QtModeFromInputFile)
 {}
 
-QScxmlParser *QScxmlParserPrivate::parser() const
-{
-    return m_parser;
-}
-
-DocumentModel::ScxmlDocument *QScxmlParserPrivate::scxmlDocument()
+bool QScxmlParserPrivate::verifyDocument()
 {
     if (!m_doc)
-        return Q_NULLPTR;
+        return false;
 
     auto handler = [this](const DocumentModel::XmlLocation &location, const QString &msg) {
         this->addError(location, msg);
     };
 
     if (ScxmlVerifier(handler).verify(m_doc.data()))
-        return m_doc.data();
+        return true;
     else
-        return Q_NULLPTR;
+        return false;
+}
+
+DocumentModel::ScxmlDocument *QScxmlParserPrivate::scxmlDocument() const
+{
+    return m_doc && m_errors.isEmpty() ? m_doc.data() : Q_NULLPTR;
 }
 
 QString QScxmlParserPrivate::fileName() const
@@ -1681,8 +1725,8 @@ void QScxmlParserPrivate::parseSubDocument(DocumentModel::Invoke *parentInvoke, 
 {
     QScxmlParser p(reader);
     p.setFileName(fileName);
-    p.parse();
-    parentInvoke->content.reset(p.p->m_doc.take());
+    p.d->parse();
+    parentInvoke->content.reset(p.d->m_doc.take());
     m_doc->allSubDocuments.append(parentInvoke->content.data());
     m_errors.append(p.errors());
     if (p.state() == QScxmlParser::ParsingError)

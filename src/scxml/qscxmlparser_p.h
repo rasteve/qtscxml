@@ -557,8 +557,8 @@ public:
 
     QScxmlParserPrivate(QScxmlParser *parser, QXmlStreamReader *reader);
 
-    QScxmlParser *parser() const;
-    DocumentModel::ScxmlDocument *scxmlDocument();
+    bool verifyDocument();
+    DocumentModel::ScxmlDocument *scxmlDocument() const;
 
     QString fileName() const;
     void setFileName(const QString &fileName);
@@ -642,7 +642,6 @@ private:
     };
 
 private:
-    QScxmlParser *m_parser;
     QString m_fileName;
     QSet<QString> m_allIds;
 
