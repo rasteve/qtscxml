@@ -40,8 +40,7 @@
 #ifndef QSCXMLTABLEDATA_P
 #define QSCXMLTABLEDATA_P
 
-#include <QtScxml/qscxmldatamodel.h>
-
+#include <QtScxml/qscxmlexecutablecontent.h>
 #include <QString>
 
 #ifndef Q_QSCXMLC_OUTPUT_REVISION
