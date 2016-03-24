@@ -359,7 +359,7 @@ static bool playEvent(QScxmlStateMachine *stateMachine, const QJsonObject &event
     }
     stateMachine->submitEvent(e);
 
-    if (!MySignalSpy(stateMachine, SIGNAL(reachedStableState(bool))).fastWait()) {
+    if (!MySignalSpy(stateMachine, SIGNAL(reachedStableState())).fastWait()) {
         qWarning() << "State machine did not reach a stable state!";
     } else if (verifyStates(stateMachine, eventDescription, QLatin1String("nextConfiguration"), counter)) {
         return true;
@@ -383,7 +383,7 @@ static bool playEvents(QScxmlStateMachine *stateMachine, const QJsonObject &test
 
 bool TestScion::runTest(QScxmlStateMachine *stateMachine, const QJsonObject &testDescription)
 {
-    MySignalSpy stableStateSpy(stateMachine, SIGNAL(reachedStableState(bool)));
+    MySignalSpy stableStateSpy(stateMachine, SIGNAL(reachedStableState()));
     MySignalSpy finishedSpy(stateMachine, SIGNAL(finished()));
 
     if (!stateMachine->init() && stateMachine->name() != QStringLiteral("test487")) {

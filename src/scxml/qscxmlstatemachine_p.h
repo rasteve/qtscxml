@@ -109,6 +109,8 @@ public:
     QScxmlStateMachinePrivate();
     ~QScxmlStateMachinePrivate();
 
+    void init();
+
     static QScxmlStateMachinePrivate *get(QScxmlStateMachine *t)
     { return t->d_func(); }
 

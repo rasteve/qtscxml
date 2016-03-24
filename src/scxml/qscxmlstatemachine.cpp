@@ -238,6 +238,21 @@ QScxmlStateMachinePrivate::~QScxmlStateMachinePrivate()
     delete m_executionEngine;
 }
 
+void QScxmlStateMachinePrivate::init()
+{
+    Q_Q(QScxmlStateMachine);
+    m_executionEngine = new QScxmlExecutableContent::QScxmlExecutionEngine(q);
+    setQStateMachine(new QScxmlInternal::WrappedQStateMachine(q));
+    QObject::connect(m_qStateMachine, &QStateMachine::runningChanged,
+                     q, &QScxmlStateMachine::runningChanged);
+    QObject::connect(m_qStateMachine, &QStateMachine::finished,
+                     q, &QScxmlStateMachine::finished);
+
+    // The final state is also a stable state.
+    QObject::connect(m_qStateMachine, &QStateMachine::finished,
+                     q, &QScxmlStateMachine::reachedStableState);
+}
+
 void QScxmlStateMachinePrivate::setQStateMachine(QScxmlInternal::WrappedQStateMachine *stateMachine)
 {
     m_qStateMachine = stateMachine;
@@ -423,27 +438,13 @@ QScxmlStateMachine::QScxmlStateMachine(QObject *parent)
     : QObject(*new QScxmlStateMachinePrivate, parent)
 {
     Q_D(QScxmlStateMachine);
-    d->m_executionEngine = new QScxmlExecutableContent::QScxmlExecutionEngine(this);
-    d->setQStateMachine(new QScxmlInternal::WrappedQStateMachine(this));
-    connect(d->m_qStateMachine, &QStateMachine::runningChanged, this, &QScxmlStateMachine::runningChanged);
-    connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::finished);
-    connect(d->m_qStateMachine, &QStateMachine::finished, [this](){
-        // The final state is also a stable state.
-        emit reachedStableState(true);
-    });
+    d->init();
 }
 
 QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *parent)
     : QObject(dd, parent)
 {
-    Q_D(QScxmlStateMachine);
-    d->m_executionEngine = new QScxmlExecutableContent::QScxmlExecutionEngine(this);
-    connect(d->m_qStateMachine, &QStateMachine::runningChanged, this, &QScxmlStateMachine::runningChanged);
-    connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::finished);
-    connect(d->m_qStateMachine, &QStateMachine::finished, [this](){
-        // The final state is also a stable state.
-        emit reachedStableState(true);
-    });
+    dd.init();
 }
 
 /*!
@@ -687,7 +688,7 @@ void QScxmlInternal::WrappedQStateMachinePrivate::processedPendingEvents(bool di
 {
     qCDebug(qscxmlLog) << m_stateMachine << "finishedPendingEvents" << didChange << "in state ("
                       << m_stateMachine->activeStateNames() << ")";
-    emit m_stateMachine->reachedStableState(didChange);
+    emit m_stateMachine->reachedStableState();
 }
 
 void QScxmlInternal::WrappedQStateMachinePrivate::beginMacrostep()
@@ -1169,7 +1170,7 @@ bool QScxmlStateMachine::isDispatchableTarget(const QString &target) const
 */
 
 /*!
-  \fn QScxmlStateMachine::reachedStableState(bool didChange)
+  \fn QScxmlStateMachine::reachedStableState()
 
   This signal is emitted when the event queue is empty at the end of a macro step or when a final
   state is reached.

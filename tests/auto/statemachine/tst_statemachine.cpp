@@ -110,7 +110,7 @@ void tst_StateMachine::activeStateNames()
     QScopedPointer<QScxmlStateMachine> stateMachine(QScxmlStateMachine::fromFile(scxmlFileName));
     QVERIFY(!stateMachine.isNull());
 
-    QSignalSpy stableStateSpy(stateMachine.data(), SIGNAL(reachedStableState(bool)));
+    QSignalSpy stableStateSpy(stateMachine.data(), SIGNAL(reachedStableState()));
 
     stateMachine->init();
     stateMachine->start();

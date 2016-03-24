@@ -129,7 +129,7 @@ public:
 Q_SIGNALS:
     void runningChanged(bool running);
     void log(const QString &label, const QString &msg);
-    void reachedStableState(bool didChange);
+    void reachedStableState();
     void finished();
     void eventOccurred(const QScxmlEvent &event);
 
