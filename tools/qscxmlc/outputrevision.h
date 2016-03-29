@@ -29,7 +29,13 @@
 #ifndef OUTPUTREVISION_H
 #define OUTPUTREVISION_H
 
+#include <QtCore/qglobal.h>
+
+QT_BEGIN_NAMESPACE
+
 // if the output revision changes, you MUST change it in qobjectdefs.h too
 enum { mocOutputRevision = 67 };          // moc format output revision
+
+QT_END_NAMESPACE
 
 #endif // OUTPUTREVISION_H

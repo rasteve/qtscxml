@@ -42,6 +42,8 @@
 #include "qscxmlparser_p.h"
 #include "qscxmlevent_p.h"
 
+QT_BEGIN_NAMESPACE
+
 using namespace QScxmlExecutableContent;
 
 #ifndef BUILD_QSCXMLC
@@ -661,3 +663,5 @@ StringIds DynamicTableData::allDataNameIds() const
 {
     return theDataNameIds;
 }
+
+QT_END_NAMESPACE

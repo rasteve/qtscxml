@@ -39,7 +39,9 @@
 
 #include "qscxmltabledata.h"
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 QScxmlTableData::~QScxmlTableData()
 {}
+
+QT_END_NAMESPACE

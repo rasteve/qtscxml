@@ -40,7 +40,7 @@
 #include "qscxmlcppdatamodel_p.h"
 #include "qscxmlstatemachine.h"
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 using namespace QScxmlExecutableContent;
 
@@ -242,3 +242,5 @@ bool QScxmlCppDataModel::In(const QString &stateName) const
 {
     return stateMachine()->isActive(stateName);
 }
+
+QT_END_NAMESPACE

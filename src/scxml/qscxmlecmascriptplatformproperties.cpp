@@ -53,7 +53,6 @@ public:
     QScxmlStateMachine *m_stateMachine;
     QJSValue m_jsValue;
 };
-QT_END_NAMESPACE
 
 QScxmlPlatformProperties::QScxmlPlatformProperties(QObject *parent)
     : QObject(parent)
@@ -98,3 +97,5 @@ bool QScxmlPlatformProperties::In(const QString &stateName)
 {
     return stateMachine()->isActive(stateName);
 }
+
+QT_END_NAMESPACE

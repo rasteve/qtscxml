@@ -42,7 +42,7 @@
 #include "qscxmlecmascriptdatamodel.h"
 #include "qscxmlstatemachine_p.h"
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 /*!
  * \class QScxmlDataModel::ForeachLoopBody
@@ -165,3 +165,5 @@ void QScxmlDataModelPrivate::setStateMachine(QScxmlStateMachine *stateMachine)
  *
  * Returns \c true if successful or \c false if an error occurred.
  */
+
+QT_END_NAMESPACE

@@ -41,7 +41,7 @@
 #include "qscxmlevent_p.h"
 #include "qscxmlstatemachine_p.h"
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 using namespace QScxmlExecutableContent;
 
@@ -563,3 +563,5 @@ void QScxmlEvent::makeIgnorable()
 {
     t = ignoreEventType;
 }
+
+QT_END_NAMESPACE

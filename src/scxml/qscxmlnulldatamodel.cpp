@@ -42,6 +42,8 @@
 #include "qscxmlstatemachine_p.h"
 #include "qscxmltabledata.h"
 
+QT_BEGIN_NAMESPACE
+
 class QScxmlNullDataModel::Data
 {
     struct ResolvedEvaluatorInfo {
@@ -244,3 +246,5 @@ bool QScxmlNullDataModel::setProperty(const QString &name, const QVariant &value
     Q_UNUSED(context);
     return false;
 }
+
+QT_END_NAMESPACE
