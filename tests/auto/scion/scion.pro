@@ -27,13 +27,14 @@ defineReplace(nameTheClass) {
 
 win32 {
 QSCXMLC_DEP=$$[QT_HOST_BINS]/qscxmlc.exe
-QSCXMLC_CMD=$$QSCXMLC_DEP -no-c++11
+QSCXMLC_CMD=$$QSCXMLC_DEP --no-c++11
+msvc: QMAKE_CXXFLAGS += /bigobj
 } else {
 QSCXMLC_DEP=$$[QT_HOST_BINS]/qscxmlc
 QSCXMLC_CMD=$$QSCXMLC_DEP
 }
 
-myscxml.commands = $$QSCXMLC_CMD -oh scxml/${QMAKE_FUNC_nameTheNamespace}_${QMAKE_FILE_IN_BASE}.h -ocpp ${QMAKE_FILE_OUT} -namespace ${QMAKE_FUNC_nameTheNamespace} -classname ${QMAKE_FUNC_nameTheClass} ${QMAKE_FILE_IN}
+myscxml.commands = $$QSCXMLC_CMD --header scxml/${QMAKE_FUNC_nameTheNamespace}_${QMAKE_FILE_IN_BASE}.h --impl ${QMAKE_FILE_OUT} --namespace ${QMAKE_FUNC_nameTheNamespace} --classname ${QMAKE_FUNC_nameTheClass} ${QMAKE_FILE_IN}
 myscxml.depends += $$QSCXMLC_DEP
 myscxml.output = scxml/${QMAKE_FUNC_nameTheNamespace}_${QMAKE_FILE_IN_BASE}.cpp
 myscxml.input = SCXMLS

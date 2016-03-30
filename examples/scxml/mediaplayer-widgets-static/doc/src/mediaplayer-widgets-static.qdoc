@@ -27,8 +27,37 @@
 
 /*!
     \example mediaplayer-widgets-static
-    \title Qt SCXML: Media Player Example (Static)
+    \title Qt SCXML Media Player Example (Static)
     \ingroup examples-qtscxml
 
-    \brief Demonstrates how to send/receive data to/from EcmaScript data-model.
+    \brief A widget-based application that sends data to and receives it from a
+    compiled ECMAScript data model.
+
+    \image mediaplayer.png
+
+    \e {Media Player Example (Static)} demonstrates how to access data from an
+     ECMAScript data model that is compiled into a C++ class.
+
+    The UI is created using Qt Widgets.
+
+    \include examples-run.qdocinc
+
+    \include mediaplayer-ecmascript-data-model.qdocinc
+
+    \include mediaplayer-compiling.qdocinc
+
+    \section1 Instantiating the State Machine
+
+    We instantiate the generated \c MediaPlayerStateMachine class in
+    \e {mediaplayer-widgets-static.cpp}:
+
+    \quotefromfile mediaplayer-widgets-static/mediaplayer-widgets-static.cpp
+    \skipto mediaplayer.h
+    \printuntil machine.init
+
+    To be notified when a state machine sends out an event, we connect to the
+    corresponding signals. The media player state machine will send out events
+    when users tap a control and when playback starts or stops:
+
+    \printuntil MainWindow::stopped
 */

@@ -185,33 +185,36 @@ QScxmlEventFilter::~QScxmlEventFilter()
 
 /*!
  * \class QScxmlStateMachine
- * \brief Provides an interface to the state machines created from SCXML files.
+ * \brief The QScxmlStateMachine class provides an interface to the state machines
+ * created from SCXML files.
  * \since 5.7
  * \inmodule QtScxml
  *
- * QScxmlStateMachine is an implementation of
- * \l{http://www.w3.org/TR/scxml/}{State Chart XML (SCXML)}.
+ * QScxmlStateMachine is an implementation of the
+ * \l{SCXML Specification}{State Chart XML (SCXML)}.
  *
- * All states which are defined in the SCXML file
+ * All states that are defined in the SCXML file
  * are accessible as properties of QScxmlStateMachine.
- * The type of these properties is a pointer to
- * QAbstractState. Every occurience of
- * a \c - character in the state's name inside SCXML file
- * is replaced with \c _dash_ sequence in the property name.
+ * These properties are boolean values and indicate
+ * whether the state is active or inactive.
  *
- * All external signals defined inside SCXML file,
- * which are of "qt:signal" type, are accessible
- * as signals of QScxmlStateMachine.
+ * All external signals defined inside the SCXML file
+ * that are of the \c qt:signal type, are accessible
+ * as signals of QScxmlStateMachine in the \e {Qt mode}.
  * The only argument of these signals
  * is always QVariant, which is of QMap<QString, QVariant>
- * type containing the content of all \c <param>
- * elements specified as children of \c <send> tag.
- * The signal names of QScxmlStateMachine
- * correspond to those defined in SCXML file
- * but are prefixed with \c event_, and \c -
- * characters are escaped with \c _dash_ sequence,
- * like in case of states' property names.
+ * type containing the content of all the \c <param>
+ * elements specified as children of a \c <send> element.
+ * The name of each QScxmlStateMachine signal
+ * corresponds to the value defined in the
+ * \e event attribute of one \c <send> tag in the SCXML file.
  */
+
+/*!
+    \fn QScxmlStateMachine::eventOccurred(const QScxmlEvent &event)
+
+    This signal is emitted when the SCXML event \a event occurs.
+*/
 
 QAtomicInt QScxmlStateMachinePrivate::m_sessionIdCounter = QAtomicInt(0);
 
@@ -233,6 +236,21 @@ QScxmlStateMachinePrivate::~QScxmlStateMachinePrivate()
 {
     qDeleteAll(m_invokedServices);
     delete m_executionEngine;
+}
+
+void QScxmlStateMachinePrivate::init()
+{
+    Q_Q(QScxmlStateMachine);
+    m_executionEngine = new QScxmlExecutableContent::QScxmlExecutionEngine(q);
+    setQStateMachine(new QScxmlInternal::WrappedQStateMachine(q));
+    QObject::connect(m_qStateMachine, &QStateMachine::runningChanged,
+                     q, &QScxmlStateMachine::runningChanged);
+    QObject::connect(m_qStateMachine, &QStateMachine::finished,
+                     q, &QScxmlStateMachine::finished);
+
+    // The final state is also a stable state.
+    QObject::connect(m_qStateMachine, &QStateMachine::finished,
+                     q, &QScxmlStateMachine::reachedStableState);
 }
 
 void QScxmlStateMachinePrivate::setQStateMachine(QScxmlInternal::WrappedQStateMachine *stateMachine)
@@ -346,7 +364,7 @@ void QScxmlStateMachinePrivate::postEvent(QScxmlEvent *event)
 
 /*!
  * \internal
- * \brief Submits an error event to the external event queue of this state-machine.
+ * \brief Submits an error event to the external event queue of this state machine.
  *
  * \param type The error message type, e.g. "error.execution". The type has to start with "error.".
  * \param msg A string describing the nature of the error. This is passed to the event as the
@@ -363,13 +381,13 @@ void QScxmlStateMachinePrivate::submitError(const QString &type, const QString &
 }
 
 /*!
- * \brief Creates a state-machine from a SCXML file.
+ * Creates a state machine from the SCXML file specified by \a fileName.
  *
- * This method will always return a state-machine. When errors occur while reading the SCXML file,
- * the state-machine cannot be started. Those errors can be retrieved by calling the parseErrors()
+ * This method will always return a state machine. If errors occur while reading the SCXML file,
+ * the state machine cannot be started. The errors can be retrieved by calling the parseErrors()
  * method.
  *
- * \param fileName The name of the SCXML file.
+ * \sa parseErrors()
  */
 QScxmlStateMachine *QScxmlStateMachine::fromFile(const QString &fileName)
 {
@@ -387,14 +405,13 @@ QScxmlStateMachine *QScxmlStateMachine::fromFile(const QString &fileName)
 }
 
 /*!
- * \brief Creates a state-machine by reading from the QIODevice.
+ * Creates a state machine by reading from the QIODevice specified by \a data.
  *
- * This method will always return a state-machine. When errors occur while reading the SCXML file,
- * the state-machine cannot be started. Those errors can be retrieved by calling the parseErrors()
- * method.
+ * This method will always return a state machine. If errors occur while reading the SCXML file,
+ * \a fileName, the state machine cannot be started. The errors can be retrieved by calling the
+ * parseErrors() method.
  *
- * \param data The device to read the SCXML content from.
- * \param fileName The file name used in error messages.
+ * \sa parseErrors()
  */
 QScxmlStateMachine *QScxmlStateMachine::fromData(QIODevice *data, const QString &fileName)
 {
@@ -408,7 +425,7 @@ QScxmlStateMachine *QScxmlStateMachine::fromData(QIODevice *data, const QString 
 }
 
 /*!
- * \return the list of parse errors that occurred while creating a state-machine from an
+ * Returns the list of parse errors that occurred while creating a state machine from an
  *         SCXML file.
  */
 QVector<QScxmlError> QScxmlStateMachine::parseErrors() const
@@ -417,37 +434,17 @@ QVector<QScxmlError> QScxmlStateMachine::parseErrors() const
     return d->m_parserData ? d->m_parserData->m_errors : QVector<QScxmlError>();
 }
 
-/*!
- * Constructs a new state machine with the given parent.
- */
 QScxmlStateMachine::QScxmlStateMachine(QObject *parent)
     : QObject(*new QScxmlStateMachinePrivate, parent)
 {
     Q_D(QScxmlStateMachine);
-    d->m_executionEngine = new QScxmlExecutableContent::QScxmlExecutionEngine(this);
-    d->setQStateMachine(new QScxmlInternal::WrappedQStateMachine(this));
-    connect(d->m_qStateMachine, &QStateMachine::runningChanged, this, &QScxmlStateMachine::runningChanged);
-    connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::finished);
-    connect(d->m_qStateMachine, &QStateMachine::finished, [this](){
-        // The final state is also a stable state.
-        emit reachedStableState(true);
-    });
+    d->init();
 }
 
-/*!
- * \internal
- */
 QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *parent)
     : QObject(dd, parent)
 {
-    Q_D(QScxmlStateMachine);
-    d->m_executionEngine = new QScxmlExecutableContent::QScxmlExecutionEngine(this);
-    connect(d->m_qStateMachine, &QStateMachine::runningChanged, this, &QScxmlStateMachine::runningChanged);
-    connect(d->m_qStateMachine, &QStateMachine::finished, this, &QScxmlStateMachine::finished);
-    connect(d->m_qStateMachine, &QStateMachine::finished, [this](){
-        // The final state is also a stable state.
-        emit reachedStableState(true);
-    });
+    dd.init();
 }
 
 /*!
@@ -455,32 +452,32 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
 
     \brief the running state of this state machine
 
-    \sa start(), runningChanged()
+    \sa start()
  */
 
 /*!
     \enum QScxmlStateMachine::BindingMethod
 
-    This enum specifies the binding method. The binding method controls when the initial values are
-    assigned to the data elements.
+    This enum specifies the binding method. The binding method controls the point in time
+    when the initial values are assigned to the data elements.
 
-    \value EarlyBinding will create and initialize all data elements at data-model initialization.
+    \value EarlyBinding All data elements are created and initialized at data-model initialization.
            This is the default.
-    \value LateBinding will create all data elements at initialization, but only assign the initial
-           values when the containing state is entered for the first time. It will do so before any
-           executable content is executed.
+    \value LateBinding All data elements are created at initialization, but the initial values are
+           assigned only when the containing state is entered for the first time. This is done
+           before any executable content is executed.
  */
 
 /*!
- * \brief Returns the session ID for the current state machine.
+ * Returns the session ID for the current state machine.
  *
  * The session ID is used for message routing between parent and child state machines. If a state
- * machine is started by <invoke>, any event it sends will have the invokeid field of set to the
- * session ID. The state machine will use the origin of an event (which is set by the target or
- * targetexpr attribute in a <send> tag) to dispatch a message from one state machine to the correct
+ * machine is started by an \c <invoke> element, any event it sends will have the \c invokeid field
+ * set to the session ID. The state machine will use the origin of an event (which is set by the
+ * \e target or \e targetexpr attribute in a \c <send> element) to dispatch messages to the correct
  * child state machine.
  *
- * \sa QScxmlStateMachine::setSessionId() QScxmlEvent::invokeId() QScxmlStateMachine::routeEvent()
+ * \sa setSessionId() QScxmlEvent::invokeId()
  */
 QString QScxmlStateMachine::sessionId() const
 {
@@ -490,9 +487,9 @@ QString QScxmlStateMachine::sessionId() const
 }
 
 /*!
-  Sets the session ID for the current state machine.
+  Sets the session ID for the current state machine to \a id.
 
-  \sa QScxmlStateMachine::sessionId
+  \sa sessionId()
  */
 void QScxmlStateMachine::setSessionId(const QString &id)
 {
@@ -501,12 +498,10 @@ void QScxmlStateMachine::setSessionId(const QString &id)
 }
 
 /*!
- * \brief Generates a unique ID by appending a unique number to the prefix.
+ * Generates a unique ID by appending a unique number to the \a prefix.
  *
  * The number is only unique within a single run of an application. This method is used when an
- * invoked service does not have an ID set (the id attribute in <invoke>).
- *
- * \param prefix The prefix onto which a unique number is appended.
+ * invoked service does not have an ID set (the \e id attribute in \c <invoke>).
  */
 QString QScxmlStateMachine::generateSessionId(const QString &prefix)
 {
@@ -515,7 +510,8 @@ QString QScxmlStateMachine::generateSessionId(const QString &prefix)
 }
 
 /*!
- * \return true when the state machine was started as a service with <invoke>, false otherwise.
+ * Returns \c true when the state machine was started as a service with the \c <invoke> element,
+ * \c false otherwise.
  */
 bool QScxmlStateMachine::isInvoked() const
 {
@@ -524,7 +520,7 @@ bool QScxmlStateMachine::isInvoked() const
 }
 
 /*!
- * \return the data-model used by the state-machine.
+ * Returns the data model used by the state machine.
  */
 QScxmlDataModel *QScxmlStateMachine::dataModel() const
 {
@@ -534,7 +530,8 @@ QScxmlDataModel *QScxmlStateMachine::dataModel() const
 }
 
 /*!
- * \internal Sets the binding method to the specified value.
+ * \internal
+ * Sets the binding method to the specified value.
  */
 void QScxmlStateMachine::setDataBinding(QScxmlStateMachine::BindingMethod bindingMethod)
 {
@@ -544,7 +541,7 @@ void QScxmlStateMachine::setDataBinding(QScxmlStateMachine::BindingMethod bindin
 }
 
 /*!
- * \return the binding method used by the state machine.
+ * Returns the binding method used by the state machine.
  */
 QScxmlStateMachine::BindingMethod QScxmlStateMachine::dataBinding() const
 {
@@ -554,9 +551,11 @@ QScxmlStateMachine::BindingMethod QScxmlStateMachine::dataBinding() const
 }
 
 /*!
- * \internal This is used internally in order to execute the executable content.
+ * \internal
  *
- * \return the data tables used by the state-machine.
+ * This is used internally in order to execute the executable content.
+ *
+ * \return the data tables used by the state machine.
  */
 QScxmlTableData *QScxmlStateMachine::tableData() const
 {
@@ -566,10 +565,11 @@ QScxmlTableData *QScxmlStateMachine::tableData() const
 }
 
 /*!
- * \internal This is used when generating C++ from an SCXML file. The class implementing the
- * state-machine will use this method to pass in the table data (which is also generated).
+ * \internal
+ * This is used when generating C++ from an SCXML file. The class implementing the
+ * state machine will use this method to pass in the table data (which is also generated).
  *
- * \return the data tables used by the state-machine.
+ * \return the data tables used by the state machine.
  */
 void QScxmlStateMachine::setTableData(QScxmlTableData *tableData)
 {
@@ -688,7 +688,7 @@ void QScxmlInternal::WrappedQStateMachinePrivate::processedPendingEvents(bool di
 {
     qCDebug(qscxmlLog) << m_stateMachine << "finishedPendingEvents" << didChange << "in state ("
                       << m_stateMachine->activeStateNames() << ")";
-    emit m_stateMachine->reachedStableState(didChange);
+    emit m_stateMachine->reachedStableState();
 }
 
 void QScxmlInternal::WrappedQStateMachinePrivate::beginMacrostep()
@@ -847,13 +847,13 @@ int QScxmlInternal::WrappedQStateMachinePrivate::eventIdForDelayedEvent(const QS
 }
 
 /*!
- * \brief Retrieves a list of state names of all states.
+ * Retrieves a list of state names of all states.
  *
- * When \a compress is true (the default), the states which contain child states
- * will be filtered out and only the "leaf states" will be returned.
- * Passing in false for \a compress will return the full list of all states.
+ * When \a compress is \c true (the default), the states that contain child states
+ * will be filtered out and only the \e {leaf states} will be returned.
+ * When it is \c false, the full list of all states will be returned.
  *
- * The returned list doesn't contain states of possible sub state machines.
+ * The returned list does not contain the states of possible nested state machines.
  */
 QStringList QScxmlStateMachine::stateNames(bool compress) const
 {
@@ -877,11 +877,11 @@ QStringList QScxmlStateMachine::stateNames(bool compress) const
 }
 
 /*!
- * \brief Retrieves a list of state names of all active states.
+ * Retrieves a list of state names of all active states.
  *
- * When a state is active, then by definition all its parent states are active too. When \a compress
- * is true (the default), these parent states will be filtered out and only the "leaf states" will
- * be returned. Passing in false for \a compress will return the full list of active states.
+ * When a state is active, all its parent states are active by definition. When \a compress
+ * is \c true (the default), the parent states will be filtered out and only the \e {leaf states}
+ * will be returned. When it is \c false, the full list of active states will be returned.
  */
 QStringList QScxmlStateMachine::activeStateNames(bool compress) const
 {
@@ -903,7 +903,7 @@ QStringList QScxmlStateMachine::activeStateNames(bool compress) const
 }
 
 /*!
- * \return true if the state named \a scxmlStateName is active, false otherwise.
+ * Returns \c true if the state specified by \a scxmlStateName is active, \c false otherwise.
  */
 bool QScxmlStateMachine::isActive(const QString &scxmlStateName) const
 {
@@ -922,7 +922,8 @@ bool QScxmlStateMachine::isActive(const QString &scxmlStateName) const
  * to the \a method in the \a receiver object. The receiver's \a method
  * may contain a boolean argument that indicates whether the state connected
  * became active or inactive.
- * \return a handle to the connection that can be used to disconnect it later.
+ *
+ * Returns a handle to the connection, which can be used later to disconnect.
  */
 QMetaObject::Connection QScxmlStateMachine::connectToState(const QString &scxmlStateName,
                                             const QObject *receiver, const char *method,
@@ -934,7 +935,7 @@ QMetaObject::Connection QScxmlStateMachine::connectToState(const QString &scxmlS
 }
 
 /*!
- * \return the SCXML event filter if one is set, otherwise it returns null.
+ * Returns the SCXML event filter if one is set, otherwise returns null.
  */
 QScxmlEventFilter *QScxmlStateMachine::scxmlEventFilter() const
 {
@@ -943,7 +944,7 @@ QScxmlEventFilter *QScxmlStateMachine::scxmlEventFilter() const
 }
 
 /*!
- * Sets the \a newFilter as the SCXML event filter. Passing in null will remove the current filter.
+ * Sets the \a newFilter as the SCXML event filter. Passing null will remove the current filter.
  */
 void QScxmlStateMachine::setScxmlEventFilter(QScxmlEventFilter *newFilter)
 {
@@ -952,15 +953,16 @@ void QScxmlStateMachine::setScxmlEventFilter(QScxmlEventFilter *newFilter)
 }
 
 /*!
- * \brief Initializes the state-machine.
+ * Initializes the state machine.
  *
- * State-machine initialization consists of calling QScxmlDataModel::setup() , setting the initial
- * values for <data> elements, and executing any <script> tags of the <scxml> tag.
+ * State machine initialization consists of calling QScxmlDataModel::setup(), setting the initial
+ * values for \c <data> elements, and executing any \c <script> tags of the \c <scxml> tag.
  *
- * \param initialDataValues Any initial values for data elements as passed in by the <invoke> tag.
- *        These values will be used instead of the initial values of the <data> elements.
- * \return false if there were parse errors, or if any of the initialization steps fail.
- *         Returns true otherwise.
+ * \a initialDataValues contains initial values for data elements from the \c <invoke> tag.
+ * These values will be used instead of the initial values from the \c <data> elements.
+ *
+ * Returns \c false if parse errors occur or if any of the initialization steps fail.
+ * Returns \c true otherwise.
  */
 bool QScxmlStateMachine::init(const QVariantMap &initialDataValues)
 {
@@ -976,7 +978,9 @@ bool QScxmlStateMachine::init(const QVariantMap &initialDataValues)
 }
 
 /*!
- * \return true if the state-machine is running, false otherwise.
+ * Returns \c true if the state machine is running, \c false otherwise.
+ *
+ * \sa setRunning(), runningChanged()
  */
 bool QScxmlStateMachine::isRunning() const
 {
@@ -986,7 +990,20 @@ bool QScxmlStateMachine::isRunning() const
 }
 
 /*!
- * \return The name of the state-machine as set by the name attribute of the <scxml> tag.
+ * Starts the state machine if \a running is \c true, or stops it otherwise.
+ *
+ * \sa start(), stop(), isRunning(), runningChanged()
+ */
+void QScxmlStateMachine::setRunning(bool running)
+{
+    if (running)
+        start();
+    else
+        stop();
+}
+
+/*!
+ * Returns the name of the state machine as set by the \e name attribute of the \c <scxml> tag.
  */
 QString QScxmlStateMachine::name() const
 {
@@ -994,7 +1011,8 @@ QString QScxmlStateMachine::name() const
 }
 
 /*!
- * \brief Submits a \a QScxmlEvent to the internal or external event queue depending on the priority.
+ * Submits the SCXML event \a event to the internal or external event queue depending on the
+ * priority of the event.
  *
  * When a delay is set, the event will be queued for delivery after the timeout has passed.
  */
@@ -1020,8 +1038,8 @@ void QScxmlStateMachine::submitEvent(QScxmlEvent *event)
 }
 
 /*!
- * \brief Utility method to create and submit an external event with the given \a eventName as
- *        the name.
+ * A utility method to create and submit an external event with the specified
+ * \a eventName as the name.
  */
 void QScxmlStateMachine::submitEvent(const QString &eventName)
 {
@@ -1032,8 +1050,8 @@ void QScxmlStateMachine::submitEvent(const QString &eventName)
 }
 
 /*!
- * \brief Utility method to create and submit an external event with the given \a eventName as
- *        the name and \a data as the payload data.
+ * A utility method to create and submit an external event with the specified
+ * \a eventName as the name and \a data as the payload data.
  */
 void QScxmlStateMachine::submitEvent(const QString &eventName, const QVariant &data)
 {
@@ -1050,7 +1068,7 @@ void QScxmlStateMachine::submitEvent(const QString &eventName, const QVariant &d
 }
 
 /*!
- * \brief Cancels a delayed event with the given \a sendId.
+ * Cancels a delayed event with the specified \a sendId.
  */
 void QScxmlStateMachine::cancelDelayedEvent(const QString &sendId)
 {
@@ -1103,15 +1121,16 @@ void QScxmlInternal::WrappedQStateMachine::removeAndDestroyService(QScxmlInvokab
 }
 
 /*!
- * \brief Checks if a message to \a target can be dispatched by this state-machine.
+ * Returns \c true if a message to \a target can be dispatched by this state machine.
  *
  * Valid targets are:
  * \list
- * \li #_parent for the parent state-machine if the current state-machine is started by <invoke>
- * \li #_internal for the current state-machine
- * \li #_scxml_sessionid where sessionid is the session-id of the current state-machine
- * \li #_servicename where servicename is the id/name of a service started with <invoke> by this
- *     state-machine.
+ * \li  \c #_parent for the parent state machine if the current state machine is started by
+ *      \c <invoke>
+ * \li  \c #_internal for the current state machine
+ * \li  \c #_scxml_sessionid, where \c sessionid is the session ID of the current state machine
+ * \li  \c #_servicename, where \c servicename is the ID or name of a service started with
+ *      \c <invoke> by this state machine
  * \endlist
  */
 bool QScxmlStateMachine::isDispatchableTarget(const QString &target) const
@@ -1139,47 +1158,43 @@ bool QScxmlStateMachine::isDispatchableTarget(const QString &target) const
 /*!
   \fn QScxmlStateMachine::runningChanged(bool running)
 
-  This signal is emitted when the running property is changed with \a running as argument.
-
-  \sa QScxmlStateMachine::running
+  This signal is emitted when the \c running property is changed with \a running as argument.
 */
 
 /*!
   \fn QScxmlStateMachine::log(const QString &label, const QString &msg)
 
-  This signal is emitted where a <log> tag is used in the Scxml.
-
-  \param label The value of the label attribute of the <log> tag.
-  \param msg The value of the evaluated expr attribute of the <log> tag. If there was no expr
-         attribute, a null string will be returned.
+  This signal is emitted if a \c <log> tag is used in the SCXML. \a label is the value of the
+  \e label attribute of the \c <log> tag. \a msg is the value of the evaluated \e expr attribute
+  of the \c <log> tag. If there is no \e expr attribute, a null string will be returned.
 */
 
 /*!
-  \fn QScxmlStateMachine::reachedStableState(bool didChange)
+  \fn QScxmlStateMachine::reachedStableState()
 
-  This signal is emitted when the event queue is empty at the end of a macro step, or when a final
+  This signal is emitted when the event queue is empty at the end of a macro step or when a final
   state is reached.
 */
 
 /*!
   \fn QScxmlStateMachine::finished()
 
-  This signal is emitted when the state-machine reaches a top-level final state.
+  This signal is emitted when the state machine reaches a top-level final state.
 
-  \sa QScxmlStateMachine::running
+  \sa running
 */
 
 
 /*!
-  Starts this state machine.  The machine will reset its configuration and
-  transition to the initial state.  When a final top-level state
+  Starts this state machine. The machine will reset its configuration and
+  transition to the initial state. When a final top-level state
   is entered, the machine will emit the finished() signal.
 
   \note A state machine will not run without a running event loop, such as
   the main application event loop started with QCoreApplication::exec() or
   QApplication::exec().
 
-  \sa runningChanged(), finished()
+  \sa runningChanged(), setRunning(), stop(), finished()
 */
 void QScxmlStateMachine::start()
 {
@@ -1189,6 +1204,18 @@ void QScxmlStateMachine::start()
         return;
 
     d->m_qStateMachine->start();
+}
+
+/*!
+  Stops this state machine. The machine will not execute any further state
+  transitions. Its \c running property is set to \c false.
+
+  \sa runningChanged(), start(), setRunning()
+ */
+void QScxmlStateMachine::stop()
+{
+    Q_D(QScxmlStateMachine);
+    d->m_qStateMachine->stop();
 }
 
 /*!

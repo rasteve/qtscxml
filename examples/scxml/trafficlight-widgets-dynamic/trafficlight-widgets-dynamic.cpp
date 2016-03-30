@@ -69,7 +69,6 @@ int main(int argc, char **argv)
     }
 
     TrafficLight widget(machine);
-    widget.resize(110, 300);
     widget.show();
     machine->setParent(&widget);
     machine->start();

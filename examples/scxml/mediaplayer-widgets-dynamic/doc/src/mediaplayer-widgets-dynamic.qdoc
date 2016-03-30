@@ -27,8 +27,22 @@
 
 /*!
     \example mediaplayer-widgets-dynamic
-    \title Qt SCXML: Media Player Example (Dynamic)
+    \title Qt SCXML Media Player Example (Dynamic)
     \ingroup examples-qtscxml
 
-    \brief Demonstrates how to send/receive data to/from EcmaScript data-model.
+    \brief A widget-based application that sends data to and receives it from a
+    dynamically loaded ECMAScript data model.
+
+    \image mediaplayer.png
+
+    \e {Media Player Example (Dynamic)} demonstrates how to access data from a
+    dynamically loaded ECMAScript data model.
+
+    The UI is created using Qt Widgets.
+
+    \include examples-run.qdocinc
+
+    \include mediaplayer-ecmascript-data-model.qdocinc
+
+    \include mediaplayer-dynamic.qdocinc
 */

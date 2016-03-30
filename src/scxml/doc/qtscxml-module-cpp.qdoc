@@ -33,4 +33,18 @@
     \ingroup modules
     \ingroup technology-apis
     \qtvariable scxml
+
+    To include the definitions of the module's classes, use the following directive:
+
+    \code
+    #include <QScxmlStateMachine>
+    \endcode
+
+    To link against the module, add this line to your qmake .pro file:
+
+    \code
+    QT += scxml
+    \endcode
+
+    For more information, see \l{Instantiating State Machines}.
 */

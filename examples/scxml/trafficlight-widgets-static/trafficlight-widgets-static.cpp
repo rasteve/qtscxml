@@ -59,7 +59,6 @@ int main(int argc, char **argv)
 
     TrafficLightStateMachine machine;
     TrafficLight widget(&machine);
-    widget.resize(110, 300);
     widget.show();
     machine.start();
 

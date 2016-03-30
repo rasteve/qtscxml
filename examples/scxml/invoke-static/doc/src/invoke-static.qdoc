@@ -27,9 +27,55 @@
 
 /*!
     \example invoke-static
-    \title Qt SCXML: Invoke Example (Static)
+    \title Qt SCXML Invoke Example (Static)
     \ingroup examples-qtscxml
 
-    \brief Demonstrates the use of <invoke> and the use of the generated/created
-           nested state-machines, where the SCXML file is compiled to C++ first.
+    \brief Invokes a compiled nested state machine.
+
+    \image invoke-static.png
+
+    \e{Invoke Example (Static)} demonstrates how to use the \c <invoke> element
+    with generated nested state-machines, where the SCXML file is compiled to
+    a C++ class. The \c <invoke> element is used to create an instance of an
+    external service.
+
+    \include examples-run.qdocinc
+
+    \section1 Invoking the State Machine
+
+    In \e statemachine.scxml, we specify a state machine with the name
+    \e Directions of type \e http://www.w3.org/TR/scxml/ to invoke:
+
+    \quotefromfile invoke-common/statemachine.scxml
+    \skipto enable-qt-mode
+    \printuntil
+
+    \section1 Compiling the State Machine
+
+    We link against the Qt SCXML module by adding the following line to the
+    \e invoke-static.pro file:
+
+    \quotefromfile invoke-static/invoke-static.pro
+    \skipto QT
+    \printline scxml
+
+    We then specify the state machine to compile:
+
+    \skipto STATECHARTS
+    \printline statemachine
+
+    We also tell qmake to run \c qscxmlc, which generates \e statemachine.h and
+    \e statemachine.cpp, and adds them to the \c HEADERS and \c SOURCES
+    variables for compilation:
+
+    \printuntil qscxmlc
+
+    \section1 Instantiating the State Machine
+
+    We instantiate the generated \c Directions class in the \e invoke-static.cpp
+    file, as follows:
+
+    \quotefromfile invoke-static/invoke-static.cpp
+    \skipto statemachine.h
+    \printuntil }
 */

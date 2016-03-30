@@ -89,8 +89,8 @@ MainWindow::MainWindow(Pinball *machine, QWidget *parent) :
     initAndConnect(QLatin1String("onState"), m_ui->ballOutButton);
 
     // datamodel update
-    connect(m_machine, SIGNAL(updateScore(const QVariant &)),
-            this, SLOT(updateScore(const QVariant &)));
+    connect(m_machine, SIGNAL(eventOccurred(const QScxmlEvent &)),
+            this, SLOT(eventOccurred(const QScxmlEvent &)));
 
     // gui interaction
     connect(m_ui->cButton, &QAbstractButton::clicked,
@@ -127,8 +127,15 @@ void MainWindow::initAndConnect(const QString &state, QWidget *widget)
     m_machine->connectToState(state, widget, SLOT(setEnabled(bool)));
 }
 
-void MainWindow::updateScore(const QVariant &data)
+void MainWindow::eventOccurred(const QScxmlEvent &event)
 {
+    if (event.originType() != QLatin1String("qt:signal"))
+        return;
+
+    if (event.name() != QLatin1String("updateScore"))
+        return;
+
+    const QVariant data = event.data();
     const QString highScore = data.toMap().value("highScore").toString();
     m_ui->highScoreLabel->setText(highScore);
     const QString score = data.toMap().value("score").toString();

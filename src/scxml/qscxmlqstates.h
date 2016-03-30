@@ -47,10 +47,6 @@
 #include <QFinalState>
 #include <QState>
 
-#ifndef Q_QSCXMLC_OUTPUT_REVISION
-#define Q_QSCXMLC_OUTPUT_REVISION 1
-#endif
-
 QT_BEGIN_NAMESPACE
 
 template<class T>

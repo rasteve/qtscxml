@@ -546,6 +546,7 @@ public:
 };
 
 Q_SCXML_EXPORT bool isValidCppIdentifier(const QString &str);
+Q_SCXML_EXPORT bool isValidQPropertyName(const QString &str);
 
 } // DocumentModel namespace
 
@@ -574,6 +575,9 @@ public:
 
     void addError(const QString &msg);
     void addError(const DocumentModel::XmlLocation &location, const QString &msg);
+
+    QScxmlParser::QtMode qtMode() const;
+    void setQtMode(QScxmlParser::QtMode mode);
 
 private:
     DocumentModel::AbstractState *currentParent() const;
@@ -653,6 +657,7 @@ private:
     QVector<ParserState> m_stack;
     QScxmlParser::State m_state;
     QVector<QScxmlError> m_errors;
+    QScxmlParser::QtMode m_qtMode;
 };
 
 QT_END_NAMESPACE

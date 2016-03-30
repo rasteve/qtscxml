@@ -74,11 +74,11 @@ class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
     Q_DECLARE_PRIVATE(QScxmlStateMachine)
     Q_OBJECT
     Q_ENUMS(BindingMethod)
-    Q_PROPERTY(bool running READ isRunning NOTIFY runningChanged)
+    Q_PROPERTY(bool running READ isRunning WRITE setRunning NOTIFY runningChanged)
 
 protected:
 #ifndef Q_QDOC
-    QScxmlStateMachine(QObject *parent = 0);
+    explicit QScxmlStateMachine(QObject *parent = nullptr);
     QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *parent);
 #endif // Q_QDOC
 
@@ -105,6 +105,7 @@ public:
     bool init(const QVariantMap &initialDataValues = QVariantMap());
 
     bool isRunning() const;
+    void setRunning(bool running);
 
     QString name() const;
     QStringList stateNames(bool compress = true) const;
@@ -128,12 +129,13 @@ public:
 Q_SIGNALS:
     void runningChanged(bool running);
     void log(const QString &label, const QString &msg);
-    void reachedStableState(bool didChange);
+    void reachedStableState();
     void finished();
     void eventOccurred(const QScxmlEvent &event);
 
 public Q_SLOTS:
     void start();
+    void stop();
 
 protected: // methods for friends:
     friend QScxmlDataModel;

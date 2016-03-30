@@ -74,6 +74,12 @@ public:
         FinishedParsing,
     };
 
+    enum QtMode {
+        QtModeDisabled,
+        QtModeEnabled,
+        QtModeFromInputFile
+    };
+
 public:
     QScxmlParser(QXmlStreamReader *xmlReader);
     ~QScxmlParser();
@@ -91,6 +97,9 @@ public:
     State state() const;
     QVector<QScxmlError> errors() const;
     void addError(const QString &msg);
+
+    QtMode qtMode() const;
+    void setQtMode(QtMode mode);
 
 private:
     friend class QScxmlParserPrivate;

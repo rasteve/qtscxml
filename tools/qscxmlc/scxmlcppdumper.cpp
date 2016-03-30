@@ -38,8 +38,6 @@
 
 QT_BEGIN_NAMESPACE
 
-enum { qscxmlcOutputRevision = 1 };
-
 static const QString doNotEditComment = QString::fromLatin1(
             "//\n"
             "// Statemachine code from reading SCXML file '%1'\n"
@@ -50,7 +48,7 @@ static const QString doNotEditComment = QString::fromLatin1(
 
 static const QString revisionCheck = QString::fromLatin1(
             "#if !defined(Q_QSCXMLC_OUTPUT_REVISION)\n"
-            "#error \"The header file '%1' doesn't include <qscxmlqstates.h>.\"\n"
+            "#error \"The header file '%1' doesn't include <qscxmltabledata.h>.\"\n"
             "#elif Q_QSCXMLC_OUTPUT_REVISION != %2\n"
             "#error \"This file was generated using the qscxmlc from %3. It\"\n"
             "#error \"cannot be used with the include files from this version of Qt.\"\n"
@@ -125,6 +123,7 @@ struct ClassDump {
     StringListDumper classMethods;
     Method constructor;
     Method destructor;
+    StringListDumper properties;
     StringListDumper signalMethods;
     QList<Method> publicMethods;
     QList<Method> protectedMethods;
@@ -344,6 +343,10 @@ protected:
         QString name = mangledName(node);
         QString stateName = QStringLiteral("state_") + name;
         // Property stuff:
+        if (isValidQPropertyName(node->id)) {
+            clazz.properties << QStringLiteral("Q_PROPERTY(bool %1 READ %1 NOTIFY %1Changed)")
+                                .arg(node->id);
+        }
         if (m_qtMode) {
             Method getter(QStringLiteral("bool %1() const").arg(name));
             getter.impl << QStringLiteral("bool %2::%1() const").arg(name)
@@ -376,7 +379,7 @@ protected:
             clazz.init.impl << QStringLiteral("QObject::connect(&")
                                + stateName
                                + QStringLiteral(", SIGNAL(activeChanged(bool)), &stateMachine, SIGNAL(")
-                               + node->id
+                               + mangledName(node)
                                + QStringLiteral("Changed(bool)));");
         }
 
@@ -692,7 +695,10 @@ private:
             m_serviceProps.append(qMakePair(mangledName, qualifiedName));
             clazz.classFields << QStringLiteral("%1 *%2;").arg(qualifiedName, mangledName);
             clazz.constructor.initializer << QStringLiteral("%1(Q_NULLPTR)").arg(mangledName);
-
+            if (isValidQPropertyName(name)) {
+                clazz.properties << QStringLiteral("Q_PROPERTY(%1%2 *%2 READ %2 NOTIFY %2Changed)")
+                                    .arg(namespacePrefix, name);
+            }
             if (m_qtMode) {
                 Method getter(QStringLiteral("%1 *%2() const").arg(qualifiedName, mangledName));
                 getter.impl << QStringLiteral("%1 *%2::%3() const").arg(qualifiedName, clazz.className, mangledName)
@@ -1290,12 +1296,15 @@ QString CppDumper::mangleId(const QString &id) // TODO: remove
     mangled = mangled.replace(QLatin1Char('-'), QLatin1String("_dash_"));
     mangled = mangled.replace(QLatin1Char('@'), QLatin1String("_at_"));
     mangled = mangled.replace(QLatin1Char('.'), QLatin1String("_dot_"));
+    mangled = mangled.replace(QLatin1Char(','), QLatin1String("_comma_"));
+    mangled = mangled.replace(QLatin1Char('('), QLatin1String("_lparen_"));
+    mangled = mangled.replace(QLatin1Char(')'), QLatin1String("_rparen_"));
     return mangled;
 }
 
 void CppDumper::writeHeaderStart(const QString &headerGuard, const QStringList &forwardDecls)
 {
-    h << doNotEditComment.arg(m_translationUnit->scxmlFileName, QString::number(qscxmlcOutputRevision), QString::fromLatin1(QT_VERSION_STR))
+    h << doNotEditComment.arg(m_translationUnit->scxmlFileName, QString::number(Q_QSCXMLC_OUTPUT_REVISION), QString::fromLatin1(QT_VERSION_STR))
       << endl;
 
     h << QStringLiteral("#ifndef ") << headerGuard << endl
@@ -1318,8 +1327,8 @@ void CppDumper::writeClass(const ClassDump &clazz)
     h << l("class ") << clazz.className << QStringLiteral(": public QScxmlStateMachine\n{") << endl;
     h << QStringLiteral("public:") << endl
       << QStringLiteral("    /* qmake ignore Q_OBJECT */") << endl
-      << QStringLiteral("    Q_OBJECT") << endl
-         ;
+      << QStringLiteral("    Q_OBJECT") << endl;
+    clazz.properties.write(h, QStringLiteral("    "), QStringLiteral("\n"));
 
     h << endl
       << QStringLiteral("public:") << endl;
@@ -1380,7 +1389,7 @@ void CppDumper::writeHeaderEnd(const QString &headerGuard, const QStringList &me
 
 void CppDumper::writeImplStart(const QVector<ClassDump> &allClazzes)
 {
-    cpp << doNotEditComment.arg(m_translationUnit->scxmlFileName, QString::number(qscxmlcOutputRevision), QString::fromLatin1(QT_VERSION_STR))
+    cpp << doNotEditComment.arg(m_translationUnit->scxmlFileName, QString::number(Q_QSCXMLC_OUTPUT_REVISION), QString::fromLatin1(QT_VERSION_STR))
         << endl;
 
     StringListDumper includes;
@@ -1399,7 +1408,7 @@ void CppDumper::writeImplStart(const QVector<ClassDump> &allClazzes)
         cpp << endl;
     }
     cpp << endl
-        << revisionCheck.arg(m_translationUnit->scxmlFileName, QString::number(qscxmlcOutputRevision), QString::fromLatin1(QT_VERSION_STR))
+        << revisionCheck.arg(m_translationUnit->scxmlFileName, QString::number(Q_QSCXMLC_OUTPUT_REVISION), QString::fromLatin1(QT_VERSION_STR))
         << endl;
     if (!m_translationUnit->namespaceName.isEmpty())
         cpp << l("namespace ") << m_translationUnit->namespaceName << l(" {") << endl << endl;

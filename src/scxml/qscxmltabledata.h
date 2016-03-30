@@ -40,9 +40,12 @@
 #ifndef QSCXMLTABLEDATA_P
 #define QSCXMLTABLEDATA_P
 
-#include <QtScxml/qscxmldatamodel.h>
-
+#include <QtScxml/qscxmlexecutablecontent.h>
 #include <QString>
+
+#ifndef Q_QSCXMLC_OUTPUT_REVISION
+#define Q_QSCXMLC_OUTPUT_REVISION 1
+#endif
 
 QT_BEGIN_NAMESPACE
 

@@ -63,6 +63,9 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty(QStringLiteral("trafficLightStateMachine"), &stateMachine);
     engine.load(QUrl(QStringLiteral("qrc:/trafficlight-qml-static.qml")));
+    if (engine.rootObjects().isEmpty())
+        return -1;
+
     stateMachine.start();
 
     return app.exec();

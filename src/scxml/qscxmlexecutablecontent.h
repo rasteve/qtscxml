@@ -57,7 +57,33 @@ typedef qint32 *Instructions;
 
 class QScxmlExecutionEngine;
 
-} // ExecutableContent namespace
+#if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
+#pragma pack(push, 4) // 4 == sizeof(qint32)
+#endif
+struct EvaluatorInfo {
+    StringId expr;
+    StringId context;
+};
+
+struct AssignmentInfo {
+    StringId dest;
+    StringId expr;
+    StringId context;
+};
+
+struct ForeachInfo {
+    StringId array;
+    StringId item;
+    StringId index;
+    StringId context;
+};
+#if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
+#pragma pack(pop)
+#endif
+
+typedef qint32 EvaluatorId;
+enum { NoEvaluator = -1 };
+} // QScxmlExecutableContent namespace
 
 QT_END_NAMESPACE
 

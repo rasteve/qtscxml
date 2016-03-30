@@ -59,7 +59,8 @@ QScxmlDataModel::ForeachLoopBody::~ForeachLoopBody()
  * \since 5.7
  * \inmodule QtScxml
  *
- * SCXML data models are described in the \l {SCXML Specification}. For more
+ * SCXML data models are described in
+ * \l {SCXML Specification - 5 Data Model and Data Manipulation}. For more
  * information about supported data models, see \l {SCXML Compliance}.
  *
  * One data model can only belong to one state machine.
