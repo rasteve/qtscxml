@@ -48,19 +48,24 @@
 **
 ****************************************************************************/
 
-#include "calculator.h"
-#include "mainwindow.h"
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
 
-#include <QApplication>
+#include "statemachine.h"
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
+    QGuiApplication app(argc, argv);
 
-    Calculator machine;
-    MainWindow mainWindow(&machine);
+    qmlRegisterType<CalculatorStateMachine>("CalculatorStateMachine", 1, 0,
+                                            "CalculatorStateMachine");
 
-    machine.start();
-    mainWindow.show();
+    QQmlApplicationEngine engine;
+    engine.load(QUrl(QStringLiteral("qrc:/calculator-qml.qml")));
+    if (engine.rootObjects().isEmpty())
+        return -1;
+
     return app.exec();
 }
+

@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0"
-       initial="wrapper" datamodel="ecmascript" name="Calculator">
+       initial="wrapper" datamodel="ecmascript" name="CalculatorStateMachine">
     <datamodel>
          <data id="long_expr" />
          <data id="short_expr" />
