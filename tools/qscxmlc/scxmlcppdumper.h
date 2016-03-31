@@ -72,8 +72,6 @@ public:
 
     void dump(TranslationUnit *unit);
 
-    static QString mangleId(const QString &id);
-
 private:
     void writeHeaderStart(const QString &headerGuard, const QStringList &forwardDecls);
     void writeClass(const ClassDump &clazz);

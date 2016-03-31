@@ -67,6 +67,11 @@ void tst_StateMachine::stateNames_data()
     QTest::newRow("stateNamesNested-notCompressed") << QString(":/tst_statemachine/statenamesnested.scxml")
                                       << false
                                       << (QStringList() << QString("a") << QString("b") << QString("super_top"));
+
+    QTest::newRow("ids1") << QString(":/tst_statemachine/ids1.scxml")
+                          << false
+                          << (QStringList() << QString("_") << QString("foo-bar")
+                              << QString("foo.bar") << QString("foo_bar"));
 }
 
 void tst_StateMachine::stateNames()
@@ -77,7 +82,7 @@ void tst_StateMachine::stateNames()
 
     QScopedPointer<QScxmlStateMachine> stateMachine(QScxmlStateMachine::fromFile(scxmlFileName));
     QVERIFY(!stateMachine.isNull());
-    QVERIFY(!stateMachine->parseErrors().count());
+    QCOMPARE(stateMachine->parseErrors().count(), 0);
 
     QCOMPARE(stateMachine->stateNames(compressed), expectedStates);
 }

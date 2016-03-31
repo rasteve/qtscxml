@@ -3,5 +3,6 @@
         <file>eventoccurred.scxml</file>
         <file>statenames.scxml</file>
         <file>statenamesnested.scxml</file>
+        <file>ids1.scxml</file>
     </qresource>
 </RCC>

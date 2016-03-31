@@ -223,7 +223,7 @@ int run(const QStringList &arguments)
         mainClassName = mainDoc->root->name;
     if (mainClassName.isEmpty()) {
         mainClassName = QFileInfo(scxmlFileName).fileName();
-        int dot = mainClassName.indexOf(QLatin1Char('.'));
+        int dot = mainClassName.lastIndexOf(QLatin1Char('.'));
         if (dot != -1)
             mainClassName = mainClassName.left(dot);
     }

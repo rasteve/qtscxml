@@ -218,7 +218,7 @@ public:
     {
         Q_ASSERT(doc);
 
-        clazz.className = translationUnit->classnameForDocument.value(doc);
+        clazz.className = mangleIdentifier(translationUnit->classnameForDocument.value(doc));
         m_qtMode = doc->qtMode;
 
         doc->root->accept(this);
@@ -274,7 +274,8 @@ protected:
         clazz.init.impl << QStringLiteral("stateMachine.setTableData(this);");
 
         foreach (AbstractState *s, node->initialStates) {
-            clazz.init.impl << QStringLiteral("state_%1.setAsInitialStateFor(&stateMachine);").arg(mangledName(s));
+            clazz.init.impl << QStringLiteral("%1.setAsInitialStateFor(&stateMachine);")
+                               .arg(mangledName(s, StateName));
         }
 
         // visit the kids:
@@ -326,12 +327,13 @@ protected:
 
     bool visit(State *node) Q_DECL_OVERRIDE
     {
-        QString name = mangledName(node);
-        QString stateName = QStringLiteral("state_") + name;
+        QString name = mangledName(node, PlainName);
+        QString stateName = mangledName(node, StateName);
         // Property stuff:
         if (isValidQPropertyName(node->id)) {
-            clazz.properties << QStringLiteral("Q_PROPERTY(bool %1 READ %1 NOTIFY %1Changed)")
-                                .arg(node->id);
+            clazz.properties << QStringLiteral("Q_PROPERTY(bool %1 READ %2 NOTIFY %3)")
+                                .arg(node->id).arg(name)
+                                .arg(mangledName(node, SignalName));
         }
         if (m_qtMode) {
             Method getter(QStringLiteral("bool %1() const").arg(name));
@@ -355,8 +357,9 @@ protected:
             clazz.init.impl << stateName + QStringLiteral(".setObjectName(string(%1));").arg(addString(node->id));
         }
         foreach (AbstractState *initialState, node->initialStates) {
-            clazz.init.impl << stateName + QStringLiteral(".setInitialState(&state_")
-                               + mangledName(initialState) + QStringLiteral(");");
+            clazz.init.impl << stateName + QStringLiteral(".setInitialState(&")
+                               + mangledName(initialState, StateName)
+                               + QStringLiteral(");");
         }
         if (node->type == State::Parallel) {
             clazz.init.impl << stateName + QStringLiteral(".setChildMode(QState::ParallelStates);");
@@ -365,8 +368,8 @@ protected:
             clazz.init.impl << QStringLiteral("QObject::connect(&")
                                + stateName
                                + QStringLiteral(", SIGNAL(activeChanged(bool)), &stateMachine, SIGNAL(")
-                               + mangledName(node)
-                               + QStringLiteral("Changed(bool)));");
+                               + mangledName(node, SignalName)
+                               + QStringLiteral("(bool)));");
         }
 
         m_stateNames.append(node->id);
@@ -497,7 +500,7 @@ protected:
         }
         QStringList targetNames;
         foreach (DocumentModel::AbstractState *s, node->targetStates)
-            targetNames.append(QStringLiteral("&state_") + mangledName(s));
+            targetNames.append(QStringLiteral("&") + mangledName(s, StateName));
         QString targets = tName + QStringLiteral(".setTargetStates(") + createList(QStringLiteral("QAbstractState*"), targetNames);
         clazz.init.impl << targets + QStringLiteral(");");
 
@@ -519,7 +522,7 @@ protected:
         // Includes:
         clazz.implIncludes << "QHistoryState";
 
-        QString stateName = QStringLiteral("state_") + mangledName(node);
+        const QString stateName = mangledName(node, StateName);
         // Declaration:
         clazz.classFields << QStringLiteral("QHistoryState ") + stateName + QLatin1Char(';');
 
@@ -582,11 +585,31 @@ protected:
     }
 
 private:
-    QString mangledName(AbstractState *state)
+    enum NameForm {
+        PlainName,
+        SignalName,
+        MachineName,
+        StateName
+    };
+
+    QString mangledName(const QString &id, NameForm form) const
+    {
+        QString name = id;
+        switch (form) {
+        case PlainName: break;
+        case SignalName: name.append(QStringLiteral("Changed")); break;
+        case StateName: name.prepend(QStringLiteral("state_")); break;
+        case MachineName: name.prepend(QStringLiteral("machine_")); break;
+        }
+
+        return name.isEmpty() ? name : mangleIdentifier(name);
+    }
+
+    QString mangledName(AbstractState *state, NameForm form) const
     {
         Q_ASSERT(state);
 
-        QString name = m_mangledNames.value(state);
+        QString name = m_mangledNames.value(state)[form];
         if (!name.isEmpty())
             return name;
 
@@ -597,21 +620,21 @@ private:
             }
         }
 
-        name = CppDumper::mangleId(id);
-        m_mangledNames.insert(state, name);
+        name = mangledName(id, form);
+        m_mangledNames[state][form] = name;
         return name;
     }
 
-    QString transitionName(Transition *t)
+    QString transitionName(Transition *t) const
     {
         int idx = 0;
         QString parentName;
         auto parent = m_parents.last();
         if (State *parentState = parent->asState()) {
-            parentName = mangledName(parentState);
+            parentName = mangledName(parentState, PlainName);
             idx = childIndex(t, parentState->children);
         } else if (HistoryState *historyState = parent->asHistoryState()) {
-            parentName = mangledName(historyState);
+            parentName = mangledName(historyState, PlainName);
         } else if (Scxml *scxml = parent->asScxml()) {
             parentName = QStringLiteral("stateMachine");
             idx = childIndex(t, scxml->children);
@@ -656,11 +679,11 @@ private:
         return result;
     }
 
-    QString generateInitializer(AbstractState *node)
+    QString generateInitializer(AbstractState *node) const
     {
-        QString init = QStringLiteral("state_") + mangledName(node) + QStringLiteral("(");
+        QString init = mangledName(node, StateName) + QStringLiteral("(");
         if (State *parentState = node->parent->asState()) {
-            init += QStringLiteral("&state_") + mangledName(parentState);
+            init += QStringLiteral("&") + mangledName(parentState, StateName);
         } else {
             init += QStringLiteral("&stateMachine");
         }
@@ -674,27 +697,31 @@ private:
             QString name = subDocs->root->name;
             if (name.isEmpty())
                 continue;
-            auto mangledName = CppDumper::mangleId(name);
-            auto qualifiedName = namespacePrefix + mangledName;
-            if (m_serviceProps.contains(qMakePair(mangledName, qualifiedName)))
+            auto plainName = mangledName(name, PlainName);
+            auto qualifiedName = namespacePrefix + plainName;
+            if (m_serviceProps.contains(qMakePair(plainName, qualifiedName)))
                 continue;
-            m_serviceProps.append(qMakePair(mangledName, qualifiedName));
-            clazz.classFields << QStringLiteral("%1 *%2;").arg(qualifiedName, mangledName);
-            clazz.constructor.initializer << QStringLiteral("%1(Q_NULLPTR)").arg(mangledName);
+            m_serviceProps.append(qMakePair(name, qualifiedName));
+            clazz.classFields << QStringLiteral("%1 *%2;").arg(qualifiedName, plainName);
+            clazz.constructor.initializer << QStringLiteral("%1(Q_NULLPTR)").arg(plainName);
             if (isValidQPropertyName(name)) {
-                clazz.properties << QStringLiteral("Q_PROPERTY(%1%2 *%2 READ %2 NOTIFY %2Changed)")
-                                    .arg(namespacePrefix, name);
+                clazz.properties << QStringLiteral("Q_PROPERTY(%1%2 *%3 READ %2 NOTIFY %4)")
+                                    .arg(namespacePrefix, plainName, name,
+                                         mangledName(name, SignalName));
             }
             if (m_qtMode) {
-                Method getter(QStringLiteral("%1 *%2() const").arg(qualifiedName, mangledName));
-                getter.impl << QStringLiteral("%1 *%2::%3() const").arg(qualifiedName, clazz.className, mangledName)
-                            << QStringLiteral("{ return data->%1; }").arg(mangledName);
+                Method getter(QStringLiteral("%1 *%2() const").arg(qualifiedName, plainName));
+                getter.impl << QStringLiteral("%1 *%2::%3() const").arg(qualifiedName,
+                                                                        clazz.className, plainName)
+                            << QStringLiteral("{ return data->%1; }").arg(plainName);
                 clazz.publicMethods << getter;
-                clazz.signalMethods << QStringLiteral("void %1Changed(%2 *statemachine);").arg(mangledName, qualifiedName);
+                clazz.signalMethods << QStringLiteral("void %1(%2 *statemachine);")
+                                       .arg(mangledName(name, SignalName), qualifiedName);
             }
 
-            clazz.dataMethods << QStringLiteral("%1 *machine_%2() const").arg(qualifiedName, mangledName)
-                              << QStringLiteral("{ return %1; }").arg(name)
+            clazz.dataMethods << QStringLiteral("%1 *%2() const")
+                                 .arg(qualifiedName, mangledName(name, MachineName))
+                              << QStringLiteral("{ return %1; }").arg(plainName)
                               << QString();
         }
     }
@@ -731,7 +758,7 @@ private:
                    << QStringLiteral("    %1 *m = static_cast<%1 *>(stateMachine);").arg(clazz.className);
                 foreach (const QString &signalName, m_signalNames) {
                     dm << QStringLiteral("    if (event->name() == %1) { emit m->%2(event->data()); return false; }")
-                          .arg(qba(signalName), CppDumper::mangleId(signalName));
+                          .arg(qba(signalName), mangleIdentifier(signalName));
                 }
             }
             dm << QStringLiteral("    return true;")
@@ -771,13 +798,13 @@ private:
         return QString();
     }
 
-    QString parentStateMemberName()
+    QString parentStateMemberName() const
     {
         Node *parent = m_parents.last();
         if (State *s = parent->asState())
-            return QStringLiteral("state_") + mangledName(s);
+            return mangledName(s, StateName);
         else if (HistoryState *h = parent->asHistoryState())
-            return QStringLiteral("state_") + mangledName(h);
+            return mangledName(h, StateName);
         else if (parent->asScxml())
             return QStringLiteral("stateMachine");
         else
@@ -1090,19 +1117,21 @@ private:
             if (stateName.isEmpty())
                 continue;
 
-            QByteArray mangledStateName = CppDumper::mangleId(stateName).toUtf8();
+            const QByteArray mangledStateName = mangledName(stateName, StateName).toUtf8();
+            const QString mangledSignalName = mangledName(stateName, SignalName);
 
             FunctionDef signal;
             signal.type.name = "void";
             signal.type.rawName = signal.type.name;
             signal.normalizedType = signal.type.name;
-            signal.name = mangledStateName + "Changed";
+            signal.name = mangledSignalName.toUtf8();
             signal.access = FunctionDef::Private;
             signal.isSignal = true;
             if (!m_qtMode) {
                 signal.implementation = "QMetaObject::activate(_o, &staticMetaObject, %d, _a);";
             } else {
-                clazz.signalMethods << QStringLiteral("void %1Changed(bool active);").arg(stateName);
+                clazz.signalMethods << QStringLiteral("void %1(bool active);")
+                                       .arg(mangledSignalName);
             }
             ArgumentDef arg;
             arg.type.name = "bool";
@@ -1117,8 +1146,8 @@ private:
             PropertyDef prop;
             prop.name = stateName.toUtf8();
             prop.type = "bool";
-            prop.read = "data->state_" + mangledStateName + ".active";
-            prop.notify = mangledStateName + "Changed";
+            prop.read = "data->" + mangledStateName + ".active";
+            prop.notify = mangledSignalName.toUtf8();
             prop.notifyId = classDef.signalList.size() - 1;
             prop.gspec = PropertyDef::ValueSpec;
             prop.scriptable = "true";
@@ -1159,21 +1188,23 @@ private:
         }
         for (const auto &service : m_serviceProps) {
             auto serviceName = service.first;
-            QString fqServiceClass = service.second;
-            QByteArray serviceClass = fqServiceClass.toUtf8();
+            const QString mangledServiceName = mangledName(serviceName, PlainName);
+            const QString fqServiceClass = service.second;
+            const QByteArray serviceClass = fqServiceClass.toUtf8();
             knownQObjectClasses.insert(serviceClass, "");
 
             reg.impl << QStringLiteral("    SET_SERVICE_PROP(%1, %2, %3%2, %4)")
-                        .arg(addString(serviceName))
-                        .arg(serviceName, namespacePrefix).arg(classDef.signalList.size());
+                        .arg(addString(mangledServiceName))
+                        .arg(mangledServiceName, namespacePrefix).arg(classDef.signalList.size());
 
-            QByteArray mangledServiceName = CppDumper::mangleId(serviceName).toUtf8();
+            const QByteArray mangledMachineName = mangledName(serviceName, MachineName).toUtf8();
+            const QByteArray mangledSignalName = mangledName(serviceName, SignalName).toUtf8();
 
             FunctionDef signal;
             signal.type.name = "void";
             signal.type.rawName = signal.type.name;
             signal.normalizedType = signal.type.name;
-            signal.name = mangledServiceName + "Changed";
+            signal.name = mangledSignalName;
             signal.access = FunctionDef::Private;
             signal.isSignal = true;
             if (!m_qtMode) {
@@ -1191,10 +1222,10 @@ private:
 
             ++classDef.notifyableProperties;
             PropertyDef prop;
-            prop.name = serviceName.toUtf8();
+            prop.name = mangledServiceName.toUtf8();
             prop.type = serviceClass + "*";
-            prop.read = "data->machine_" + mangledServiceName;
-            prop.notify = mangledServiceName + "Changed";
+            prop.read = "data->" + mangledMachineName;
+            prop.notify = mangledSignalName;
             prop.notifyId = classDef.signalList.size() - 1;
             prop.gspec = PropertyDef::ValueSpec;
             prop.scriptable = "true";
@@ -1215,18 +1246,83 @@ private:
         return QStringLiteral("string(%1)").arg(addString(bytes));
     }
 
-    QString scxmlClassName(DocumentModel::ScxmlDocument *doc) const
+    QString scxmlClassName(DocumentModel::ScxmlDocument *doc)
     {
-        QString name = translationUnit->classnameForDocument.value(doc);
+        QString name = mangleIdentifier(translationUnit->classnameForDocument.value(doc));
         Q_ASSERT(!name.isEmpty());
         return namespacePrefix + name;
+    }
+
+    /*!
+     * \internal
+     * Mangles \a str to be a unique C++ identifier. Characters that are invalid for C++ identifiers
+     * are replaced by the pattern \c _0x<hex>_ where <hex> is the hexadecimal unicode
+     * representation of the character. As identifiers with leading underscores followed by either
+     * another underscore or a capital letter are reserved in C++, we also escape those, by escaping
+     * the first underscore, using the above method.
+     *
+     * We keep track of all identifiers we have used so far and if we find two different names that
+     * map to the same mangled identifier by the above method, we append underscores to the new one
+     * until the result is unique.
+     *
+     * \note
+     * Although C++11 allows for non-ascii (unicode) characters to be used in identifiers,
+     * many compilers forgot to read the spec and do not implement this. Some also do not
+     * implement C99 identifiers, because that is \e {at the implementation's discretion}. So,
+     * we are stuck with plain old boring identifiers.
+     */
+    QString mangleIdentifier(const QString &str) const
+    {
+        auto isNonDigit = [](QChar c) -> bool {
+            return (c >= QLatin1Char('a') && c <= QLatin1Char('z')) ||
+                    (c >= QLatin1Char('A') && c <= QLatin1Char('Z')) ||
+                    c == QLatin1Char('_');
+        };
+
+        Q_ASSERT(!str.isEmpty());
+
+        QString mangled;
+        mangled.reserve(str.size());
+
+        int i = 0;
+        if (str.startsWith(QLatin1Char('_')) && str.size() > 1) {
+            QChar ch = str.at(1);
+            if (ch == QLatin1Char('_')
+                    || (ch >= QLatin1Char('A') && ch <= QLatin1Char('Z'))) {
+                mangled += QLatin1String("_0x5f_");
+                ++i;
+            }
+        }
+
+        for (int ei = str.length(); i != ei; ++i) {
+            auto c = str.at(i).unicode();
+            if ((c >= QLatin1Char('0') && c <= QLatin1Char('9')) || isNonDigit(c)) {
+                mangled += c;
+            } else {
+                mangled += QLatin1String("_0x") + QString::number(c, 16) + QLatin1Char('_');
+            }
+        }
+
+        while (true) {
+            auto it = m_mangledToOriginal.constFind(mangled);
+            if (it == m_mangledToOriginal.constEnd()) {
+                m_mangledToOriginal.insert(mangled, str);
+                break;
+            } else if (it.value() == str) {
+                break;
+            }
+            mangled += QStringLiteral("_"); // append underscores until we get a unique name
+        }
+
+        return mangled;
     }
 
 private:
     QString namespacePrefix;
     ClassDump &clazz;
     TranslationUnit *translationUnit;
-    QHash<AbstractState *, QString> m_mangledNames;
+    mutable QHash<AbstractState *, QHash<NameForm, QString> > m_mangledNames;
+    mutable QHash<QString, QString> m_mangledToOriginal;
     QVector<Node *> m_parents;
     QList<QPair<QString, QString>> m_serviceProps;
     QSet<QString> m_knownEvents;
@@ -1276,20 +1372,6 @@ void CppDumper::dump(TranslationUnit *unit)
     classDecls.append(clazzes.at(0).className);
     writeHeaderEnd(headerGuard, classDecls);
     writeImplEnd();
-}
-
-QString CppDumper::mangleId(const QString &id) // TODO: remove
-{
-    QString mangled(id);
-    mangled = mangled.replace(QLatin1Char('_'), QLatin1String("__"));
-    mangled = mangled.replace(QLatin1Char(':'), QLatin1String("_colon_"));
-    mangled = mangled.replace(QLatin1Char('-'), QLatin1String("_dash_"));
-    mangled = mangled.replace(QLatin1Char('@'), QLatin1String("_at_"));
-    mangled = mangled.replace(QLatin1Char('.'), QLatin1String("_dot_"));
-    mangled = mangled.replace(QLatin1Char(','), QLatin1String("_comma_"));
-    mangled = mangled.replace(QLatin1Char('('), QLatin1String("_lparen_"));
-    mangled = mangled.replace(QLatin1Char(')'), QLatin1String("_rparen_"));
-    return mangled;
 }
 
 void CppDumper::writeHeaderStart(const QString &headerGuard, const QStringList &forwardDecls)

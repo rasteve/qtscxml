@@ -116,6 +116,10 @@ private:
     bool visit(DocumentModel::Scxml *scxml) Q_DECL_OVERRIDE
     {
         Q_ASSERT(scxml->initialStates.isEmpty());
+        if (!scxml->name.isEmpty() && !isValidToken(scxml->name, XmlNmtoken)) {
+            error(scxml->xmlLocation,
+                  QStringLiteral("scxml name '%1' is not a valid XML Nmtoken").arg(scxml->name));
+        }
 
         if (scxml->initial.isEmpty()) {
             if (auto firstChild = firstAbstractState(scxml)) {
@@ -144,7 +148,9 @@ private:
     {
         Q_ASSERT(state->initialStates.isEmpty());
 
-        if (m_doc->qtMode && state->type != DocumentModel::State::Initial
+        if (!state->id.isEmpty() && !isValidToken(state->id, XmlNCName)) {
+            error(state->xmlLocation, QStringLiteral("'%1' is not a valid XML ID").arg(state->id));
+        } else if (m_doc->qtMode && state->type != DocumentModel::State::Initial
                 && !DocumentModel::isValidCppIdentifier(state->id)) {
             error(state->xmlLocation,  QStringLiteral("state id '%1' is not a valid C++ identifier in Qt mode").arg(state->id));
         }
@@ -227,6 +233,8 @@ private:
             }
         }
         foreach (const QString &event, transition->events) {
+            checkEvent(event, transition->xmlLocation, AllowWildCards);
+
             if (event.contains(QLatin1Char('.')) || event == QLatin1String("*")) {
                 continue;
             } else if (m_doc->qtMode && !DocumentModel::isValidCppIdentifier(event)) {
@@ -266,6 +274,8 @@ private:
 
     bool visit(DocumentModel::Send *node) Q_DECL_OVERRIDE
     {
+        checkEvent(node->event, node->xmlLocation, ForbidWildCards);
+
         if (m_doc->qtMode && node->type == QStringLiteral("qt:signal") && !DocumentModel::isValidCppIdentifier(node->event)) {
             error(node->xmlLocation,  QStringLiteral("event name '%1' is not a valid C++ identifier in Qt mode").arg(node->event));
         }
@@ -297,6 +307,109 @@ private:
     }
 
 private:
+    enum TokenType {
+        XmlNCName,
+        XmlNmtoken,
+    };
+
+    static bool isValidToken(const QString &id, TokenType tokenType)
+    {
+        Q_ASSERT(!id.isEmpty());
+        int i = 0;
+        if (tokenType == XmlNCName) {
+            const QChar c = id.at(i++);
+            if (!isLetter(c) && c != QLatin1Char('_'))
+                return false;
+        }
+        for (int ei = id.length(); i != ei; ++i) {
+            const QChar c = id.at(i);
+            if (isLetter(c) || c.isDigit() || c == QLatin1Char('.') || c == QLatin1Char('-')
+                    || c == QLatin1Char('_') || isNameTail(c))
+                continue;
+            else if (tokenType == XmlNmtoken && c == QLatin1Char(':'))
+                continue;
+            else
+                return false;
+        }
+
+        return true;
+    }
+
+    static bool isLetter(QChar c)
+    {
+        switch (c.category()) {
+        case QChar::Letter_Lowercase:
+        case QChar::Letter_Uppercase:
+        case QChar::Letter_Other:
+        case QChar::Letter_Titlecase:
+        case QChar::Number_Letter:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    static bool isNameTail(QChar c)
+    {
+        switch (c.category()) {
+        case QChar::Mark_SpacingCombining:
+        case QChar::Mark_Enclosing:
+        case QChar::Mark_NonSpacing:
+        case QChar::Letter_Modifier:
+        case QChar::Number_DecimalDigit:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    enum WildCardMode {
+        ForbidWildCards,
+        AllowWildCards
+    };
+
+    void checkEvent(const QString &event, const DocumentModel::XmlLocation &loc,
+                    WildCardMode wildCardMode)
+    {
+        if (event.isEmpty())
+            return;
+
+        if (!isValidEvent(event, wildCardMode)) {
+            error(loc, QStringLiteral("'%1' is not a valid event").arg(event));
+        }
+    }
+
+    static bool isValidEvent(const QString &event, WildCardMode wildCardMode)
+    {
+        if (event.isEmpty())
+            return false;
+
+        if (wildCardMode == AllowWildCards && event == QLatin1String(".*"))
+            return true;
+
+        const QStringList parts = event.split(QLatin1Char('.'));
+
+        for (const QString &part : parts) {
+            if (part.isEmpty())
+                return false;
+
+            if (wildCardMode == AllowWildCards && part.length() == 1
+                    && part.at(0) == QLatin1Char('*')) {
+                continue;
+            }
+
+            for (int i = 0, ei = part.length(); i != ei; ++i) {
+                const QChar c = part.at(i);
+                if (!isLetter(c) && !c.isDigit() && c != QLatin1Char('-') && c != QLatin1Char('_')
+                        && c != QLatin1Char(':')) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     static int transitionCount(DocumentModel::State *state)
     {
         int count = 0;
@@ -1603,10 +1716,15 @@ bool DocumentModel::isValidCppIdentifier(const QString &str)
         return false;
     }
 
-    auto isNonDigit = [](QChar ch) -> bool {
-        return (ch >= QLatin1Char('A') && ch <= QLatin1Char('Z'))
-                || (ch >= QLatin1Char('a') && ch <= QLatin1Char('z'))
-                || (ch == QLatin1Char('_'));
+    auto isNonDigit = [](QChar c) -> bool {
+        // NOTE:
+        // Although C++11 allows for non-ascii (unicode) characters to be used in identifiers,
+        // many compilers forgot to read the spec and do not implement this. Some also don't
+        // implement C99 identifiers, because that's "at the implementation's discretion". So,
+        // we're stuck with plain old boring identifiers.
+        return (c >= QLatin1Char('a') && c <= QLatin1Char('z')) ||
+                (c >= QLatin1Char('A') && c <= QLatin1Char('Z')) ||
+                c == QLatin1Char('_');
     };
 
     QChar ch = str.at(0);

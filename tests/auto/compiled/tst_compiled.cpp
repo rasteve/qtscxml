@@ -1,5 +1,3 @@
-<?xml version="1.0" ?>
-<!--
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
@@ -27,15 +25,64 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
--->
-<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="namespaces1" binding="early"
-       xmlns:qt="http://www.qt.io/2015/02/scxml-ext" qt:editorversion="1.2.3" initial="State_1">
-    <qt:editorinfo initialGeometry="135;83;-20;-20;40;40"/>
-    <state id="State_1">
-        <qt:editorinfo geometry="134;218;-60;-50;122;100" scenegeometry="134;218;74;168;122;100"/>
-        <transition type="external" event="Transition-2" target="State_2">
-            <qt:editorinfo movePoint="-26;0"/>
-        </transition>
-    </state>
-    <state id="State_2"/>
-</scxml>
+
+#include <QtTest>
+#include <QObject>
+#include <QXmlStreamReader>
+#include <QtScxml/qscxmlparser.h>
+#include <QtScxml/qscxmlstatemachine.h>
+#include "ids1.h"
+#include "statemachineunicodename.h"
+
+Q_DECLARE_METATYPE(QScxmlError);
+
+enum { SpyWaitTime = 8000 };
+
+class tst_Compiled: public QObject
+{
+    Q_OBJECT
+
+private Q_SLOTS:
+    void stateNames();
+};
+
+void tst_Compiled::stateNames()
+{
+    ids1 stateMachine;
+
+    QStringList ids1States({
+        "_",
+        "_VALID",
+        "__valid",
+        "foo-bar",
+        "foo.bar",
+        "foo_bar",
+        "n_0xe4_l",
+        "näl",
+        "qÿ̀i",
+    });
+
+    QCOMPARE(stateMachine.stateNames(false), ids1States);
+
+    foreach (const QString &state, ids1States) {
+        QVariant prop = stateMachine.property(state.toUtf8().constData());
+        QVERIFY(!prop.isNull());
+        QVERIFY(prop.isValid());
+        QCOMPARE(prop.toBool(), false);
+    }
+
+    QVariant invalidProp = stateMachine.property("blabla");
+    QVERIFY(invalidProp.isNull());
+    QVERIFY(!invalidProp.isValid());
+
+    QStringList calculatorStates(QLatin1String("wrapper"));
+
+    Calculator_0xe4_tateMachine stateMachine3;
+    QCOMPARE(stateMachine3.stateNames(false), calculatorStates);
+}
+
+QTEST_MAIN(tst_Compiled)
+
+#include "tst_compiled.moc"
+
+

@@ -35,5 +35,6 @@
         <file>data/id000031sig11src000004opflip1pos12612.scxml</file>
         <file>data/id000032sig11src000004opflip1pos12831.scxml</file>
         <file>data/id000033sig06src000004opflip4pos10704.scxml</file>
+        <file>data/invalidstatemachinename.scxml</file>
     </qresource>
 </RCC>

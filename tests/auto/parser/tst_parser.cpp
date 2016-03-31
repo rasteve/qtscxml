@@ -49,10 +49,28 @@ void tst_Parser::error_data()
     QTest::addColumn<QVector<QScxmlError> >("expectedErrors");
 
     QVector<QScxmlError> errors;
-    errors << QScxmlError(QString(":/tst_parser/test1.scxml"), 34, 46, QString("unknown state 'b' in target"));
+    errors << QScxmlError(QString(":/tst_parser/test1.scxml"), 34, 46,
+                          QString("unknown state 'b' in target"));
     QTest::newRow("test1") << QString(":/tst_parser/test1.scxml") << errors;
 
-    QTest::newRow("namespaces 1") << QStringLiteral(":/tst_parser/namespaces1.scxml") << QVector<QScxmlError>();
+    QTest::newRow("namespaces 1") << QStringLiteral(":/tst_parser/namespaces1.scxml")
+                                  << QVector<QScxmlError>();
+    QTest::newRow("IDs 1") << QStringLiteral(":/tst_parser/ids1.scxml") << QVector<QScxmlError>();
+    QTest::newRow("IDs 2") << QStringLiteral(":/tst_parser/ids2.scxml") << (QVector<QScxmlError>()
+        << QScxmlError(":/tst_parser/ids2.scxml", 33, 25,
+                    "state id 'foo.bar' is not a valid C++ identifier in Qt mode")
+        << QScxmlError(":/tst_parser/ids2.scxml", 34, 25,
+                    "state id 'foo-bar' is not a valid C++ identifier in Qt mode")
+        << QScxmlError(":/tst_parser/ids2.scxml", 36, 19, "'1' is not a valid XML ID")
+    );
+    QTest::newRow("eventnames") << QStringLiteral(":/tst_parser/eventnames.scxml")
+                                << (QVector<QScxmlError>()
+        << QScxmlError(":/tst_parser/eventnames.scxml", 50, 38, "'.invalid' is not a valid event")
+        << QScxmlError(":/tst_parser/eventnames.scxml", 51, 38, "'invalid.' is not a valid event")
+        << QScxmlError(":/tst_parser/eventnames.scxml", 39, 36, "'.invalid' is not a valid event")
+        << QScxmlError(":/tst_parser/eventnames.scxml", 40, 36, "'invalid.' is not a valid event")
+        << QScxmlError(":/tst_parser/eventnames.scxml", 41, 36, "'in valid' is not a valid event")
+    );
 }
 
 void tst_Parser::error()
