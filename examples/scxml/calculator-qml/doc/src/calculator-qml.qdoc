@@ -26,13 +26,13 @@
 ****************************************************************************/
 
 /*!
-    \example calculator-widgets
-    \title Qt SCXML Calculator Example
+    \example calculator-qml
+    \title Qt SCXML Calculator QML Example
     \ingroup examples-qtscxml
 
-    \image calculator.png
+    \image calculator-qml.png
 
-    \brief A widget-based application that implements the Calculator example
+    \brief A Qt Quick application that implements the Calculator example
     presented in the SCXML Specification.
 
     \e {Calculator} uses Qt SCXML to implement the
@@ -41,7 +41,7 @@
 
     The state machine is specified in the \e statemachine.scxml file and
     compiled into the \c CalculatorStateMachine class. The user interface is
-    created using Qt Widgets.
+    created using Qt Quick.
 
     \include examples-run.qdocinc
 
@@ -49,26 +49,29 @@
 
     \section1 Instantiating the State Machine
 
-    We instantiate the generated \c CalculatorStateMachine class in the
-    \e calculator-widgets.cpp file, as follows:
+    We make the generated \c CalculatorStateMachine class available to QML by
+    registering it as a QML type in the \e calculator-qml.cpp file:
 
-    \quotefromfile calculator-widgets/calculator-widgets.cpp
-    \skipto #include
+    \quotefromfile calculator-qml/calculator-qml.cpp
+    \skipto statemachine.h
     \printuntil }
 
-    \section1 Connecting to Active Properties
+    To use the CalculatorStateMachine type in a QML file, we import it:
 
-    After instantiating the state machine, we can connect to the active
-    properties of the states, as follows:
+    \quotefromfile calculator-qml/calculator-qml.qml
+    \skipto CalculatorStateMachine
+    \printline 1.0
 
-    \quotefromfile calculator-widgets/mainwindow.cpp
-    \skipto connect
-    \printuntil digit2
+    We instantiate a CalculatorStateMachine and listen to the \c updateDisplay
+    event. When it occurs, we change the text on the calculator display:
+
+    \skipto  CalculatorStateMachine {
+    \printuntil /^ {4}\}/
+
+    When users press the calculator buttons, the buttons submit events to the
+    state machine:
+
+    \skipto DIGIT.
+    \skipto Button
     \printuntil }
-
-    To be notified when a state machine sends out an event, we connect to the
-    corresponding signal:
-
-    \skipto eventOccurred
-    \printuntil });
 */
