@@ -287,8 +287,12 @@ private:
 
     bool visit(DocumentModel::Invoke *node) Q_DECL_OVERRIDE
     {
-        ScxmlVerifier subVerifier(m_errorHandler);
-        m_hasErrors = !subVerifier.verify(node->content.data());
+        if (node->content.isNull()) {
+            error(node->xmlLocation, QStringLiteral("no valid content found in <invoke> tag"));
+        } else {
+            ScxmlVerifier subVerifier(m_errorHandler);
+            m_hasErrors = !subVerifier.verify(node->content.data());
+        }
         return false;
     }
 
