@@ -2395,8 +2395,8 @@ void QScxmlParserPrivate::parse()
             break;
         }
     }
-    if (m_reader->hasError()
-            && m_reader->error() != QXmlStreamReader::PrematureEndOfDocumentError) {
+    if (m_reader->hasError() && (m_reader->error() != QXmlStreamReader::PrematureEndOfDocumentError
+                                 || !m_doc->root)) {
         addError(QStringLiteral("Error parsing SCXML file: %1").arg(m_reader->errorString()));
     }
 }
