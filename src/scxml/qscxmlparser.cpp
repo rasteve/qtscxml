@@ -2216,6 +2216,10 @@ void QScxmlParserPrivate::parse()
         case QXmlStreamReader::EndElement:
             // The reader reports the end of an element with namespaceUri() and name().
         {
+            if (m_stack.isEmpty()) {
+                addError(QStringLiteral("unbalanced XML tag %1").arg(m_reader->name().toString()));
+                break;
+            }
             ParserState p = m_stack.last();
             m_stack.removeLast();
             switch (p.kind) {
