@@ -1,5 +1,11 @@
 <RCC>
     <qresource prefix="/tst_qscxmlc">
         <file>data/empty.scxml</file>
+        <file>data/id000000sig11src000000opflip1pos24.scxml</file>
+        <file>data/id000012sig06src000001opflip1pos2538.scxml</file>
+        <file>data/id000016sig06src000001opflip1pos2961.scxml</file>
+        <file>data/id000023sig06src000001ophavocrep4.scxml</file>
+        <file>data/id000025sig06src000001ophavocrep8.scxml</file>
+        <file>data/id000027sig11src000004opflip1pos2521.scxml</file>
     </qresource>
 </RCC>

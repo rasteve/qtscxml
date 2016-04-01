@@ -1880,6 +1880,10 @@ void QScxmlParserPrivate::parse()
                 m_currentState = m_currentParent = m_doc->root;
                 pNew.instructionContainer = &m_doc->root->initialSetup;
                 m_stack.append(pNew);
+            } else if (!m_doc->root) {
+                addError(QStringLiteral("found %1 instead of <scxml> as root element")
+                         .arg(elName.toString()));
+                return;
             } else if (elName == QLatin1String("state")) {
                 if (!checkAttributes(attributes, "|id,initial")) return;
                 auto newState = m_doc->newState(m_currentParent, DocumentModel::State::Normal, xmlLocation());
