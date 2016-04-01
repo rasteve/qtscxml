@@ -2005,15 +2005,15 @@ void QScxmlParserPrivate::parse()
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("elseif")) {
                 if (!checkAttributes(attributes, "cond")) return;
-                DocumentModel::If *ifI = m_stack.last().instruction->asIf();
-                Q_ASSERT(ifI);
+                DocumentModel::If *ifI = lastIf();
+                if (!ifI) return;
                 ifI->conditions.append(attributes.value(QLatin1String("cond")).toString());
                 m_stack.last().instructionContainer = m_doc->newSequence(&ifI->blocks);
                 m_stack.append(ParserState(ParserState::ElseIf));
             } else if (elName == QLatin1String("else")) {
                 if (!checkAttributes(attributes, "")) return;
-                DocumentModel::If *ifI = m_stack.last().instruction->asIf();
-                Q_ASSERT(ifI);
+                DocumentModel::If *ifI = lastIf();
+                if (!ifI) return;
                 m_stack.last().instructionContainer = m_doc->newSequence(&ifI->blocks);
                 m_stack.append(ParserState(ParserState::Else));
             } else if (elName == QLatin1String("foreach")) {
@@ -2456,6 +2456,21 @@ bool QScxmlParserPrivate::maybeId(const QXmlStreamAttributes &attributes, QStrin
         }
     }
     return true;
+}
+
+DocumentModel::If *QScxmlParserPrivate::lastIf()
+{
+    DocumentModel::Instruction *lastI = m_stack.last().instruction;
+    if (!lastI) {
+        addError(QStringLiteral("No previous instruction found for else block"));
+        return Q_NULLPTR;
+    }
+    DocumentModel::If *ifI = lastI->asIf();
+    if (!ifI) {
+        addError(QStringLiteral("Previous instruction for else block is not an 'if'"));
+        return Q_NULLPTR;
+    }
+    return ifI;
 }
 
 bool QScxmlParserPrivate::checkAttributes(const QXmlStreamAttributes &attributes, const char *attribStr)

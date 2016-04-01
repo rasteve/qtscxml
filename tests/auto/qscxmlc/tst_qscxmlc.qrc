@@ -2,10 +2,24 @@
     <qresource prefix="/tst_qscxmlc">
         <file>data/empty.scxml</file>
         <file>data/id000000sig11src000000opflip1pos24.scxml</file>
+        <file>data/id000001sig11src000000opflip1pos7243.scxml</file>
+        <file>data/id000002sig11src000000opflip1pos7244.scxml</file>
+        <file>data/id000003sig11src000000opflip1pos7442.scxml</file>
+        <file>data/id000004sig06src000000opflip4pos7335.scxml</file>
+        <file>data/id000007sig11src000000ophavocrep8.scxml</file>
+        <file>data/id000008sig11src000000ophavocrep4.scxml</file>
+        <file>data/id000009sig11src000000ophavocrep2.scxml</file>
+        <file>data/id000010sig11src000000ophavocrep1.scxml</file>
         <file>data/id000012sig06src000001opflip1pos2538.scxml</file>
         <file>data/id000016sig06src000001opflip1pos2961.scxml</file>
         <file>data/id000023sig06src000001ophavocrep4.scxml</file>
         <file>data/id000025sig06src000001ophavocrep8.scxml</file>
         <file>data/id000027sig11src000004opflip1pos2521.scxml</file>
+        <file>data/id000028sig11src000004opflip1pos10502.scxml</file>
+        <file>data/id000029sig11src000004opflip1pos10635.scxml</file>
+        <file>data/id000030sig11src000004opflip1pos11452.scxml</file>
+        <file>data/id000031sig11src000004opflip1pos12612.scxml</file>
+        <file>data/id000032sig11src000004opflip1pos12831.scxml</file>
+        <file>data/id000033sig06src000004opflip4pos10704.scxml</file>
     </qresource>
 </RCC>
