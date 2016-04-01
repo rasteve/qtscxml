@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/tst_qscxmlc">
+        <file>data/empty.scxml</file>
+    </qresource>
+</RCC>
