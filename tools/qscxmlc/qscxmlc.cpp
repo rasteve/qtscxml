@@ -66,7 +66,9 @@ int write(TranslationUnit *tu)
     QTextStream c(&outCpp);
     CppDumper dumper(h, c);
     dumper.dump(tu);
+    h.flush();
     outH.close();
+    c.flush();
     outCpp.close();
     return NoError;
 }
