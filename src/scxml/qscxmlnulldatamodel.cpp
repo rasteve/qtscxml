@@ -78,6 +78,7 @@ public:
             return false;
         }
 
+        *ok = true;
         return q->stateMachine()->isActive(info.str);
     }
 
