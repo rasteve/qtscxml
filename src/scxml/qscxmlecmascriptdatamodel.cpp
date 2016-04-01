@@ -121,7 +121,7 @@ public:
         Q_ASSERT(engine());
         dataModel = engine()->globalObject();
 
-        qCDebug(qscxmlLog) << "initializing the datamodel";
+        qCDebug(qscxmlLog) << stateMachine() << "initializing the datamodel";
         setupSystemVariables();
     }
 

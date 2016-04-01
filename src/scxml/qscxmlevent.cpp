@@ -41,6 +41,9 @@
 #include "qscxmlevent_p.h"
 #include "qscxmlstatemachine_p.h"
 
+#include <QJsonDocument>
+#include <QJsonObject>
+
 QT_BEGIN_NAMESPACE
 
 using namespace QScxmlExecutableContent;
@@ -562,6 +565,24 @@ void QScxmlEvent::setErrorMessage(const QString &message)
 void QScxmlEvent::makeIgnorable()
 {
     t = ignoreEventType;
+}
+
+QByteArray QScxmlEventPrivate::debugString(QScxmlEvent *event)
+{
+    if (event == nullptr) {
+        return "<null>";
+    }
+
+    QJsonObject o;
+    o[QStringLiteral("name")] = event->name();
+    o[QStringLiteral("name")] = event->scxmlType();
+    o[QStringLiteral("name")] = event->sendId();
+    o[QStringLiteral("name")] = event->origin();
+    o[QStringLiteral("name")] = event->originType();
+    o[QStringLiteral("name")] = event->invokeId();
+    o[QStringLiteral("data")] = QJsonValue::fromVariant(event->data());
+
+    return QJsonDocument(o).toJson(QJsonDocument::Compact);
 }
 
 QT_END_NAMESPACE

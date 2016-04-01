@@ -1104,15 +1104,18 @@ void QScxmlStateMachine::submitEvent(QScxmlEvent *event)
         return;
 
     if (event->delay() > 0) {
-        qCDebug(qscxmlLog) << this << ": submitting event" << event->name()
-                          << "with delay" << event->delay() << "ms"
-                          << "and sendid" << event->sendId();
+        qCDebug(qscxmlLog) << this << "submitting event" << event->name()
+                           << "with delay" << event->delay() << "ms:"
+                           << QScxmlEventPrivate::debugString(event).constData();
 
         Q_ASSERT(event->eventType() == QScxmlEvent::ExternalEvent);
         int id = d->m_qStateMachine->postDelayedEvent(event, event->delay());
 
         qCDebug(qscxmlLog) << this << ": delayed event" << event->name() << "(" << event << ") got id:" << id;
     } else {
+        qCDebug(qscxmlLog) << this << "submitting event" << event->name()
+                           << ":" << QScxmlEventPrivate::debugString(event).constData();
+
         d->routeEvent(event);
     }
 }
