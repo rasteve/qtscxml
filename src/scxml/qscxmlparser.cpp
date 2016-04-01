@@ -1907,7 +1907,11 @@ void QScxmlParserPrivate::parse()
                 m_stack.append(ParserState(ParserState::Parallel));
             } else if (elName == QLatin1String("initial")) {
                 if (!checkAttributes(attributes, "")) return;
-                if (currentParent()->asState()->type == DocumentModel::State::Parallel) {
+                DocumentModel::AbstractState *parent = currentParent();
+                if (!parent) {
+                    addError(QStringLiteral("<initial> found outside a state"));
+                    return;
+                } else if (parent->asState()->type == DocumentModel::State::Parallel) {
                     addError(QStringLiteral("Explicit initial state for parallel states not supported (only implicitly through the initial states of its substates)"));
                     return;
                 }
@@ -1944,7 +1948,12 @@ void QScxmlParserPrivate::parse()
                 m_stack.append(ParserState(ParserState::Final));
             } else if (elName == QLatin1String("history")) {
                 if (!checkAttributes(attributes, "|id,type")) return;
-                auto newState = m_doc->newHistoryState(currentParent(), xmlLocation());
+                DocumentModel::AbstractState *parent = currentParent();
+                if (!parent) {
+                    addError(QStringLiteral("<history> found outside a state"));
+                    return;
+                }
+                auto newState = m_doc->newHistoryState(parent, xmlLocation());
                 if (!maybeId(attributes, &newState->id)) return;
                 QStringRef type = attributes.value(QLatin1String("type"));
                 if (type.isEmpty() || type == QLatin1String("shallow")) {
@@ -2441,9 +2450,7 @@ void QScxmlParserPrivate::setQtMode(QScxmlParser::QtMode mode)
 
 DocumentModel::AbstractState *QScxmlParserPrivate::currentParent() const
 {
-    DocumentModel::AbstractState *parent = m_currentParent->asAbstractState();
-    Q_ASSERT(!m_currentParent || parent);
-    return parent;
+    return m_currentParent ? m_currentParent->asAbstractState() : Q_NULLPTR;
 }
 
 DocumentModel::XmlLocation QScxmlParserPrivate::xmlLocation() const
