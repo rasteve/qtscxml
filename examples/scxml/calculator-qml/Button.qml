@@ -59,15 +59,16 @@ Rectangle {
     property real textHeight: height - 2
     property real fontHeight: 0.3
     property bool pressed: mouse.pressed
+    property real implicitMargin: (width - text.implicitWidth) / 2
 
     Text {
+        id: text
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
         height: parent.textHeight
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
-        id: text
         font.pixelSize: height * fontHeight
         color: "#1b1c1d"
         font.family: "Open Sans Regular"

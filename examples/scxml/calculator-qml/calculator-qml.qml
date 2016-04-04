@@ -78,22 +78,33 @@ Window {
         color: "#46a2da"
         Text {
             id: resultText
-            anchors.leftMargin: 5
-            anchors.rightMargin: 5
+            anchors.leftMargin: operations.implicitMargin
+            anchors.rightMargin: operations.implicitMargin
             anchors.fill: parent
             horizontalAlignment: Text.AlignRight
             verticalAlignment: Text.AlignVCenter
             text: "0"
             color: "white"
             font.pixelSize: window.height * 3 / 32
+            font.family: "Open Sans Regular"
+            fontSizeMode: Text.Fit
         }
     }
 
     Item {
+        id: operations
         anchors.top: resultArea.bottom
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
+        property real implicitMargin: {
+            var ret = 0;
+            for (var i = 0; i < visibleChildren.length; ++i) {
+                var child = visibleChildren[i];
+                ret += (child.implicitMargin || 0) / visibleChildren.length;
+            }
+            return ret;
+        }
 
         Repeater {
             model: ["÷", "×", "+", "-"]
