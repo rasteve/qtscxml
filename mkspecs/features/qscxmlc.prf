@@ -8,8 +8,6 @@ debug_and_release {
 }
 
 QSCXMLC_DIR = $$QSCXMLC_DIR$$SUFFIX
-QMAKE_QSCXMLC_EXE=$$[QT_HOST_BINS]/qscxmlc
-win*:QMAKE_QSCXMLC_EXE=$$QMAKE_QSCXMLC_EXE.exe
 
 msvc:lessThan(MSC_VER,1800):QMAKE_QSCXMLC=$$QMAKE_QSCXMLC --no-c++11 # VS2012 cannot handle initializer lists.
 
