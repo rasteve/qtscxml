@@ -32,17 +32,19 @@
 #include "moc.h"
 #include <QHash>
 #include <QVector>
-#include <QTextStream>
+#include <QIODevice>
 
 QT_BEGIN_NAMESPACE
 
 class Generator
 {
-    QTextStream &out;
+    QIODevice &out;
     ClassDef *cdef;
     QVector<uint> meta_data;
 public:
-    Generator(ClassDef *classDef, const QList<QByteArray> &metaTypes, const QHash<QByteArray, QByteArray> &knownQObjectClasses, const QHash<QByteArray, QByteArray> &knownGadgets, QTextStream &outfile);
+    Generator(ClassDef *classDef, const QList<QByteArray> &metaTypes, const QHash<QByteArray,
+              QByteArray> &knownQObjectClasses, const QHash<QByteArray, QByteArray> &knownGadgets,
+              QIODevice &outfile);
     void generateCode();
 private:
     bool registerableMetaType(const QByteArray &propertyType);

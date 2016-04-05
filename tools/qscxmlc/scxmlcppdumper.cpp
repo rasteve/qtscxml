@@ -1216,8 +1216,9 @@ private:
 
         QBuffer buf(&clazz.metaData);
         buf.open(QIODevice::WriteOnly);
-        QTextStream out(&buf);
-        Generator(&classDef, QList<QByteArray>(), knownQObjectClasses, QHash<QByteArray, QByteArray>(), out).generateCode();
+        Generator(&classDef, QList<QByteArray>(), knownQObjectClasses,
+                  QHash<QByteArray, QByteArray>(), buf).generateCode();
+        buf.close();
     }
 
     QString qba(const QString &bytes)

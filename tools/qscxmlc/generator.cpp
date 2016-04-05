@@ -40,7 +40,7 @@
 
 QT_BEGIN_NAMESPACE
 
-void fprintf(QTextStream &out, const char *fmt, ...)
+void fprintf(QIODevice &out, const char *fmt, ...)
 {
     va_list argp;
     va_start(argp, fmt);
@@ -48,17 +48,17 @@ void fprintf(QTextStream &out, const char *fmt, ...)
     char buf[bufSize];
     vsnprintf(buf, bufSize, fmt, argp);
     va_end(argp);
-    out << buf;
+    out.write(buf);
 }
 
-void fputc(char c, QTextStream &out)
+void fputc(char c, QIODevice &out)
 {
-    out << c;
+    out.write(&c, 1);
 }
 
-void fputs(const char *s, QTextStream &out)
+void fputs(const char *s, QIODevice &out)
 {
-    out << s;
+    out.write(s);
 }
 
 uint nameToBuiltinType(const QByteArray &name)
@@ -93,7 +93,9 @@ QT_FOR_EACH_STATIC_TYPE(RETURN_METATYPENAME_STRING)
     return 0;
  }
 
-Generator::Generator(ClassDef *classDef, const QList<QByteArray> &metaTypes, const QHash<QByteArray, QByteArray> &knownQObjectClasses, const QHash<QByteArray, QByteArray> &knownGadgets, QTextStream &outfile)
+Generator::Generator(ClassDef *classDef, const QList<QByteArray> &metaTypes, const QHash<QByteArray,
+                     QByteArray> &knownQObjectClasses, const QHash<QByteArray,
+                     QByteArray> &knownGadgets, QIODevice &outfile)
     : out(outfile), cdef(classDef), metaTypes(metaTypes), knownQObjectClasses(knownQObjectClasses)
     , knownGadgets(knownGadgets)
 {
