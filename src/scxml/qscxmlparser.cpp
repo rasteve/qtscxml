@@ -2471,8 +2471,16 @@ void QScxmlParserPrivate::parse()
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("finalize")) {
                 ParserState pNew(ParserState::Finalize);
-                auto invoke = m_stack.last().instruction->asInvoke();
-                Q_ASSERT(invoke);
+                auto instr = m_stack.last().instruction;
+                if (!instr) {
+                    addError(QStringLiteral("no previous instruction found for <finalize>"));
+                    return;
+                }
+                auto invoke = instr->asInvoke();
+                if (!invoke) {
+                    addError(QStringLiteral("instruction before <finalize> is not <invoke>"));
+                    return;
+                }
                 pNew.instructionContainer = &invoke->finalize;
                 m_stack.append(pNew);
             } else {

@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/tst_qscxmlc">
         <file>data/empty.scxml</file>
+        <file>data/misplacedinvoke.scxml</file>
         <file>data/id000000sig11src000000opflip1pos24.scxml</file>
         <file>data/id000001sig11src000000opflip1pos7243.scxml</file>
         <file>data/id000002sig11src000000opflip1pos7244.scxml</file>
