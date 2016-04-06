@@ -526,11 +526,11 @@ protected:
     bool visit(DocumentModel::HistoryState *node) Q_DECL_OVERRIDE
     {
         // Includes:
-        clazz.implIncludes << "QHistoryState";
+        clazz.implIncludes << "QScxmlHistoryState";
 
         const QString stateName = mangledName(node, StateName);
         // Declaration:
-        clazz.classFields << QStringLiteral("QHistoryState ") + stateName + QLatin1Char(';');
+        clazz.classFields << QStringLiteral("QScxmlHistoryState ") + stateName + QLatin1Char(';');
 
         // Initializer:
         clazz.constructor.initializer << generateInitializer(node);
@@ -550,7 +550,7 @@ protected:
         default:
             Q_UNREACHABLE();
         }
-        clazz.init.impl << stateName + QStringLiteral(".setHistoryType(QHistoryState::") + depth + QStringLiteral("History);");
+        clazz.init.impl << stateName + QStringLiteral(".setHistoryType(QScxmlHistoryState::") + depth + QStringLiteral("History);");
 
         // visit the kid:
         if (Transition *t = node->defaultConfiguration()) {

@@ -1270,7 +1270,7 @@ private:
 
     bool visit(DocumentModel::HistoryState *state) Q_DECL_OVERRIDE
     {
-        QHistoryState *newState = new QHistoryState(currentParent());
+        QHistoryState *newState = new QScxmlHistoryState(currentParent());
         switch (state->type) {
         case DocumentModel::HistoryState::Shallow:
             newState->setHistoryType(QHistoryState::ShallowHistory);
