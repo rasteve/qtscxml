@@ -81,7 +81,7 @@ static void collectAllDocuments(DocumentModel::ScxmlDocument *doc, QMap<Document
     }
 }
 
-int run(QStringList arguments)
+int run(const QStringList &arguments)
 {
     QCommandLineParser cmdParser;
     QTextStream errs(stderr, QIODevice::WriteOnly);
