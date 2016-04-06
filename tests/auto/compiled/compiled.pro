@@ -16,6 +16,7 @@ STATECHARTS = \
     eventnames2.scxml \
     statemachineunicodename.scxml \
     anonymousstate.scxml \
-    submachineunicodename.scxml
+    submachineunicodename.scxml \
+    datainnulldatamodel.scxml
 
 load(qscxmlc)
