@@ -34,6 +34,7 @@
 #include <QCommandLineParser>
 #include <QFile>
 #include <QFileInfo>
+#include <QTextCodec>
 
 enum {
     NoError = 0,
@@ -43,7 +44,8 @@ enum {
     ParseError = -4,
     CannotOpenOutputHeaderFileError = -5,
     CannotOpenOutputCppFileError = -6,
-    ScxmlVerificationError = -7
+    ScxmlVerificationError = -7,
+    NoTextCodecError = -8
 };
 
 int write(TranslationUnit *tu)
@@ -62,8 +64,19 @@ int write(TranslationUnit *tu)
         return CannotOpenOutputCppFileError;
     }
 
+    // Make sure it outputs UTF-8, as that is what C++ expects.
+    QTextCodec *utf8 = QTextCodec::codecForName("UTF-8");
+    if (!utf8) {
+        errs << QStringLiteral("Error: cannot find a QTextCodec for generating UTF-8.");
+        return NoTextCodecError;
+    }
+
     QTextStream h(&outH);
+    h.setCodec(utf8);
+    h.setGenerateByteOrderMark(true);
     QTextStream c(&outCpp);
+    c.setCodec(utf8);
+    c.setGenerateByteOrderMark(true);
     CppDumper dumper(h, c);
     dumper.dump(tu);
     h.flush();
