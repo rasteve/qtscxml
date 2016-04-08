@@ -41,9 +41,14 @@
 #include "qscxmlevent.h"
 #include "qscxmlstatemachine_p.h"
 #include "qscxmltabledata.h"
+#include "qscxmldatamodel_p.h"
 
-class QScxmlNullDataModel::Data
+QT_BEGIN_NAMESPACE
+
+class QScxmlNullDataModelPrivate : public QScxmlDataModelPrivate
 {
+    Q_DECLARE_PUBLIC(QScxmlNullDataModel)
+
     struct ResolvedEvaluatorInfo {
         bool error;
         QString str;
@@ -54,12 +59,9 @@ class QScxmlNullDataModel::Data
     };
 
 public:
-    Data(QScxmlNullDataModel *dataModel)
-        : q(dataModel)
-    {}
-
     bool evalBool(QScxmlExecutableContent::EvaluatorId id, bool *ok)
     {
+        Q_Q(QScxmlNullDataModel);
         Q_ASSERT(ok);
 
         ResolvedEvaluatorInfo info;
@@ -76,11 +78,13 @@ public:
             return false;
         }
 
+        *ok = true;
         return q->stateMachine()->isActive(info.str);
     }
 
     ResolvedEvaluatorInfo prepare(QScxmlExecutableContent::EvaluatorId id)
     {
+        Q_Q(QScxmlNullDataModel);
         auto td = q->tableData();
         const QScxmlExecutableContent::EvaluatorInfo &info = td->evaluatorInfo(id);
         QString expr = td->string(info.expr);
@@ -105,7 +109,6 @@ public:
     }
 
 private:
-    QScxmlNullDataModel *q;
     typedef QHash<QScxmlExecutableContent::EvaluatorId, ResolvedEvaluatorInfo> Resolved;
     Resolved resolved;
 };
@@ -126,20 +129,11 @@ private:
  */
 
 /*!
- * Creates a new Qt SCXML data model for the state machine \a stateMachine.
+ * Creates a new Qt SCXML data model, with the parent object \a parent.
  */
-QScxmlNullDataModel::QScxmlNullDataModel(QScxmlStateMachine *stateMachine)
-    : QScxmlDataModel(stateMachine)
-    , d(new Data(this))
+QScxmlNullDataModel::QScxmlNullDataModel(QObject *parent)
+    : QScxmlDataModel(*(new QScxmlNullDataModelPrivate), parent)
 {}
-
-/*!
- * Destroys a Qt SCXML data model.
- */
-QScxmlNullDataModel::~QScxmlNullDataModel()
-{
-    delete d;
-}
 
 /*!
   \reimp
@@ -163,6 +157,7 @@ QString QScxmlNullDataModel::evaluateToString(QScxmlExecutableContent::Evaluator
 
 bool QScxmlNullDataModel::evaluateToBool(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
+    Q_D(QScxmlNullDataModel);
     return d->evalBool(id, ok);
 }
 
@@ -207,7 +202,7 @@ bool QScxmlNullDataModel::evaluateForeach(QScxmlExecutableContent::EvaluatorId i
 /*!
  * \reimp
  */
-void QScxmlNullDataModel::setEvent(const QScxmlEvent &event)
+void QScxmlNullDataModel::setScxmlEvent(const QScxmlEvent &event)
 {
     Q_UNUSED(event);
 }
@@ -217,7 +212,7 @@ void QScxmlNullDataModel::setEvent(const QScxmlEvent &event)
  * Returns an invalid variant, because the null data model does not support
  * properties.
  */
-QVariant QScxmlNullDataModel::property(const QString &name) const
+QVariant QScxmlNullDataModel::scxmlProperty(const QString &name) const
 {
     Q_UNUSED(name);
     return QVariant();
@@ -227,7 +222,7 @@ QVariant QScxmlNullDataModel::property(const QString &name) const
  * \reimp
  * Returns \c false, because the null data model does not support properties.
  */
-bool QScxmlNullDataModel::hasProperty(const QString &name) const
+bool QScxmlNullDataModel::hasScxmlProperty(const QString &name) const
 {
     Q_UNUSED(name);
     return false;
@@ -237,10 +232,12 @@ bool QScxmlNullDataModel::hasProperty(const QString &name) const
  * \reimp
  * Returns \c false, because the null data model does not support properties.
  */
-bool QScxmlNullDataModel::setProperty(const QString &name, const QVariant &value, const QString &context)
+bool QScxmlNullDataModel::setScxmlProperty(const QString &name, const QVariant &value, const QString &context)
 {
     Q_UNUSED(name);
     Q_UNUSED(value);
     Q_UNUSED(context);
     return false;
 }
+
+QT_END_NAMESPACE

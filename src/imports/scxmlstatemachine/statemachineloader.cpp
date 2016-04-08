@@ -67,6 +67,8 @@
 
 QScxmlStateMachineLoader::QScxmlStateMachineLoader(QObject *parent)
     : QObject(parent)
+    , m_dataModel(Q_NULLPTR)
+    , m_implicitDataModel(Q_NULLPTR)
     , m_stateMachine(Q_NULLPTR)
 {
 }
@@ -100,6 +102,7 @@ void QScxmlStateMachineLoader::setFilename(const QUrl &filename)
     if (m_stateMachine) {
         delete m_stateMachine;
         m_stateMachine = Q_NULLPTR;
+        m_implicitDataModel = Q_NULLPTR;
     }
 
     if (parse(filename)) {
@@ -110,6 +113,40 @@ void QScxmlStateMachineLoader::setFilename(const QUrl &filename)
         if (!oldFilename.isEmpty()) {
             emit filenameChanged();
         }
+    }
+}
+
+QVariantMap QScxmlStateMachineLoader::initialValues() const
+{
+    return m_initialValues;
+}
+
+void QScxmlStateMachineLoader::setInitialValues(const QVariantMap &initialValues)
+{
+    if (initialValues != m_initialValues) {
+        m_initialValues = initialValues;
+        if (m_stateMachine)
+            m_stateMachine->setInitialValues(initialValues);
+        emit initialValuesChanged();
+    }
+}
+
+QScxmlDataModel *QScxmlStateMachineLoader::dataModel() const
+{
+    return m_dataModel;
+}
+
+void QScxmlStateMachineLoader::setDataModel(QScxmlDataModel *dataModel)
+{
+    if (dataModel != m_dataModel) {
+        m_dataModel = dataModel;
+        if (m_stateMachine) {
+            if (dataModel)
+                m_stateMachine->setDataModel(dataModel);
+            else
+                m_stateMachine->setDataModel(m_implicitDataModel);
+        }
+        emit dataModelChanged();
     }
 }
 
@@ -135,10 +172,16 @@ bool QScxmlStateMachineLoader::parse(const QUrl &filename)
 
     m_stateMachine = QScxmlStateMachine::fromData(&buf, filename.toString());
     m_stateMachine->setParent(this);
-    m_stateMachine->init();
+    m_implicitDataModel = m_stateMachine->dataModel();
 
     if (m_stateMachine->parseErrors().isEmpty()) {
+        if (m_dataModel)
+            m_stateMachine->setDataModel(m_dataModel);
+        m_stateMachine->setInitialValues(m_initialValues);
         emit stateMachineChanged();
+
+        // as this is deferred any pending property updates to m_dataModel and m_initialValues
+        // should still occur before start().
         QMetaObject::invokeMethod(m_stateMachine, "start", Qt::QueuedConnection);
         return true;
     } else {

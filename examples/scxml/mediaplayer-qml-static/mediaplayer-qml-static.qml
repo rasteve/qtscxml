@@ -48,6 +48,10 @@
 **
 ****************************************************************************/
 
+import MediaPlayerStateMachine 1.0
+
 Mediaplayer {
-    stateMachine: mediaPlayerStateMachine
+    stateMachine: MediaPlayerStateMachine {
+        running: true
+    }
 }

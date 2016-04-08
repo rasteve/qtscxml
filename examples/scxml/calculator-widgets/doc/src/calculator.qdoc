@@ -26,51 +26,33 @@
 ****************************************************************************/
 
 /*!
-    \example calculator
+    \example calculator-widgets
     \title Qt SCXML Calculator Example
     \ingroup examples-qtscxml
 
     \image calculator.png
 
-    \brief Implements the Calculator example presented in the SCXML
-    Specification.
+    \brief A widget-based application that implements the Calculator example
+    presented in the SCXML Specification.
 
     \e {Calculator} uses Qt SCXML to implement the
     \l{SCXML Specification - Calculator Example}{Calculator Example}
     presented in the SCXML Specification.
 
-    The state machine is specified in the \e calculator.scxml file and compiled
-    into the \c Calculator class. The user interface is created using
-    Qt Widgets.
+    The state machine is specified in the \e statemachine.scxml file and
+    compiled into the \c CalculatorStateMachine class. The user interface is
+    created using Qt Widgets.
 
     \include examples-run.qdocinc
 
-    \section1 Compiling the State Machine
-
-    We link against the Qt SCXML module by adding the following line to the
-    \e calculator.pro file:
-
-    \quotefromfile calculator/calculator.pro
-    \printuntil scxml
-
-    We then specify the state machine to compile:
-
-    \skipto STATECHARTS
-    \printline calculator
-
-    We also tell qmake to run \c qscxmlc, which generates \e calculator.h and
-    \e calculator.cpp, and adds them to the \c HEADERS and \c SOURCES variables
-    for compilation:
-
-    \skipto load
-    \printline qscxmlc
+    \include calculator-compiling.qdocinc
 
     \section1 Instantiating the State Machine
 
-    We instantiate the generated \c Calculator class in the \e main.cpp file, as
-    follows:
+    We instantiate the generated \c CalculatorStateMachine class in the
+    \e calculator-widgets.cpp file, as follows:
 
-    \quotefromfile calculator/main.cpp
+    \quotefromfile calculator-widgets/calculator-widgets.cpp
     \skipto #include
     \printuntil }
 
@@ -79,7 +61,7 @@
     After instantiating the state machine, we can connect to the active
     properties of the states, as follows:
 
-    \quotefromfile calculator/mainwindow.cpp
+    \quotefromfile calculator-widgets/mainwindow.cpp
     \skipto connect
     \printuntil digit2
     \printuntil }

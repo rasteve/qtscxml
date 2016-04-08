@@ -79,8 +79,14 @@ QScxmlStateMachine *QScxmlInvokableService::parentStateMachine() const
 
 void QScxmlInvokableService::finalize()
 {
-    auto smp = QScxmlStateMachinePrivate::get(parentStateMachine());
-    smp->m_executionEngine->execute(d->service->finalizeContent());
+    QScxmlExecutableContent::ContainerId finalize = d->service->finalizeContent();
+
+    if (finalize != QScxmlExecutableContent::NoInstruction) {
+        auto psm = parentStateMachine();
+        qCDebug(qscxmlLog) << psm << "running finalize on event";
+        auto smp = QScxmlStateMachinePrivate::get(psm);
+        smp->m_executionEngine->execute(finalize);
+    }
 }
 
 QScxmlInvokableServiceFactory *QScxmlInvokableService::service() const
@@ -144,7 +150,7 @@ QString QScxmlInvokableServiceFactory::calculateId(QScxmlStateMachine *parent, b
     if (d->idlocation != QScxmlExecutableContent::NoString) {
         auto idloc = stateMachine->string(d->idlocation);
         auto ctxt = stateMachine->string(d->invokeLocation);
-        *ok = parent->dataModel()->setProperty(idloc, id, ctxt);
+        *ok = parent->dataModel()->setScxmlProperty(idloc, id, ctxt);
         if (!*ok)
             return QString();
     }
@@ -181,7 +187,7 @@ QVariantMap QScxmlInvokableServiceFactory::calculateData(QScxmlStateMachine *par
                 return QVariantMap();
             }
 
-            auto v = dataModel->property(loc);
+            auto v = dataModel->scxmlProperty(loc);
             result.insert(name, v);
         }
     }
@@ -196,8 +202,8 @@ QVariantMap QScxmlInvokableServiceFactory::calculateData(QScxmlStateMachine *par
             *ok = false;
             return QVariantMap();
         }
-        if (dataModel->hasProperty(loc)) {
-            auto v = dataModel->property(loc);
+        if (dataModel->hasScxmlProperty(loc)) {
+            auto v = dataModel->scxmlProperty(loc);
             result.insert(loc, v);
         } else {
             *ok = false;
@@ -245,7 +251,8 @@ bool QScxmlInvokableScxml::start()
         return false;
 
     m_stateMachine->setSessionId(id);
-    if (m_stateMachine->init(data)) {
+    m_stateMachine->setInitialValues(data);
+    if (m_stateMachine->init()) {
         qCDebug(qscxmlLog) << parentStateMachine() << "starting" << m_stateMachine;
         m_stateMachine->start();
         return true;

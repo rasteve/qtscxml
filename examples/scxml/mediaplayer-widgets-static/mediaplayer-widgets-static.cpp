@@ -58,7 +58,6 @@ int main(int argc, char **argv)
     QApplication app(argc, argv);
 
     MediaPlayerStateMachine machine;
-    machine.init();
     MainWindow mainWindow;
 
     QObject::connect(&mainWindow, &MainWindow::tap,

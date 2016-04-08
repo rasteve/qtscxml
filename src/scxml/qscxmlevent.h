@@ -125,4 +125,6 @@ private:
 
 QT_END_NAMESPACE
 
+Q_DECLARE_METATYPE(QScxmlEvent)
+
 #endif // SCXMLEVENT_H

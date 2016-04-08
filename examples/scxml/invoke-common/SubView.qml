@@ -51,9 +51,10 @@
 import QtQuick 2.5
 
 Item {
+    // "anywhere" is a context property, so we always have to check if it's null
     Button {
         id: here
-        enabled: anywhere.here
+        enabled: anywhere ? anywhere.here : false
         text: "Go There"
         width: parent.width / 2
         height: parent.height
@@ -62,7 +63,7 @@ Item {
 
     Button {
         id: there
-        enabled: anywhere.there
+        enabled: anywhere ? anywhere.there : false
         text: "Go Here"
         width: parent.width / 2
         height: parent.height

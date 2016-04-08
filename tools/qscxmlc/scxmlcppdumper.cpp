@@ -179,20 +179,6 @@ QString cEscape(const QString &str)
     return str;
 }
 
-static QString toHex(const QString &str)
-{
-    QString res;
-    for (int i = 0, ei = str.length(); i != ei; ++i) {
-        int ch = str.at(i).unicode();
-        if (ch < 256) {
-            res += QStringLiteral("\\x%1").arg(ch, 2, 16, QLatin1Char('0'));
-        } else {
-            res += QStringLiteral("\\x%1").arg(ch, 4, 16, QLatin1Char('0'));
-        }
-    }
-    return res;
-}
-
 static const char *headerStart =
         "#include <QScxmlStateMachine>\n"
         "#include <QString>\n"
@@ -320,12 +306,12 @@ protected:
             case Scxml::NullDataModel:
                 clazz.classFields << QStringLiteral("QScxmlNullDataModel dataModel;");
                 clazz.implIncludes << QStringLiteral("QScxmlNullDataModel");
-                clazz.constructor.initializer << QStringLiteral("dataModel(&stateMachine)");
+                clazz.init.impl << QStringLiteral("stateMachine.setDataModel(&dataModel);");
                 break;
             case Scxml::JSDataModel:
                 clazz.classFields << QStringLiteral("QScxmlEcmaScriptDataModel dataModel;");
                 clazz.implIncludes << QStringLiteral("QScxmlEcmaScriptDataModel");
-                clazz.constructor.initializer << QStringLiteral("dataModel(&stateMachine)");
+                clazz.init.impl << QStringLiteral("stateMachine.setDataModel(&dataModel);");
                 break;
             case Scxml::CppDataModel:
                 clazz.dataModelClassName = node->cppDataModelClassName;
@@ -1039,9 +1025,9 @@ private:
                 t << QStringLiteral("QT_UNICODE_LITERAL_II(\"\")");
             } else {
                 for (int i = 0, ei = strings.size(); i < ei; ++i) {
-                    QString s = strings.at(i);
-                    QString comment = cEscape(s);
-                    t << QStringLiteral("QT_UNICODE_LITERAL_II(\"%1\") // %3: %2").arg(toHex(s) + QStringLiteral("\\x00"), comment, QString::number(i));
+                    QString s = cEscape(strings.at(i));
+                    t << QStringLiteral("QT_UNICODE_LITERAL_II(\"%1\") // %3: %2")
+                         .arg(s + QStringLiteral("\\x00"), s, QString::number(i));
                 }
             }
             t << QStringLiteral("};") << QStringLiteral("");
@@ -1216,8 +1202,9 @@ private:
 
         QBuffer buf(&clazz.metaData);
         buf.open(QIODevice::WriteOnly);
-        QTextStream out(&buf);
-        Generator(&classDef, QList<QByteArray>(), knownQObjectClasses, QHash<QByteArray, QByteArray>(), out).generateCode();
+        Generator(&classDef, QList<QByteArray>(), knownQObjectClasses,
+                  QHash<QByteArray, QByteArray>(), buf).generateCode();
+        buf.close();
     }
 
     QString qba(const QString &bytes)

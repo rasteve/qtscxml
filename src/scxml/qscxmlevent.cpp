@@ -41,7 +41,10 @@
 #include "qscxmlevent_p.h"
 #include "qscxmlstatemachine_p.h"
 
-QT_USE_NAMESPACE
+#include <QJsonDocument>
+#include <QJsonObject>
+
+QT_BEGIN_NAMESPACE
 
 using namespace QScxmlExecutableContent;
 
@@ -79,7 +82,7 @@ QScxmlEvent *QScxmlEventBuilder::buildEvent()
             if (namelist) {
                 for (qint32 i = 0; i < namelist->count; ++i) {
                     QString name = tableData->string(namelist->const_data()[i]);
-                    keyValues.insert(name, dataModel->property(name));
+                    keyValues.insert(name, dataModel->scxmlProperty(name));
                 }
             }
             data = keyValues;
@@ -93,7 +96,7 @@ QScxmlEvent *QScxmlEventBuilder::buildEvent()
     QString sendid = id;
     if (!idLocation.isEmpty()) {
         sendid = generateId();
-        ok = stateMachine->dataModel()->setProperty(idLocation, sendid, tableData->string(instructionLocation));
+        ok = stateMachine->dataModel()->setScxmlProperty(idLocation, sendid, tableData->string(instructionLocation));
         if (!ok)
             return Q_NULLPTR;
     }
@@ -198,8 +201,8 @@ bool QScxmlEventBuilder::evaluate(const Param &param, QScxmlStateMachine *stateM
         return false;
     }
 
-    if (dataModel->hasProperty(loc)) {
-        keyValues.insert(tableData->string(param.name), dataModel->property(loc));
+    if (dataModel->hasScxmlProperty(loc)) {
+        keyValues.insert(tableData->string(param.name), dataModel->scxmlProperty(loc));
         return true;
     } else {
         submitError(QStringLiteral("error.execution"),
@@ -563,3 +566,23 @@ void QScxmlEvent::makeIgnorable()
 {
     t = ignoreEventType;
 }
+
+QByteArray QScxmlEventPrivate::debugString(QScxmlEvent *event)
+{
+    if (event == nullptr) {
+        return "<null>";
+    }
+
+    QJsonObject o;
+    o[QStringLiteral("name")] = event->name();
+    o[QStringLiteral("name")] = event->scxmlType();
+    o[QStringLiteral("name")] = event->sendId();
+    o[QStringLiteral("name")] = event->origin();
+    o[QStringLiteral("name")] = event->originType();
+    o[QStringLiteral("name")] = event->invokeId();
+    o[QStringLiteral("data")] = QJsonValue::fromVariant(event->data());
+
+    return QJsonDocument(o).toJson(QJsonDocument::Compact);
+}
+
+QT_END_NAMESPACE

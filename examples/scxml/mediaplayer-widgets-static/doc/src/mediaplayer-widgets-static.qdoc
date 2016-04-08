@@ -53,7 +53,7 @@
 
     \quotefromfile mediaplayer-widgets-static/mediaplayer-widgets-static.cpp
     \skipto mediaplayer.h
-    \printuntil machine.init
+    \printuntil MainWindow mainWindow
 
     To be notified when a state machine sends out an event, we connect to the
     corresponding signals. The media player state machine will send out events

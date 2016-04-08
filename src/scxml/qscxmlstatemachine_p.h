@@ -139,6 +139,8 @@ public:
 public: // types & data fields:
     QString m_sessionId;
     bool m_isInvoked;
+    bool m_isInitialized;
+    QVariantMap m_initialValues;
     QScxmlDataModel *m_dataModel;
     QScxmlStateMachine::BindingMethod m_dataBinding;
     QScxmlExecutableContent::QScxmlExecutionEngine *m_executionEngine;

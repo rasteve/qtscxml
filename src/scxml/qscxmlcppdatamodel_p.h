@@ -51,12 +51,13 @@
 // We mean it.
 //
 
+#include <private/qscxmldatamodel_p.h>
 #include <QtScxml/qscxmlcppdatamodel.h>
 #include <QtScxml/qscxmlevent.h>
 
 QT_BEGIN_NAMESPACE
 
-class Q_SCXML_EXPORT QScxmlCppDataModelPrivate
+class Q_SCXML_EXPORT QScxmlCppDataModelPrivate : public QScxmlDataModelPrivate
 {
 public:
     QScxmlEvent event;

@@ -44,11 +44,13 @@
 
 QT_BEGIN_NAMESPACE
 
+class QScxmlNullDataModelPrivate;
 class Q_SCXML_EXPORT QScxmlNullDataModel: public QScxmlDataModel
 {
+    Q_OBJECT
+    Q_DECLARE_PRIVATE(QScxmlNullDataModel)
 public:
-    QScxmlNullDataModel(QScxmlStateMachine *stateMachine);
-    ~QScxmlNullDataModel();
+    QScxmlNullDataModel(QObject *parent = 0);
 
     bool setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;
 
@@ -62,16 +64,11 @@ public:
     bool evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) Q_DECL_OVERRIDE Q_DECL_FINAL;
 #endif // Q_QDOC
 
-    void setEvent(const QScxmlEvent &event) Q_DECL_OVERRIDE;
+    void setScxmlEvent(const QScxmlEvent &event) Q_DECL_OVERRIDE;
 
-    QVariant property(const QString &name) const Q_DECL_OVERRIDE;
-    bool hasProperty(const QString &name) const Q_DECL_OVERRIDE;
-    bool setProperty(const QString &name, const QVariant &value, const QString &context) Q_DECL_OVERRIDE;
-
-private:
-    class Data;
-    friend Data;
-    Data *d;
+    QVariant scxmlProperty(const QString &name) const Q_DECL_OVERRIDE;
+    bool hasScxmlProperty(const QString &name) const Q_DECL_OVERRIDE;
+    bool setScxmlProperty(const QString &name, const QVariant &value, const QString &context) Q_DECL_OVERRIDE;
 };
 
 QT_END_NAMESPACE

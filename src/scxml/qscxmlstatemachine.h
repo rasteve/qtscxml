@@ -75,6 +75,9 @@ class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
     Q_OBJECT
     Q_ENUMS(BindingMethod)
     Q_PROPERTY(bool running READ isRunning WRITE setRunning NOTIFY runningChanged)
+    Q_PROPERTY(bool initialized READ isInitialized NOTIFY initializedChanged)
+    Q_PROPERTY(QScxmlDataModel *dataModel READ dataModel WRITE setDataModel NOTIFY dataModelChanged)
+    Q_PROPERTY(QVariantMap initialValues READ initialValues WRITE setInitialValues NOTIFY initialValuesChanged)
 
 protected:
 #ifndef Q_QDOC
@@ -97,15 +100,18 @@ public:
     static QString generateSessionId(const QString &prefix);
 
     bool isInvoked() const;
+    bool isInitialized() const;
 
+    void setDataModel(QScxmlDataModel *model);
     QScxmlDataModel *dataModel() const;
 
     BindingMethod dataBinding() const;
 
-    bool init(const QVariantMap &initialDataValues = QVariantMap());
-
     bool isRunning() const;
     void setRunning(bool running);
+
+    QVariantMap initialValues();
+    void setInitialValues(const QVariantMap &initialValues);
 
     QString name() const;
     QStringList stateNames(bool compress = true) const;
@@ -132,10 +138,14 @@ Q_SIGNALS:
     void reachedStableState();
     void finished();
     void eventOccurred(const QScxmlEvent &event);
+    void dataModelChanged(QScxmlDataModel *model);
+    void initialValuesChanged(const QVariantMap &initialValues);
+    void initializedChanged(bool initialized);
 
 public Q_SLOTS:
     void start();
     void stop();
+    bool init();
 
 protected: // methods for friends:
     friend QScxmlDataModel;

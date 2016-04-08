@@ -227,7 +227,7 @@ private:
             }
         }
         foreach (const QString &event, transition->events) {
-            if (event.contains(QLatin1Char('.'))) {
+            if (event.contains(QLatin1Char('.')) || event == QLatin1String("*")) {
                 continue;
             } else if (m_doc->qtMode && !DocumentModel::isValidCppIdentifier(event)) {
                 error(transition->xmlLocation,  QStringLiteral("event name '%1' is not a valid C++ identifier in Qt mode").arg(event));
@@ -287,8 +287,12 @@ private:
 
     bool visit(DocumentModel::Invoke *node) Q_DECL_OVERRIDE
     {
-        ScxmlVerifier subVerifier(m_errorHandler);
-        m_hasErrors = !subVerifier.verify(node->content.data());
+        if (node->content.isNull()) {
+            error(node->xmlLocation, QStringLiteral("no valid content found in <invoke> tag"));
+        } else {
+            ScxmlVerifier subVerifier(m_errorHandler);
+            m_hasErrors = !subVerifier.verify(node->content.data());
+        }
         return false;
     }
 
@@ -1007,7 +1011,9 @@ inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(QScxmlStateMach
 {
     auto child = QStateMachineBuilder().build(m_content.data());
 
-    QScxmlDataModelPrivate::instantiateDataModel(m_content->root->dataModel, child);
+    auto dm = QScxmlDataModelPrivate::instantiateDataModel(m_content->root->dataModel);
+    dm->setParent(child);
+    child->setDataModel(dm);
 
     return finishInvoke(child, parent);
 }
@@ -1047,10 +1053,30 @@ inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(QScxmlStateMach
  */
 
 /*!
+    \enum QScxmlParser::QtMode
+
+    This enum specifies if the document should be parsed in Qt mode. In Qt
+    mode, event and state names have to be valid C++ identifiers. If that is
+    the case some additional convenience methods are generated. If not, the
+    parser will reject the document. Qt mode can be enabled in the document
+    itself by adding an XML comment of the form:
+
+    \c {<!-- enable-qt-mode: yes -->}
+
+    \value QtModeDisabled
+           Ignore the XML comment and do not generate additional methods.
+    \value QtModeEnabled
+           Force parsing in Qt mode and try to generate the additional methods,
+           no matter if the XML comment is present.
+    \value QtModeFromInputFile
+           Enable Qt mode only if the XML comment is present in the document.
+ */
+
+/*!
  * Creates a new SCXML parser for the specified \a reader.
  */
 QScxmlParser::QScxmlParser(QXmlStreamReader *reader)
-    : p(new QScxmlParserPrivate(this, reader))
+    : d(new QScxmlParserPrivate(this, reader))
 { }
 
 /*!
@@ -1058,41 +1084,49 @@ QScxmlParser::QScxmlParser(QXmlStreamReader *reader)
  */
 QScxmlParser::~QScxmlParser()
 {
-    delete p;
+    delete d;
 }
 
 /*!
  * Returns the file name associated with the current input.
+ *
+ * \sa setFileName()
  */
 QString QScxmlParser::fileName() const
 {
-    return p->fileName();
+    return d->fileName();
 }
 
 /*!
  * Sets the file name for the current input to \a fileName.
  *
  * The file name is used for error reporting and for resolving relative path URIs.
+ *
+ * \sa fileName()
  */
 void QScxmlParser::setFileName(const QString &fileName)
 {
-    p->setFileName(fileName);
+    d->setFileName(fileName);
 }
 
 /*!
  * Returns the loader that is currently used to resolve and load URIs.
+ *
+ * \sa setLoader()
  */
 QScxmlParser::Loader *QScxmlParser::loader() const
 {
-    return p->loader();
+    return d->loader();
 }
 
 /*!
  * Sets \a newLoader to be used for resolving and loading URIs.
+ *
+ * \sa loader()
  */
 void QScxmlParser::setLoader(QScxmlParser::Loader *newLoader)
 {
-    p->setLoader(newLoader);
+    d->setLoader(newLoader);
 }
 
 /*!
@@ -1100,7 +1134,8 @@ void QScxmlParser::setLoader(QScxmlParser::Loader *newLoader)
  */
 void QScxmlParser::parse()
 {
-    p->parse();
+    d->parse();
+    d->verifyDocument();
 }
 
 /*!
@@ -1117,7 +1152,7 @@ QScxmlStateMachine *QScxmlParser::instantiateStateMachine() const
 #ifdef BUILD_QSCXMLC
     return Q_NULLPTR;
 #else // BUILD_QSCXMLC
-    DocumentModel::ScxmlDocument *doc = p->scxmlDocument();
+    DocumentModel::ScxmlDocument *doc = d->scxmlDocument();
     if (doc && doc->root) {
         return QStateMachineBuilder().build(doc);
     } else {
@@ -1144,12 +1179,14 @@ void QScxmlParser::instantiateDataModel(QScxmlStateMachine *stateMachine) const
 #ifdef BUILD_QSCXMLC
     Q_UNUSED(stateMachine)
 #else
-    auto root = p->scxmlDocument()->root;
+    auto doc = d->scxmlDocument();
+    auto root = doc ? doc->root : Q_NULLPTR;
     if (root == Q_NULLPTR) {
         qWarning() << "SCXML document has no root element";
     } else {
-        QScxmlDataModel *dm = QScxmlDataModelPrivate::instantiateDataModel(root->dataModel,
-                                                                           stateMachine);
+        QScxmlDataModel *dm = QScxmlDataModelPrivate::instantiateDataModel(root->dataModel);
+        QScxmlStateMachinePrivate::get(stateMachine)->parserData()->m_ownedDataModel.reset(dm);
+        stateMachine->setDataModel(dm);
         if (dm == Q_NULLPTR)
             qWarning() << "No data-model instantiated";
     }
@@ -1161,7 +1198,7 @@ void QScxmlParser::instantiateDataModel(QScxmlStateMachine *stateMachine) const
  */
 QScxmlParser::State QScxmlParser::state() const
 {
-    return p->state();
+    return d->state();
 }
 
 /*!
@@ -1169,7 +1206,7 @@ QScxmlParser::State QScxmlParser::state() const
  */
 QVector<QScxmlError> QScxmlParser::errors() const
 {
-    return p->errors();
+    return d->errors();
 }
 
 /*!
@@ -1180,17 +1217,32 @@ QVector<QScxmlError> QScxmlParser::errors() const
  */
 void QScxmlParser::addError(const QString &msg)
 {
-    p->addError(msg);
+    d->addError(msg);
 }
 
+/*!
+ * Returns how the parser decides if the SCXML document should conform to Qt
+ * mode.
+ *
+ * \sa QtMode
+ */
 QScxmlParser::QtMode QScxmlParser::qtMode() const
 {
-    return p->qtMode();
+    return d->qtMode();
 }
 
+/*!
+ * Sets the \c qtMode to \a mode. This property overrides the XML comment. You
+ * can force Qt mode to be used by setting it to \c QtModeEnabled or force any
+ * XML comments to be ignored and Qt mode to be used by setting it to
+ * \c QtModeDisabled. The default is \c QtModeFromInputFile, which will switch
+ * Qt mode on if the XML comment is present in the source file.
+ *
+ * \sa QtMode
+ */
 void QScxmlParser::setQtMode(QScxmlParser::QtMode mode)
 {
-    p->setQtMode(mode);
+    d->setQtMode(mode);
 }
 
 bool QScxmlParserPrivate::ParserState::collectChars() {
@@ -1620,12 +1672,11 @@ QScxmlParser *QScxmlParser::Loader::parser() const
 
 QScxmlParserPrivate *QScxmlParserPrivate::get(QScxmlParser *parser)
 {
-    return parser->p;
+    return parser->d;
 }
 
 QScxmlParserPrivate::QScxmlParserPrivate(QScxmlParser *parser, QXmlStreamReader *reader)
-    : m_parser(parser)
-    , m_currentParent(Q_NULLPTR)
+    : m_currentParent(Q_NULLPTR)
     , m_currentState(Q_NULLPTR)
     , m_defaultLoader(parser)
     , m_loader(&m_defaultLoader)
@@ -1634,24 +1685,24 @@ QScxmlParserPrivate::QScxmlParserPrivate(QScxmlParser *parser, QXmlStreamReader 
     , m_qtMode(QScxmlParser::QtModeFromInputFile)
 {}
 
-QScxmlParser *QScxmlParserPrivate::parser() const
-{
-    return m_parser;
-}
-
-DocumentModel::ScxmlDocument *QScxmlParserPrivate::scxmlDocument()
+bool QScxmlParserPrivate::verifyDocument()
 {
     if (!m_doc)
-        return Q_NULLPTR;
+        return false;
 
     auto handler = [this](const DocumentModel::XmlLocation &location, const QString &msg) {
         this->addError(location, msg);
     };
 
     if (ScxmlVerifier(handler).verify(m_doc.data()))
-        return m_doc.data();
+        return true;
     else
-        return Q_NULLPTR;
+        return false;
+}
+
+DocumentModel::ScxmlDocument *QScxmlParserPrivate::scxmlDocument() const
+{
+    return m_doc && m_errors.isEmpty() ? m_doc.data() : Q_NULLPTR;
 }
 
 QString QScxmlParserPrivate::fileName() const
@@ -1678,8 +1729,8 @@ void QScxmlParserPrivate::parseSubDocument(DocumentModel::Invoke *parentInvoke, 
 {
     QScxmlParser p(reader);
     p.setFileName(fileName);
-    p.parse();
-    parentInvoke->content.reset(p.p->m_doc.take());
+    p.d->parse();
+    parentInvoke->content.reset(p.d->m_doc.take());
     m_doc->allSubDocuments.append(parentInvoke->content.data());
     m_errors.append(p.errors());
     if (p.state() == QScxmlParser::ParsingError)
@@ -1833,6 +1884,10 @@ void QScxmlParserPrivate::parse()
                 m_currentState = m_currentParent = m_doc->root;
                 pNew.instructionContainer = &m_doc->root->initialSetup;
                 m_stack.append(pNew);
+            } else if (!m_doc->root) {
+                addError(QStringLiteral("found %1 instead of <scxml> as root element")
+                         .arg(elName.toString()));
+                return;
             } else if (elName == QLatin1String("state")) {
                 if (!checkAttributes(attributes, "|id,initial")) return;
                 auto newState = m_doc->newState(m_currentParent, DocumentModel::State::Normal, xmlLocation());
@@ -1852,7 +1907,11 @@ void QScxmlParserPrivate::parse()
                 m_stack.append(ParserState(ParserState::Parallel));
             } else if (elName == QLatin1String("initial")) {
                 if (!checkAttributes(attributes, "")) return;
-                if (currentParent()->asState()->type == DocumentModel::State::Parallel) {
+                DocumentModel::AbstractState *parent = currentParent();
+                if (!parent) {
+                    addError(QStringLiteral("<initial> found outside a state"));
+                    return;
+                } else if (parent->asState()->type == DocumentModel::State::Parallel) {
                     addError(QStringLiteral("Explicit initial state for parallel states not supported (only implicitly through the initial states of its substates)"));
                     return;
                 }
@@ -1889,7 +1948,12 @@ void QScxmlParserPrivate::parse()
                 m_stack.append(ParserState(ParserState::Final));
             } else if (elName == QLatin1String("history")) {
                 if (!checkAttributes(attributes, "|id,type")) return;
-                auto newState = m_doc->newHistoryState(currentParent(), xmlLocation());
+                DocumentModel::AbstractState *parent = currentParent();
+                if (!parent) {
+                    addError(QStringLiteral("<history> found outside a state"));
+                    return;
+                }
+                auto newState = m_doc->newHistoryState(parent, xmlLocation());
                 if (!maybeId(attributes, &newState->id)) return;
                 QStringRef type = attributes.value(QLatin1String("type"));
                 if (type.isEmpty() || type == QLatin1String("shallow")) {
@@ -1954,15 +2018,15 @@ void QScxmlParserPrivate::parse()
                 m_stack.append(pNew);
             } else if (elName == QLatin1String("elseif")) {
                 if (!checkAttributes(attributes, "cond")) return;
-                DocumentModel::If *ifI = m_stack.last().instruction->asIf();
-                Q_ASSERT(ifI);
+                DocumentModel::If *ifI = lastIf();
+                if (!ifI) return;
                 ifI->conditions.append(attributes.value(QLatin1String("cond")).toString());
                 m_stack.last().instructionContainer = m_doc->newSequence(&ifI->blocks);
                 m_stack.append(ParserState(ParserState::ElseIf));
             } else if (elName == QLatin1String("else")) {
                 if (!checkAttributes(attributes, "")) return;
-                DocumentModel::If *ifI = m_stack.last().instruction->asIf();
-                Q_ASSERT(ifI);
+                DocumentModel::If *ifI = lastIf();
+                if (!ifI) return;
                 m_stack.last().instructionContainer = m_doc->newSequence(&ifI->blocks);
                 m_stack.append(ParserState(ParserState::Else));
             } else if (elName == QLatin1String("foreach")) {
@@ -2161,6 +2225,10 @@ void QScxmlParserPrivate::parse()
         case QXmlStreamReader::EndElement:
             // The reader reports the end of an element with namespaceUri() and name().
         {
+            if (m_stack.isEmpty()) {
+                addError(QStringLiteral("unbalanced XML tag %1").arg(m_reader->name().toString()));
+                break;
+            }
             ParserState p = m_stack.last();
             m_stack.removeLast();
             switch (p.kind) {
@@ -2336,8 +2404,8 @@ void QScxmlParserPrivate::parse()
             break;
         }
     }
-    if (m_reader->hasError()
-            && m_reader->error() != QXmlStreamReader::PrematureEndOfDocumentError) {
+    if (m_reader->hasError() && (m_reader->error() != QXmlStreamReader::PrematureEndOfDocumentError
+                                 || !m_doc->root)) {
         addError(QStringLiteral("Error parsing SCXML file: %1").arg(m_reader->errorString()));
     }
 }
@@ -2382,9 +2450,7 @@ void QScxmlParserPrivate::setQtMode(QScxmlParser::QtMode mode)
 
 DocumentModel::AbstractState *QScxmlParserPrivate::currentParent() const
 {
-    DocumentModel::AbstractState *parent = m_currentParent->asAbstractState();
-    Q_ASSERT(!m_currentParent || parent);
-    return parent;
+    return m_currentParent ? m_currentParent->asAbstractState() : Q_NULLPTR;
 }
 
 DocumentModel::XmlLocation QScxmlParserPrivate::xmlLocation() const
@@ -2405,6 +2471,21 @@ bool QScxmlParserPrivate::maybeId(const QXmlStreamAttributes &attributes, QStrin
         }
     }
     return true;
+}
+
+DocumentModel::If *QScxmlParserPrivate::lastIf()
+{
+    DocumentModel::Instruction *lastI = m_stack.last().instruction;
+    if (!lastI) {
+        addError(QStringLiteral("No previous instruction found for else block"));
+        return Q_NULLPTR;
+    }
+    DocumentModel::If *ifI = lastI->asIf();
+    if (!ifI) {
+        addError(QStringLiteral("Previous instruction for else block is not an 'if'"));
+        return Q_NULLPTR;
+    }
+    return ifI;
 }
 
 bool QScxmlParserPrivate::checkAttributes(const QXmlStreamAttributes &attributes, const char *attribStr)

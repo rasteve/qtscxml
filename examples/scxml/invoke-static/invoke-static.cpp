@@ -58,15 +58,12 @@ int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    Directions stateMachine;
+    qmlRegisterType<Directions>("Directions", 1, 0, "Directions");
 
     QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty(QStringLiteral("directions"), &stateMachine);
     engine.load(QUrl(QStringLiteral("qrc:/invoke-static.qml")));
     if (engine.rootObjects().isEmpty())
         return -1;
-
-    stateMachine.start();
 
     return app.exec();
 }

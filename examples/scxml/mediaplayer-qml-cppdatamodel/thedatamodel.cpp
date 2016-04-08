@@ -52,11 +52,6 @@
 
 #include <QScxmlEvent>
 
-TheDataModel::TheDataModel(QScxmlStateMachine *stateMachine)
-    : QScxmlCppDataModel(stateMachine)
-{
-}
-
 bool TheDataModel::isValidMedia() const
 {
     QString eventMedia = eventData().value(QStringLiteral("media")).toString();
@@ -65,5 +60,5 @@ bool TheDataModel::isValidMedia() const
 
 QVariantMap TheDataModel::eventData() const
 {
-    return event().data().value<QVariantMap>();
+    return scxmlEvent().data().value<QVariantMap>();
 }

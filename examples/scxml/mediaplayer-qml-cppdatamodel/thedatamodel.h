@@ -55,10 +55,8 @@
 
 class TheDataModel: public QScxmlCppDataModel
 {
+    Q_OBJECT
     Q_SCXML_DATAMODEL
-
-public:
-    TheDataModel(QScxmlStateMachine *stateMachine);
 
 private:
     bool isValidMedia() const;

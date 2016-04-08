@@ -53,9 +53,11 @@ class QScxmlStateMachine;
 class QScxmlTableData;
 
 class QScxmlDataModelPrivate;
-class Q_SCXML_EXPORT QScxmlDataModel
+class Q_SCXML_EXPORT QScxmlDataModel : public QObject
 {
-    Q_DISABLE_COPY(QScxmlDataModel)
+    Q_OBJECT
+    Q_DECLARE_PRIVATE(QScxmlDataModel)
+    Q_PROPERTY(QScxmlStateMachine *stateMachine READ stateMachine WRITE setStateMachine NOTIFY stateMachineChanged)
 
 public:
     class ForeachLoopBody
@@ -66,9 +68,9 @@ public:
     };
 
 public:
-    QScxmlDataModel(QScxmlStateMachine *stateMachine);
-    virtual ~QScxmlDataModel();
+    QScxmlDataModel(QObject *parent = 0);
 
+    void setStateMachine(QScxmlStateMachine *stateMachine);
     QScxmlStateMachine *stateMachine() const;
 
     virtual bool setup(const QVariantMap &initialDataValues) = 0;
@@ -83,20 +85,20 @@ public:
     virtual bool evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) = 0;
 #endif // Q_QDOC
 
-    virtual void setEvent(const QScxmlEvent &event) = 0;
+    virtual void setScxmlEvent(const QScxmlEvent &event) = 0;
 
-    virtual QVariant property(const QString &name) const = 0;
-    virtual bool hasProperty(const QString &name) const = 0;
-    virtual bool setProperty(const QString &name, const QVariant &value, const QString &context) = 0;
+    virtual QVariant scxmlProperty(const QString &name) const = 0;
+    virtual bool hasScxmlProperty(const QString &name) const = 0;
+    virtual bool setScxmlProperty(const QString &name, const QVariant &value, const QString &context) = 0;
+
+Q_SIGNALS:
+    void stateMachineChanged(QScxmlStateMachine *stateMachine);
 
 protected:
+    QScxmlDataModel(QScxmlDataModelPrivate &dd, QObject *parent = 0);
 #ifndef Q_QDOC
     QScxmlTableData *tableData() const;
 #endif // Q_QDOC
-
-private:
-    friend class QScxmlDataModelPrivate;
-    QScxmlDataModelPrivate *d;
 };
 
 QT_END_NAMESPACE

@@ -42,7 +42,7 @@
 #include "qscxmlecmascriptdatamodel.h"
 #include "qscxmlstatemachine_p.h"
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 /*!
  * \class QScxmlDataModel::ForeachLoopBody
@@ -69,20 +69,49 @@ QScxmlDataModel::ForeachLoopBody::~ForeachLoopBody()
  */
 
 /*!
- * Creates a new data model for the state machine \a stateMachine.
+  \property QScxmlDataModel::stateMachine
+
+  \brief The state machine this data model belongs to.
+
+  A data model can only belong to a single state machine and a state machine
+  can only have one data model. This relation needs to be set up before the
+  state machine is started. Setting this property on a data model will
+  automatically set the corresponding \c dataModel property on the
+  \a stateMachine.
+*/
+
+/*!
+ * Creates a new data model, with the parent object \a parent.
  */
-QScxmlDataModel::QScxmlDataModel(QScxmlStateMachine *stateMachine)
-    : d(new QScxmlDataModelPrivate(stateMachine))
+QScxmlDataModel::QScxmlDataModel(QObject *parent)
+    : QObject(*(new QScxmlDataModelPrivate), parent)
 {
-    QScxmlStateMachinePrivate::get(stateMachine)->m_dataModel = this;
 }
 
 /*!
- * Destroys the data model.
+ * \internal
  */
-QScxmlDataModel::~QScxmlDataModel()
+QScxmlDataModel::QScxmlDataModel(QScxmlDataModelPrivate &dd, QObject *parent) :
+    QObject(dd, parent)
 {
-    delete d;
+}
+
+/*!
+ * Sets the state machine this model belongs to to \a stateMachine. There is a
+ * 1:1 relation between state machines and models. After setting the state
+ * machine once you cannot change it anymore. Any further attempts to set the
+ * state machine using this method will be ignored.
+ */
+void QScxmlDataModel::setStateMachine(QScxmlStateMachine *stateMachine)
+{
+    Q_D(QScxmlDataModel);
+
+    if (d->m_stateMachine == Q_NULLPTR && stateMachine != Q_NULLPTR) {
+        d->m_stateMachine = stateMachine;
+        if (stateMachine)
+            stateMachine->setDataModel(this);
+        emit stateMachineChanged(stateMachine);
+    }
 }
 
 /*!
@@ -90,6 +119,7 @@ QScxmlDataModel::~QScxmlDataModel()
  */
 QScxmlStateMachine *QScxmlDataModel::stateMachine() const
 {
+    Q_D(const QScxmlDataModel);
     return d->m_stateMachine;
 }
 
@@ -98,32 +128,23 @@ QScxmlTableData *QScxmlDataModel::tableData() const
     return stateMachine()->tableData();
 }
 
-QScxmlDataModel *QScxmlDataModelPrivate::instantiateDataModel(
-        DocumentModel::Scxml::DataModelType type, QScxmlStateMachine *stateMachine)
+QScxmlDataModel *QScxmlDataModelPrivate::instantiateDataModel(DocumentModel::Scxml::DataModelType type)
 {
-    Q_ASSERT(stateMachine);
-
     QScxmlDataModel *dataModel = Q_NULLPTR;
     switch (type) {
     case DocumentModel::Scxml::NullDataModel:
-        dataModel = new QScxmlNullDataModel(stateMachine);
+        dataModel = new QScxmlNullDataModel;
         break;
     case DocumentModel::Scxml::JSDataModel:
-        dataModel = new QScxmlEcmaScriptDataModel(stateMachine);
+        dataModel = new QScxmlEcmaScriptDataModel;
         break;
     case DocumentModel::Scxml::CppDataModel:
         break;
     default:
         Q_UNREACHABLE();
     }
-    QScxmlStateMachinePrivate::get(stateMachine)->parserData()->m_ownedDataModel.reset(dataModel);
 
     return dataModel;
-}
-
-void QScxmlDataModelPrivate::setStateMachine(QScxmlStateMachine *stateMachine)
-{
-    m_stateMachine = stateMachine;
 }
 
 /*!
@@ -137,26 +158,28 @@ void QScxmlDataModelPrivate::setStateMachine(QScxmlStateMachine *stateMachine)
  */
 
 /*!
- * \fn QScxmlDataModel::setEvent(const QScxmlEvent &event)
+ * \fn QScxmlDataModel::setScxmlEvent(const QScxmlEvent &event)
  *
  * Sets the \a event to use in the subsequent executable content execution.
  */
 
 /*!
- * \fn QScxmlDataModel::property(const QString &name) const
+ * \fn QScxmlDataModel::scxmlProperty(const QString &name) const
  *
  * Returns the value of the property \a name.
  */
 
 /*!
- * \fn QScxmlDataModel::hasProperty(const QString &name) const
+ * \fn QScxmlDataModel::hasScxmlProperty(const QString &name) const
  *
  * Returns \c true if a property with the given \a name exists, \c false
  * otherwise.
  */
 
 /*!
- * \fn QScxmlDataModel::setProperty(const QString &name, const QVariant &value, const QString &context)
+ * \fn QScxmlDataModel::setScxmlProperty(const QString &name,
+ *                                       const QVariant &value,
+ *                                       const QString &context)
  *
  * Sets a the value \a value for the property \a name.
  *
@@ -165,3 +188,5 @@ void QScxmlDataModelPrivate::setStateMachine(QScxmlStateMachine *stateMachine)
  *
  * Returns \c true if successful or \c false if an error occurred.
  */
+
+QT_END_NAMESPACE

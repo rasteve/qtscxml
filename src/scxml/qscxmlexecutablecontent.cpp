@@ -42,6 +42,8 @@
 #include "qscxmlparser_p.h"
 #include "qscxmlevent_p.h"
 
+QT_BEGIN_NAMESPACE
+
 using namespace QScxmlExecutableContent;
 
 #ifndef BUILD_QSCXMLC
@@ -109,35 +111,35 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
     auto instr = reinterpret_cast<Instruction *>(ip);
     switch (instr->instructionType) {
     case Instruction::Sequence: {
-        qCDebug(qscxmlLog) << "Executing sequence step";
+        qCDebug(qscxmlLog) << stateMachine << "Executing sequence step";
         InstructionSequence *sequence = reinterpret_cast<InstructionSequence *>(instr);
         ip = sequence->instructions();
         Instructions end = ip + sequence->entryCount;
         while (ip < end) {
             if (!step(ip)) {
                 ip = end;
-                qCDebug(qscxmlLog) << "Finished sequence step UNsuccessfully";
+                qCDebug(qscxmlLog) << stateMachine << "Finished sequence step UNsuccessfully";
                 return false;
             }
         }
-        qCDebug(qscxmlLog) << "Finished sequence step successfully";
+        qCDebug(qscxmlLog) << stateMachine << "Finished sequence step successfully";
         return true;
     }
 
     case Instruction::Sequences: {
-        qCDebug(qscxmlLog) << "Executing sequences step";
+        qCDebug(qscxmlLog) << stateMachine << "Executing sequences step";
         InstructionSequences *sequences = reinterpret_cast<InstructionSequences *>(instr);
         ip += sequences->size();
         for (int i = 0; i != sequences->sequenceCount; ++i) {
             Instructions sequence = sequences->at(i);
             step(sequence);
         }
-        qCDebug(qscxmlLog) << "Finished sequences step";
+        qCDebug(qscxmlLog) << stateMachine << "Finished sequences step";
         return true;
     }
 
     case Instruction::Send: {
-        qCDebug(qscxmlLog) << "Executing send step";
+        qCDebug(qscxmlLog) << stateMachine << "Executing send step";
         Send *send = reinterpret_cast<Send *>(instr);
         ip += send->size();
 
@@ -158,7 +160,7 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
             if (msecs >= 0) {
                 event->setDelay(msecs);
             } else {
-                qCDebug(qscxmlLog) << "failed to parse delay time" << delay;
+                qCDebug(qscxmlLog) << stateMachine << "failed to parse delay time" << delay;
                 return false;
             }
         }
@@ -168,7 +170,7 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::JavaScript: {
-        qCDebug(qscxmlLog) << "Executing script step";
+        qCDebug(qscxmlLog) << stateMachine << "Executing script step";
         JavaScript *javascript = reinterpret_cast<JavaScript *>(instr);
         ip += javascript->size();
         bool ok = true;
@@ -177,7 +179,7 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::If: {
-        qCDebug(qscxmlLog) << "Executing if step";
+        qCDebug(qscxmlLog) << stateMachine << "Executing if step";
         If *_if = reinterpret_cast<If *>(instr);
         ip += _if->size();
         auto blocks = _if->blocks();
@@ -186,7 +188,7 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
             if (dataModel->evaluateToBool(_if->conditions.at(i), &ok) && ok) {
                 Instructions block = blocks->at(i);
                 bool res = step(block);
-                qCDebug(qscxmlLog) << "Finished if step";
+                qCDebug(qscxmlLog) << stateMachine << "Finished if step";
                 return res;
             }
         }
@@ -218,7 +220,7 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
             }
         };
 
-        qCDebug(qscxmlLog) << "Executing foreach step";
+        qCDebug(qscxmlLog) << stateMachine << "Executing foreach step";
         Foreach *foreach = reinterpret_cast<Foreach *>(instr);
         Instructions loopStart = foreach->blockstart();
         ip += foreach->size();
@@ -229,7 +231,7 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::Raise: {
-        qCDebug(qscxmlLog) << "Executing raise step";
+        qCDebug(qscxmlLog) << stateMachine << "Executing raise step";
         Raise *raise = reinterpret_cast<Raise *>(instr);
         ip += raise->size();
         auto name = tableData->string(raise->event);
@@ -241,7 +243,7 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::Log: {
-        qCDebug(qscxmlLog) << "Executing log step";
+        qCDebug(qscxmlLog) << stateMachine << "Executing log step";
         Log *log = reinterpret_cast<Log *>(instr);
         ip += log->size();
         bool ok = true;
@@ -259,7 +261,7 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::Cancel: {
-        qCDebug(qscxmlLog) << "Executing cancel step";
+        qCDebug(qscxmlLog) << stateMachine << "Executing cancel step";
         Cancel *cancel = reinterpret_cast<Cancel *>(instr);
         ip += cancel->size();
         QString e = tableData->string(cancel->sendid);
@@ -272,7 +274,7 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::Assign: {
-        qCDebug(qscxmlLog) << "Executing assign step";
+        qCDebug(qscxmlLog) << stateMachine << "Executing assign step";
         Assign *assign = reinterpret_cast<Assign *>(instr);
         ip += assign->size();
         bool ok = true;
@@ -281,7 +283,7 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::Initialize: {
-        qCDebug(qscxmlLog) << "Executing initialize step";
+        qCDebug(qscxmlLog) << stateMachine << "Executing initialize step";
         Initialize *init = reinterpret_cast<Initialize *>(instr);
         ip += init->size();
         bool ok = true;
@@ -290,12 +292,12 @@ bool QScxmlExecutionEngine::step(Instructions &ip)
     }
 
     case Instruction::DoneData: {
-        qCDebug(qscxmlLog) << "Executing DoneData step";
+        qCDebug(qscxmlLog) << stateMachine << "Executing DoneData step";
         DoneData *doneData = reinterpret_cast<DoneData *>(instr);
 
         QString eventName = QStringLiteral("done.state.") + extraData.toString();
         QScxmlEventBuilder event(stateMachine, eventName, doneData);
-        qCDebug(qscxmlLog) << "submitting event" << eventName;
+        qCDebug(qscxmlLog) << stateMachine << "submitting event" << eventName;
         stateMachine->submitEvent(event());
         return true;
     }
@@ -661,3 +663,5 @@ StringIds DynamicTableData::allDataNameIds() const
 {
     return theDataNameIds;
 }
+
+QT_END_NAMESPACE

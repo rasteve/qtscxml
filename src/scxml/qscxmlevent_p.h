@@ -168,6 +168,8 @@ public:
     QString originType; // type to answer by setting the type of send, empty for internal and platform events
     QString invokeId; // id of the invocation that triggered the child process if this was invoked
     int delayInMiliSecs;
+
+    static QByteArray debugString(QScxmlEvent *event);
 };
 
 QT_END_NAMESPACE

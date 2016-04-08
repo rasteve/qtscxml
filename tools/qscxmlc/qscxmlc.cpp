@@ -34,6 +34,7 @@
 #include <QCommandLineParser>
 #include <QFile>
 #include <QFileInfo>
+#include <QTextCodec>
 
 enum {
     NoError = 0,
@@ -43,7 +44,8 @@ enum {
     ParseError = -4,
     CannotOpenOutputHeaderFileError = -5,
     CannotOpenOutputCppFileError = -6,
-    ScxmlVerificationError = -7
+    ScxmlVerificationError = -7,
+    NoTextCodecError = -8
 };
 
 int write(TranslationUnit *tu)
@@ -53,20 +55,33 @@ int write(TranslationUnit *tu)
     QFile outH(tu->outHFileName);
     if (!outH.open(QFile::WriteOnly)) {
         errs << QStringLiteral("Error: cannot open '%1': %2").arg(outH.fileName(), outH.errorString()) << endl;
-        exit(CannotOpenOutputHeaderFileError);
+        return CannotOpenOutputHeaderFileError;
     }
 
     QFile outCpp(tu->outCppFileName);
     if (!outCpp.open(QFile::WriteOnly)) {
         errs << QStringLiteral("Error: cannot open '%1': %2").arg(outCpp.fileName(), outCpp.errorString()) << endl;
-        exit(CannotOpenOutputCppFileError);
+        return CannotOpenOutputCppFileError;
+    }
+
+    // Make sure it outputs UTF-8, as that is what C++ expects.
+    QTextCodec *utf8 = QTextCodec::codecForName("UTF-8");
+    if (!utf8) {
+        errs << QStringLiteral("Error: cannot find a QTextCodec for generating UTF-8.");
+        return NoTextCodecError;
     }
 
     QTextStream h(&outH);
+    h.setCodec(utf8);
+    h.setGenerateByteOrderMark(true);
     QTextStream c(&outCpp);
+    c.setCodec(utf8);
+    c.setGenerateByteOrderMark(true);
     CppDumper dumper(h, c);
     dumper.dump(tu);
+    h.flush();
     outH.close();
+    c.flush();
     outCpp.close();
     return NoError;
 }
@@ -79,17 +94,10 @@ static void collectAllDocuments(DocumentModel::ScxmlDocument *doc, QMap<Document
     }
 }
 
-
-int main(int argc, char *argv[])
+int run(const QStringList &arguments)
 {
-    QCoreApplication a(argc, argv);
-    a.setApplicationVersion(QString::fromLatin1("%1 (Qt %2)").arg(
-                            QString::number(Q_QSCXMLC_OUTPUT_REVISION),
-                            QString::fromLatin1(QT_VERSION_STR)));
-
-    QTextStream errs(stderr, QIODevice::WriteOnly);
-
     QCommandLineParser cmdParser;
+    QTextStream errs(stderr, QIODevice::WriteOnly);
 
     cmdParser.addHelpOption();
     cmdParser.addVersionOption();
@@ -131,7 +139,7 @@ int main(int argc, char *argv[])
     cmdParser.addOption(optionClassName);
     cmdParser.addOption(optionQtMode);
 
-    cmdParser.process(a);
+    cmdParser.process(arguments);
 
     const QStringList inputFiles = cmdParser.positionalArguments();
 
@@ -182,7 +190,7 @@ int main(int argc, char *argv[])
     QFile file(scxmlFileName);
     if (!file.open(QFile::ReadOnly)) {
         errs << QStringLiteral("Error: cannot open input file %1").arg(scxmlFileName);
-        exit(CannotOpenInputFileError);
+        return CannotOpenInputFileError;
     }
 
     QXmlStreamReader reader(&file);
@@ -231,7 +239,14 @@ int main(int argc, char *argv[])
         tu.classnameForDocument.insert(i.key(), name);
     }
 
-    int err = write(&tu);
+    return write(&tu);
+}
 
-    return err;
+int main(int argc, char *argv[])
+{
+    QCoreApplication a(argc, argv);
+    a.setApplicationVersion(QString::fromLatin1("%1 (Qt %2)").arg(
+                            QString::number(Q_QSCXMLC_OUTPUT_REVISION),
+                            QString::fromLatin1(QT_VERSION_STR)));
+    return run(QCoreApplication::arguments());
 }

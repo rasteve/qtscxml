@@ -51,6 +51,9 @@ class QScxmlStateMachineLoader: public QObject
     Q_OBJECT
     Q_PROPERTY(QUrl filename READ filename WRITE setFilename NOTIFY filenameChanged)
     Q_PROPERTY(QScxmlStateMachine* stateMachine READ stateMachine DESIGNABLE false NOTIFY stateMachineChanged)
+    Q_PROPERTY(QVariantMap initialValues READ initialValues WRITE setInitialValues NOTIFY initialValuesChanged)
+    Q_PROPERTY(QScxmlDataModel* dataModel READ dataModel WRITE setDataModel NOTIFY dataModelChanged)
+
 
 public:
     explicit QScxmlStateMachineLoader(QObject *parent = 0);
@@ -60,15 +63,26 @@ public:
     QUrl filename();
     void setFilename(const QUrl &filename);
 
+    QVariantMap initialValues() const;
+    void setInitialValues(const QVariantMap &initialValues);
+
+    QScxmlDataModel *dataModel() const;
+    void setDataModel(QScxmlDataModel *dataModel);
+
 Q_SIGNALS:
     void filenameChanged();
+    void initialValuesChanged();
     void stateMachineChanged();
+    void dataModelChanged();
 
 private:
     bool parse(const QUrl &filename);
 
 private:
     QUrl m_filename;
+    QVariantMap m_initialValues;
+    QScxmlDataModel *m_dataModel;
+    QScxmlDataModel *m_implicitDataModel;
     QScxmlStateMachine *m_stateMachine;
 };
 

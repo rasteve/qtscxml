@@ -48,6 +48,10 @@
 **
 ****************************************************************************/
 
+import Directions 1.0
+
 MainView {
-    stateMachine: directions
+    stateMachine: Directions {
+        running: true
+    }
 }

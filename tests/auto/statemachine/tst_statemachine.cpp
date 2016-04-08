@@ -112,7 +112,6 @@ void tst_StateMachine::activeStateNames()
 
     QSignalSpy stableStateSpy(stateMachine.data(), SIGNAL(reachedStableState()));
 
-    stateMachine->init();
     stateMachine->start();
 
     stableStateSpy.wait(5000);

@@ -103,7 +103,7 @@ public:
 
 private:
     friend class QScxmlParserPrivate;
-    QScxmlParserPrivate *p;
+    QScxmlParserPrivate *d;
 };
 
 QT_END_NAMESPACE

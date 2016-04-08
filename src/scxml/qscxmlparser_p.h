@@ -557,8 +557,8 @@ public:
 
     QScxmlParserPrivate(QScxmlParser *parser, QXmlStreamReader *reader);
 
-    QScxmlParser *parser() const;
-    DocumentModel::ScxmlDocument *scxmlDocument();
+    bool verifyDocument();
+    DocumentModel::ScxmlDocument *scxmlDocument() const;
 
     QString fileName() const;
     void setFileName(const QString &fileName);
@@ -583,6 +583,7 @@ private:
     DocumentModel::AbstractState *currentParent() const;
     DocumentModel::XmlLocation xmlLocation() const;
     bool maybeId(const QXmlStreamAttributes &attributes, QString *id);
+    DocumentModel::If *lastIf();
     bool checkAttributes(const QXmlStreamAttributes &attributes, const char *attribStr);
     bool checkAttributes(const QXmlStreamAttributes &attributes, QStringList requiredNames,
                          QStringList optionalNames);
@@ -642,7 +643,6 @@ private:
     };
 
 private:
-    QScxmlParser *m_parser;
     QString m_fileName;
     QSet<QString> m_allIds;
 

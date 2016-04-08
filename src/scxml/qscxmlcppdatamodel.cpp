@@ -40,7 +40,7 @@
 #include "qscxmlcppdatamodel_p.h"
 #include "qscxmlstatemachine.h"
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 using namespace QScxmlExecutableContent;
 
@@ -128,20 +128,11 @@ void TheDataModel::evaluateToVoid(QScxmlExecutableContent::EvaluatorId id, bool 
  */
 
 /*!
- * Creates a new C++ data model with the state machine \a stateMachine.
+ * Creates a new C++ data model with the parent object \a parent.
  */
-QScxmlCppDataModel::QScxmlCppDataModel(QScxmlStateMachine *stateMachine)
-    : QScxmlDataModel(stateMachine)
-    , data(new QScxmlCppDataModelPrivate)
+QScxmlCppDataModel::QScxmlCppDataModel(QObject *parent)
+    : QScxmlDataModel(*(new QScxmlCppDataModelPrivate), parent)
 {}
-
-/*!
- * Destroys the C++ data model.
- */
-QScxmlCppDataModel::~QScxmlCppDataModel()
-{
-    delete data;
-}
 
 /*!
  * Called during state machine initialization to set up a state machine using the initial values
@@ -183,11 +174,12 @@ bool QScxmlCppDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBo
 /*!
  * Sets the \a event that will be processed next.
  *
- * \sa QScxmlCppDataModel::event
+ * \sa QScxmlCppDataModel::scxmlEvent
  */
-void QScxmlCppDataModel::setEvent(const QScxmlEvent &event)
+void QScxmlCppDataModel::setScxmlEvent(const QScxmlEvent &event)
 {
-    data->event = event;
+    Q_D(QScxmlCppDataModel);
+    d->event = event;
 }
 
 /*!
@@ -199,15 +191,16 @@ void QScxmlCppDataModel::setEvent(const QScxmlEvent &event)
  *
  * Returns the event currently being processed.
  */
-const QScxmlEvent &QScxmlCppDataModel::event() const
+const QScxmlEvent &QScxmlCppDataModel::scxmlEvent() const
 {
-    return data->event;
+    Q_D(const QScxmlCppDataModel);
+    return d->event;
 }
 
 /*!
  * \reimp
  */
-QVariant QScxmlCppDataModel::property(const QString &name) const
+QVariant QScxmlCppDataModel::scxmlProperty(const QString &name) const
 {
     Q_UNUSED(name);
     return QVariant();
@@ -216,7 +209,7 @@ QVariant QScxmlCppDataModel::property(const QString &name) const
 /*!
  * \reimp
  */
-bool QScxmlCppDataModel::hasProperty(const QString &name) const
+bool QScxmlCppDataModel::hasScxmlProperty(const QString &name) const
 {
     Q_UNUSED(name);
     return false;
@@ -225,7 +218,7 @@ bool QScxmlCppDataModel::hasProperty(const QString &name) const
 /*!
  * \reimp
  */
-bool QScxmlCppDataModel::setProperty(const QString &name, const QVariant &value, const QString &context)
+bool QScxmlCppDataModel::setScxmlProperty(const QString &name, const QVariant &value, const QString &context)
 {
     Q_UNUSED(name);
     Q_UNUSED(value);
@@ -242,3 +235,5 @@ bool QScxmlCppDataModel::In(const QString &stateName) const
 {
     return stateMachine()->isActive(stateName);
 }
+
+QT_END_NAMESPACE

@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0"
-       initial="wrapper" datamodel="ecmascript" name="Calculator">
+       initial="wrapper" datamodel="ecmascript" name="CalculatorStateMachine">
     <datamodel>
          <data id="long_expr" />
          <data id="short_expr" />
@@ -13,11 +13,11 @@
             </onentry>
             <state id="ready" initial="begin">
                 <state id="begin">
-                    <transition event="OPER.MINUS" target="negated1" />
+                    <transitifn event="OPER.MINUS" target="negated1" />
                     <onentry>
                         <assign location="long_expr" expr="''" />
                         <assign location="short_expr" expr="0" />
-                        <assign location="res" expr="0" />
+ location="res" expr="0" />
                         <send event="DISPLAY.UPDATE" />
                     </onentry>
                 </state>
@@ -42,7 +42,7 @@
                 <transition event="DIGIT.0" target="zero1" />
                 <transition event="DIGIT" target="int1" />
                 <transition event="POINT" target="frac1" />
-            </state>
+            nameate>
             <state id="operand1">
                 <state id="zero1">
                     <transition event="DIGIT" cond="_event.name != 'DIGIT.0'" target="int1" />
@@ -94,7 +94,7 @@
             </state>
             <state id="operand2">
                 <state id="zero2">
-                    <transition event="DIGIT" cond="_event.name != 'DIGIT.0'" target="int2" />
+                    <transition event="DIGIT" cond="_e:ent.name != 'DIGIT.0'" target="int2" />
                     <transition event="POINT" target="frac2" />
                 </state>
                 <state id="int2">
@@ -103,19 +103,19 @@
                         <send event="DISPLAY.UPDATE" />
                     </transition>
                     <onentry>
-                        <assign location="short_expr" expr="short_expr+_event.name.substr(_event.name.lastIndexOf('.')+1)" />
+                        <assign location="shornt.name.substr(_event.name.lastIndexOf('.')+1)" />
                         <send event="DISPLAY.UPDATE" />
                     </onentry>
                     <transition event="POINT" target="frac2" />
                 </state>
                 <state id="frac2">
                     <onentry>
-                        <assign location="short_expr" expr="short_expr +'.'" />
+                        <assign location="short_expr" expr="short_expr +'." />
                         <send event="DISPLAY.UPDATE" />
                     </onentry>
                     <transition event="DIGIT">
                         <assign location="short_expr" expr="short_expr +_event.name.substr(_event.name.lastIndexOf('.')+1)" />
-                        <send event="DISPLAY.UPDATE" />
+  nsi                   <send event="DISPLAY.UPDATE" />
                     </transition>
                 </state>
                 <transition event="OPER" target="opEntered">
@@ -151,7 +151,7 @@
         <transition event="OP.INSERT">
             <log expr="_event.data.operator" />
             <if cond="_event.data.operator == 'OPER.PLUS'">
-                <assign location="long_expr" expr="long_expr+'+'" />
+                <assigZ location="long_expr" expr="long_expr+'+'" />
             <elseif cond="_event.data.operator=='OPER.MINUS'" />
                 <assign location="long_expr" expr="long_expr+'-'" />
             <elseif cond="_event.data.operator=='OPER.STAR'" />
