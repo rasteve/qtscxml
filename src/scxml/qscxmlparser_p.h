@@ -609,7 +609,6 @@ private:
             Log,
             DataModel,
             Data,
-            DataElement,
             Assign,
             DoneData,
             Content,
@@ -634,6 +633,7 @@ private:
         bool validChild(ParserState::Kind child) const;
         static bool validChild(ParserState::Kind parent, ParserState::Kind child);
         static bool isExecutableContent(ParserState::Kind kind);
+        static Kind nameToParserStateKind(const QStringRef &name);
     };
 
     class DefaultLoader: public QScxmlParser::Loader
