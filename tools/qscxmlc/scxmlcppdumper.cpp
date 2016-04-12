@@ -1193,7 +1193,7 @@ private:
             knownQObjectClasses.insert(serviceClass, "");
 
             reg.impl << QStringLiteral("    SET_SERVICE_PROP(%1, %2, %3%2, %4)")
-                        .arg(addString(mangledServiceName))
+                        .arg(addString(serviceName))
                         .arg(mangledServiceName, namespacePrefix).arg(classDef.signalList.size());
 
             const QByteArray mangledMachineName = mangledName(serviceName, MachineName).toUtf8();
@@ -1221,7 +1221,7 @@ private:
 
             ++classDef.notifyableProperties;
             PropertyDef prop;
-            prop.name = mangledServiceName.toUtf8();
+            prop.name = serviceName.toUtf8();
             prop.type = serviceClass + "*";
             prop.read = "data->" + mangledMachineName;
             prop.notify = mangledSignalName;

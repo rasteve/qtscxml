@@ -34,6 +34,7 @@
 #include "ids1.h"
 #include "statemachineunicodename.h"
 #include "datainnulldatamodel.h"
+#include "submachineunicodename.h"
 
 Q_DECLARE_METATYPE(QScxmlError);
 
@@ -46,6 +47,7 @@ class tst_Compiled: public QObject
 private Q_SLOTS:
     void stateNames();
     void nullDataInit();
+    void subMachineUnicodeName();
 };
 
 void tst_Compiled::stateNames()
@@ -87,6 +89,15 @@ void tst_Compiled::nullDataInit()
 {
     DataInNullDataModel nullData;
     QVERIFY(!nullData.init()); // raises an error, but doesn't crash
+}
+
+void tst_Compiled::subMachineUnicodeName()
+{
+    Directions1 directions;
+    QVERIFY(directions.init());
+    QVariant prop = directions.property("änywhere");
+    QVERIFY(!prop.isNull());
+    QVERIFY(prop.isValid());
 }
 
 QTEST_MAIN(tst_Compiled)
