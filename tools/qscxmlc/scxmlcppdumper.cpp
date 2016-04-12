@@ -1020,17 +1020,20 @@ private:
                 ucharCount += length + 1;
                 return str;
             });
-            t << QStringLiteral("},");
-            if (strings.isEmpty()) {
-                t << QStringLiteral("QT_UNICODE_LITERAL_II(\"\")");
-            } else {
-                for (int i = 0, ei = strings.size(); i < ei; ++i) {
-                    QString s = cEscape(strings.at(i));
-                    t << QStringLiteral("QT_UNICODE_LITERAL_II(\"%1\") // %3: %2")
-                         .arg(s + QStringLiteral("\\x00"), s, QString::number(i));
+            t << QStringLiteral("},{");
+            for (int i = 0, ei = strings.size(); i < ei; ++i) {
+                const QString &string  = strings.at(i);
+                QString result;
+                for (int charPos = 0, eCharPos = string.size(); charPos < eCharPos; ++charPos) {
+                    result.append(QStringLiteral("0x%1,")
+                                  .arg(QString::number(string.at(charPos).unicode(), 16)));
                 }
+                result.append(QStringLiteral("0%1 // %2: %3")
+                              .arg(QLatin1String(i < ei - 1 ? "," : ""), QString::number(i),
+                                   cEscape(string)));
+                t << result;
             }
-            t << QStringLiteral("};") << QStringLiteral("");
+            t << QStringLiteral("}};") << QStringLiteral("");
 
             clazz.classFields << QStringLiteral("static struct Strings {")
                               << QStringLiteral("    QArrayData data[%1];").arg(strings.size())
