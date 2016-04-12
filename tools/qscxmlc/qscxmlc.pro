@@ -7,12 +7,17 @@ QT = core-private
 DEFINES += BUILD_QSCXMLC
 
 SOURCES += \
+    main.cpp \
     generator.cpp \
     qscxmlc.cpp \
     scxmlcppdumper.cpp
 
 HEADERS += \
-    moc.h generator.h outputrevision.h utils.h \
+    moc.h \
+    generator.h \
+    outputrevision.h \
+    qscxmlc.h \
+    utils.h \
     scxmlcppdumper.h
 
 HEADERS += \

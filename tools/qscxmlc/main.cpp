@@ -26,37 +26,16 @@
 **
 ****************************************************************************/
 
-#include <QtTest>
-#include <QObject>
-#include <QCoreApplication>
+#include <QtScxml/qscxmltabledata.h>
 #include "qscxmlc.h"
 
-class tst_Qscxmlc: public QObject
-{
-    Q_OBJECT
+#include <QCoreApplication>
 
-private Q_SLOTS:
-    void parsing_data();
-    void parsing();
-};
-
-void tst_Qscxmlc::parsing_data()
+int main(int argc, char *argv[])
 {
-    QTest::addColumn<QString>("scxmlFileName");
-    QDir dir(QLatin1String(":/tst_qscxmlc/data/"));
-    foreach (const QString &entry, dir.entryList()) {
-        QTest::newRow(entry.toLatin1().constData()) << dir.filePath(entry);
-    }
+    QCoreApplication a(argc, argv);
+    a.setApplicationVersion(QString::fromLatin1("%1 (Qt %2)").arg(
+                            QString::number(Q_QSCXMLC_OUTPUT_REVISION),
+                            QString::fromLatin1(QT_VERSION_STR)));
+    return run(QCoreApplication::arguments());
 }
-
-void tst_Qscxmlc::parsing()
-{
-    QFETCH(QString, scxmlFileName);
-    QVERIFY(run(QStringList() << QLatin1String("qcsxmlc") << scxmlFileName));
-}
-
-QTEST_MAIN(tst_Qscxmlc)
-
-#include "tst_qscxmlc.moc"
-
-
