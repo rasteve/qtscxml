@@ -651,7 +651,6 @@ private:
     QSet<QString> m_allIds;
 
     QScopedPointer<DocumentModel::ScxmlDocument> m_doc;
-    DocumentModel::StateContainer *m_currentParent;
     DocumentModel::StateContainer *m_currentState;
     DefaultLoader m_defaultLoader;
     QScxmlParser::Loader *m_loader;

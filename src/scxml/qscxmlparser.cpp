@@ -2074,8 +2074,7 @@ QScxmlParserPrivate *QScxmlParserPrivate::get(QScxmlParser *parser)
 }
 
 QScxmlParserPrivate::QScxmlParserPrivate(QScxmlParser *parser, QXmlStreamReader *reader)
-    : m_currentParent(Q_NULLPTR)
-    , m_currentState(Q_NULLPTR)
+    : m_currentState(Q_NULLPTR)
     , m_defaultLoader(parser)
     , m_loader(&m_defaultLoader)
     , m_reader(reader)
@@ -2152,7 +2151,6 @@ void QScxmlParserPrivate::parse()
         m_doc->qtMode = true;
     else if (m_qtMode == QScxmlParser::QtModeDisabled)
         m_doc->qtMode = false;
-    m_currentParent = m_doc->root;
     m_currentState = m_doc->root;
     while (!m_reader->atEnd()) {
         QXmlStreamReader::TokenType tt = m_reader->readNext();
@@ -2286,20 +2284,20 @@ void QScxmlParserPrivate::parse()
                 if (!name.isEmpty()) {
                     scxml->name = name.toString();
                 }
-                m_currentState = m_currentParent = m_doc->root;
+                m_currentState = m_doc->root;
                 pNew.instructionContainer = &m_doc->root->initialSetup;
             } else if (elKind == ParserState::State) {
-                auto newState = m_doc->newState(m_currentParent, DocumentModel::State::Normal, xmlLocation());
+                auto newState = m_doc->newState(m_currentState, DocumentModel::State::Normal, xmlLocation());
                 if (!maybeId(attributes, &newState->id)) return;
                 if (attributes.hasAttribute(QStringLiteral("initial"))) {
                     QString initial = attributes.value(QStringLiteral("initial")).toString();
                     newState->initial += initial.split(QChar::Space, QString::SkipEmptyParts);
                 }
-                m_currentState = m_currentParent = newState;
+                m_currentState = newState;
             } else if (elKind == ParserState::Parallel) {
-                auto newState = m_doc->newState(m_currentParent, DocumentModel::State::Parallel, xmlLocation());
+                auto newState = m_doc->newState(m_currentState, DocumentModel::State::Parallel, xmlLocation());
                 if (!maybeId(attributes, &newState->id)) return;
-                m_currentState = m_currentParent = newState;
+                m_currentState = newState;
             } else if (elKind == ParserState::Initial) {
                 DocumentModel::AbstractState *parent = currentParent();
                 if (!parent) {
@@ -2309,10 +2307,10 @@ void QScxmlParserPrivate::parse()
                     addError(QStringLiteral("Explicit initial state for parallel states not supported (only implicitly through the initial states of its substates)"));
                     return;
                 }
-                auto newState = m_doc->newState(m_currentParent, DocumentModel::State::Initial, xmlLocation());
-                m_currentState = m_currentParent = newState;
+                auto newState = m_doc->newState(m_currentState, DocumentModel::State::Initial, xmlLocation());
+                m_currentState = newState;
             } else if (elKind == ParserState::Transition) {
-                auto transition = m_doc->newTransition(m_currentParent, xmlLocation());
+                auto transition = m_doc->newTransition(m_currentState, xmlLocation());
                 transition->events = attributes.value(QLatin1String("event")).toString().split(QLatin1Char(' '), QString::SkipEmptyParts);
                 transition->targets = attributes.value(QLatin1String("target")).toString().split(QLatin1Char(' '), QString::SkipEmptyParts);
                 if (attributes.hasAttribute(QStringLiteral("cond")))
@@ -2330,9 +2328,9 @@ void QScxmlParserPrivate::parse()
                 }
                 pNew.instructionContainer = &transition->instructionsOnTransition;
             } else if (elKind == ParserState::Final) {
-                auto newState = m_doc->newState(m_currentParent, DocumentModel::State::Final, xmlLocation());
+                auto newState = m_doc->newState(m_currentState, DocumentModel::State::Final, xmlLocation());
                 if (!maybeId(attributes, &newState->id)) return;
-                m_currentState = m_currentParent = newState;
+                m_currentState = newState;
             } else if (elKind == ParserState::History) {
                 DocumentModel::AbstractState *parent = currentParent();
                 if (!parent) {
@@ -2350,7 +2348,7 @@ void QScxmlParserPrivate::parse()
                     addError(QStringLiteral("invalid history type %1, valid values are 'shallow' and 'deep'").arg(type.toString()));
                     return;
                 }
-                m_currentState = m_currentParent = newState;
+                m_currentState = newState;
             } else if (elKind == ParserState::OnEntry) {
                 switch (m_stack.last().kind) {
                 case ParserState::Final:
@@ -2415,9 +2413,9 @@ void QScxmlParserPrivate::parse()
                 data->id = attributes.value(QLatin1String("id")).toString();
                 data->src = attributes.value(QLatin1String("src")).toString();
                 data->expr = attributes.value(QLatin1String("expr")).toString();
-                if (DocumentModel::Scxml *scxml = m_currentParent->asScxml()) {
+                if (DocumentModel::Scxml *scxml = m_currentState->asScxml()) {
                     scxml->dataElements.append(data);
-                } else if (DocumentModel::State *state = m_currentParent->asState()) {
+                } else if (DocumentModel::State *state = m_currentState->asState()) {
                     state->dataElements.append(data);
                 } else {
                     Q_UNREACHABLE();
@@ -2518,7 +2516,7 @@ void QScxmlParserPrivate::parse()
                 pNew.instruction = cancel;
             } else if (elKind == ParserState::Invoke) {
                 auto *invoke = m_doc->newNode<DocumentModel::Invoke>(xmlLocation());
-                DocumentModel::State *parentState = m_currentParent->asState();
+                DocumentModel::State *parentState = m_currentState->asState();
                 if (!parentState ||
                         (parentState->type != DocumentModel::State::Normal && parentState->type != DocumentModel::State::Parallel)) {
                     addError(QStringLiteral("invoke can only occur in <state> or <parallel>"));
@@ -2584,8 +2582,8 @@ void QScxmlParserPrivate::parse()
             case ParserState::Initial:
             case ParserState::Final:
             case ParserState::History:
-                Q_ASSERT(m_currentParent->parent);
-                m_currentState = m_currentParent = m_currentParent->parent;
+                Q_ASSERT(m_currentState->parent);
+                m_currentState = m_currentState->parent;
                 break;
             case ParserState::Invoke:
             {
@@ -2678,9 +2676,9 @@ void QScxmlParserPrivate::parse()
                 break;
             case ParserState::Data: {
                 DocumentModel::DataElement *data = Q_NULLPTR;
-                if (auto state = m_currentParent->asState()) {
+                if (auto state = m_currentState->asState()) {
                     data = state->dataElements.last();
-                } else if (auto scxml = m_currentParent->asNode()->asScxml()) {
+                } else if (auto scxml = m_currentState->asNode()->asScxml()) {
                     data = scxml->dataElements.last();
                 } else {
                     Q_UNREACHABLE();
@@ -2789,7 +2787,7 @@ void QScxmlParserPrivate::setQtMode(QScxmlParser::QtMode mode)
 
 DocumentModel::AbstractState *QScxmlParserPrivate::currentParent() const
 {
-    return m_currentParent ? m_currentParent->asAbstractState() : Q_NULLPTR;
+    return m_currentState ? m_currentState->asAbstractState() : Q_NULLPTR;
 }
 
 DocumentModel::XmlLocation QScxmlParserPrivate::xmlLocation() const
