@@ -1793,6 +1793,104 @@ QScxmlParserPrivate::ParserState::Kind QScxmlParserPrivate::ParserState::nameToP
     return None;
 }
 
+QStringList QScxmlParserPrivate::ParserState::requiredAttributes(QScxmlParserPrivate::ParserState::Kind kind)
+{
+    switch (kind) {
+    case Scxml:      return QStringList() << QStringLiteral("version");
+    case State:      return QStringList();
+    case Parallel:   return QStringList();
+    case Transition: return QStringList();
+    case Initial:    return QStringList();
+    case Final:      return QStringList();
+    case OnEntry:    return QStringList();
+    case OnExit:     return QStringList();
+    case History:    return QStringList();
+    case Raise:      return QStringList() << QStringLiteral("event");
+    case If:         return QStringList() << QStringLiteral("cond");
+    case ElseIf:     return QStringList() << QStringLiteral("cond");
+    case Else:       return QStringList();
+    case Foreach:    return QStringList() << QStringLiteral("array")
+                                          << QStringLiteral("item");
+    case Log:        return QStringList();
+    case DataModel:  return QStringList();
+    case Data:       return QStringList() << QStringLiteral("id");
+    case Assign:     return QStringList() << QStringLiteral("location");
+    case DoneData:   return QStringList();
+    case Content:    return QStringList();
+    case Param:      return QStringList() << QStringLiteral("name");
+    case Script:     return QStringList();
+    case Send:       return QStringList();
+    case Cancel:     return QStringList();
+    case Invoke:     return QStringList();
+    case Finalize:   return QStringList();
+    default:         return QStringList();
+    }
+    return QStringList();
+}
+
+QStringList QScxmlParserPrivate::ParserState::optionalAttributes(QScxmlParserPrivate::ParserState::Kind kind)
+{
+    switch (kind) {
+    case Scxml:      return QStringList() << QStringLiteral("initial")
+                                          << QStringLiteral("datamodel")
+                                          << QStringLiteral("binding")
+                                          << QStringLiteral("name");
+    case State:      return QStringList() << QStringLiteral("id")
+                                          << QStringLiteral("initial");
+    case Parallel:   return QStringList() << QStringLiteral("id");
+    case Transition: return QStringList() << QStringLiteral("event")
+                                          << QStringLiteral("cond")
+                                          << QStringLiteral("target")
+                                          << QStringLiteral("type");
+    case Initial:    return QStringList();
+    case Final:      return QStringList() << QStringLiteral("id");
+    case OnEntry:    return QStringList();
+    case OnExit:     return QStringList();
+    case History:    return QStringList() << QStringLiteral("id")
+                                          << QStringLiteral("type");
+    case Raise:      return QStringList();
+    case If:         return QStringList();
+    case ElseIf:     return QStringList();
+    case Else:       return QStringList();
+    case Foreach:    return QStringList() << QStringLiteral("index");
+    case Log:        return QStringList() << QStringLiteral("label")
+                                          << QStringLiteral("expr");
+    case DataModel:  return QStringList();
+    case Data:       return QStringList() << QStringLiteral("src")
+                                          << QStringLiteral("expr");
+    case Assign:     return QStringList() << QStringLiteral("expr");
+    case DoneData:   return QStringList();
+    case Content:    return QStringList() << QStringLiteral("expr");
+    case Param:      return QStringList() << QStringLiteral("expr")
+                                          << QStringLiteral("location");
+    case Script:     return QStringList() << QStringLiteral("src");
+    case Send:       return QStringList() << QStringLiteral("event")
+                                          << QStringLiteral("eventexpr")
+                                          << QStringLiteral("id")
+                                          << QStringLiteral("idlocation")
+                                          << QStringLiteral("type")
+                                          << QStringLiteral("typeexpr")
+                                          << QStringLiteral("namelist")
+                                          << QStringLiteral("delay")
+                                          << QStringLiteral("delayexpr")
+                                          << QStringLiteral("target")
+                                          << QStringLiteral("targetexpr");
+    case Cancel:     return QStringList() << QStringLiteral("sendid")
+                                          << QStringLiteral("sendidexpr");
+    case Invoke:     return QStringList() << QStringLiteral("type")
+                                          << QStringLiteral("typeexpr")
+                                          << QStringLiteral("src")
+                                          << QStringLiteral("srcexpr")
+                                          << QStringLiteral("id")
+                                          << QStringLiteral("idlocation")
+                                          << QStringLiteral("namelist")
+                                          << QStringLiteral("autoforward");
+    case Finalize:   return QStringList();
+    default:         return QStringList();
+    }
+    return QStringList();
+}
+
 DocumentModel::Node::~Node()
 {
 }
@@ -2130,9 +2228,11 @@ void QScxmlParserPrivate::parse()
                 return;
             }
             ParserState pNew = ParserState(elKind);
+            if (!checkAttributes(attributes, elKind))
+                return;
+
             if (elKind == ParserState::Scxml) {
                 m_doc->root = new DocumentModel::Scxml(xmlLocation());
-                m_doc->root->xmlLocation = xmlLocation();
                 auto scxml = m_doc->root;
                 if (m_state != QScxmlParser::StartingParsing || !m_stack.isEmpty()) {
                     addError(xmlLocation(), QStringLiteral("found scxml tag mid stream"));
@@ -2140,7 +2240,6 @@ void QScxmlParserPrivate::parse()
                 } else {
                     m_state = QScxmlParser::ParsingScxml;
                 }
-                if (!checkAttributes(attributes, "version|initial,datamodel,binding,name,classname")) return;
                 if (m_reader->namespaceUri() != scxmlNamespace) {
                     addError(QStringLiteral("default namespace must be set with xmlns=\"%1\" in the scxml tag").arg(scxmlNamespace));
                     return;
@@ -2187,15 +2286,9 @@ void QScxmlParserPrivate::parse()
                 if (!name.isEmpty()) {
                     scxml->name = name.toString();
                 }
-                QStringRef qtClassname = attributes.value(qtScxmlNamespace, QStringLiteral("classname"));
-                if (!qtClassname.isEmpty()) {
-                    scxml->qtClassname = qtClassname.toString();
-                }
                 m_currentState = m_currentParent = m_doc->root;
                 pNew.instructionContainer = &m_doc->root->initialSetup;
             } else if (elKind == ParserState::State) {
-                if (!checkAttributes(attributes, "|id,initial"))
-                    return;
                 auto newState = m_doc->newState(m_currentParent, DocumentModel::State::Normal, xmlLocation());
                 if (!maybeId(attributes, &newState->id)) return;
                 if (attributes.hasAttribute(QStringLiteral("initial"))) {
@@ -2204,12 +2297,10 @@ void QScxmlParserPrivate::parse()
                 }
                 m_currentState = m_currentParent = newState;
             } else if (elKind == ParserState::Parallel) {
-                if (!checkAttributes(attributes, "|id")) return;
                 auto newState = m_doc->newState(m_currentParent, DocumentModel::State::Parallel, xmlLocation());
                 if (!maybeId(attributes, &newState->id)) return;
                 m_currentState = m_currentParent = newState;
             } else if (elKind == ParserState::Initial) {
-                if (!checkAttributes(attributes, "")) return;
                 DocumentModel::AbstractState *parent = currentParent();
                 if (!parent) {
                     addError(QStringLiteral("<initial> found outside a state"));
@@ -2221,7 +2312,6 @@ void QScxmlParserPrivate::parse()
                 auto newState = m_doc->newState(m_currentParent, DocumentModel::State::Initial, xmlLocation());
                 m_currentState = m_currentParent = newState;
             } else if (elKind == ParserState::Transition) {
-                if (!checkAttributes(attributes, "|event,cond,target,type")) return;
                 auto transition = m_doc->newTransition(m_currentParent, xmlLocation());
                 transition->events = attributes.value(QLatin1String("event")).toString().split(QLatin1Char(' '), QString::SkipEmptyParts);
                 transition->targets = attributes.value(QLatin1String("target")).toString().split(QLatin1Char(' '), QString::SkipEmptyParts);
@@ -2240,12 +2330,10 @@ void QScxmlParserPrivate::parse()
                 }
                 pNew.instructionContainer = &transition->instructionsOnTransition;
             } else if (elKind == ParserState::Final) {
-                if (!checkAttributes(attributes, "|id")) return;
                 auto newState = m_doc->newState(m_currentParent, DocumentModel::State::Final, xmlLocation());
                 if (!maybeId(attributes, &newState->id)) return;
                 m_currentState = m_currentParent = newState;
             } else if (elKind == ParserState::History) {
-                if (!checkAttributes(attributes, "|id,type")) return;
                 DocumentModel::AbstractState *parent = currentParent();
                 if (!parent) {
                     addError(QStringLiteral("<history> found outside a state"));
@@ -2264,7 +2352,6 @@ void QScxmlParserPrivate::parse()
                 }
                 m_currentState = m_currentParent = newState;
             } else if (elKind == ParserState::OnEntry) {
-                if (!checkAttributes(attributes, "")) return;
                 switch (m_stack.last().kind) {
                 case ParserState::Final:
                 case ParserState::State:
@@ -2279,7 +2366,6 @@ void QScxmlParserPrivate::parse()
                     break;
                 }
             } else if (elKind == ParserState::OnExit) {
-                if (!checkAttributes(attributes, "")) return;
                 switch (m_stack.last().kind) {
                 case ParserState::Final:
                 case ParserState::State:
@@ -2294,29 +2380,24 @@ void QScxmlParserPrivate::parse()
                     break;
                 }
             } else if (elKind == ParserState::Raise) {
-                if (!checkAttributes(attributes, "event")) return;
                 auto raise = m_doc->newNode<DocumentModel::Raise>(xmlLocation());
                 raise->event = attributes.value(QLatin1String("event")).toString();
                 pNew.instruction = raise;
             } else if (elKind == ParserState::If) {
-                if (!checkAttributes(attributes, "cond")) return;
                 auto *ifI = m_doc->newNode<DocumentModel::If>(xmlLocation());
                 pNew.instruction = ifI;
                 ifI->conditions.append(attributes.value(QLatin1String("cond")).toString());
                 pNew.instructionContainer = m_doc->newSequence(&ifI->blocks);
             } else if (elKind == ParserState::ElseIf) {
-                if (!checkAttributes(attributes, "cond")) return;
                 DocumentModel::If *ifI = lastIf();
                 if (!ifI) return;
                 ifI->conditions.append(attributes.value(QLatin1String("cond")).toString());
                 m_stack.last().instructionContainer = m_doc->newSequence(&ifI->blocks);
             } else if (elKind == ParserState::Else) {
-                if (!checkAttributes(attributes, "")) return;
                 DocumentModel::If *ifI = lastIf();
                 if (!ifI) return;
                 m_stack.last().instructionContainer = m_doc->newSequence(&ifI->blocks);
             } else if (elKind == ParserState::Foreach) {
-                if (!checkAttributes(attributes, "array,item|index")) return;
                 auto foreachI = m_doc->newNode<DocumentModel::Foreach>(xmlLocation());
                 foreachI->array = attributes.value(QLatin1String("array")).toString();
                 foreachI->item = attributes.value(QLatin1String("item")).toString();
@@ -2324,15 +2405,12 @@ void QScxmlParserPrivate::parse()
                 pNew.instruction = foreachI;
                 pNew.instructionContainer = &foreachI->block;
             } else if (elKind == ParserState::Log) {
-                if (!checkAttributes(attributes, "|label,expr")) return;
                 auto logI = m_doc->newNode<DocumentModel::Log>(xmlLocation());
                 logI->label = attributes.value(QLatin1String("label")).toString();
                 logI->expr = attributes.value(QLatin1String("expr")).toString();
                 pNew.instruction = logI;
             } else if (elKind == ParserState::DataModel) {
-                if (!checkAttributes(attributes, "")) return;
             } else if (elKind == ParserState::Data) {
-                if (!checkAttributes(attributes, "id|src,expr")) return;
                 auto data = m_doc->newNode<DocumentModel::DataElement>(xmlLocation());
                 data->id = attributes.value(QLatin1String("id")).toString();
                 data->src = attributes.value(QLatin1String("src")).toString();
@@ -2345,13 +2423,11 @@ void QScxmlParserPrivate::parse()
                     Q_UNREACHABLE();
                 }
             } else if (elKind == ParserState::Assign) {
-                if (!checkAttributes(attributes, "location|expr")) return;
                 auto assign = m_doc->newNode<DocumentModel::Assign>(xmlLocation());
                 assign->location = attributes.value(QLatin1String("location")).toString();
                 assign->expr = attributes.value(QLatin1String("expr")).toString();
                 pNew.instruction = assign;
             } else if (elKind == ParserState::DoneData) {
-                if (!checkAttributes(attributes, "")) return;
                 bool handled = false;
                 if (DocumentModel::State *s = m_currentState->asState()) {
                     if (s->type == DocumentModel::State::Final) {
@@ -2367,7 +2443,6 @@ void QScxmlParserPrivate::parse()
                     addError(QStringLiteral("donedata can only occur in a final state"));
                 }
             } else if (elKind == ParserState::Content) {
-                if (!checkAttributes(attributes, "|expr")) return;
                 switch (m_stack.last().kind) {
                 case ParserState::DoneData: {
                     DocumentModel::State *s = m_currentState->asState();
@@ -2393,7 +2468,6 @@ void QScxmlParserPrivate::parse()
                     addError(QStringLiteral("unexpected parent of content %1").arg(m_stack.last().kind));
                 }
             } else if (elKind == ParserState::Param) {
-                if (!checkAttributes(attributes, "name|expr,location")) return;
                 auto param = m_doc->newNode<DocumentModel::Param>(xmlLocation());
                 param->name = attributes.value(QLatin1String("name")).toString();
                 param->expr = attributes.value(QLatin1String("expr")).toString();
@@ -2419,12 +2493,10 @@ void QScxmlParserPrivate::parse()
                     addError(QStringLiteral("unexpected parent of param %1").arg(m_stack.last().kind));
                 }
             } else if (elKind == ParserState::Script) {
-                if (!checkAttributes(attributes, "|src")) return;
                 auto *script = m_doc->newNode<DocumentModel::Script>(xmlLocation());
                 script->src = attributes.value(QLatin1String("src")).toString();
                 pNew.instruction = script;
             } else if (elKind == ParserState::Send) {
-                if (!checkAttributes(attributes, "|event,eventexpr,id,idlocation,type,typeexpr,namelist,delay,delayexpr,target,targetexpr")) return;
                 auto *send = m_doc->newNode<DocumentModel::Send>(xmlLocation());
                 send->event = attributes.value(QLatin1String("event")).toString();
                 send->eventexpr = attributes.value(QLatin1String("eventexpr")).toString();
@@ -2440,13 +2512,11 @@ void QScxmlParserPrivate::parse()
                     send->namelist = attributes.value(QLatin1String("namelist")).toString().split(QLatin1Char(' '), QString::SkipEmptyParts);
                 pNew.instruction = send;
             } else if (elKind == ParserState::Cancel) {
-                if (!checkAttributes(attributes, "|sendid,sendidexpr")) return;
                 auto *cancel = m_doc->newNode<DocumentModel::Cancel>(xmlLocation());
                 cancel->sendid = attributes.value(QLatin1String("sendid")).toString();
                 cancel->sendidexpr = attributes.value(QLatin1String("sendidexpr")).toString();
                 pNew.instruction = cancel;
             } else if (elKind == ParserState::Invoke) {
-                if (!checkAttributes(attributes, "|type,typeexpr,src,srcexpr,id,idlocation,namelist,autoforward")) return;
                 auto *invoke = m_doc->newNode<DocumentModel::Invoke>(xmlLocation());
                 DocumentModel::State *parentState = m_currentParent->asState();
                 if (!parentState ||
@@ -2757,46 +2827,33 @@ DocumentModel::If *QScxmlParserPrivate::lastIf()
     return ifI;
 }
 
-bool QScxmlParserPrivate::checkAttributes(const QXmlStreamAttributes &attributes, const char *attribStr)
+bool QScxmlParserPrivate::checkAttributes(const QXmlStreamAttributes &attributes,
+                                          QScxmlParserPrivate::ParserState::Kind kind)
 {
-    QString allAttrib = QString::fromLatin1(attribStr);
-    QStringList attrSplit = allAttrib.split(QLatin1Char('|'));
-    QStringList requiredNames, optionalNames;
-    requiredNames = attrSplit.value(0).split(QLatin1Char(','), QString::SkipEmptyParts);
-    optionalNames = attrSplit.value(1).split(QLatin1Char(','), QString::SkipEmptyParts);
-    if (attrSplit.size() > 2) {
-        addError(QStringLiteral("Internal error, invalid attribStr in checkAttributes"));
-    }
-    foreach (const QString &rName, requiredNames)
-        if (rName.isEmpty())
-            requiredNames.removeOne(rName);
-    foreach (const QString &oName, optionalNames)
-        if (oName.isEmpty())
-            optionalNames.removeOne(oName);
-    return checkAttributes(attributes, requiredNames, optionalNames);
+    return checkAttributes(attributes,
+                           ParserState::requiredAttributes(kind),
+                           ParserState::optionalAttributes(kind));
 }
 
-bool QScxmlParserPrivate::checkAttributes(const QXmlStreamAttributes &attributes, QStringList requiredNames, QStringList optionalNames)
+bool QScxmlParserPrivate::checkAttributes(const QXmlStreamAttributes &attributes,
+                                          const QStringList &requiredNames,
+                                          const QStringList &optionalNames)
 {
+    QStringList required = requiredNames;
     foreach (const QXmlStreamAttribute &attribute, attributes) {
-        QStringRef ns = attribute.namespaceUri();
-        if (!ns.isEmpty() && ns != scxmlNamespace && ns != qtScxmlNamespace) {
-            foreach (const QString &nsToIgnore, m_namespacesToIgnore) {
-                if (ns == nsToIgnore)
-                    continue;
-            }
-            m_namespacesToIgnore << ns.toString();
+        const QStringRef ns = attribute.namespaceUri();
+        if (!ns.isEmpty() && ns != scxmlNamespace && ns != qtScxmlNamespace)
             continue;
-        }
+
         const QString name = attribute.name().toString();
-        if (!requiredNames.removeOne(name) && !optionalNames.contains(name)) {
+        if (!required.removeOne(name) && !optionalNames.contains(name)) {
             addError(QStringLiteral("Unexpected attribute '%1'").arg(name));
             return false;
         }
     }
-    if (!requiredNames.isEmpty()) {
+    if (!required.isEmpty()) {
         addError(QStringLiteral("Missing required attributes: '%1'")
-                 .arg(requiredNames.join(QLatin1String("', '"))));
+                 .arg(required.join(QLatin1String("', '"))));
         return false;
     }
     return true;

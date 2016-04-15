@@ -370,7 +370,6 @@ struct Scxml: public StateContainer, public Node
 
     QStringList initial;
     QString name;
-    QString qtClassname;
     DataModelType dataModel;
     QString cppDataModelClassName;
     QString cppDataModelHeaderName;
@@ -585,9 +584,9 @@ private:
     DocumentModel::XmlLocation xmlLocation() const;
     bool maybeId(const QXmlStreamAttributes &attributes, QString *id);
     DocumentModel::If *lastIf();
-    bool checkAttributes(const QXmlStreamAttributes &attributes, const char *attribStr);
-    bool checkAttributes(const QXmlStreamAttributes &attributes, QStringList requiredNames,
-                         QStringList optionalNames);
+    bool checkAttributes(const QXmlStreamAttributes &attributes,
+                         const QStringList &requiredNames,
+                         const QStringList &optionalNames);
 
 private:
     struct ParserState {
@@ -634,6 +633,8 @@ private:
         static bool validChild(ParserState::Kind parent, ParserState::Kind child);
         static bool isExecutableContent(ParserState::Kind kind);
         static Kind nameToParserStateKind(const QStringRef &name);
+        static QStringList requiredAttributes(Kind kind);
+        static QStringList optionalAttributes(Kind kind);
     };
 
     class DefaultLoader: public QScxmlParser::Loader
@@ -642,6 +643,8 @@ private:
         DefaultLoader(QScxmlParser *parser);
         QByteArray load(const QString &name, const QString &baseDir, bool *ok) Q_DECL_OVERRIDE Q_DECL_FINAL;
     };
+
+    bool checkAttributes(const QXmlStreamAttributes &attributes, QScxmlParserPrivate::ParserState::Kind kind);
 
 private:
     QString m_fileName;
@@ -652,7 +655,6 @@ private:
     DocumentModel::StateContainer *m_currentState;
     DefaultLoader m_defaultLoader;
     QScxmlParser::Loader *m_loader;
-    QStringList m_namespacesToIgnore;
 
     QXmlStreamReader *m_reader;
     QVector<ParserState> m_stack;
