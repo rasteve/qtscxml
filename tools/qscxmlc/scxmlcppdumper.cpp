@@ -464,19 +464,7 @@ protected:
         clazz.classFields << QStringLiteral("QScxmlTransition ") + tName + QLatin1Char(';');
 
         // Initializer:
-#if QT_VERSION < QT_VERSION_CHECK(5, 6, 0) // QTBUG-46703 work-around. See bug report why it's a bad one.
-        QString parentName;
-        auto parent = m_parents.last();
-        if (HistoryState *historyState = parent->asHistoryState()) {
-            parentName = QStringLiteral("state_") + mangledName(historyState) + QStringLiteral("_defaultConfiguration");
-        } else {
-            parentName = parentStateMemberName();
-        }
-        Q_ASSERT(!parentName.isEmpty());
-        QString initializer = tName + QStringLiteral("(&") + parentName + QStringLiteral(", ");
-#else
         QString initializer = tName + QStringLiteral("(");
-#endif
         QStringList elements;
         foreach (const QString &event, node->events)
             elements.append(qba(event));
@@ -491,15 +479,11 @@ protected:
             clazz.init.impl << tName + QStringLiteral(".setConditionalExpression(%1);").arg(cond);
         }
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
         if (m_parents.last()->asHistoryState()) {
             clazz.init.impl << QStringLiteral("%1.setDefaultTransition(&%2);").arg(parentStateMemberName(), tName);
         } else {
             clazz.init.impl << QStringLiteral("%1.addTransitionTo(&%2);").arg(tName, parentStateMemberName());
         }
-#else // QTBUG-46703: no default transition for QHistoryState yet...
-        clazz.init.impl << parentName + QStringLiteral(".addTransition(&") + tName + QStringLiteral(");");
-#endif
 
         if (node->type == Transition::Internal) {
             clazz.init.impl << tName + QStringLiteral(".setTransitionType(QAbstractTransition::InternalTransition);");
@@ -554,21 +538,6 @@ protected:
 
         // visit the kid:
         if (Transition *t = node->defaultConfiguration()) {
-#if QT_VERSION < QT_VERSION_CHECK(5, 6, 0) // work-around for QTBUG-46703
-            // Declaration:
-            clazz.classFields << QStringLiteral("QState ") + stateName + QStringLiteral("_defaultConfiguration;");
-
-            // Initializer:
-            QString init = stateName + QStringLiteral("_defaultConfiguration(&state_");
-            if (State *parentState = node->parent->asState()) {
-                init += mangledName(parentState);
-            }
-            clazz.constructor.initializer << init + QLatin1Char(')');
-
-            // init:
-            clazz.init.impl << stateName + QStringLiteral(".setDefaultState(&")
-                               + stateName + QStringLiteral("_defaultConfiguration);");
-#endif
 
             m_parents.append(node);
             t->accept(this);

@@ -93,13 +93,11 @@ public:
     { return QScxmlStateMachinePrivate::get(stateMachine()); }
 
 protected: // overrides for QStateMachinePrivate:
-#if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
     void noMicrostep() Q_DECL_OVERRIDE;
     void processedPendingEvents(bool didChange) Q_DECL_OVERRIDE;
     void beginMacrostep() Q_DECL_OVERRIDE;
     void endMacrostep(bool didChange) Q_DECL_OVERRIDE;
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
     void enterStates(QEvent *event, const QList<QAbstractState*> &exitedStates_sorted,
                      const QList<QAbstractState*> &statesToEnter_sorted,
                      const QSet<QAbstractState*> &statesForDefaultEntry,
@@ -112,11 +110,9 @@ protected: // overrides for QStateMachinePrivate:
                     const QHash<QAbstractState*, QVector<QPropertyAssignment> > &assignmentsForEnteredStates) Q_DECL_OVERRIDE;
 
     void exitInterpreter() Q_DECL_OVERRIDE;
-#endif // QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 
     void emitStateFinished(QState *forState, QFinalState *guiltyState) Q_DECL_OVERRIDE;
     void startupHook() Q_DECL_OVERRIDE;
-#endif // QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
 
 public: // fields
     QScxmlStateMachine *m_stateMachine;
@@ -739,8 +735,6 @@ bool QScxmlInternal::WrappedQStateMachine::event(QEvent *e)
     return QState::event(e);
 }
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
-
 void QScxmlInternal::WrappedQStateMachinePrivate::noMicrostep()
 {
     qCDebug(qscxmlLog) << m_stateMachine
@@ -777,7 +771,6 @@ void QScxmlInternal::WrappedQStateMachinePrivate::endMacrostep(bool didChange)
     }
 }
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 void QScxmlInternal::WrappedQStateMachinePrivate::enterStates(
         QEvent *event,
         const QList<QAbstractState*> &exitedStates_sorted,
@@ -869,7 +862,6 @@ void QScxmlInternal::WrappedQStateMachinePrivate::exitInterpreter()
         }
     }
 }
-#endif // QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 
 void QScxmlInternal::WrappedQStateMachinePrivate::emitStateFinished(QState *forState, QFinalState *guiltyState)
 {
@@ -890,8 +882,6 @@ void QScxmlInternal::WrappedQStateMachinePrivate::startupHook()
 
     q->submitQueuedEvents();
 }
-
-#endif // QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
 
 int QScxmlInternal::WrappedQStateMachinePrivate::eventIdForDelayedEvent(const QString &sendId)
 {

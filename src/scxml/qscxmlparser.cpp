@@ -1219,26 +1219,12 @@ private:
             m_eventSlots.unite(node->events.toSet());
         }
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
         auto newTransition = new QScxmlTransition(node->events);
         if (QHistoryState *parent = qobject_cast<QHistoryState*>(m_parents.last())) {
             parent->setDefaultTransition(newTransition);
         } else {
             currentParent()->addTransition(newTransition);
         }
-#else // See QTBUG-46703, which explains why the following is a bad work-around.
-        QState *parentState = Q_NULLPTR;
-        if (QHistoryState *parent = qobject_cast<QHistoryState*>(m_parents.last())) {
-            // QHistoryState cannot have an initial transition, only an initial state.
-            // So, work around that by creating an initial state, and add the transition to that.
-            parentState = new QScxmlState(parent->parentState());
-            parent->setDefaultState(parentState);
-        } else {
-            parentState = currentParent();
-        }
-        auto newTransition = new QScxmlTransition(parentState, node->events);
-        parentState->addTransition(newTransition);
-#endif
 
         if (node->condition) {
             auto cond = createEvaluatorBool(QStringLiteral("transition"), QStringLiteral("cond"), *node->condition.data());
@@ -2318,10 +2304,8 @@ void QScxmlParserPrivate::parse()
                 QStringRef type = attributes.value(QLatin1String("type"));
                 if (type.isEmpty() || type == QLatin1String("external")) {
                     transition->type = DocumentModel::Transition::External;
-#if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
                 } else if (type == QLatin1String("internal")) {
                     transition->type = DocumentModel::Transition::Internal;
-#endif
                 } else {
                     addError(QStringLiteral("invalid transition type '%1', valid values are 'external' and 'internal'").arg(type.toString()));
                     break;
