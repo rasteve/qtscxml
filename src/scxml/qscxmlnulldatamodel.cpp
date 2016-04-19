@@ -105,7 +105,7 @@ public:
             resolved.error = true;
             resolved.str =  QStringLiteral("%1 in %2").arg(expr, td->string(info.context));
         }
-        return qMove(resolved);
+        return resolved;
     }
 
 private:
