@@ -47,6 +47,8 @@ private Q_SLOTS:
     void activeStateNames();
     void connectToFinal();
     void eventOccurred();
+
+    void doneDotStateEvent();
 };
 
 void tst_StateMachine::stateNames_data()
@@ -157,6 +159,21 @@ void tst_StateMachine::eventOccurred()
 
     QCOMPARE(externalEventOccurredSpy.count(), 1);
     QCOMPARE(qvariant_cast<QScxmlEvent>(externalEventOccurredSpy.at(0).at(0)).name(), QLatin1String("externalEvent"));
+}
+
+void tst_StateMachine::doneDotStateEvent()
+{
+    QScopedPointer<QScxmlStateMachine> stateMachine(QScxmlStateMachine::fromFile(QString(":/tst_statemachine/stateDotDoneEvent.scxml")));
+    QVERIFY(!stateMachine.isNull());
+
+    QSignalSpy finishedSpy(stateMachine.data(), SIGNAL(finished()));
+
+    stateMachine->start();
+    finishedSpy.wait(5000);
+    QCOMPARE(finishedSpy.count(), 1);
+    QCOMPARE(stateMachine->activeStateNames(true).size(), 1);
+    qDebug() << stateMachine->activeStateNames(true);
+    QVERIFY(stateMachine->activeStateNames(true).contains(QLatin1String("success")));
 }
 
 
