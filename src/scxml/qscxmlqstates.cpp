@@ -196,6 +196,30 @@ QScxmlStateMachine *QScxmlFinalState::stateMachine() const {
     return qobject_cast<QScxmlInternal::WrappedQStateMachine *>(machine())->stateMachine();
 }
 
+QScxmlHistoryState::QScxmlHistoryState(QState *parent)
+    : QHistoryState(parent)
+{
+}
+
+QScxmlHistoryState::~QScxmlHistoryState()
+{
+}
+
+void QScxmlHistoryState::setAsInitialStateFor(QScxmlState *state)
+{
+    state->setInitialState(this);
+}
+
+void QScxmlHistoryState::setAsInitialStateFor(QScxmlStateMachine *stateMachine)
+{
+    QScxmlStateMachinePrivate::get(stateMachine)->m_qStateMachine->setInitialState(this);
+}
+
+QScxmlStateMachine *QScxmlHistoryState::stateMachine() const
+{
+    return qobject_cast<QScxmlInternal::WrappedQStateMachine *>(machine())->stateMachine();
+}
+
 QScxmlExecutableContent::ContainerId QScxmlFinalState::doneData() const
 {
     Q_D(const QScxmlFinalState);

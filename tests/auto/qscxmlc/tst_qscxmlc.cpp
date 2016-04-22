@@ -29,10 +29,7 @@
 #include <QtTest>
 #include <QObject>
 #include <QCoreApplication>
-
-#define main qscxmlcmain
-#include "qscxmlc.cpp"
-#undef main
+#include "qscxmlc.h"
 
 class tst_Qscxmlc: public QObject
 {

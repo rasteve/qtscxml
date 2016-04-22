@@ -7,18 +7,9 @@ TEMPLATE = app
 
 RESOURCES += tst_qscxmlc.qrc
 
-SOURCES += \
-    $$PWD/tst_qscxmlc.cpp \
-    $$PWD/../../../tools/qscxmlc/generator.cpp \
-    $$PWD/../../../tools/qscxmlc/scxmlcppdumper.cpp
-
-HEADERS += \
-    $$PWD/../../../tools/qscxmlc/qscxmlc.cpp \ # yes, that's a header. We want to #define scxmlcmain main
-    $$PWD/../../../tools/qscxmlc/moc.h \
-    $$PWD/../../../tools/qscxmlc/generator.h \
-    $$PWD/../../../tools/qscxmlc/outputrevision.h \
-    $$PWD/../../../tools/qscxmlc/utils.h \
-    $$PWD/../../../tools/qscxmlc/scxmlcppdumper.h
+include(../../../tools/qscxmlc/qscxmlc.pri)
 
 INCLUDEPATH += ../../../tools/qscxmlc/
 
+SOURCES += \
+    tst_qscxmlc.cpp

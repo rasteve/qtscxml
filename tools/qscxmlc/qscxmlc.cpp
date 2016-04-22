@@ -29,12 +29,15 @@
 #include <QtScxml/private/qscxmlparser_p.h>
 #include <QtScxml/qscxmltabledata.h>
 #include "scxmlcppdumper.h"
+#include "qscxmlc.h"
 
 #include <QCoreApplication>
 #include <QCommandLineParser>
 #include <QFile>
 #include <QFileInfo>
 #include <QTextCodec>
+
+QT_BEGIN_NAMESPACE
 
 enum {
     NoError = 0,
@@ -220,7 +223,7 @@ int run(const QStringList &arguments)
         mainClassName = mainDoc->root->name;
     if (mainClassName.isEmpty()) {
         mainClassName = QFileInfo(scxmlFileName).fileName();
-        int dot = mainClassName.indexOf(QLatin1Char('.'));
+        int dot = mainClassName.lastIndexOf(QLatin1Char('.'));
         if (dot != -1)
             mainClassName = mainClassName.left(dot);
     }
@@ -242,11 +245,4 @@ int run(const QStringList &arguments)
     return write(&tu);
 }
 
-int main(int argc, char *argv[])
-{
-    QCoreApplication a(argc, argv);
-    a.setApplicationVersion(QString::fromLatin1("%1 (Qt %2)").arg(
-                            QString::number(Q_QSCXMLC_OUTPUT_REVISION),
-                            QString::fromLatin1(QT_VERSION_STR)));
-    return run(QCoreApplication::arguments());
-}
+QT_END_NAMESPACE

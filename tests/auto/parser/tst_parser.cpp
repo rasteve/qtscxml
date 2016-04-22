@@ -49,10 +49,64 @@ void tst_Parser::error_data()
     QTest::addColumn<QVector<QScxmlError> >("expectedErrors");
 
     QVector<QScxmlError> errors;
-    errors << QScxmlError(QString(":/tst_parser/test1.scxml"), 34, 46, QString("unknown state 'b' in target"));
-    QTest::newRow("test1") << QString(":/tst_parser/test1.scxml") << errors;
+    QString filename;
 
-    QTest::newRow("namespaces 1") << QStringLiteral(":/tst_parser/namespaces1.scxml") << QVector<QScxmlError>();
+    filename = QLatin1String(":/tst_parser/test1.scxml");
+    errors.clear();
+    errors << QScxmlError(filename, 34, 46,
+                          QLatin1String("unknown state 'b' in target"));
+    QTest::newRow("test1") << filename << errors;
+
+    filename = QLatin1String(":/tst_parser/namespaces1.scxml");
+    errors.clear();
+    QTest::newRow("namespaces 1") << filename << errors;
+
+    filename = QLatin1String(":/tst_parser/ids1.scxml");
+    errors.clear();
+    QTest::newRow("IDs 1") << filename << errors;
+
+    filename = QLatin1String(":/tst_parser/ids2.scxml");
+    errors.clear();
+    errors << QScxmlError(filename, 33, 25,
+                          QLatin1String("state name 'foo.bar' is not a valid C++ identifier in Qt mode"));
+    errors << QScxmlError(filename, 34, 25,
+                          QLatin1String("state name 'foo-bar' is not a valid C++ identifier in Qt mode"));
+    errors << QScxmlError(filename, 36, 19,
+                          QLatin1String("'1' is not a valid XML ID"));
+
+    QTest::newRow("IDs 2") << filename << errors;
+
+    filename = QLatin1String(":/tst_parser/eventnames.scxml");
+    errors.clear();
+    errors << QScxmlError(filename, 50, 38,
+                          QLatin1String("'.invalid' is not a valid event"));
+    errors << QScxmlError(filename, 51, 38,
+                          QLatin1String("'invalid.' is not a valid event"));
+    errors << QScxmlError(filename, 39, 36,
+                          QLatin1String("'.invalid' is not a valid event"));
+    errors << QScxmlError(filename, 40, 36,
+                          QLatin1String("'invalid.' is not a valid event"));
+    errors << QScxmlError(filename, 41, 36,
+                          QLatin1String("'in valid' is not a valid event"));
+    QTest::newRow("eventnames") << filename << errors;
+
+    filename = QString(":/tst_parser/qtmode.scxml");
+    errors.clear();
+    errors << QScxmlError(filename, 35, 31,
+                          QLatin1String("event name 'a' collides with a state name 'a' in Qt mode"));
+    errors << QScxmlError(filename, 36, 34,
+                          QLatin1String("event name 'void' is not a valid C++ identifier in Qt mode"));
+    errors << QScxmlError(filename, 37, 38,
+                          QLatin1String("event name 'aChanged' collides with a state name 'a' in Qt mode"));
+    errors << QScxmlError(filename, 38, 38,
+                          QLatin1String("event name 'finished' is not a valid Qt identifier in Qt mode"));
+    errors << QScxmlError(filename, 42, 21,
+                          QLatin1String("state name 'int' is not a valid C++ identifier in Qt mode"));
+    errors << QScxmlError(filename, 43, 28,
+                          QLatin1String("state name 'objectName' is not a valid Qt identifier in Qt mode"));
+    errors << QScxmlError(filename, 45, 28,
+                          QLatin1String("state name 'fooChanged' collides with a state name 'foo' in Qt mode"));
+    QTest::newRow("qtmode") << filename << errors;
 }
 
 void tst_Parser::error()

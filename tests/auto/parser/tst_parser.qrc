@@ -2,5 +2,9 @@
     <qresource prefix="/tst_parser">
         <file>test1.scxml</file>
         <file>namespaces1.scxml</file>
+        <file>ids1.scxml</file>
+        <file>ids2.scxml</file>
+        <file>eventnames.scxml</file>
+        <file>qtmode.scxml</file>
     </qresource>
 </RCC>

@@ -45,6 +45,7 @@
 
 #include <QAbstractTransition>
 #include <QFinalState>
+#include <QHistoryState>
 #include <QState>
 
 QT_BEGIN_NAMESPACE
@@ -131,6 +132,20 @@ protected:
 
 private:
     Q_DECLARE_PRIVATE(QScxmlFinalState)
+};
+
+class Q_SCXML_EXPORT QScxmlHistoryState: public QHistoryState
+{
+    Q_OBJECT
+
+public:
+    QScxmlHistoryState(QState *parent = Q_NULLPTR);
+    ~QScxmlHistoryState();
+
+    void setAsInitialStateFor(QScxmlState *state);
+    void setAsInitialStateFor(QScxmlStateMachine *stateMachine);
+
+    QScxmlStateMachine *stateMachine() const;
 };
 
 class QScxmlBaseTransitionPrivate;

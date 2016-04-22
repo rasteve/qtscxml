@@ -1,5 +1,3 @@
-<?xml version="1.0" ?>
-<!--
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
@@ -27,15 +25,17 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
--->
-<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="namespaces1" binding="early"
-       xmlns:qt="http://www.qt.io/2015/02/scxml-ext" qt:editorversion="1.2.3" initial="State_1">
-    <qt:editorinfo initialGeometry="135;83;-20;-20;40;40"/>
-    <state id="State_1">
-        <qt:editorinfo geometry="134;218;-60;-50;122;100" scenegeometry="134;218;74;168;122;100"/>
-        <transition type="external" event="Transition-2" target="State_2">
-            <qt:editorinfo movePoint="-26;0"/>
-        </transition>
-    </state>
-    <state id="State_2"/>
-</scxml>
+
+#include <QtScxml/qscxmltabledata.h>
+#include "qscxmlc.h"
+
+#include <QCoreApplication>
+
+int main(int argc, char *argv[])
+{
+    QCoreApplication a(argc, argv);
+    a.setApplicationVersion(QString::fromLatin1("%1 (Qt %2)").arg(
+                            QString::number(Q_QSCXMLC_OUTPUT_REVISION),
+                            QString::fromLatin1(QT_VERSION_STR)));
+    return run(QCoreApplication::arguments());
+}

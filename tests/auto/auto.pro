@@ -1,2 +1,2 @@
 TEMPLATE = subdirs
-SUBDIRS = cmake parser scion statemachine qscxmlc
+SUBDIRS = cmake parser scion statemachine qscxmlc compiled

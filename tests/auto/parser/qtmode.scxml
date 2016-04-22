@@ -28,14 +28,19 @@
 **
 ****************************************************************************/
 -->
-<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="namespaces1" binding="early"
-       xmlns:qt="http://www.qt.io/2015/02/scxml-ext" qt:editorversion="1.2.3" initial="State_1">
-    <qt:editorinfo initialGeometry="135;83;-20;-20;40;40"/>
-    <state id="State_1">
-        <qt:editorinfo geometry="134;218;-60;-50;122;100" scenegeometry="134;218;74;168;122;100"/>
-        <transition type="external" event="Transition-2" target="State_2">
-            <qt:editorinfo movePoint="-26;0"/>
-        </transition>
+<!-- enable-qt-mode: yes -->
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0"
+       name="test1">
+    <state id="a">
+        <transition event="a"/>
+        <transition event="void"/>
+        <transition event="aChanged"/>
+        <transition event="finished"/>
+        <transition event="done.state.a"/>
+        <transition event="done.state.double"/>
     </state>
-    <state id="State_2"/>
+    <state id="int"/>
+    <state id="objectName"/>
+    <state id="foo"/>
+    <state id="fooChanged"/>
 </scxml>

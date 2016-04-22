@@ -105,7 +105,7 @@ public:
             resolved.error = true;
             resolved.str =  QStringLiteral("%1 in %2").arg(expr, td->string(info.context));
         }
-        return qMove(resolved);
+        return resolved;
     }
 
 private:
@@ -164,38 +164,48 @@ bool QScxmlNullDataModel::evaluateToBool(QScxmlExecutableContent::EvaluatorId id
 QVariant QScxmlNullDataModel::evaluateToVariant(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
-    Q_UNUSED(ok);
-    Q_UNREACHABLE();
+    *ok = false;
+    QScxmlStateMachinePrivate::get(stateMachine())->submitError(
+                QStringLiteral("error.execution"),
+                QStringLiteral("Cannot evaluate expressions on a null data model"));
     return QVariant();
 }
 
 void QScxmlNullDataModel::evaluateToVoid(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
-    Q_UNUSED(ok);
-    Q_UNREACHABLE();
+    *ok = false;
+    QScxmlStateMachinePrivate::get(stateMachine())->submitError(
+                QStringLiteral("error.execution"),
+                QStringLiteral("Cannot evaluate expressions on a null data model"));
 }
 
 void QScxmlNullDataModel::evaluateAssignment(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
-    Q_UNUSED(ok);
-    Q_UNREACHABLE();
+    *ok = false;
+    QScxmlStateMachinePrivate::get(stateMachine())->submitError(
+                QStringLiteral("error.execution"),
+                QStringLiteral("Cannot assign values on a null data model"));
 }
 
 void QScxmlNullDataModel::evaluateInitialization(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
-    Q_UNUSED(ok);
-    Q_UNREACHABLE();
+    *ok = false;
+    QScxmlStateMachinePrivate::get(stateMachine())->submitError(
+                QStringLiteral("error.execution"),
+                QStringLiteral("Cannot initialize values on a null data model"));
 }
 
 bool QScxmlNullDataModel::evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body)
 {
     Q_UNUSED(id);
-    Q_UNUSED(ok);
     Q_UNUSED(body);
-    Q_UNREACHABLE();
+    *ok = false;
+    QScxmlStateMachinePrivate::get(stateMachine())->submitError(
+                QStringLiteral("error.execution"),
+                QStringLiteral("Cannot run foreach on a null data model"));
     return false;
 }
 
