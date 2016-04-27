@@ -574,13 +574,20 @@ QByteArray QScxmlEventPrivate::debugString(QScxmlEvent *event)
     }
 
     QJsonObject o;
-    o[QStringLiteral("name")] = event->name();
-    o[QStringLiteral("name")] = event->scxmlType();
-    o[QStringLiteral("name")] = event->sendId();
-    o[QStringLiteral("name")] = event->origin();
-    o[QStringLiteral("name")] = event->originType();
-    o[QStringLiteral("name")] = event->invokeId();
-    o[QStringLiteral("data")] = QJsonValue::fromVariant(event->data());
+    if (!event->name().isNull())
+        o[QStringLiteral("name")] = event->name();
+    if (!event->scxmlType().isNull())
+        o[QStringLiteral("type")] = event->scxmlType();
+    if (!event->sendId().isNull())
+        o[QStringLiteral("sendid")] = event->sendId();
+    if (!event->origin().isNull())
+        o[QStringLiteral("origin")] = event->origin();
+    if (!event->originType().isNull())
+        o[QStringLiteral("origintype")] = event->originType();
+    if (!event->invokeId().isNull())
+        o[QStringLiteral("invokeid")] = event->invokeId();
+    if (!event->data().isNull())
+        o[QStringLiteral("data")] = QJsonValue::fromVariant(event->data());
 
     return QJsonDocument(o).toJson(QJsonDocument::Compact);
 }
