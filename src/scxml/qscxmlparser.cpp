@@ -2216,14 +2216,14 @@ void QScxmlParserPrivate::parse()
                 return;
 
             if (elKind == ParserState::Scxml) {
-                m_doc->root = new DocumentModel::Scxml(xmlLocation());
-                auto scxml = m_doc->root;
                 if (m_state != QScxmlParser::StartingParsing || !m_stack.isEmpty()) {
                     addError(xmlLocation(), QStringLiteral("found scxml tag mid stream"));
                     return;
                 } else {
                     m_state = QScxmlParser::ParsingScxml;
                 }
+                m_doc->root = new DocumentModel::Scxml(xmlLocation());
+                auto scxml = m_doc->root;
                 if (m_reader->namespaceUri() != scxmlNamespace) {
                     addError(QStringLiteral("default namespace must be set with xmlns=\"%1\" in the scxml tag").arg(scxmlNamespace));
                     return;
