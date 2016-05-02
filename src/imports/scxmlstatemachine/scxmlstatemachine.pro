@@ -1,6 +1,4 @@
-CXX_MODULE = qml
-TARGET = scxmlstatemachine
-TARGETPATH = Scxml
+TARGETPATH = QtScxml
 IMPORT_VERSION = 1.0
 
 QT = scxml qml-private core-private
@@ -13,3 +11,5 @@ HEADERS = \
     $$PWD/statemachineloader.h
 
 load(qml_plugin)
+
+OTHER_FILES += plugins.qmltypes qmldir

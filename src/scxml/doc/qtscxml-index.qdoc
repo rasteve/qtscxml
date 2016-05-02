@@ -52,7 +52,7 @@
     in your .qml file:
 
     \code
-    import Scxml 1.0
+    import QtScxml 1.0
     \endcode
 
     To link against the module, add this line to your qmake .pro file:

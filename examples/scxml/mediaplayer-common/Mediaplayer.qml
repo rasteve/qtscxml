@@ -50,7 +50,7 @@
 
 import QtQuick 2.5
 import QtQuick.Window 2.2
-import Scxml 1.0 as Scxml
+import QtScxml 1.0 as Scxml
 
 Window {
     id: root

@@ -35,7 +35,7 @@
     in your .qml file:
 
     \code
-    import Scxml 1.0
+    import QtScxml 1.0
     \endcode
 
     For more information, see \l{Instantiating State Machines}.

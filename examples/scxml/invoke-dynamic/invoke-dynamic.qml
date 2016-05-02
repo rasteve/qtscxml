@@ -48,7 +48,7 @@
 **
 ****************************************************************************/
 
-import Scxml 1.0 as Scxml
+import QtScxml 1.0 as Scxml
 
 MainView {
     stateMachine: directions.stateMachine

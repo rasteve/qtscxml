@@ -11,5 +11,5 @@
     \e mediaplayer-common\Mediaplayer.qml:
 
     \quotefromfile mediaplayer-common/Mediaplayer.qml
-    \skipto import Scxml
+    \skipto import QtScxml
     \printuntil scxmlLoader.filename
