@@ -2224,10 +2224,6 @@ void QScxmlParserPrivate::parse()
                 }
                 m_doc->root = new DocumentModel::Scxml(xmlLocation());
                 auto scxml = m_doc->root;
-                if (m_reader->namespaceUri() != scxmlNamespace) {
-                    addError(QStringLiteral("default namespace must be set with xmlns=\"%1\" in the scxml tag").arg(scxmlNamespace));
-                    return;
-                }
                 if (attributes.hasAttribute(QStringLiteral("initial"))) {
                     QString initial = attributes.value(QStringLiteral("initial")).toString();
                     scxml->initial += initial.split(QChar::Space, QString::SkipEmptyParts);
