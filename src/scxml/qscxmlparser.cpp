@@ -1703,11 +1703,12 @@ bool QScxmlParserPrivate::ParserState::validChild(ParserState::Kind parent, Pars
     case ParserState::DoneData:
         return (child == ParserState::Content || child == ParserState::Param);
     case ParserState::Send:
-        return (child == ParserState::Param || child == ParserState::Content
-                || isExecutableContent(child));
+        return (child == ParserState::Param || child == ParserState::Content);
     case ParserState::Content:
+        return isExecutableContent(child);
     case ParserState::Param:
     case ParserState::Cancel:
+        return false;
     case ParserState::Finalize:
         return isExecutableContent(child);
     case ParserState::Invoke:
