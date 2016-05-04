@@ -566,11 +566,11 @@ public:
     QScxmlParser::Loader *loader() const;
     void setLoader(QScxmlParser::Loader *loader);
 
-    void parse();
+    bool readDocument();
     void parseSubDocument(DocumentModel::Invoke *parentInvoke, QXmlStreamReader *reader, const QString &fileName);
+    bool parseSubElement(DocumentModel::Invoke *parentInvoke, QXmlStreamReader *reader, const QString &fileName);
     QByteArray load(const QString &name, bool *ok) const;
 
-    QScxmlParser::State state() const;
     QVector<QScxmlError> errors() const;
 
     void addError(const QString &msg);
@@ -587,6 +587,67 @@ private:
     bool checkAttributes(const QXmlStreamAttributes &attributes,
                          const QStringList &requiredNames,
                          const QStringList &optionalNames);
+
+    bool preReadElementScxml();
+    bool preReadElementState();
+    bool preReadElementParallel();
+    bool preReadElementInitial();
+    bool preReadElementTransition();
+    bool preReadElementFinal();
+    bool preReadElementHistory();
+    bool preReadElementOnEntry();
+    bool preReadElementOnExit();
+    bool preReadElementRaise();
+    bool preReadElementIf();
+    bool preReadElementElseIf();
+    bool preReadElementElse();
+    bool preReadElementForeach();
+    bool preReadElementLog();
+    bool preReadElementDataModel();
+    bool preReadElementData();
+    bool preReadElementAssign();
+    bool preReadElementDoneData();
+    bool preReadElementContent();
+    bool preReadElementParam();
+    bool preReadElementScript();
+    bool preReadElementSend();
+    bool preReadElementCancel();
+    bool preReadElementInvoke();
+    bool preReadElementFinalize();
+
+    bool postReadElementScxml();
+    bool postReadElementState();
+    bool postReadElementParallel();
+    bool postReadElementInitial();
+    bool postReadElementTransition();
+    bool postReadElementFinal();
+    bool postReadElementHistory();
+    bool postReadElementOnEntry();
+    bool postReadElementOnExit();
+    bool postReadElementRaise();
+    bool postReadElementIf();
+    bool postReadElementElseIf();
+    bool postReadElementElse();
+    bool postReadElementForeach();
+    bool postReadElementLog();
+    bool postReadElementDataModel();
+    bool postReadElementData();
+    bool postReadElementAssign();
+    bool postReadElementDoneData();
+    bool postReadElementContent();
+    bool postReadElementParam();
+    bool postReadElementScript();
+    bool postReadElementSend();
+    bool postReadElementCancel();
+    bool postReadElementInvoke();
+    bool postReadElementFinalize();
+
+    bool readElement();
+
+    void resetDocument();
+    void parseComment();
+    void currentStateUp();
+    bool flushInstruction();
 
 private:
     struct ParserState {
@@ -645,6 +706,9 @@ private:
     };
 
     bool checkAttributes(const QXmlStreamAttributes &attributes, QScxmlParserPrivate::ParserState::Kind kind);
+    ParserState &current();
+    ParserState &previous();
+    bool hasPrevious() const;
 
 private:
     QString m_fileName;
@@ -657,7 +721,6 @@ private:
 
     QXmlStreamReader *m_reader;
     QVector<ParserState> m_stack;
-    QScxmlParser::State m_state;
     QVector<QScxmlError> m_errors;
     QScxmlParser::QtMode m_qtMode;
 };

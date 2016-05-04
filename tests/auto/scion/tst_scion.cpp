@@ -43,7 +43,17 @@ Q_DECLARE_METATYPE(std::function<QScxmlStateMachine *()>);
 
 enum { SpyWaitTime = 12000 };
 
-static QSet<QString> weFailOnThese = QSet<QString>()
+static QSet<QString> testFailOnParse = QSet<QString>()
+        // Currently we do not support loading data as XML content inside the <data> tag.
+        << QLatin1String("w3c-ecma/test557.txml")
+        // The following test uses the undocumented "exmode" attribute.
+        << QLatin1String("w3c-ecma/test441a.txml")
+        // The following test needs manual inspection of the result. However, note that we do not support the undocumented "exmode" attribute.
+        << QLatin1String("w3c-ecma/test441b.txml")
+        // The following test needs manual inspection of the result.
+           ;
+
+static QSet<QString> testFailOnRun = QSet<QString>()
         // The following test needs manual inspection of the result. However, note that we do not support multiple identical keys for event data.
         << QLatin1String("delayedSend/send1") // same as above
         << QLatin1String("delayedSend/send2") // same as above
@@ -54,20 +64,12 @@ static QSet<QString> weFailOnThese = QSet<QString>()
         << QLatin1String("w3c-ecma/test201.txml")
         << QLatin1String("w3c-ecma/test364.txml") // initial attribute on <state>
         << QLatin1String("w3c-ecma/test388.txml") // Qt refuses to set an initial state to a "deep" state
-
-        // Currently we do not support loading data as XML content inside the <data> tag.
-        << QLatin1String("w3c-ecma/test557.txml")
-        // The following test uses the undocumented "exmode" attribute.
-        << QLatin1String("w3c-ecma/test441a.txml")
-        // The following test needs manual inspection of the result. However, note that we do not support the undocumented "exmode" attribute.
-        << QLatin1String("w3c-ecma/test441b.txml")
-        // The following test needs manual inspection of the result.
         << QLatin1String("w3c-ecma/test230.txml")
         << QLatin1String("w3c-ecma/test250.txml")
         << QLatin1String("w3c-ecma/test307.txml")
            ;
 
-static QSet<QString> differentSemantics = QSet<QString>()
+static QSet<QString> testUseDifferentSemantics = QSet<QString>()
         // FIXME: looks like a bug in internal event ordering when writing to read-only variables.
         << QLatin1String("w3c-ecma/test329.txml")
         // Qt does not support forcing initial states that are not marked as such.
@@ -165,7 +167,8 @@ void TestScion::initTestCase()
 
 enum TestStatus {
     TestIsOk,
-    TestFails,
+    TestFailsOnParse,
+    TestFailsOnRun,
     TestUsesDifferentSemantics
 };
 Q_DECLARE_METATYPE(TestStatus)
@@ -181,10 +184,12 @@ void TestScion::generateData()
     for (int i = 0; i < nrOfTests; ++i) {
         TestStatus testStatus;
         QString base = QString::fromUtf8(testBases[i]);
-        if (differentSemantics.contains(base))
+        if (testUseDifferentSemantics.contains(base))
             testStatus = TestUsesDifferentSemantics;
-        else if (weFailOnThese.contains(base))
-            testStatus = TestFails;
+        else if (testFailOnParse.contains(base))
+            testStatus = TestFailsOnParse;
+        else if (testFailOnRun.contains(base))
+            testStatus = TestFailsOnRun;
         else
             testStatus = TestIsOk;
         QTest::newRow(testBases[i]) << base + QLatin1String(".scxml")
@@ -226,22 +231,21 @@ void TestScion::dynamic()
     DynamicLoader loader(&parser);
     parser.setLoader(&loader);
     parser.parse();
-    if (testStatus == TestFails && parser.state() != QScxmlParser::FinishedParsing)
-        QEXPECT_FAIL("", "This is expected to fail", Abort);
-    QCOMPARE(parser.state(), QScxmlParser::FinishedParsing);
+    if (testStatus == TestFailsOnParse)
+        QEXPECT_FAIL("", "This is expected to fail on parse", Abort);
     QVERIFY(parser.errors().isEmpty());
     scxmlFile.close();
 
     QScopedPointer<QScxmlStateMachine> stateMachine(parser.instantiateStateMachine());
-    if (stateMachine == Q_NULLPTR && testStatus == TestFails) {
-        QEXPECT_FAIL("", "This is expected to fail", Abort);
-    }
     QVERIFY(stateMachine != Q_NULLPTR);
+
     parser.instantiateDataModel(stateMachine.data());
 
-    if (testStatus == TestFails)
-        QEXPECT_FAIL("", "This is expected to fail", Abort);
-    QVERIFY(runTest(stateMachine.data(), testDescription.object()));
+    const bool runResult = runTest(stateMachine.data(), testDescription.object());
+    if (runResult == false && testStatus == TestFailsOnRun)
+        QEXPECT_FAIL("", "This is expected to fail on run", Abort);
+
+    QVERIFY(runResult);
     QCoreApplication::processEvents(); // flush any pending events
 }
 
@@ -279,14 +283,17 @@ void TestScion::compiled()
     jsonFile.close();
 
     QScopedPointer<QScxmlStateMachine> stateMachine(creator());
-    if (stateMachine == Q_NULLPTR && testStatus == TestFails) {
+    if (stateMachine == Q_NULLPTR && testStatus == TestFailsOnRun) {
         QEXPECT_FAIL("", "This is expected to fail", Abort);
     }
     QVERIFY(stateMachine != Q_NULLPTR);
 
-    if (testStatus == TestFails)
-        QEXPECT_FAIL("", "This is expected to fail", Abort);
-    QVERIFY(runTest(stateMachine.data(), testDescription.object()));
+    const bool runResult = runTest(stateMachine.data(), testDescription.object());
+    if (runResult == false && testStatus == TestFailsOnRun)
+        QEXPECT_FAIL("", "This is expected to fail on run", Abort);
+
+    QVERIFY(runResult);
+
     QCoreApplication::processEvents(); // flush any pending events
 }
 

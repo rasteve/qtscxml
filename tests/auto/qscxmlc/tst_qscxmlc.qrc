@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/tst_qscxmlc">
+        <file>data/commentInScript.scxml</file>
         <file>data/empty.scxml</file>
         <file>data/misplacedinvoke.scxml</file>
         <file>data/invalidRoot.scxml</file>
