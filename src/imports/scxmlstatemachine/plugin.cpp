@@ -53,6 +53,11 @@ class QScxmlStateMachinePlugin : public QQmlExtensionPlugin
 public:
     void registerTypes(const char *uri)
     {
+        // @uri QtScxml
+        Q_ASSERT(uri == QStringLiteral("QtScxml"));
+
+        int major = 5;
+        int minor = 7;
         // Do not rely on RegisterMethodArgumentMetaType meta-call to register the QScxmlEvent type.
         // This registration is required for the receiving end of the signal emission that carries
         // parameters of this type to be able to treat them correctly as a gadget. This is because the
@@ -60,7 +65,7 @@ public:
         // to do a meta-type registration.
         static const int qScxmlEventMetaTypeId = qMetaTypeId<QScxmlEvent>();
         Q_UNUSED(qScxmlEventMetaTypeId)
-        qmlRegisterType<QScxmlStateMachineLoader>(uri, 1, 0, "StateMachineLoader");
+        qmlRegisterType<QScxmlStateMachineLoader>(uri, major, minor, "StateMachineLoader");
         qmlProtectModule(uri, 1);
     }
 };

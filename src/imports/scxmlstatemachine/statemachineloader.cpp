@@ -53,7 +53,7 @@
 
     \brief Dynamically loads an SCXML file and instantiates the state machine.
 
-    \since Scxml 1.0
+    \since QtScxml 5.7
  */
 
 /*!

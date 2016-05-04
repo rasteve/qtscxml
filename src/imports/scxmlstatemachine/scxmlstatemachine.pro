@@ -1,5 +1,5 @@
+TARGET = scxml
 TARGETPATH = QtScxml
-IMPORT_VERSION = 1.0
 
 QT = scxml qml-private core-private
 

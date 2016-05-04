@@ -43,7 +43,7 @@
     Or, in QML:
 
     \qml
-    import QtScxml 1.0
+    import QtScxml 5.7
 
     Item {
         property QtObject stateMachine: scxmlLoader.stateMachine
