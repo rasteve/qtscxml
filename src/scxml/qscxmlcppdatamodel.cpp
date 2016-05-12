@@ -134,6 +134,11 @@ QScxmlCppDataModel::QScxmlCppDataModel(QObject *parent)
     : QScxmlDataModel(*(new QScxmlCppDataModelPrivate), parent)
 {}
 
+/*! \internal */
+QScxmlCppDataModel::~QScxmlCppDataModel()
+{
+}
+
 /*!
  * Called during state machine initialization to set up a state machine using the initial values
  * for data model variables specified by their keys, \a initialDataValues. These

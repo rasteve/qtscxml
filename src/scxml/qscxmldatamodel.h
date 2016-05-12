@@ -69,6 +69,7 @@ public:
 
 public:
     explicit QScxmlDataModel(QObject *parent = nullptr);
+    ~QScxmlDataModel();
 
     void setStateMachine(QScxmlStateMachine *stateMachine);
     QScxmlStateMachine *stateMachine() const;

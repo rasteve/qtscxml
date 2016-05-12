@@ -135,6 +135,11 @@ QScxmlNullDataModel::QScxmlNullDataModel(QObject *parent)
     : QScxmlDataModel(*(new QScxmlNullDataModelPrivate), parent)
 {}
 
+/*! \internal */
+QScxmlNullDataModel::~QScxmlNullDataModel()
+{
+}
+
 /*!
   \reimp
  */
