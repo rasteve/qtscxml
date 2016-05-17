@@ -32,6 +32,7 @@
        name="test1" datamodel="ecmascript">
     <state id="a">
         <transition event="foo"/>
+        <transition event="näl" target="b"/>
     </state>
     <state id="b">
         <transition event="foo"/>

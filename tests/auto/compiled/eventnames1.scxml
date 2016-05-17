@@ -28,7 +28,7 @@
 **
 ****************************************************************************/
 -->
-<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="eventnames1">
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="eventnames1" initial="a">
     <state id="a">
         <onentry>
             <send event="valid"/>
@@ -42,5 +42,8 @@
         <transition event="-valid-"/>
         <transition event="also valid"/>
         <transition event="&#x00ff;valid"/>
+        <transition event="näl" target="b"/>
+    </state>
+    <state id="b">
     </state>
 </scxml>

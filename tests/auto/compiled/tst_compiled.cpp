@@ -35,6 +35,7 @@
 #include "statemachineunicodename.h"
 #include "datainnulldatamodel.h"
 #include "submachineunicodename.h"
+#include "eventnames1.h"
 
 Q_DECLARE_METATYPE(QScxmlError);
 
@@ -48,6 +49,7 @@ private Q_SLOTS:
     void stateNames();
     void nullDataInit();
     void subMachineUnicodeName();
+    void unicodeEventName();
 };
 
 void tst_Compiled::stateNames()
@@ -99,6 +101,20 @@ void tst_Compiled::subMachineUnicodeName()
     QVariant prop = directions.property("änywhere");
     QVERIFY(!prop.isNull());
     QVERIFY(prop.isValid());
+}
+
+void tst_Compiled::unicodeEventName()
+{
+    eventnames1 names;
+    QSignalSpy stableStateSpy(&names, SIGNAL(reachedStableState()));
+    names.start();
+
+    stableStateSpy.wait(5000);
+
+    QCOMPARE(names.activeStateNames(), QStringList(QLatin1String("a")));
+    names.submitEvent("näl");
+    stableStateSpy.wait(5000);
+    QCOMPARE(names.activeStateNames(), QStringList(QLatin1String("b")));
 }
 
 QTEST_MAIN(tst_Compiled)
