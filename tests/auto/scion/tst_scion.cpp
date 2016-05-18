@@ -55,10 +55,6 @@ static QSet<QString> testFailOnParse = QSet<QString>()
 
 static QSet<QString> testFailOnRun = QSet<QString>()
         // The following test needs manual inspection of the result. However, note that we do not support multiple identical keys for event data.
-        << QLatin1String("delayedSend/send1") // same as above
-        << QLatin1String("delayedSend/send2") // same as above
-        << QLatin1String("delayedSend/send3") // same as above
-        << QLatin1String("send-data/send1") // test suite problem: we expect every stable configuration to be listed.
         << QLatin1String("w3c-ecma/test178.txml")
         // We do not support the optional basic http event i/o processor.
         << QLatin1String("w3c-ecma/test201.txml")
@@ -359,11 +355,9 @@ static bool playEvent(QScxmlStateMachine *stateMachine, const QJsonObject &event
     e->setOrigin(origin);
     e->setOriginType(origintype);
     e->setInvokeId(invokeid);
-    if (eventDescription.contains(QLatin1String("after"))) {
-        int delay = eventDescription.value(QLatin1String("after")).toInt();
-        Q_ASSERT(delay > 0);
-        e->setDelay(delay);
-    }
+    if (eventDescription.contains(QLatin1String("after")))
+        QTest::qWait(eventDescription.value(QLatin1String("after")).toInt());
+
     stateMachine->submitEvent(e);
 
     if (!MySignalSpy(stateMachine, SIGNAL(reachedStableState())).fastWait()) {
