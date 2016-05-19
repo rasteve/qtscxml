@@ -209,7 +209,20 @@ QScxmlEventFilter::~QScxmlEventFilter()
 /*!
     \fn QScxmlStateMachine::eventOccurred(const QScxmlEvent &event)
 
-    This signal is emitted when the SCXML event \a event occurs.
+    This signal is emitted when the SCXML event \a event occurs. This signal is
+    emitted for all events.
+
+    \sa externalEventOccurred()
+*/
+
+/*!
+    \fn QScxmlStateMachine::externalEventOccurred(const QScxmlEvent &event)
+
+    This signal is emitted for each \c <send> element in the SCXML file that
+    contains the attribute \c {type="qt:signal"}. The event that occurred is
+    specified by \a event.
+
+    \sa eventOccurred()
 */
 
 QAtomicInt QScxmlStateMachinePrivate::m_sessionIdCounter = QAtomicInt(0);
