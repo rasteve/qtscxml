@@ -43,7 +43,7 @@ Q_DECLARE_METATYPE(std::function<QScxmlStateMachine *()>);
 
 enum { SpyWaitTime = 12000 };
 
-static QSet<QString> testFailOnParse = QSet<QString>()
+static QSet<QString> testFailOnRun = QSet<QString>()
         // Currently we do not support loading data as XML content inside the <data> tag.
         << QLatin1String("w3c-ecma/test557.txml")
         // The following test uses the undocumented "exmode" attribute.
@@ -51,9 +51,6 @@ static QSet<QString> testFailOnParse = QSet<QString>()
         // The following test needs manual inspection of the result. However, note that we do not support the undocumented "exmode" attribute.
         << QLatin1String("w3c-ecma/test441b.txml")
         // The following test needs manual inspection of the result.
-           ;
-
-static QSet<QString> testFailOnRun = QSet<QString>()
         // The following test needs manual inspection of the result. However, note that we do not support multiple identical keys for event data.
         << QLatin1String("w3c-ecma/test178.txml")
         // We do not support the optional basic http event i/o processor.
@@ -63,9 +60,6 @@ static QSet<QString> testFailOnRun = QSet<QString>()
         << QLatin1String("w3c-ecma/test230.txml")
         << QLatin1String("w3c-ecma/test250.txml")
         << QLatin1String("w3c-ecma/test307.txml")
-           ;
-
-static QSet<QString> testUseDifferentSemantics = QSet<QString>()
         // Qt does not support forcing initial states that are not marked as such.
         << QLatin1String("w3c-ecma/test413.txml") // FIXME: verify initial state setting...
         << QLatin1String("w3c-ecma/test576.txml") // FIXME: verify initial state setting...
@@ -161,9 +155,7 @@ void TestScion::initTestCase()
 
 enum TestStatus {
     TestIsOk,
-    TestFailsOnParse,
-    TestFailsOnRun,
-    TestUsesDifferentSemantics
+    TestFailsOnRun
 };
 Q_DECLARE_METATYPE(TestStatus)
 
@@ -178,11 +170,7 @@ void TestScion::generateData()
     for (int i = 0; i < nrOfTests; ++i) {
         TestStatus testStatus;
         QString base = QString::fromUtf8(testBases[i]);
-        if (testUseDifferentSemantics.contains(base))
-            testStatus = TestUsesDifferentSemantics;
-        else if (testFailOnParse.contains(base))
-            testStatus = TestFailsOnParse;
-        else if (testFailOnRun.contains(base))
+        if (testFailOnRun.contains(base))
             testStatus = TestFailsOnRun;
         else
             testStatus = TestIsOk;
@@ -205,15 +193,9 @@ void TestScion::dynamic()
     QFETCH(TestStatus, testStatus);
     QFETCH(std::function<QScxmlStateMachine *()>, creator);
 
-//    fprintf(stderr, "\n\n%s\n%s\n\n", qPrintable(scxml), qPrintable(json));
-
-    if (testStatus == TestUsesDifferentSemantics)
-        QSKIP("Test uses different semantics");
-
     QFile jsonFile(QLatin1String(":/") + json);
     QVERIFY(jsonFile.open(QIODevice::ReadOnly));
     auto testDescription = QJsonDocument::fromJson(jsonFile.readAll());
-//    fprintf(stderr, "test description: %s\n", testDescription.toJson().constData());
     jsonFile.close();
     QVERIFY(testDescription.isObject());
 
@@ -225,8 +207,6 @@ void TestScion::dynamic()
     DynamicLoader loader(&parser);
     parser.setLoader(&loader);
     parser.parse();
-    if (testStatus == TestFailsOnParse)
-        QEXPECT_FAIL("", "This is expected to fail on parse", Abort);
     QVERIFY(parser.errors().isEmpty());
     scxmlFile.close();
 
@@ -267,9 +247,6 @@ void TestScion::compiled()
     QFETCH(QString, json);
     QFETCH(TestStatus, testStatus);
     QFETCH(std::function<QScxmlStateMachine *()>, creator);
-
-    if (testStatus == TestUsesDifferentSemantics)
-        QSKIP("Test uses different semantics");
 
     QFile jsonFile(QLatin1String(":/") + json);
     QVERIFY(jsonFile.open(QIODevice::ReadOnly));
