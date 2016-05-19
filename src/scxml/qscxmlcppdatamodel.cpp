@@ -184,6 +184,9 @@ bool QScxmlCppDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBo
 void QScxmlCppDataModel::setScxmlEvent(const QScxmlEvent &event)
 {
     Q_D(QScxmlCppDataModel);
+    if (event.name().isEmpty())
+        return;
+
     d->event = event;
 }
 

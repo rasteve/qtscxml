@@ -147,6 +147,9 @@ public:
 
     void assignEvent(const QScxmlEvent &event)
     {
+        if (event.name().isEmpty())
+            return;
+
         QJSValue _event = engine()->newObject();
         QJSValue dataValue = eventDataAsJSValue(event.data());
         _event.setProperty(QStringLiteral("data"), dataValue.isUndefined() ? QJSValue(QJSValue::UndefinedValue)

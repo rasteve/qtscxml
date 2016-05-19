@@ -66,8 +66,6 @@ static QSet<QString> testFailOnRun = QSet<QString>()
            ;
 
 static QSet<QString> testUseDifferentSemantics = QSet<QString>()
-        // FIXME: looks like a bug in internal event ordering when writing to read-only variables.
-        << QLatin1String("w3c-ecma/test329.txml")
         // Qt does not support forcing initial states that are not marked as such.
         << QLatin1String("w3c-ecma/test413.txml") // FIXME: verify initial state setting...
         << QLatin1String("w3c-ecma/test576.txml") // FIXME: verify initial state setting...
