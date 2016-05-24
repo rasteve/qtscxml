@@ -29,25 +29,13 @@
 ****************************************************************************/
 -->
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0"
-       name="EventOccurred" datamodel="ecmascript">
-    <state id="top">
-        <state id="a">
-            <onentry>
-                <raise event="internalEvent1"/>
-                <send event="internalEvent2"/>
-                <send type="qt:signal" event="externalEvent"/>
-                <send event="timeout" delay="1s"/>
-            </onentry>
-            <transition event="timeout" target="final"/>
-        </state>
-        <final id="final"/>
+       name="test1" datamodel="ecmascript">
+    <state id="a">
+        <transition event="foo"/>
     </state>
-
-    <!--
-        The done.state.* events are internal, so expose them to the spy too by re-sending them as
-        external events:
-    -->
-    <transition event="done.state.*" cond="_event.type === 'internal'">
-        <send eventexpr="_event.name"/>
-    </transition>
+    <state id="b">
+        <transition event="foo"/>
+        <transition event="foo" cond="1==1" target="a"/>
+    </state>
+    <transition event="foo"/>
 </scxml>

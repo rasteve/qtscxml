@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
@@ -47,91 +49,45 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+-->
+<!-- enable-qt-mode: yes -->
+<scxml
+    xmlns="http://www.w3.org/2005/07/scxml"
+    version="1.0"
+    name="MediaPlayerStateMachine"
+    initial="stopped"
+    datamodel="ecmascript"
+>
+    <datamodel>
+        <data id="media"/>
+    </datamodel>
 
-import QtQuick 2.5
-import QtQuick.Window 2.2
-import QtScxml 5.7 as Scxml
-
-Window {
-    id: root
-    property QtObject stateMachine: scxmlLoader.stateMachine
-    property alias filename: scxmlLoader.filename
-
-    visible: true
-    width: 750
-    height: 350
-    color: "white"
-
-    ListView {
-        id: theList
-        width: parent.width / 2
-        height: parent.height
-        keyNavigationWraps: true
-        highlightMoveDuration: 0
-        focus: true
-        model: ListModel {
-            id: theModel
-            ListElement { media: "Song 1" }
-            ListElement { media: "Song 2" }
-            ListElement { media: "Song 3" }
+    <script>
+        function isValidMedia() {
+            var m = _event.data.media
+            return (m + "").length > 0
         }
-        highlight: Rectangle { color: "lightsteelblue" }
-        currentIndex: -1
-        delegate: Rectangle {
-            height: 40
-            width: parent.width
-            color: "transparent"
-            MouseArea {
-                anchors.fill: parent;
-                onClicked: tap(index)
-            }
-            Text {
-                id: txt
-                anchors.fill: parent
-                text: media
-                verticalAlignment: Text.AlignVCenter
-            }
-        }
-    }
+    </script>
 
-    Text {
-        id: theLog
-        anchors.left: theList.right
-        anchors.top: theText.bottom
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-    }
+    <state id="stopped">
+        <transition event="tap" cond="isValidMedia()" target="playing"/>
+    </state>
 
-    Text {
-        id: theText
-        anchors.left: theList.right
-        anchors.right: parent.right;
-        anchors.top:  parent.top
-        text: "Stopped"
-        color: stateMachine.playing ? "green" : "red"
-    }
+    <state id="playing">
+        <onentry>
+            <assign location="media" expr="_event.data.media"/>
+            <send type="qt:signal" event="playbackStarted">
+                <param name="media" expr="media"/>
+            </send>
+        </onentry>
 
-    Scxml.StateMachineLoader {
-        id: scxmlLoader
-    }
+        <onexit>
+            <send type="qt:signal" event="playbackStopped">
+                <param name="media" expr="media"/>
+            </send>
+        </onexit>
 
-    Connections {
-        target: stateMachine
-        onPlaybackStarted: {
-            var media = data.media
-            theText.text = "Playing '" + media + "'"
-            theLog.text = theLog.text + "\nplaybackStarted with data: " + JSON.stringify(data)
-        }
-        onPlaybackStopped: {
-            var media = data.media
-            theText.text = "Stopped '" + media + "'"
-            theLog.text = theLog.text + "\nplaybackStopped with data: " + JSON.stringify(data)
-        }
-    }
-
-    function tap(idx) {
-        var media = theModel.get(idx).media
-        var data = { "media": media }
-        stateMachine.tap(data)
-    }
-}
+        <transition event="tap" cond="!isValidMedia() || media === _event.data.media" target="stopped"/>
+        <transition event="tap" cond="isValidMedia() &amp;&amp; media !== _event.data.media" target="playing"/>
+    </state>
+</scxml>

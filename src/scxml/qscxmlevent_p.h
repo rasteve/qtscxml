@@ -115,6 +115,7 @@ public:
         contents = stateMachine->tableData()->string(doneData->contents);
         contentExpr = doneData->expr;
         params = &doneData->params;
+        eventType = QScxmlEvent::InternalEvent;
     }
 
     QScxmlEventBuilder(QScxmlStateMachine *stateMachine, QScxmlExecutableContent::Send &send)

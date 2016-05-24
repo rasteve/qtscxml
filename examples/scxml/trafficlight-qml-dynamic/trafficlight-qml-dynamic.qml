@@ -48,7 +48,7 @@
 **
 ****************************************************************************/
 
-import Scxml 1.0 as Scxml
+import QtScxml 5.7 as Scxml
 
 TrafficLight {
     Scxml.StateMachineLoader {

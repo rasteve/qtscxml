@@ -67,13 +67,6 @@ public:
         QScxmlParser *m_parser;
     };
 
-    enum State {
-        StartingParsing,
-        ParsingScxml,
-        ParsingError,
-        FinishedParsing,
-    };
-
     enum QtMode {
         QtModeDisabled,
         QtModeEnabled,
@@ -94,7 +87,6 @@ public:
     QScxmlStateMachine *instantiateStateMachine() const;
     void instantiateDataModel(QScxmlStateMachine *stateMachine) const;
 
-    State state() const;
     QVector<QScxmlError> errors() const;
     void addError(const QString &msg);
 

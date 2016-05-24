@@ -68,7 +68,8 @@ public:
     };
 
 public:
-    QScxmlDataModel(QObject *parent = 0);
+    explicit QScxmlDataModel(QObject *parent = nullptr);
+    ~QScxmlDataModel();
 
     void setStateMachine(QScxmlStateMachine *stateMachine);
     QScxmlStateMachine *stateMachine() const;
@@ -95,7 +96,7 @@ Q_SIGNALS:
     void stateMachineChanged(QScxmlStateMachine *stateMachine);
 
 protected:
-    QScxmlDataModel(QScxmlDataModelPrivate &dd, QObject *parent = 0);
+    explicit QScxmlDataModel(QScxmlDataModelPrivate &dd, QObject *parent = nullptr);
 #ifndef Q_QDOC
     QScxmlTableData *tableData() const;
 #endif // Q_QDOC

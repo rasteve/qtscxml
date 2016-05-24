@@ -134,6 +134,11 @@ QScxmlCppDataModel::QScxmlCppDataModel(QObject *parent)
     : QScxmlDataModel(*(new QScxmlCppDataModelPrivate), parent)
 {}
 
+/*! \internal */
+QScxmlCppDataModel::~QScxmlCppDataModel()
+{
+}
+
 /*!
  * Called during state machine initialization to set up a state machine using the initial values
  * for data model variables specified by their keys, \a initialDataValues. These
@@ -179,6 +184,9 @@ bool QScxmlCppDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBo
 void QScxmlCppDataModel::setScxmlEvent(const QScxmlEvent &event)
 {
     Q_D(QScxmlCppDataModel);
+    if (event.name().isEmpty())
+        return;
+
     d->event = event;
 }
 

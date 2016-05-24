@@ -37,7 +37,7 @@
     the state machine. It also contains functionality to support data models
     and executable content.
 
-    \note In Qt 5.7 the Qt SCXML module is relased as Technology Preview.
+    \note In Qt 5.7 the Qt SCXML module is released as Technology Preview.
     This means that the API may still change in subsequent releases.
 
     \section1 Getting Started
@@ -52,7 +52,7 @@
     in your .qml file:
 
     \code
-    import Scxml 1.0
+    import QtScxml 5.7
     \endcode
 
     To link against the module, add this line to your qmake .pro file:

@@ -54,6 +54,8 @@
 #include <QtScxml/qscxmlexecutablecontent.h>
 #include <QtScxml/qscxmltabledata.h>
 #include <QtScxml/private/qscxmlparser_p.h>
+#include <QtCore/qmap.h>
+#include <QtCore/qvariant.h>
 
 #ifndef BUILD_QSCXMLC
 #include <QtScxml/qscxmldatamodel.h>

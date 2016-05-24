@@ -26,7 +26,7 @@
 ****************************************************************************/
 
 /*!
-    \qmlmodule Scxml 1.0
+    \qmlmodule Scxml 5.7
     \title Qt SCXML QML Types
     \ingroup qmlmodules
     \brief Enables the use of SCXML state machines with QML.
@@ -35,7 +35,7 @@
     in your .qml file:
 
     \code
-    import Scxml 1.0
+    import QtScxml 5.7
     \endcode
 
     For more information, see \l{Instantiating State Machines}.

@@ -50,7 +50,8 @@ class Q_SCXML_EXPORT QScxmlNullDataModel: public QScxmlDataModel
     Q_OBJECT
     Q_DECLARE_PRIVATE(QScxmlNullDataModel)
 public:
-    QScxmlNullDataModel(QObject *parent = 0);
+    explicit QScxmlNullDataModel(QObject *parent = nullptr);
+    ~QScxmlNullDataModel();
 
     bool setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;
 

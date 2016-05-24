@@ -51,21 +51,21 @@ void tst_Parser::error_data()
     QVector<QScxmlError> errors;
     QString filename;
 
-    filename = QLatin1String(":/tst_parser/test1.scxml");
+    filename = QLatin1String(":/tst_parser/data/test1.scxml");
     errors.clear();
     errors << QScxmlError(filename, 34, 46,
                           QLatin1String("unknown state 'b' in target"));
     QTest::newRow("test1") << filename << errors;
 
-    filename = QLatin1String(":/tst_parser/namespaces1.scxml");
+    filename = QLatin1String(":/tst_parser/data/namespaces1.scxml");
     errors.clear();
     QTest::newRow("namespaces 1") << filename << errors;
 
-    filename = QLatin1String(":/tst_parser/ids1.scxml");
+    filename = QLatin1String(":/tst_parser/data/ids1.scxml");
     errors.clear();
     QTest::newRow("IDs 1") << filename << errors;
 
-    filename = QLatin1String(":/tst_parser/ids2.scxml");
+    filename = QLatin1String(":/tst_parser/data/ids2.scxml");
     errors.clear();
     errors << QScxmlError(filename, 33, 25,
                           QLatin1String("state name 'foo.bar' is not a valid C++ identifier in Qt mode"));
@@ -76,7 +76,7 @@ void tst_Parser::error_data()
 
     QTest::newRow("IDs 2") << filename << errors;
 
-    filename = QLatin1String(":/tst_parser/eventnames.scxml");
+    filename = QLatin1String(":/tst_parser/data/eventnames.scxml");
     errors.clear();
     errors << QScxmlError(filename, 50, 38,
                           QLatin1String("'.invalid' is not a valid event"));
@@ -90,7 +90,7 @@ void tst_Parser::error_data()
                           QLatin1String("'in valid' is not a valid event"));
     QTest::newRow("eventnames") << filename << errors;
 
-    filename = QString(":/tst_parser/qtmode.scxml");
+    filename = QString(":/tst_parser/data/qtmode.scxml");
     errors.clear();
     errors << QScxmlError(filename, 35, 31,
                           QLatin1String("event name 'a' collides with a state name 'a' in Qt mode"));
@@ -107,6 +107,20 @@ void tst_Parser::error_data()
     errors << QScxmlError(filename, 45, 28,
                           QLatin1String("state name 'fooChanged' collides with a state name 'foo' in Qt mode"));
     QTest::newRow("qtmode") << filename << errors;
+
+    filename = QString(":/tst_parser/data/scxml1.scxml");
+    errors.clear();
+    errors << QScxmlError(filename, 32, 36,
+                          QLatin1String("Unsupported data model 'foo' in scxml"));
+    errors << QScxmlError(filename, 34, 30,
+                          QLatin1String("Unexpected element scxml"));
+    QTest::newRow("scxml1") << filename << errors;
+
+    filename = QString(":/tst_parser/data/scxml2.scxml");
+    errors.clear();
+    errors << QScxmlError(filename, 32, 34,
+                          QLatin1String("Unsupperted binding type 'foo'"));
+    QTest::newRow("scxml2") << filename << errors;
 }
 
 void tst_Parser::error()
