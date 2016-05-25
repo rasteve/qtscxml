@@ -15,7 +15,7 @@ HEADERS += \
     ../mediaplayer-common/mainwindow.h
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/scxml/mediaplayer-widgets
+target.path = $$[QT_INSTALL_EXAMPLES]/scxml/mediaplayer-widgets-static
 INSTALLS += target
 
 load(qscxmlc)
