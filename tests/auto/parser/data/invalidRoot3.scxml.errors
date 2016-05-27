@@ -1,0 +1,3 @@
+:/tst_parser/data/invalidRoot3.scxml:2:28: error: expected 'yes' or 'no' after enable-qt-mode in comment
+:/tst_parser/data/invalidRoot3.scxml:6:1: error: Unknown element scxma
+:/tst_parser/data/invalidRoot3.scxml:9:8: error: Missing root element

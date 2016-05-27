@@ -1,0 +1,7 @@
+:/tst_parser/data/qtmode.scxml:35:31: error: event name 'a' collides with a state name 'a' in Qt mode
+:/tst_parser/data/qtmode.scxml:36:34: error: event name 'void' is not a valid C++ identifier in Qt mode
+:/tst_parser/data/qtmode.scxml:37:38: error: event name 'aChanged' collides with a state name 'a' in Qt mode
+:/tst_parser/data/qtmode.scxml:38:38: error: event name 'finished' is not a valid Qt identifier in Qt mode
+:/tst_parser/data/qtmode.scxml:42:21: error: state name 'int' is not a valid C++ identifier in Qt mode
+:/tst_parser/data/qtmode.scxml:43:28: error: state name 'objectName' is not a valid Qt identifier in Qt mode
+:/tst_parser/data/qtmode.scxml:45:28: error: state name 'fooChanged' collides with a state name 'foo' in Qt mode

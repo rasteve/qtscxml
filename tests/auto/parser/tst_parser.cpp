@@ -46,92 +46,32 @@ private Q_SLOTS:
 void tst_Parser::error_data()
 {
     QTest::addColumn<QString>("scxmlFileName");
-    QTest::addColumn<QVector<QScxmlError> >("expectedErrors");
+    QTest::addColumn<QString>("errorFileName");
 
-    QVector<QScxmlError> errors;
-    QString filename;
-
-    filename = QLatin1String(":/tst_parser/data/test1.scxml");
-    errors.clear();
-    errors << QScxmlError(filename, 34, 46,
-                          QLatin1String("unknown state 'b' in target"));
-    QTest::newRow("test1") << filename << errors;
-
-    filename = QLatin1String(":/tst_parser/data/namespaces1.scxml");
-    errors.clear();
-    QTest::newRow("namespaces 1") << filename << errors;
-
-    filename = QLatin1String(":/tst_parser/data/ids1.scxml");
-    errors.clear();
-    QTest::newRow("IDs 1") << filename << errors;
-
-    filename = QLatin1String(":/tst_parser/data/ids2.scxml");
-    errors.clear();
-    errors << QScxmlError(filename, 33, 25,
-                          QLatin1String("state name 'foo.bar' is not a valid C++ identifier in Qt mode"));
-    errors << QScxmlError(filename, 34, 25,
-                          QLatin1String("state name 'foo-bar' is not a valid C++ identifier in Qt mode"));
-    errors << QScxmlError(filename, 36, 19,
-                          QLatin1String("'1' is not a valid XML ID"));
-
-    QTest::newRow("IDs 2") << filename << errors;
-
-    filename = QLatin1String(":/tst_parser/data/eventnames.scxml");
-    errors.clear();
-    errors << QScxmlError(filename, 50, 38,
-                          QLatin1String("'.invalid' is not a valid event"));
-    errors << QScxmlError(filename, 51, 38,
-                          QLatin1String("'invalid.' is not a valid event"));
-    errors << QScxmlError(filename, 39, 36,
-                          QLatin1String("'.invalid' is not a valid event"));
-    errors << QScxmlError(filename, 40, 36,
-                          QLatin1String("'invalid.' is not a valid event"));
-    errors << QScxmlError(filename, 41, 36,
-                          QLatin1String("'in valid' is not a valid event"));
-    QTest::newRow("eventnames") << filename << errors;
-
-    filename = QString(":/tst_parser/data/qtmode.scxml");
-    errors.clear();
-    errors << QScxmlError(filename, 35, 31,
-                          QLatin1String("event name 'a' collides with a state name 'a' in Qt mode"));
-    errors << QScxmlError(filename, 36, 34,
-                          QLatin1String("event name 'void' is not a valid C++ identifier in Qt mode"));
-    errors << QScxmlError(filename, 37, 38,
-                          QLatin1String("event name 'aChanged' collides with a state name 'a' in Qt mode"));
-    errors << QScxmlError(filename, 38, 38,
-                          QLatin1String("event name 'finished' is not a valid Qt identifier in Qt mode"));
-    errors << QScxmlError(filename, 42, 21,
-                          QLatin1String("state name 'int' is not a valid C++ identifier in Qt mode"));
-    errors << QScxmlError(filename, 43, 28,
-                          QLatin1String("state name 'objectName' is not a valid Qt identifier in Qt mode"));
-    errors << QScxmlError(filename, 45, 28,
-                          QLatin1String("state name 'fooChanged' collides with a state name 'foo' in Qt mode"));
-    QTest::newRow("qtmode") << filename << errors;
-
-    filename = QString(":/tst_parser/data/scxml1.scxml");
-    errors.clear();
-    errors << QScxmlError(filename, 32, 36,
-                          QLatin1String("Unsupported data model 'foo' in scxml"));
-    errors << QScxmlError(filename, 34, 30,
-                          QLatin1String("Unexpected element scxml"));
-    QTest::newRow("scxml1") << filename << errors;
-
-    filename = QString(":/tst_parser/data/scxml2.scxml");
-    errors.clear();
-    errors << QScxmlError(filename, 32, 34,
-                          QLatin1String("Unsupperted binding type 'foo'"));
-    QTest::newRow("scxml2") << filename << errors;
+    QDir dir(QLatin1String(":/tst_parser/data/"));
+    foreach (const QString &entry, dir.entryList()) {
+        if (!entry.endsWith(QLatin1String(".errors"))) {
+            QString scxmlFileName = dir.filePath(entry);
+            QTest::newRow(entry.toLatin1().constData())
+                    << scxmlFileName << (scxmlFileName + QLatin1String(".errors"));
+        }
+    }
 }
 
 void tst_Parser::error()
 {
     QFETCH(QString, scxmlFileName);
-    QFETCH(QVector<QScxmlError>, expectedErrors);
+    QFETCH(QString, errorFileName);
+
+    QFile errorFile(errorFileName);
+    errorFile.open(QIODevice::ReadOnly | QIODevice::Text);
+    const QStringList expectedErrors =
+            QString::fromUtf8(errorFile.readAll()).split('\n', QString::SkipEmptyParts);
 
     QScopedPointer<QScxmlStateMachine> stateMachine(QScxmlStateMachine::fromFile(scxmlFileName));
     QVERIFY(!stateMachine.isNull());
 
-    QVector<QScxmlError> errors = stateMachine->parseErrors();
+    const QVector<QScxmlError> errors = stateMachine->parseErrors();
     if (errors.count() != expectedErrors.count()) {
         foreach (const QScxmlError &error, errors) {
             qDebug() << error.toString();
@@ -139,14 +79,8 @@ void tst_Parser::error()
     }
     QCOMPARE(errors.count(), expectedErrors.count());
 
-    for (int i = 0; i < errors.count(); ++i) {
-        QScxmlError error = errors.at(i);
-        QScxmlError expectedError = expectedErrors.at(i);
-        QCOMPARE(error.fileName(), expectedError.fileName());
-        QCOMPARE(error.line(), expectedError.line());
-        QCOMPARE(error.column(), expectedError.column());
-        QCOMPARE(error.description(), expectedError.description());
-    }
+    for (int i = 0; i < errors.count(); ++i)
+        QCOMPARE(errors.at(i).toString(), expectedErrors.at(i));
 }
 
 QTEST_MAIN(tst_Parser)
