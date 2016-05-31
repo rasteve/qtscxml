@@ -97,12 +97,17 @@ QScxmlInvokableServiceFactory *QScxmlInvokableService::service() const
 class QScxmlInvokableServiceFactory::Data
 {
 public:
-    Data(QScxmlExecutableContent::StringId invokeLocation, QScxmlExecutableContent::StringId id,
-         QScxmlExecutableContent::StringId idPrefix, QScxmlExecutableContent::StringId idlocation,
-         const QVector<QScxmlExecutableContent::StringId> &namelist, bool autoforward,
+    Data(QScxmlExecutableContent::StringId invokeLocation,
+         QScxmlExecutableContent::EvaluatorId srcexpr,
+         QScxmlExecutableContent::StringId id,
+         QScxmlExecutableContent::StringId idPrefix,
+         QScxmlExecutableContent::StringId idlocation,
+         const QVector<QScxmlExecutableContent::StringId> &namelist,
+         bool autoforward,
          const QVector<QScxmlInvokableServiceFactory::Param> &params,
          QScxmlExecutableContent::ContainerId finalize)
         : invokeLocation(invokeLocation)
+        , srcexpr(srcexpr)
         , id(id)
         , idPrefix(idPrefix)
         , idlocation(idlocation)
@@ -113,6 +118,7 @@ public:
     {}
 
     QScxmlExecutableContent::StringId invokeLocation;
+    QScxmlExecutableContent::EvaluatorId srcexpr;
     QScxmlExecutableContent::StringId id;
     QScxmlExecutableContent::StringId idPrefix;
     QScxmlExecutableContent::StringId idlocation;
@@ -123,16 +129,46 @@ public:
 };
 
 QScxmlInvokableServiceFactory::QScxmlInvokableServiceFactory(
-        QScxmlExecutableContent::StringId invokeLocation,  QScxmlExecutableContent::StringId id,
-        QScxmlExecutableContent::StringId idPrefix, QScxmlExecutableContent::StringId idlocation,
-        const QVector<QScxmlExecutableContent::StringId> &namelist, bool autoforward,
-        const QVector<Param> &params, QScxmlExecutableContent::ContainerId finalize)
-    : d(new Data(invokeLocation, id, idPrefix, idlocation, namelist, autoforward, params, finalize))
+        QScxmlExecutableContent::StringId invokeLocation,
+        QScxmlExecutableContent::EvaluatorId srcexpr,
+        QScxmlExecutableContent::StringId id,
+        QScxmlExecutableContent::StringId idPrefix,
+        QScxmlExecutableContent::StringId idlocation,
+        const QVector<QScxmlExecutableContent::StringId> &namelist,
+        bool autoforward,
+        const QVector<Param> &params,
+        QScxmlExecutableContent::ContainerId finalize)
+    : d(new Data(invokeLocation,
+                 srcexpr,
+                 id,
+                 idPrefix,
+                 idlocation,
+                 namelist,
+                 autoforward,
+                 params,
+                 finalize))
 {}
 
 QScxmlInvokableServiceFactory::~QScxmlInvokableServiceFactory()
 {
     delete d;
+}
+
+QString QScxmlInvokableServiceFactory::calculateSrcexpr(QScxmlStateMachine *parent, bool *ok) const
+{
+    Q_ASSERT(ok);
+    *ok = true;
+    auto dataModel = parent->dataModel();
+
+    if (d->srcexpr != QScxmlExecutableContent::NoEvaluator) {
+        *ok = false;
+        auto v = dataModel->evaluateToString(d->srcexpr, ok);
+        if (!*ok)
+            return QString();
+        return v;
+    }
+
+    return QString();
 }
 
 QString QScxmlInvokableServiceFactory::calculateId(QScxmlStateMachine *parent, bool *ok) const
@@ -284,6 +320,7 @@ QScxmlStateMachine *QScxmlInvokableScxml::stateMachine() const
 
 QScxmlInvokableScxmlServiceFactory::QScxmlInvokableScxmlServiceFactory(
         QScxmlExecutableContent::StringId invokeLocation,
+        QScxmlExecutableContent::EvaluatorId srcexpr,
         QScxmlExecutableContent::StringId id,
         QScxmlExecutableContent::StringId idPrefix,
         QScxmlExecutableContent::StringId idlocation,
@@ -291,7 +328,7 @@ QScxmlInvokableScxmlServiceFactory::QScxmlInvokableScxmlServiceFactory(
         bool doAutoforward,
         const QVector<QScxmlInvokableServiceFactory::Param> &params,
         QScxmlExecutableContent::ContainerId finalize)
-    : QScxmlInvokableServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist,
+    : QScxmlInvokableServiceFactory(invokeLocation, srcexpr, id, idPrefix, idlocation, namelist,
                                    doAutoforward, params, finalize)
 {}
 

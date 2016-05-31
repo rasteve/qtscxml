@@ -100,6 +100,7 @@ public:
     };
 
     QScxmlInvokableServiceFactory(QScxmlExecutableContent::StringId invokeLocation,
+                                  QScxmlExecutableContent::EvaluatorId srcexpr,
                                   QScxmlExecutableContent::StringId id,
                                   QScxmlExecutableContent::StringId idPrefix,
                                   QScxmlExecutableContent::StringId idlocation,
@@ -112,6 +113,7 @@ public:
     virtual QScxmlInvokableService *invoke(QScxmlStateMachine *parent) = 0;
 
 public: // callbacks from the service:
+    QString calculateSrcexpr(QScxmlStateMachine *parent, bool *ok) const;
     QString calculateId(QScxmlStateMachine *parent, bool *ok) const;
     QVariantMap calculateData(QScxmlStateMachine *parent, bool *ok) const;
     bool autoforward() const;
@@ -145,6 +147,7 @@ class Q_SCXML_EXPORT QScxmlInvokableScxmlServiceFactory: public QScxmlInvokableS
 {
 public:
     QScxmlInvokableScxmlServiceFactory(QScxmlExecutableContent::StringId invokeLocation,
+                                       QScxmlExecutableContent::EvaluatorId srcexpr,
                                        QScxmlExecutableContent::StringId id,
                                        QScxmlExecutableContent::StringId idPrefix,
                                        QScxmlExecutableContent::StringId idlocation,
@@ -154,7 +157,13 @@ public:
                                        QScxmlExecutableContent::ContainerId finalize);
 
 protected:
-    QScxmlInvokableService *finishInvoke(QScxmlStateMachine *child, QScxmlStateMachine *parent);
+#ifndef BUILD_QSCXMLC
+
+    QScxmlInvokableService *loadAndInvokeDynamically(QScxmlStateMachine *parent,
+                                                     const QString &sourceUrl);
+#endif // BUILD_QSCXMLC
+    QScxmlInvokableService *finishInvoke(QScxmlStateMachine *child,
+                                         QScxmlStateMachine *parent);
 };
 
 QT_END_NAMESPACE

@@ -67,8 +67,6 @@ static QSet<QString> testFailOnRun = QSet<QString>()
         << QLatin1String("w3c-ecma/test456.txml") // replaced by modified_test456
         // FIXME: qscxmlc fails on improper scxml file, currently no way of testing it properly for compiled case
         << QLatin1String("w3c-ecma/test301.txml")
-        // FIXME: Currently we do not support loading scripts from a srcexpr.
-        << QLatin1String("w3c-ecma/test216.txml")
         // FIXME: Currently we do not support nested scxml as a child of assign.
         << QLatin1String("w3c-ecma/test530.txml")
         ;
@@ -217,6 +215,7 @@ void TestScion::dynamic()
     QScopedPointer<QScxmlStateMachine> stateMachine(parser.instantiateStateMachine());
     QVERIFY(stateMachine != Q_NULLPTR);
 
+    stateMachine->setLoader(&loader);
     parser.instantiateDataModel(stateMachine.data());
 
     const bool runResult = runTest(stateMachine.data(), testDescription.object());
@@ -262,6 +261,8 @@ void TestScion::compiled()
         QEXPECT_FAIL("", "This is expected to fail", Abort);
     }
     QVERIFY(stateMachine != Q_NULLPTR);
+    DynamicLoader loader;
+    stateMachine->setLoader(&loader);
 
     const bool runResult = runTest(stateMachine.data(), testDescription.object());
     if (runResult == false && testStatus == TestFailsOnRun)

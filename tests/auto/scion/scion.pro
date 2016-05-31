@@ -52,6 +52,7 @@ ALLSCXMLS = $$files($$SCXMLS_DIR/*.scxml, true)
 # For a better explanation about the "blacklisted" tests, see tst_scion.cpp
 # <invoke>
 BLACKLISTED = \
+    test216sub1.scxml \
     test226sub1.txml \
     test239sub1.scxml \
     test242sub1.scxml \

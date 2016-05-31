@@ -400,6 +400,9 @@ protected:
                 Invoke *invoke = node->invokes.at(i);
                 QString line = QStringLiteral("new QScxmlInvokeScxmlFactory<%1>(").arg(scxmlClassName(invoke->content.data()));
                 line += QStringLiteral("%1, ").arg(Builder::createContext(QStringLiteral("invoke")));
+                line += QStringLiteral("%1, ").arg(createEvaluatorString(QStringLiteral("invoke"),
+                                                                         QStringLiteral("srcexpr"),
+                                                                         invoke->srcexpr));
                 line += QStringLiteral("%1, ").arg(addString(invoke->id));
                 line += QStringLiteral("%1, ").arg(addString(node->id + QStringLiteral(".session-")));
                 line += QStringLiteral("%1, ").arg(addString(invoke->idLocation));

@@ -1005,6 +1005,7 @@ class InvokeDynamicScxmlFactory: public QScxmlInvokableScxmlServiceFactory
 {
 public:
     InvokeDynamicScxmlFactory(QScxmlExecutableContent::StringId invokeLocation,
+                              QScxmlExecutableContent::EvaluatorId srcexpr,
                               QScxmlExecutableContent::StringId id,
                               QScxmlExecutableContent::StringId idPrefix,
                               QScxmlExecutableContent::StringId idlocation,
@@ -1012,7 +1013,15 @@ public:
                               bool autoforward,
                               const QVector<Param> &params,
                               QScxmlExecutableContent::ContainerId finalize)
-        : QScxmlInvokableScxmlServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist, autoforward, params, finalize)
+        : QScxmlInvokableScxmlServiceFactory(invokeLocation,
+                                             srcexpr,
+                                             id,
+                                             idPrefix,
+                                             idlocation,
+                                             namelist,
+                                             autoforward,
+                                             params,
+                                             finalize)
     {}
 
     void setContent(const QSharedPointer<DocumentModel::ScxmlDocument> &content)
@@ -1184,6 +1193,9 @@ private:
                         endSequence();
                     }
                     auto factory = new InvokeDynamicScxmlFactory(ctxt,
+                                                                 createEvaluatorString(QStringLiteral("invoke"),
+                                                                                       QStringLiteral("srcexpr"),
+                                                                                       invoke->srcexpr),
                                                                  addString(invoke->id),
                                                                  addString(node->id + QStringLiteral(".session-")),
                                                                  addString(invoke->idLocation),
@@ -1363,6 +1375,14 @@ private:
 
 inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(QScxmlStateMachine *parent)
 {
+    bool ok = true;
+    auto srcexpr = calculateSrcexpr(parent, &ok);
+    if (!ok)
+        return Q_NULLPTR;
+
+    if (!srcexpr.isEmpty())
+        return loadAndInvokeDynamically(parent, srcexpr);
+
     auto child = QStateMachineBuilder().build(m_content.data());
 
     auto dm = QScxmlDataModelPrivate::instantiateDataModel(m_content->root->dataModel);
@@ -1374,6 +1394,50 @@ inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(QScxmlStateMach
 #endif // BUILD_QSCXMLC
 
 } // anonymous namespace
+
+#ifndef BUILD_QSCXMLC
+QScxmlInvokableService *QScxmlInvokableScxmlServiceFactory::loadAndInvokeDynamically(QScxmlStateMachine *parent,
+                                                                                     const QString &sourceUrl)
+{
+    QScxmlParser::Loader *loader = parent->loader();
+
+    QStringList errs;
+    const QByteArray data = loader->load(sourceUrl, sourceUrl.isEmpty() ?
+                              QString() : QFileInfo(sourceUrl).path(), &errs);
+
+    if (!errs.isEmpty()) {
+        qWarning() << errs;
+        return Q_NULLPTR;
+    }
+
+    QXmlStreamReader reader(data);
+    QScxmlParser parser(&reader);
+    parser.setFileName(sourceUrl);
+    parser.setLoader(parent->loader());
+    parser.parse();
+    if (!parser.errors().isEmpty()) {
+        foreach (const QScxmlError &error, parser.errors())
+            qWarning() << error.toString();
+        return Q_NULLPTR;
+    }
+
+    auto mainDoc = QScxmlParserPrivate::get(&parser)->scxmlDocument();
+    if (mainDoc == nullptr) {
+        Q_ASSERT(!parser.errors().isEmpty());
+        foreach (const QScxmlError &error, parser.errors())
+            qWarning() << error.toString();
+        return Q_NULLPTR;
+    }
+
+    auto child = QStateMachineBuilder().build(mainDoc);
+
+    auto dm = QScxmlDataModelPrivate::instantiateDataModel(mainDoc->root->dataModel);
+    dm->setParent(child);
+    child->setDataModel(dm);
+
+    return finishInvoke(child, parent);
+}
+#endif // BUILD_QSCXMLC
 
 /*!
  * \class QScxmlParser

@@ -234,6 +234,7 @@ QScxmlStateMachinePrivate::QScxmlStateMachinePrivate()
     , m_isInvoked(false)
     , m_isInitialized(false)
     , m_dataModel(Q_NULLPTR)
+    , m_loader(&m_defaultLoader)
     , m_dataBinding(QScxmlStateMachine::EarlyBinding)
     , m_executionEngine(Q_NULLPTR)
     , m_tableData(Q_NULLPTR)
@@ -595,6 +596,21 @@ QScxmlDataModel *QScxmlStateMachine::dataModel() const
     Q_D(const QScxmlStateMachine);
 
     return d->m_dataModel;
+}
+
+
+void QScxmlStateMachine::setLoader(QScxmlParser::Loader *loader)
+{
+    Q_D(QScxmlStateMachine);
+
+    d->m_loader = loader;
+}
+
+QScxmlParser::Loader *QScxmlStateMachine::loader() const
+{
+    Q_D(const QScxmlStateMachine);
+
+    return d->m_loader;
 }
 
 /*!

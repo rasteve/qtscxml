@@ -142,6 +142,8 @@ public: // types & data fields:
     bool m_isInitialized;
     QVariantMap m_initialValues;
     QScxmlDataModel *m_dataModel;
+    QScxmlParserPrivate::DefaultLoader m_defaultLoader;
+    QScxmlParser::Loader *m_loader;
     QScxmlStateMachine::BindingMethod m_dataBinding;
     QScxmlExecutableContent::QScxmlExecutionEngine *m_executionEngine;
     QScxmlTableData *m_tableData;

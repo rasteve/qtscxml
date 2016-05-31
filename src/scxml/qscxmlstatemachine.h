@@ -44,6 +44,7 @@
 #include <QtScxml/qscxmlexecutablecontent.h>
 #include <QtScxml/qscxmlerror.h>
 #include <QtScxml/qscxmlevent.h>
+#include <QtScxml/qscxmlparser.h>
 
 #include <QString>
 #include <QVector>
@@ -57,7 +58,6 @@ class QTextStream;
 class QScxmlEventBuilder;
 class QScxmlInvokableServiceFactory;
 class QScxmlInvokableService;
-class QScxmlParser;
 class QScxmlStateMachine;
 class QScxmlTableData;
 
@@ -104,6 +104,9 @@ public:
 
     void setDataModel(QScxmlDataModel *model);
     QScxmlDataModel *dataModel() const;
+
+    void setLoader(QScxmlParser::Loader *loader);
+    QScxmlParser::Loader *loader() const;
 
     BindingMethod dataBinding() const;
 

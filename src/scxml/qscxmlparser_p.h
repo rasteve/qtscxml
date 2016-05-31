@@ -702,6 +702,7 @@ private:
         static QStringList optionalAttributes(Kind kind);
     };
 
+public:
     class DefaultLoader: public QScxmlParser::Loader
     {
     public:
@@ -711,6 +712,7 @@ private:
                         QStringList *errors) Q_DECL_OVERRIDE Q_DECL_FINAL;
     };
 
+private:
     bool checkAttributes(const QXmlStreamAttributes &attributes, QScxmlParserPrivate::ParserState::Kind kind);
     ParserState &current();
     ParserState &previous();

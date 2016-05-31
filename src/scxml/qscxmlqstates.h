@@ -55,6 +55,7 @@ class QScxmlInvokeScxmlFactory: public QScxmlInvokableScxmlServiceFactory
 {
 public:
     QScxmlInvokeScxmlFactory(QScxmlExecutableContent::StringId invokeLocation,
+                             QScxmlExecutableContent::EvaluatorId srcexpr,
                              QScxmlExecutableContent::StringId id,
                              QScxmlExecutableContent::StringId idPrefix,
                              QScxmlExecutableContent::StringId idlocation,
@@ -62,12 +63,27 @@ public:
                              bool doAutoforward,
                              const QVector<Param> &params,
                              QScxmlExecutableContent::ContainerId finalize)
-        : QScxmlInvokableScxmlServiceFactory(invokeLocation, id, idPrefix, idlocation, namelist,
-                                             doAutoforward, params, finalize)
+        : QScxmlInvokableScxmlServiceFactory(invokeLocation,
+                                             srcexpr,
+                                             id,
+                                             idPrefix,
+                                             idlocation,
+                                             namelist,
+                                             doAutoforward,
+                                             params,
+                                             finalize)
     {}
 
     QScxmlInvokableService *invoke(QScxmlStateMachine *parent) Q_DECL_OVERRIDE
     {
+        bool ok = true;
+        auto srcexpr = calculateSrcexpr(parent, &ok);
+        if (!ok)
+            return Q_NULLPTR;
+
+        if (!srcexpr.isEmpty())
+            return loadAndInvokeDynamically(parent, srcexpr);
+
         return finishInvoke(new T, parent);
     }
 };
