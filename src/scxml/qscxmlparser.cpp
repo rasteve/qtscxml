@@ -1430,7 +1430,7 @@ inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(QScxmlStateMach
  * Creates a new SCXML parser for the specified \a reader.
  */
 QScxmlParser::QScxmlParser(QXmlStreamReader *reader)
-    : d(new QScxmlParserPrivate(this, reader))
+    : d(new QScxmlParserPrivate(reader))
 { }
 
 /*!
@@ -2017,10 +2017,8 @@ bool DocumentModel::isEventToBeGenerated(const QString &event)
 /*!
  * Creates a new loader for the specified \a parser.
  */
-QScxmlParser::Loader::Loader(QScxmlParser *parser)
-    : m_parser(parser)
+QScxmlParser::Loader::Loader()
 {
-    Q_ASSERT(parser);
 }
 
 /*!
@@ -2028,14 +2026,6 @@ QScxmlParser::Loader::Loader(QScxmlParser *parser)
  */
 QScxmlParser::Loader::~Loader()
 {}
-
-/*!
- * Returns the parser that is associated with this loader.
- */
-QScxmlParser *QScxmlParser::Loader::parser() const
-{
-    return m_parser;
-}
 
 /*!
  * \fn QScxmlParser::Loader::load(const QString &name, const QString &baseDir, bool *ok)
@@ -2051,9 +2041,8 @@ QScxmlParserPrivate *QScxmlParserPrivate::get(QScxmlParser *parser)
     return parser->d;
 }
 
-QScxmlParserPrivate::QScxmlParserPrivate(QScxmlParser *parser, QXmlStreamReader *reader)
+QScxmlParserPrivate::QScxmlParserPrivate(QXmlStreamReader *reader)
     : m_currentState(Q_NULLPTR)
-    , m_defaultLoader(parser)
     , m_loader(&m_defaultLoader)
     , m_reader(reader)
     , m_qtMode(QScxmlParser::QtModeFromInputFile)
@@ -2099,20 +2088,26 @@ void QScxmlParserPrivate::setLoader(QScxmlParser::Loader *loader)
     m_loader = loader;
 }
 
-void QScxmlParserPrivate::parseSubDocument(DocumentModel::Invoke *parentInvoke, QXmlStreamReader *reader, const QString &fileName)\
+void QScxmlParserPrivate::parseSubDocument(DocumentModel::Invoke *parentInvoke,
+                                           QXmlStreamReader *reader,
+                                           const QString &fileName)
 {
     QScxmlParser p(reader);
     p.setFileName(fileName);
+    p.setLoader(loader());
     p.d->readDocument();
     parentInvoke->content.reset(p.d->m_doc.take());
     m_doc->allSubDocuments.append(parentInvoke->content.data());
     m_errors.append(p.errors());
 }
 
-bool QScxmlParserPrivate::parseSubElement(DocumentModel::Invoke *parentInvoke, QXmlStreamReader *reader, const QString &fileName)
+bool QScxmlParserPrivate::parseSubElement(DocumentModel::Invoke *parentInvoke,
+                                          QXmlStreamReader *reader,
+                                          const QString &fileName)
 {
     QScxmlParser p(reader);
     p.setFileName(fileName);
+    p.setLoader(loader());
     p.d->resetDocument();
     bool ok = p.d->readElement();
     parentInvoke->content.reset(p.d->m_doc.take());
@@ -3076,10 +3071,17 @@ bool QScxmlParserPrivate::flushInstruction()
 }
 
 
-QByteArray QScxmlParserPrivate::load(const QString &name, bool *ok) const
+QByteArray QScxmlParserPrivate::load(const QString &name, bool *ok)
 {
-    return m_loader->load(name, m_fileName.isEmpty() ?
-                              QString() : QFileInfo(m_fileName).path(), ok);
+    QStringList errs;
+    const QByteArray result = m_loader->load(name, m_fileName.isEmpty() ?
+                              QString() : QFileInfo(m_fileName).path(), &errs);
+    for (const QString &err : errs)
+        addError(err);
+
+    *ok = errs.isEmpty();
+
+    return result;
 }
 
 QVector<QScxmlError> QScxmlParserPrivate::errors() const
@@ -3199,15 +3201,14 @@ bool QScxmlParserPrivate::checkAttributes(const QXmlStreamAttributes &attributes
     return true;
 }
 
-QScxmlParserPrivate::DefaultLoader::DefaultLoader(QScxmlParser *parser)
-    : Loader(parser)
+QScxmlParserPrivate::DefaultLoader::DefaultLoader()
+    : Loader()
 {}
 
-QByteArray QScxmlParserPrivate::DefaultLoader::load(const QString &name, const QString &baseDir, bool *ok)
+QByteArray QScxmlParserPrivate::DefaultLoader::load(const QString &name, const QString &baseDir, QStringList *errors)
 {
-    Q_ASSERT(ok != nullptr);
-
-    *ok = false;
+    QStringList errs;
+    QByteArray contents;
 #ifdef BUILD_QSCXMLC
     QString cleanName = name;
     if (name.startsWith(QStringLiteral("file:")))
@@ -3216,25 +3217,26 @@ QByteArray QScxmlParserPrivate::DefaultLoader::load(const QString &name, const Q
 #else
     const QUrl url(name);
     if (!url.isLocalFile() && !url.isRelative())
-        parser()->addError(QStringLiteral("src attribute is not a local file (%1)").arg(name));
+        errs << QStringLiteral("src attribute is not a local file (%1)").arg(name);
     QFileInfo fInfo = url.isLocalFile() ? url.toLocalFile() : name;
 #endif // BUILD_QSCXMLC
     if (fInfo.isRelative())
         fInfo = QFileInfo(QDir(baseDir).filePath(fInfo.filePath()));
 
     if (!fInfo.exists()) {
-        parser()->addError(QStringLiteral("src attribute resolves to non existing file (%1)").arg(fInfo.filePath()));
+        errs << QStringLiteral("src attribute resolves to non existing file (%1)").arg(fInfo.filePath());
     } else {
         QFile f(fInfo.filePath());
-        if (f.open(QFile::ReadOnly)) {
-            *ok = true;
-            return f.readAll();
-        } else {
-            parser()->addError(QStringLiteral("Failure opening file %1: %2")
-                               .arg(fInfo.filePath(), f.errorString()));
-        }
+        if (f.open(QFile::ReadOnly))
+            contents = f.readAll();
+        else
+            errs << QStringLiteral("Failure opening file %1: %2")
+                      .arg(fInfo.filePath(), f.errorString());
     }
-    return QByteArray();
+    if (errors)
+        *errors = errs;
+
+    return contents;
 }
 
 QScxmlParserPrivate::ParserState::ParserState(QScxmlParserPrivate::ParserState::Kind someKind)

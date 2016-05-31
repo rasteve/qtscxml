@@ -555,7 +555,7 @@ class Q_SCXML_EXPORT QScxmlParserPrivate
 public:
     static QScxmlParserPrivate *get(QScxmlParser *parser);
 
-    QScxmlParserPrivate(QScxmlParser *parser, QXmlStreamReader *reader);
+    QScxmlParserPrivate(QXmlStreamReader *reader);
 
     bool verifyDocument();
     DocumentModel::ScxmlDocument *scxmlDocument() const;
@@ -567,9 +567,13 @@ public:
     void setLoader(QScxmlParser::Loader *loader);
 
     bool readDocument();
-    void parseSubDocument(DocumentModel::Invoke *parentInvoke, QXmlStreamReader *reader, const QString &fileName);
-    bool parseSubElement(DocumentModel::Invoke *parentInvoke, QXmlStreamReader *reader, const QString &fileName);
-    QByteArray load(const QString &name, bool *ok) const;
+    void parseSubDocument(DocumentModel::Invoke *parentInvoke,
+                          QXmlStreamReader *reader,
+                          const QString &fileName);
+    bool parseSubElement(DocumentModel::Invoke *parentInvoke,
+                         QXmlStreamReader *reader,
+                         const QString &fileName);
+    QByteArray load(const QString &name, bool *ok);
 
     QVector<QScxmlError> errors() const;
 
@@ -701,8 +705,10 @@ private:
     class DefaultLoader: public QScxmlParser::Loader
     {
     public:
-        DefaultLoader(QScxmlParser *parser);
-        QByteArray load(const QString &name, const QString &baseDir, bool *ok) Q_DECL_OVERRIDE Q_DECL_FINAL;
+        DefaultLoader();
+        QByteArray load(const QString &name,
+                        const QString &baseDir,
+                        QStringList *errors) Q_DECL_OVERRIDE Q_DECL_FINAL;
     };
 
     bool checkAttributes(const QXmlStreamAttributes &attributes, QScxmlParserPrivate::ParserState::Kind kind);

@@ -94,42 +94,46 @@ public:
 class DynamicLoader: public QScxmlParser::Loader
 {
 public:
-    DynamicLoader(QScxmlParser *parser);
-    QByteArray load(const QString &name, const QString &baseDir, bool *ok) Q_DECL_OVERRIDE Q_DECL_FINAL;
+    DynamicLoader();
+    QByteArray load(const QString &name,
+                    const QString &baseDir,
+                    QStringList *errors) Q_DECL_OVERRIDE Q_DECL_FINAL;
 
 };
 
-DynamicLoader::DynamicLoader(QScxmlParser *parser)
-    : Loader(parser)
+DynamicLoader::DynamicLoader()
+    : Loader()
 {}
 
-QByteArray DynamicLoader::load(const QString &name, const QString &baseDir, bool *ok)
+QByteArray DynamicLoader::load(const QString &name,
+                               const QString &baseDir,
+                               QStringList *errors)
 {
-    Q_ASSERT(ok != nullptr);
-
-    *ok = false;
+    QStringList errs;
+    QByteArray contents;
     QUrl url(name);
     if (!url.isLocalFile() && !url.isRelative())
-        parser()->addError(QStringLiteral("src attribute is not a local file (%1)").arg(name));
+        errs << QStringLiteral("src attribute is not a local file (%1)").arg(name);
     QFileInfo fInfo = url.isLocalFile() ? url.toLocalFile() : name;
     if (fInfo.isRelative())
         fInfo = QFileInfo(QDir(baseDir).filePath(fInfo.filePath()));
     fInfo = QFileInfo(QLatin1String(":/") + fInfo.filePath()); // take it from resources
 
     if (!fInfo.exists()) {
-        parser()->addError(QStringLiteral("src attribute resolves to non existing file (%1)").arg(fInfo.absoluteFilePath()));
+        errs << QStringLiteral("src attribute resolves to non existing file (%1)")
+                 .arg(fInfo.absoluteFilePath());
     } else {
         QFile f(fInfo.absoluteFilePath());
-        if (f.open(QFile::ReadOnly)) {
-            *ok = true;
-            QByteArray array = f.readAll();
-            return array;
-        } else {
-            parser()->addError(QStringLiteral("Failure opening file %1: %2")
-                               .arg(fInfo.absoluteFilePath(), f.errorString()));
-        }
+        if (f.open(QFile::ReadOnly))
+            contents = f.readAll();
+        else
+            errs << QStringLiteral("Failure opening file %1: %2")
+                               .arg(fInfo.absoluteFilePath(), f.errorString());
     }
-    return QByteArray();
+    if (errors)
+        *errors = errs;
+
+    return contents;
 }
 
 
@@ -204,7 +208,7 @@ void TestScion::dynamic()
     QXmlStreamReader xmlReader(&scxmlFile);
     QScxmlParser parser(&xmlReader);
     parser.setFileName(scxml);
-    DynamicLoader loader(&parser);
+    DynamicLoader loader;
     parser.setLoader(&loader);
     parser.parse();
     QVERIFY(parser.errors().isEmpty());

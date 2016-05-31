@@ -56,15 +56,11 @@ public:
     class Q_SCXML_EXPORT Loader
     {
     public:
-        Loader(QScxmlParser *parser);
+        Loader();
         virtual ~Loader();
-        virtual QByteArray load(const QString &name, const QString &baseDir, bool *ok) = 0;
-
-    protected:
-        QScxmlParser *parser() const;
-
-    private:
-        QScxmlParser *m_parser;
+        virtual QByteArray load(const QString &name,
+                                const QString &baseDir,
+                                QStringList *errors) = 0;
     };
 
     enum QtMode {
