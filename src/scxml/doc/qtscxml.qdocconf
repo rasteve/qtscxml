@@ -7,7 +7,7 @@ version                 = $QT_VERSION
 # Install path for the examples. For Qt 5.6, the convention
 # is to use the repository name as the install location
 # under QT_INSTALL_EXAMPLES.
-examplesinstallpath     = qtscxml/scxml
+examplesinstallpath     = scxml
 exampledirs             = ../../../examples/scxml
 imagedirs               = ../../../examples/doc/images
 
