@@ -1489,7 +1489,12 @@ void QScxmlParser::setLoader(QScxmlParser::Loader *newLoader)
 void QScxmlParser::parse()
 {
     d->readDocument();
-    d->verifyDocument();
+    if (d->errors().isEmpty()) {
+        // Only verify the document if there were no parse errors: if there were any, the document
+        // is incomplete and will contain errors for sure. There is no need to heap more errors on
+        // top of other errors.
+        d->verifyDocument();
+    }
 }
 
 /*!

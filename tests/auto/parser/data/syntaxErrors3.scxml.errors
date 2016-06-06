@@ -1,4 +1,2 @@
 :/tst_parser/data/syntaxErrors3.scxml:16:64: error: Unknown element assige
 :/tst_parser/data/syntaxErrors3.scxml:18:12: error: Error parsing SCXML file: Opening and ending tag mismatch.
-:/tst_parser/data/syntaxErrors3.scxml:8:29: error: 'o]erand1' is not a valid XML ID
-:/tst_parser/data/syntaxErrors3.scxml:11:55: error: unknown state 'result' in target

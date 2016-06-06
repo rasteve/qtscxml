@@ -1,4 +1,1 @@
 :/tst_parser/data/noContentInInvoke4.scxml:12:6: error: Error parsing SCXML file: Unexpected ''.
-:/tst_parser/data/noContentInInvoke4.scxml:6:1: error: initial state 'anyplacE' not found for <scxml> element
-:/tst_parser/data/noContentInInvoke4.scxml:8:60: error: unknown state 'somewhere' in target
-:/tst_parser/data/noContentInInvoke4.scxml:10:37: error: 's* LIMITomewhere' is not a valid XML ID

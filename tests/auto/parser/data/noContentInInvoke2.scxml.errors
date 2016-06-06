@@ -1,3 +1,1 @@
 :/tst_parser/data/noContentInInvoke2.scxml:9:27: error: Error parsing SCXML file: Expected '=', but got '[a-zA-Z]'.
-:/tst_parser/data/noContentInInvoke2.scxml:6:1: error: initial state 'anyplace' not found for <scxml> element
-:/tst_parser/data/noContentInInvoke2.scxml:7:25: error: 'anyp\ace' is not a valid XML ID
