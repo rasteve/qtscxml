@@ -61,13 +61,6 @@ class QScxmlInvokableService;
 class QScxmlStateMachine;
 class QScxmlTableData;
 
-class Q_SCXML_EXPORT QScxmlEventFilter
-{
-public:
-    virtual ~QScxmlEventFilter();
-    virtual bool handle(QScxmlEvent *event, QScxmlStateMachine *stateMachine) = 0;
-};
-
 class QScxmlStateMachinePrivate;
 class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
 {
@@ -86,11 +79,6 @@ protected:
 #endif // Q_QDOC
 
 public:
-    enum BindingMethod {
-        EarlyBinding,
-        LateBinding
-    };
-
     static QScxmlStateMachine *fromFile(const QString &fileName);
     static QScxmlStateMachine *fromData(QIODevice *data, const QString &fileName = QString());
     QVector<QScxmlError> parseErrors() const;
@@ -108,8 +96,6 @@ public:
     void setLoader(QScxmlParser::Loader *loader);
     QScxmlParser::Loader *loader() const;
 
-    BindingMethod dataBinding() const;
-
     bool isRunning() const;
     void setRunning(bool running);
 
@@ -124,9 +110,6 @@ public:
     QMetaObject::Connection connectToState(const QString &scxmlStateName,
                                     const QObject *receiver, const char *method,
                                     Qt::ConnectionType type = Qt::AutoConnection);
-
-    QScxmlEventFilter *scxmlEventFilter() const;
-    void setScxmlEventFilter(QScxmlEventFilter *newFilter);
 
     Q_INVOKABLE void submitEvent(QScxmlEvent *event);
     Q_INVOKABLE void submitEvent(const QString &eventName);
@@ -158,9 +141,9 @@ protected: // methods for friends:
     friend QScxmlExecutableContent::QScxmlExecutionEngine;
 
 #ifndef Q_QDOC
-    void setDataBinding(BindingMethod bindingMethod);
-    virtual void setService(const QString &id, QScxmlInvokableService *service);
-
+    // The methods below are used by the compiled state machines.
+    bool isActive(int stateIndex) const;
+    QScxmlStateMachine *subStateMachine(int index) const;
     QScxmlTableData *tableData() const;
     void setTableData(QScxmlTableData *tableData);
 #endif // Q_QDOC

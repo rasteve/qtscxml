@@ -1146,13 +1146,13 @@ void Generator::generateStaticMetacall()
             Q_ASSERT(!f.normalizedType.isEmpty());
             fprintf(out, "        case %d: ", methodindex);
 
-            //----
+            //---- Changed from the original in moc
             if (f.implementation) {
                 fprintf(out, f.implementation, methodindex);
                 fprintf(out, " break;\n");
                 continue;
             }
-            //----
+            //---- End of change
 
             if (f.normalizedType != "void")
                 fprintf(out, "{ %s _r = ", noRef(f.normalizedType).constData());
@@ -1327,8 +1327,13 @@ void Generator::generateStaticMetacall()
                     fprintf(out, "        case %d: *reinterpret_cast<int*>(_v) = QFlag(%s%s()); break;\n",
                             propindex, prefix.constData(), p.read.constData());
                 else if (!p.read.isEmpty())
-                    fprintf(out, "        case %d: *reinterpret_cast< %s*>(_v) = %s%s(); break;\n",
-                            propindex, p.type.constData(), prefix.constData(), p.read.constData());
+                    //---- Changed from the original in moc
+                {
+                    fprintf(out, "        case %d: *reinterpret_cast< %s*>(_v) = %s%s%s; break;\n",
+                            propindex, p.type.constData(), prefix.constData(), p.read.constData(),
+                            p.read.endsWith(')') ? "" : "()");
+                }
+                    //---- End of change
                 else
                     fprintf(out, "        case %d: *reinterpret_cast< %s*>(_v) = %s%s; break;\n",
                             propindex, p.type.constData(), prefix.constData(), p.member.constData());

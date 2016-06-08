@@ -53,44 +53,32 @@
 
 #include <QtScxml/private/qscxmlexecutablecontent_p.h>
 #include <QtScxml/qscxmlstatemachine.h>
-
-#include <QStateMachine>
-#include <QtCore/private/qstatemachine_p.h>
+#include <QtCore/private/qobject_p.h>
 
 QT_BEGIN_NAMESPACE
 
 namespace QScxmlInternal {
-class WrappedQStateMachinePrivate;
-class WrappedQStateMachine: public QStateMachine
+class EventLoopHook: public QObject
 {
     Q_OBJECT
-    Q_DECLARE_PRIVATE(WrappedQStateMachine)
+
+    QScxmlStateMachinePrivate *smp;
 
 public:
-    WrappedQStateMachine(QScxmlStateMachine *parent);
-    WrappedQStateMachine(WrappedQStateMachinePrivate &dd, QScxmlStateMachine *parent);
+    EventLoopHook(QScxmlStateMachinePrivate *smp)
+        : smp(smp)
+    {}
 
-    QScxmlStateMachine *stateMachine() const;
+    void queueProcessEvents();
 
-    void queueEvent(QScxmlEvent *event, QStateMachine::EventPriority priority);
-    void submitQueuedEvents();
-    int eventIdForDelayedEvent(const QString &sendId);
-
-    Q_INVOKABLE void removeAndDestroyService(QScxmlInvokableService *service);
+    Q_INVOKABLE void doProcessEvents();
 
 protected:
-    void beginSelectTransitions(QEvent *event) Q_DECL_OVERRIDE;
-    void beginMicrostep(QEvent *event) Q_DECL_OVERRIDE;
-    void endMicrostep(QEvent *event) Q_DECL_OVERRIDE;
-    bool event(QEvent *e) Q_DECL_OVERRIDE;
-
-private:
-    QScxmlStateMachinePrivate *stateMachinePrivate();
+    void timerEvent(QTimerEvent *timerEvent) Q_DECL_OVERRIDE;
 };
-} // Internal namespace
+} // QScxmlInternal namespace
 
 class QScxmlInvokableService;
-class QScxmlState;
 class QScxmlStateMachinePrivate: public QObjectPrivate
 {
     Q_DECLARE_PUBLIC(QScxmlStateMachine)
@@ -98,6 +86,27 @@ class QScxmlStateMachinePrivate: public QObjectPrivate
     static QAtomicInt m_sessionIdCounter;
 
 public: // types
+    typedef QScxmlExecutableContent::StateTable StateTable;
+
+    class HistoryContent
+    {
+        QHash<int, int> storage;
+
+    public:
+        HistoryContent() { storage.reserve(4); }
+
+        int &operator[](int idx) {
+            QHash<int, int>::Iterator i = storage.find(idx);
+            return (i == storage.end()) ? storage.insert(idx, StateTable::InvalidIndex).value() :
+                                          i.value();
+        }
+
+        int value(int idx) const {
+            QHash<int, int>::ConstIterator i = storage.constFind(idx);
+            return (i == storage.constEnd()) ? StateTable::InvalidIndex : i.value();
+        }
+    };
+
     class ParserData
     {
     public:
@@ -105,57 +114,221 @@ public: // types
         QVector<QScxmlError> m_errors;
     };
 
+    // The OrderedSet is a set where it elements are in insertion order. See
+    // http://www.w3.org/TR/scxml/#AlgorithmforSCXMLInterpretation under Algorithm, Datatypes. It
+    // is used to keep lists of states and transitions in document order.
+    class OrderedSet
+    {
+        std::vector<int> storage;
+
+    public:
+        OrderedSet(){}
+        OrderedSet(std::initializer_list<int> l): storage(l) {}
+
+        std::vector<int> takeList() const
+        { return std::move(storage); }
+
+        const std::vector<int> &list() const
+        { return storage; }
+
+        bool contains(int i) const
+        {
+            return std::find(storage.cbegin(), storage.cend(), i) != storage.cend();
+        }
+
+        bool remove(int i)
+        {
+            std::vector<int>::iterator it = std::find(storage.begin(), storage.end(), i);
+            if (it == storage.end()) {
+                return false;
+            }
+            storage.erase(it);
+            return true;
+        }
+
+        void removeHead()
+        { if (!isEmpty()) storage.erase(storage.begin()); }
+
+        bool isEmpty() const
+        { return storage.empty(); }
+
+        void add(int i)
+        { if (!contains(i)) storage.push_back(i); }
+
+        bool intersectsWith(const OrderedSet &other) const
+        {
+            for (auto i : storage) {
+                if (other.contains(i)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        void clear()
+        { storage.clear(); }
+
+        typedef std::vector<int>::const_iterator const_iterator;
+        const_iterator begin() const { return storage.cbegin(); }
+        const_iterator end() const { return storage.cend(); }
+    };
+
+    class Queue
+    {
+        QVector<QScxmlEvent *> storage;
+
+    public:
+        Queue()
+        { storage.reserve(4); }
+
+        ~Queue()
+        {  qDeleteAll(storage); }
+
+        void enqueue(QScxmlEvent *e)
+        { storage.append(e); }
+
+        bool isEmpty() const
+        { return storage.empty(); }
+
+        QScxmlEvent *dequeue()
+        {
+            Q_ASSERT(!isEmpty());
+            QScxmlEvent *e = storage.first();
+            storage.pop_front();
+            int sz = storage.size();
+            if (Q_UNLIKELY(sz > 4 && sz * 8 < storage.capacity())) {
+                storage.squeeze();
+            }
+            return e;
+        }
+    };
+
 public:
     QScxmlStateMachinePrivate();
     ~QScxmlStateMachinePrivate();
 
-    void init();
-
     static QScxmlStateMachinePrivate *get(QScxmlStateMachine *t)
     { return t->d_func(); }
-
-    void setQStateMachine(QScxmlInternal::WrappedQStateMachine *stateMachine);
-
-    QAbstractState *stateByScxmlName(const QString &scxmlName);
 
     ParserData *parserData();
 
     void setIsInvoked(bool invoked)
     { m_isInvoked = invoked; }
 
-    const QVector<QScxmlInvokableService *> &invokedServices() const
-    { return m_invokedServices; }
-
-    void addService(QScxmlInvokableService *service);
-
-    bool removeService(QScxmlInvokableService *service);
+    void addService(int invokingState);
+    void removeService(int invokingState);
+    QScxmlInvokableServiceFactory *serviceFactory(int id);
 
     bool executeInitialSetup();
 
     void routeEvent(QScxmlEvent *event);
     void postEvent(QScxmlEvent *event);
+    void submitDelayedEvent(QScxmlEvent *event);
     void submitError(const QString &type, const QString &msg, const QString &sendid = QString());
+
+    void start();
+    void pause();
+    void processEvents();
+
+    void setEvent(QScxmlEvent *event);
+    void resetEvent();
+
+    void emitStateActive(int stateIndex, bool active);
+    void emitServiceChanged(int machineIndex, QScxmlInvokableService *service);
+    void emitSignalForEvent(int signalIndex, const QVariant &data);
+
+private:
+    QStringList stateNames(const std::vector<int> &stateIndexes) const;
+    std::vector<int> historyStates(int stateIdx) const;
+
+    void exitInterpreter();
+    void returnDoneEvent(QScxmlExecutableContent::ContainerId doneData);
+    bool nameMatch(const StateTable::Array &patterns, QScxmlEvent *event) const;
+    void selectTransitions(OrderedSet &enabledTransitions,
+                           const std::vector<int> &configInDocumentOrder,
+                           QScxmlEvent *event) const;
+    void removeConflictingTransitions(OrderedSet *enabledTransitions) const;
+    void getProperAncestors(std::vector<int> *ancestors, int state1, int state2) const;
+    void microstep(const OrderedSet &enabledTransitions);
+    void exitStates(const OrderedSet &enabledTransitions);
+    void computeExitSet(const OrderedSet &enabledTransitions, OrderedSet &statesToExit) const;
+    void executeTransitionContent(const OrderedSet &enabledTransitions);
+    void enterStates(const OrderedSet &enabledTransitions);
+    void computeEntrySet(const OrderedSet &enabledTransitions,
+                         OrderedSet *statesToEnter,
+                         OrderedSet *statesForDefaultEntry,
+                         HistoryContent *defaultHistoryContent) const;
+    void addDescendantStatesToEnter(int stateIndex,
+                                    OrderedSet *statesToEnter,
+                                    OrderedSet *statesForDefaultEntry,
+                                    HistoryContent *defaultHistoryContent) const;
+    void addAncestorStatesToEnter(int stateIndex,
+                                  int ancestorIndex,
+                                  OrderedSet *statesToEnter,
+                                  OrderedSet *statesForDefaultEntry,
+                                  HistoryContent *defaultHistoryContent) const;
+    std::vector<int> getChildStates(const StateTable::State &state) const;
+    bool hasDescendant(const OrderedSet &statesToEnter, int childIdx) const;
+    bool allDescendants(const OrderedSet &statesToEnter, int childdx) const;
+    bool isDescendant(int state1, int state2) const;
+    bool allInFinalStates(const std::vector<int> &states) const;
+    bool someInFinalStates(const std::vector<int> &states) const;
+    bool isInFinalState(int stateIndex) const;
+    int getTransitionDomain(int transitionIndex) const;
+    int findLCCA(OrderedSet &&states) const;
+    void getEffectiveTargetStates(OrderedSet *targets, int transitionIndex) const;
 
 public: // types & data fields:
     QString m_sessionId;
     bool m_isInvoked;
     bool m_isInitialized;
+    bool m_isProcessingEvents;
     QVariantMap m_initialValues;
     QScxmlDataModel *m_dataModel;
     QScxmlParserPrivate::DefaultLoader m_defaultLoader;
     QScxmlParser::Loader *m_loader;
-    QScxmlStateMachine::BindingMethod m_dataBinding;
     QScxmlExecutableContent::QScxmlExecutionEngine *m_executionEngine;
     QScxmlTableData *m_tableData;
-    QScxmlEvent m_event;
-    QScxmlInternal::WrappedQStateMachine *m_qStateMachine;
-    QScxmlEventFilter *m_eventFilter;
-    QVector<QScxmlState*> m_statesToInvoke;
+    const StateTable *m_stateTable;
     QScxmlStateMachine *m_parentStateMachine;
+    QScxmlInternal::EventLoopHook m_eventLoopHook;
+    typedef std::vector<std::pair<int, QScxmlEvent *>> DelayedQueue;
+    DelayedQueue m_delayedEvents;
 
 private:
-    QVector<QScxmlInvokableService *> m_invokedServices;
     QScopedPointer<ParserData> m_parserData; // used when created by StateMachine::fromFile.
+    typedef QHash<int, QVector<int>> HistoryValues;
+    struct InvokedService {
+        int invokingState;
+        QScxmlInvokableService *service;
+        QString serviceName;
+    };
+
+    // TODO: move the stuff below to a struct that can be reset
+    HistoryValues m_historyValue;
+    OrderedSet m_configuration;
+    Queue m_internalQueue;
+    Queue m_externalQueue;
+    QSet<int> m_statesToInvoke;
+    std::vector<InvokedService> m_invokedServices;
+    std::vector<bool> m_isFirstStateEntry;
+    std::vector<QScxmlInvokableServiceFactory *> m_cachedFactories;
+    enum { Invalid = 0, Starting, Running, Paused, Finished } m_runningState = Invalid;
+    bool isRunnable() const {
+        switch (m_runningState) {
+        case Starting:
+        case Running:
+        case Paused:
+            return true;
+        case Invalid:
+        case Finished:
+            return false;
+        }
+
+        return false; // Dead code, but many dumb compilers cannot (or are unwilling to) detect that.
+    }
+
+    bool isPaused() const { return m_runningState == Paused; }
 };
 
 QT_END_NAMESPACE

@@ -54,15 +54,16 @@ void tst_Compiled::stateNames()
 {
     ids1 stateMachine;
 
+    // The states have to be appear in document order:
     QStringList ids1States({
+        "foo.bar",
+        "foo-bar",
+        "foo_bar",
         "_",
+        "näl",
+        "n_0xe4_l",
         "_VALID",
         "__valid",
-        "foo-bar",
-        "foo.bar",
-        "foo_bar",
-        "n_0xe4_l",
-        "näl",
         "qÿ̀i",
     });
 

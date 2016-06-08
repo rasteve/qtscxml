@@ -62,18 +62,18 @@ void tst_StateMachine::stateNames_data()
                                       << (QStringList() << QString("a1") << QString("a2") << QString("final"));
     QTest::newRow("stateNames-notCompressed") << QString(":/tst_statemachine/statenames.scxml")
                                       << false
-                                      << (QStringList() << QString("a") << QString("a1") << QString("a2") << QString("b") << QString("final") << QString("top"));
+                                      << (QStringList() << QString("top") << QString("a") << QString("a1") <<  QString("a2") << QString("b") << QString("final"));
     QTest::newRow("stateNamesNested-compressed") << QString(":/tst_statemachine/statenamesnested.scxml")
                                       << true
                                       << (QStringList() << QString("a") << QString("b"));
     QTest::newRow("stateNamesNested-notCompressed") << QString(":/tst_statemachine/statenamesnested.scxml")
                                       << false
-                                      << (QStringList() << QString("a") << QString("b") << QString("super_top"));
+                                      << (QStringList() << QString("super_top") << QString("a") << QString("b"));
 
     QTest::newRow("ids1") << QString(":/tst_statemachine/ids1.scxml")
                           << false
-                          << (QStringList() << QString("_") << QString("foo-bar")
-                              << QString("foo.bar") << QString("foo_bar"));
+                          << (QStringList() << QString("foo.bar") << QString("foo-bar")
+                              << QString("foo_bar") << QString("_"));
 }
 
 void tst_StateMachine::stateNames()
@@ -100,13 +100,13 @@ void tst_StateMachine::activeStateNames_data()
                                       << (QStringList() << QString("a1") << QString("final"));
     QTest::newRow("stateNames-notCompressed") << QString(":/tst_statemachine/statenames.scxml")
                                       << false
-                                      << (QStringList() << QString("a") << QString("a1") << QString("b") << QString("final") << QString("top"));
+                                      << (QStringList() << QString("top") << QString("a") << QString("a1") << QString("b") << QString("final"));
     QTest::newRow("stateNamesNested-compressed") << QString(":/tst_statemachine/statenamesnested.scxml")
                                       << true
-                                      << (QStringList() << QString("a")<< QString("b"));
+                                      << (QStringList() << QString("a") << QString("b"));
     QTest::newRow("stateNamesNested-notCompressed") << QString(":/tst_statemachine/statenamesnested.scxml")
                                       << false
-                                      << (QStringList() << QString("a") << QString("b") << QString("super_top"));
+                                      << (QStringList() << QString("super_top") << QString("a") << QString("b"));
 }
 
 void tst_StateMachine::activeStateNames()
@@ -150,12 +150,19 @@ void tst_StateMachine::eventOccurred()
 
     finishedSpy.wait(5000);
 
-    QCOMPARE(eventOccurredSpy.count(), 4);
-    QCOMPARE(qvariant_cast<QScxmlEvent>(eventOccurredSpy.at(0).at(0)).name(), QLatin1String("internalEvent2"));
-    QCOMPARE(qvariant_cast<QScxmlEvent>(eventOccurredSpy.at(1).at(0)).name(), QLatin1String("externalEvent"));
-    QCOMPARE(qvariant_cast<QScxmlEvent>(eventOccurredSpy.at(2).at(0)).name(), QLatin1String("timeout"));
-    QCOMPARE(qvariant_cast<QScxmlEvent>(eventOccurredSpy.at(3).at(0)).name(), QLatin1String("done.state.top"));
+    auto event = [&eventOccurredSpy](int eventIndex) -> QScxmlEvent {
+        return qvariant_cast<QScxmlEvent>(eventOccurredSpy.at(eventIndex).at(0));
+    };
 
+    QCOMPARE(eventOccurredSpy.count(), 4);
+    QCOMPARE(event(0).name(), QLatin1String("internalEvent2"));
+    QCOMPARE(event(0).eventType(), QScxmlEvent::ExternalEvent);
+    QCOMPARE(event(1).name(), QLatin1String("externalEvent"));
+    QCOMPARE(event(1).eventType(), QScxmlEvent::ExternalEvent);
+    QCOMPARE(event(2).name(), QLatin1String("timeout"));
+    QCOMPARE(event(2).eventType(), QScxmlEvent::ExternalEvent);
+    QCOMPARE(event(3).name(), QLatin1String("done.state.top"));
+    QCOMPARE(event(3).eventType(), QScxmlEvent::ExternalEvent);
 
     QCOMPARE(externalEventOccurredSpy.count(), 1);
     QCOMPARE(qvariant_cast<QScxmlEvent>(externalEventOccurredSpy.at(0).at(0)).name(), QLatin1String("externalEvent"));

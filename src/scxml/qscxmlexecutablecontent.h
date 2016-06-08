@@ -83,6 +83,23 @@ struct ForeachInfo {
 
 typedef qint32 EvaluatorId;
 enum { NoEvaluator = -1 };
+
+struct Q_SCXML_EXPORT Param
+{
+    StringId name;
+    EvaluatorId expr;
+    StringId location;
+
+    Param(StringId theName, EvaluatorId theExpr, StringId theLocation)
+        : name(theName), expr(theExpr), location(theLocation)
+    {}
+
+    Param() : name(NoString), expr(NoInstruction), location(NoString)
+    {}
+
+    static int calculateSize() { return sizeof(Param) / sizeof(qint32); }
+};
+
 } // QScxmlExecutableContent namespace
 
 QT_END_NAMESPACE

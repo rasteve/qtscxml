@@ -55,8 +55,6 @@ static QSet<QString> testFailOnRun = QSet<QString>()
         << QLatin1String("w3c-ecma/test178.txml")
         // We do not support the optional basic http event i/o processor.
         << QLatin1String("w3c-ecma/test201.txml")
-        << QLatin1String("w3c-ecma/test364.txml") // initial attribute on <state>
-        << QLatin1String("w3c-ecma/test388.txml") // Qt refuses to set an initial state to a "deep" state
         << QLatin1String("w3c-ecma/test230.txml")
         << QLatin1String("w3c-ecma/test250.txml")
         << QLatin1String("w3c-ecma/test307.txml")
@@ -387,7 +385,10 @@ bool TestScion::runTest(QScxmlStateMachine *stateMachine, const QJsonObject &tes
         return playEvents(stateMachine, testDescription);
     } else {
         // Wait for all events (delayed or otherwise) to propagate.
-        finishedSpy.fastWait(); // Some tests don't have a final state, so don't check for the result.
+        if (stateMachine->isRunning()) {
+            finishedSpy.fastWait(); // Some tests don't have a final state, so don't check for the
+                                    // result
+        }
         return verifyStates(stateMachine, testDescription, QLatin1String("initialConfiguration"), 0);
     }
 }

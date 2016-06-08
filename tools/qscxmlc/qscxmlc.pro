@@ -11,3 +11,6 @@ SOURCES += \
     main.cpp
 
 load(qt_tool)
+load(resources)
+
+RESOURCES += templates.qrc

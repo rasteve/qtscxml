@@ -225,9 +225,6 @@ public:
         return q->tableData()->string(id);
     }
 
-    QScxmlStateMachine::BindingMethod dataBinding() const
-    { return stateMachine()->dataBinding(); }
-
     bool hasProperty(const QString &name) const
     { return dataModel.hasProperty(name); }
 

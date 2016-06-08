@@ -281,7 +281,7 @@ struct AbstractState: public StateContainer
 
 struct State: public AbstractState, public StateOrTransition
 {
-    enum Type { Normal, Parallel, Initial, Final };
+    enum Type { Normal, Parallel, Final };
 
     QStringList initial;
     QVector<DataElement *> dataElements;
@@ -292,12 +292,13 @@ struct State: public AbstractState, public StateOrTransition
     QVector<Invoke *> invokes;
     Type type;
 
-    QVector<AbstractState *> initialStates; // filled during verification
+    Transition *initialTransition; // when not set, it is filled during verification
 
     State(const XmlLocation &xmlLocation)
         : StateOrTransition(xmlLocation)
         , doneData(Q_NULLPTR)
         , type(Normal)
+        , initialTransition(Q_NULLPTR)
     {}
 
     void add(StateOrTransition *s) Q_DECL_OVERRIDE
@@ -320,7 +321,7 @@ struct Transition: public StateOrTransition
     InstructionSequence instructionsOnTransition;
     Type type;
 
-    QVector<AbstractState *> targetStates; // filled during verification
+    QVector<AbstractState *> targetStates; // when not set, it is filled during verification
 
     Transition(const XmlLocation &xmlLocation)
         : StateOrTransition(xmlLocation)
@@ -379,7 +380,7 @@ struct Scxml: public StateContainer, public Node
     QScopedPointer<Script> script;
     InstructionSequence initialSetup;
 
-    QVector<AbstractState *> initialStates; // filled during verification
+    Transition *initialTransition;
 
     Scxml(const XmlLocation &xmlLocation)
         : Node(xmlLocation)
@@ -449,7 +450,9 @@ struct ScxmlDocument
     {
         Transition *t = newNode<Transition>(xmlLocation);
         allTransitions.append(t);
-        parent->add(t);
+        if (parent != nullptr) {
+            parent->add(t);
+        }
         return t;
     }
 

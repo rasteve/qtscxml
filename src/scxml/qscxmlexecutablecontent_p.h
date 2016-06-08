@@ -52,10 +52,9 @@
 //
 
 #include <QtScxml/qscxmlexecutablecontent.h>
-#include <QtScxml/qscxmltabledata.h>
+#include <QtScxml/private/qscxmltabledata_p.h>
 #include <QtScxml/private/qscxmlparser_p.h>
-#include <QtCore/qmap.h>
-#include <QtCore/qvariant.h>
+#include <QTextStream>
 
 #ifndef BUILD_QSCXMLC
 #include <QtScxml/qscxmldatamodel.h>
@@ -107,15 +106,6 @@ struct Array
     const T &at(int pos) { return *(data() + pos); }
     int dataSize() const { return count * sizeof(T) / sizeof(qint32); }
     int size() const { return sizeof(Array<T>) / sizeof(qint32) + dataSize(); }
-};
-
-struct Q_SCXML_EXPORT Param
-{
-    StringId name;
-    EvaluatorId expr;
-    StringId location;
-
-    static int calculateSize() { return sizeof(Param) / sizeof(qint32); }
 };
 
 struct Q_SCXML_EXPORT Instruction
@@ -277,244 +267,194 @@ struct Q_SCXML_EXPORT Cancel: Instruction
     int size() const { return sizeof(Cancel) / sizeof(qint32); }
 };
 
+struct StateTable {
+    int version;
+    int name;
+    enum: int {
+        InvalidDataModel = -1,
+        NullDataModel = 0,
+        EcmaScriptDataModel = 1,
+        CppDataModel = 2
+    } dataModel;
+    int childStates; // offset into offsets
+    int initialTransition;
+    int initialSetup;
+    enum: int { InvalidBinding = -1, EarlyBinding = 0, LateBinding = 1 } binding;
+    int maxServiceId;
+    int stateOffset, stateCount;
+    int transitionOffset, transitionCount;
+    int arrayOffset, arraySize;
+
+    enum { terminator = 0xc0ff33 };
+    enum { InvalidIndex = -1 };
+
+    struct State {
+        int name;
+        int parent;
+        enum: int {
+            Invalid = -1,
+            Normal = 0,
+            Parallel = 1,
+            Final = 2,
+            ShallowHistory = 3,
+            DeepHistory = 4
+        } type;
+        int initialTransition;
+        int initInstructions;
+        int entryInstructions;
+        int exitInstructions;
+        int doneData;
+        int childStates; // offset into arrays
+        int transitions; // offset into arrays
+        int serviceFactoryIds; // offset into arrays
+
+        State()
+            : name(InvalidIndex)
+            , parent(InvalidIndex)
+            , type(Invalid)
+            , initialTransition(InvalidIndex)
+            , initInstructions(InvalidIndex)
+            , entryInstructions(InvalidIndex)
+            , exitInstructions(InvalidIndex)
+            , doneData(InvalidIndex)
+            , childStates(InvalidIndex)
+            , transitions(InvalidIndex)
+            , serviceFactoryIds(InvalidIndex)
+        {}
+
+        bool isAtomic() const
+        { return childStates == InvalidIndex; }
+
+        bool isCompound() const
+        { return type == Normal && childStates != InvalidIndex; }
+
+        bool parentIsScxmlElement() const
+        { return parent == InvalidIndex; }
+
+        bool isHistoryState() const
+        { return type == ShallowHistory || type == DeepHistory; }
+
+        bool isParallel() const
+        { return type == Parallel; }
+    };
+
+    struct Transition {
+        int events; // offset into offsets
+        int condition;
+        enum: int {
+            Invalid = -1,
+            External = 0,
+            Internal = 1
+        } type;
+        int source;
+        int targets; // offset into offsets
+        int transitionInstructions;
+
+        Transition()
+            : events(InvalidIndex)
+            , condition(InvalidIndex)
+            , type(Invalid)
+            , source(InvalidIndex)
+            , targets(InvalidIndex)
+            , transitionInstructions(InvalidIndex)
+        {}
+    };
+
+    struct Array {
+        Array(const int *start): start(start) {}
+        int size() const { return *start; }
+        bool isValid() const { return start != nullptr; }
+
+        int operator[](int idx) const {
+            Q_ASSERT(idx >= 0);
+            Q_ASSERT(idx < size());
+            return *(start + idx + 1);
+        }
+
+        struct const_iterator: public std::iterator<std::forward_iterator_tag, int, ptrdiff_t,
+                                                    const int *, const int &>
+        {
+            const_iterator(const Array &a, int pos): a(a), pos(pos) {}
+
+            const_iterator &operator++() {
+                if (pos < a.size()) ++pos;
+                return *this;
+            }
+
+            bool operator==(const const_iterator &other) const
+            { return &other.a == &a && other.pos == pos; }
+
+            bool operator!=(const StateTable::Array::const_iterator &other)
+            { return !this->operator==(other); }
+
+            int operator*() const {
+                if (pos < a.size())
+                    return a[pos];
+                else
+                    return -1;
+            }
+
+        private:
+            const Array &a;
+            int pos;
+        };
+
+        const_iterator begin() const
+        { return const_iterator(*this, 0); }
+
+        const_iterator end() const
+        { return const_iterator(*this, size()); }
+
+    private:
+        const int *start;
+    };
+
+    StateTable()
+        : version(InvalidIndex)
+        , name(InvalidIndex)
+        , dataModel(InvalidDataModel)
+        , childStates(InvalidIndex)
+        , initialTransition(InvalidIndex)
+        , initialSetup(InvalidIndex)
+        , binding(InvalidBinding)
+        , maxServiceId(InvalidIndex)
+        , stateOffset(InvalidIndex), stateCount(InvalidIndex)
+        , transitionOffset(InvalidIndex), transitionCount(InvalidIndex)
+        , arrayOffset(InvalidIndex), arraySize(InvalidIndex)
+    {}
+
+    const State &state(int idx) const
+    {
+        Q_ASSERT(idx >= 0);
+        Q_ASSERT(idx < stateCount);
+        return reinterpret_cast<const State *>(
+                    reinterpret_cast<const int *>(this) + stateOffset)[idx];
+    }
+
+    const Transition &transition(int idx) const
+    {
+        Q_ASSERT(idx >= 0);
+        Q_ASSERT(idx < transitionCount);
+        return reinterpret_cast<const Transition *>(
+                    reinterpret_cast<const int *>(this) + transitionOffset)[idx];
+    }
+
+    const Array array(int idx) const
+    {
+        Q_ASSERT(idx < arraySize);
+        if (idx >= 0) {
+            const int *start = reinterpret_cast<const int *>(this) + arrayOffset + idx;
+            Q_ASSERT(*start + idx < arraySize);
+            return Array(start);
+        } else {
+            return Array(nullptr);
+        }
+    }
+};
+
 #if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
 #pragma pack(pop)
 #endif
-
-class Q_SCXML_EXPORT DynamicTableData:
-#ifndef BUILD_QSCXMLC
-        public QObject,
-#endif // BUILD_QSCXMLC
-        public QScxmlTableData
-{
-#ifndef BUILD_QSCXMLC
-    Q_OBJECT
-#endif
-
-public:
-    QString string(StringId id) const Q_DECL_OVERRIDE;
-    Instructions instructions() const Q_DECL_OVERRIDE;
-    EvaluatorInfo evaluatorInfo(EvaluatorId evaluatorId) const Q_DECL_OVERRIDE;
-    AssignmentInfo assignmentInfo(EvaluatorId assignmentId) const Q_DECL_OVERRIDE;
-    ForeachInfo foreachInfo(EvaluatorId foreachId) const Q_DECL_OVERRIDE;
-    StringId *dataNames(int *count) const Q_DECL_OVERRIDE;
-    ContainerId initialSetup() const Q_DECL_OVERRIDE;
-    QString name() const Q_DECL_OVERRIDE;
-
-    QVector<qint32> instructionTable() const;
-    QVector<QString> stringTable() const;
-    QVector<EvaluatorInfo> evaluators() const;
-    QVector<AssignmentInfo> assignments() const;
-    QVector<ForeachInfo> foreaches() const;
-    StringIds allDataNameIds() const;
-
-private:
-    friend class Builder;
-    QVector<QString> strings;
-    QVector<qint32> theInstructions;
-    QVector<EvaluatorInfo> theEvaluators;
-    QVector<AssignmentInfo> theAssignments;
-    QVector<ForeachInfo> theForeaches;
-    StringIds theDataNameIds;
-    EvaluatorId theInitialSetup;
-    QString theName;
-};
-
-class Q_SCXML_EXPORT Builder: public DocumentModel::NodeVisitor
-{
-public:
-    Builder();
-
-protected: // visitor
-    using NodeVisitor::visit;
-
-    bool visit(DocumentModel::Send *node) Q_DECL_OVERRIDE;
-    void visit(DocumentModel::Raise *node) Q_DECL_OVERRIDE;
-    void visit(DocumentModel::Log *node) Q_DECL_OVERRIDE;
-    void visit(DocumentModel::Script *node) Q_DECL_OVERRIDE;
-    void visit(DocumentModel::Assign *node) Q_DECL_OVERRIDE;
-    bool visit(DocumentModel::If *node) Q_DECL_OVERRIDE;
-    bool visit(DocumentModel::Foreach *node) Q_DECL_OVERRIDE;
-    void visit(DocumentModel::Cancel *node) Q_DECL_OVERRIDE;
-
-protected:
-    ContainerId generate(const DocumentModel::DoneData *node);
-    StringId createContext(const QString &instrName);
-    void generate(const QVector<DocumentModel::DataElement *> &dataElements);
-    ContainerId generate(const DocumentModel::InstructionSequences &inSequences);
-    void generate(Array<Param> *out, const QVector<DocumentModel::Param *> &in);
-    void generate(InstructionSequences *outSequences, const DocumentModel::InstructionSequences &inSequences);
-    void generate(Array<StringId> *out, const QStringList &in);
-    ContainerId startNewSequence();
-    void startSequence(InstructionSequence *sequence);
-    InstructionSequence *endSequence();
-    EvaluatorId createEvaluatorString(const QString &instrName, const QString &attrName, const QString &expr);
-    EvaluatorId createEvaluatorBool(const QString &instrName, const QString &attrName, const QString &cond);
-    EvaluatorId createEvaluatorVariant(const QString &instrName, const QString &attrName, const QString &expr);
-    EvaluatorId createEvaluatorVoid(const QString &instrName, const QString &attrName, const QString &stuff);
-
-    virtual QString createContextString(const QString &instrName) const = 0;
-    virtual QString createContext(const QString &instrName, const QString &attrName, const QString &attrValue) const = 0;
-
-    DynamicTableData *tableData();
-
-    StringId addString(const QString &str)
-    { return str.isEmpty() ? NoString : m_stringTable.add(str); }
-
-    void setInitialSetup(ContainerId id)
-    { m_initialSetup = id; }
-
-    void setName(const QString &name)
-    { m_name = name; }
-
-    bool isCppDataModel() const
-    { return m_isCppDataModel; }
-
-    void setIsCppDataModel(bool onoff)
-    { m_isCppDataModel = onoff; }
-
-    QMap<EvaluatorId, QString> boolEvaluators() const
-    { return m_boolEvaluators; }
-
-    QMap<EvaluatorId, QString> stringEvaluators() const
-    { return m_stringEvaluators; }
-
-    QMap<EvaluatorId, QString> variantEvaluators() const
-    { return m_variantEvaluators; }
-
-    QMap<EvaluatorId, QString> voidEvaluators() const
-    { return m_voidEvaluators; }
-
-private:
-    template <typename T, typename U>
-    class Table {
-        QVector<T> elements;
-        QMap<T, int> indexForElement;
-
-    public:
-        U add(const T &s, bool uniqueOnly = true) {
-            int pos = uniqueOnly ? indexForElement.value(s, -1) : -1;
-            if (pos == -1) {
-                pos = elements.size();
-                elements.append(s);
-                indexForElement.insert(s, pos);
-            }
-            return pos;
-        }
-
-        QVector<T> data() {
-            elements.squeeze();
-            return elements;
-        }
-    };
-    Table<QString, StringId> m_stringTable;
-
-    struct SequenceInfo {
-        int location;
-        qint32 entryCount; // the amount of qint32's that the instructions take up
-    };
-    QVector<SequenceInfo> m_activeSequences;
-
-    class InstructionStorage {
-    public:
-        InstructionStorage()
-            : m_info(Q_NULLPTR)
-        {}
-
-        ContainerId newContainerId() const { return m_instr.size(); }
-
-        template <typename T>
-        T *add(int extra = 0)
-        {
-            int pos = m_instr.size();
-            int size = sizeof(T) / sizeof(qint32) + extra;
-            if (m_info)
-                m_info->entryCount += size;
-            m_instr.resize(pos + size);
-            T *instr = at<T>(pos);
-            Q_ASSERT(instr->instructionType == 0);
-            instr->instructionType = T::kind();
-            return instr;
-        }
-
-        int offset(Instruction *instr) const
-        {
-            return reinterpret_cast<qint32 *>(instr) - m_instr.data();
-        }
-
-        template <typename T>
-        T *at(int offset)
-        {
-            return reinterpret_cast<T *>(&m_instr[offset]);
-        }
-
-        QVector<qint32> data()
-        {
-            m_instr.squeeze();
-            return m_instr;
-        }
-
-        void setSequenceInfo(SequenceInfo *info)
-        {
-            m_info = info;
-        }
-
-    private:
-        QVector<qint32> m_instr;
-        SequenceInfo *m_info;
-    };
-    InstructionStorage m_instructions;
-
-    EvaluatorId addEvaluator(const QString &expr, const QString &context)
-    {
-        EvaluatorInfo ei;
-        ei.expr = addString(expr);
-        ei.context = addString(context);
-        return m_evaluators.add(ei);
-    }
-
-    EvaluatorId addAssignment(const QString &dest, const QString &expr, const QString &context)
-    {
-        AssignmentInfo ai;
-        ai.dest = addString(dest);
-        ai.expr = addString(expr);
-        ai.context = addString(context);
-        return m_assignments.add(ai);
-    }
-
-    EvaluatorId addForeach(const QString &array, const QString &item, const QString &index, const QString &context)
-    {
-        ForeachInfo fi;
-        fi.array = addString(array);
-        fi.item = addString(item);
-        fi.index = addString(index);
-        fi.context = addString(context);
-        return m_foreaches.add(fi);
-    }
-
-    EvaluatorId addDataElement(const QString &id, const QString &expr, const QString &context)
-    {
-        auto str = addString(id);
-        if (!m_dataIds.contains(str))
-            m_dataIds.append(str);
-        if (expr.isEmpty())
-            return NoEvaluator;
-
-        return addAssignment(id, expr, context);
-    }
-
-    Table<EvaluatorInfo, EvaluatorId> m_evaluators;
-    Table<AssignmentInfo, EvaluatorId> m_assignments;
-    Table<ForeachInfo, EvaluatorId> m_foreaches;
-    QMap<EvaluatorId, QString> m_boolEvaluators;
-    QMap<EvaluatorId, QString> m_stringEvaluators;
-    QMap<EvaluatorId, QString> m_variantEvaluators;
-    QMap<EvaluatorId, QString> m_voidEvaluators;
-    StringIds m_dataIds;
-    ContainerId m_initialSetup;
-    QString m_name;
-    bool m_isCppDataModel;
-};
 
 class QScxmlExecutionEngine
 {

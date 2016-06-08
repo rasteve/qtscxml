@@ -25,13 +25,12 @@ HEADERS += \
     qscxmlevent_p.h \
     qscxmldatamodel.h \
     qscxmldatamodel_p.h \
-    qscxmlqstates.h \
-    qscxmlqstates_p.h \
     qscxmlcppdatamodel_p.h \
     qscxmlcppdatamodel.h \
     qscxmlerror.h \
     qscxmlinvokableservice.h \
-    qscxmltabledata.h
+    qscxmltabledata.h \
+    qscxmltabledata_p.h
 
 SOURCES += \
     qscxmlparser.cpp \
@@ -42,7 +41,6 @@ SOURCES += \
     qscxmlexecutablecontent.cpp \
     qscxmlevent.cpp \
     qscxmldatamodel.cpp \
-    qscxmlqstates.cpp \
     qscxmlcppdatamodel.cpp \
     qscxmlerror.cpp \
     qscxmlinvokableservice.cpp \

@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QSCXMLTABLEDATA_P
-#define QSCXMLTABLEDATA_P
+#ifndef QSCXMLTABLEDATA_H
+#define QSCXMLTABLEDATA_H
 
 #include <QtScxml/qscxmlexecutablecontent.h>
 #include <QString>
@@ -48,6 +48,8 @@
 #endif
 
 QT_BEGIN_NAMESPACE
+
+class QScxmlInvokableServiceFactory;
 
 class Q_SCXML_EXPORT QScxmlTableData
 {
@@ -63,8 +65,12 @@ public:
 
     virtual QScxmlExecutableContent::ContainerId initialSetup() const = 0;
     virtual QString name() const = 0;
+
+    virtual const qint32 *stateMachineTable() const = 0;
+    virtual QScxmlInvokableServiceFactory *serviceFactory(int id) const = 0;
+    virtual int signalIndexForEvent(const QString &event) const = 0;
 };
 
 QT_END_NAMESPACE
 
-#endif // QSCXMLTABLEDATA_P
+#endif // QSCXMLTABLEDATA_H

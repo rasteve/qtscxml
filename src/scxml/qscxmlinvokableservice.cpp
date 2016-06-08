@@ -104,7 +104,7 @@ public:
          QScxmlExecutableContent::StringId idlocation,
          const QVector<QScxmlExecutableContent::StringId> &namelist,
          bool autoforward,
-         const QVector<QScxmlInvokableServiceFactory::Param> &params,
+         const QVector<QScxmlExecutableContent::Param> &params,
          QScxmlExecutableContent::ContainerId finalize)
         : invokeLocation(invokeLocation)
         , srcexpr(srcexpr)
@@ -123,7 +123,7 @@ public:
     QScxmlExecutableContent::StringId idPrefix;
     QScxmlExecutableContent::StringId idlocation;
     QVector<QScxmlExecutableContent::StringId> namelist;
-    QVector<QScxmlInvokableServiceFactory::Param> params;
+    QVector<QScxmlExecutableContent::Param> params;
     QScxmlExecutableContent::ContainerId finalize;
     bool autoforward;
 };
@@ -136,7 +136,7 @@ QScxmlInvokableServiceFactory::QScxmlInvokableServiceFactory(
         QScxmlExecutableContent::StringId idlocation,
         const QVector<QScxmlExecutableContent::StringId> &namelist,
         bool autoforward,
-        const QVector<Param> &params,
+        const QVector<QScxmlExecutableContent::Param> &params,
         QScxmlExecutableContent::ContainerId finalize)
     : d(new Data(invokeLocation,
                  srcexpr,
@@ -202,7 +202,7 @@ QVariantMap QScxmlInvokableServiceFactory::calculateData(QScxmlStateMachine *par
     auto dataModel = parent->dataModel();
     auto tableData = parent->tableData();
 
-    foreach (const Param &param, d->params) {
+    foreach (const QScxmlExecutableContent::Param &param, d->params) {
         auto name = tableData->string(param.name);
 
         if (param.expr != QScxmlExecutableContent::NoEvaluator) {
@@ -326,16 +326,26 @@ QScxmlInvokableScxmlServiceFactory::QScxmlInvokableScxmlServiceFactory(
         QScxmlExecutableContent::StringId idlocation,
         const QVector<QScxmlExecutableContent::StringId> &namelist,
         bool doAutoforward,
-        const QVector<QScxmlInvokableServiceFactory::Param> &params,
+        const QVector<QScxmlExecutableContent::Param> &params,
         QScxmlExecutableContent::ContainerId finalize)
     : QScxmlInvokableServiceFactory(invokeLocation, srcexpr, id, idPrefix, idlocation, namelist,
-                                   doAutoforward, params, finalize)
+                                    doAutoforward, params, finalize)
 {}
 
 QScxmlInvokableService *QScxmlInvokableScxmlServiceFactory::finishInvoke(QScxmlStateMachine *child, QScxmlStateMachine *parent)
 {
     QScxmlStateMachinePrivate::get(child)->setIsInvoked(true);
     return new QScxmlInvokableScxml(this, child, parent);
+}
+
+QScxmlInvokableService *QScxmlDynamicScxmlFactory::invoke(QScxmlStateMachine *parent)
+{
+    bool ok = true;
+    auto srcexpr = calculateSrcexpr(parent, &ok);
+    if (!ok)
+        return Q_NULLPTR;
+
+    return loadAndInvokeDynamically(parent, srcexpr);
 }
 
 QT_END_NAMESPACE

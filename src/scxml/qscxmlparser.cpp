@@ -51,10 +51,11 @@
 #ifndef BUILD_QSCXMLC
 #include "qscxmlnulldatamodel.h"
 #include "qscxmlecmascriptdatamodel.h"
-#include "qscxmlqstates.h"
+#include "qscxmlinvokableservice.h"
 #include "qscxmldatamodel_p.h"
 #include "qscxmlstatemachine_p.h"
 #include "qscxmlstatemachine.h"
+#include "qscxmltabledata_p.h"
 
 #include <QState>
 #include <QHistoryState>
@@ -116,7 +117,6 @@ public:
 private:
     bool visit(DocumentModel::Scxml *scxml) Q_DECL_OVERRIDE
     {
-        Q_ASSERT(scxml->initialStates.isEmpty());
         if (!scxml->name.isEmpty() && !isValidToken(scxml->name, XmlNmtoken)) {
             error(scxml->xmlLocation,
                   QStringLiteral("scxml name '%1' is not a valid XML Nmtoken").arg(scxml->name));
@@ -124,15 +124,17 @@ private:
 
         if (scxml->initial.isEmpty()) {
             if (auto firstChild = firstAbstractState(scxml)) {
-                scxml->initialStates.append(firstChild);
+                scxml->initialTransition = createInitialTransition({firstChild});
             }
         } else {
+            QVector<DocumentModel::AbstractState *> initialStates;
             foreach (const QString &initial, scxml->initial) {
                 if (DocumentModel::AbstractState *s = m_stateById.value(initial))
-                    scxml->initialStates.append(s);
+                    initialStates.append(s);
                 else
                     error(scxml->xmlLocation, QStringLiteral("initial state '%1' not found for <scxml> element").arg(initial));
             }
+            scxml->initialTransition = createInitialTransition(initialStates);
         }
 
         m_parentNodes.append(scxml);
@@ -147,28 +149,38 @@ private:
 
     bool visit(DocumentModel::State *state) Q_DECL_OVERRIDE
     {
-        Q_ASSERT(state->initialStates.isEmpty());
-
         if (!state->id.isEmpty() && !isValidToken(state->id, XmlNCName)) {
             error(state->xmlLocation, QStringLiteral("'%1' is not a valid XML ID").arg(state->id));
-        } else if (state->type != DocumentModel::State::Initial) {
+        } else {
             validateStateName(state->xmlLocation, state->id);
         }
 
-        if (state->initial.isEmpty()) {
-            if (auto firstChild = firstAbstractState(state)) {
-                state->initialStates += firstChild;
+        if (state->initialTransition == nullptr) {
+            if (state->initial.isEmpty()) {
+                if (auto firstChild = firstAbstractState(state)) {
+                    state->initialTransition = createInitialTransition({firstChild});
+                }
+            } else {
+                Q_ASSERT(state->type == DocumentModel::State::Normal);
+                QVector<DocumentModel::AbstractState *> initialStates;
+                foreach (const QString &initialState, state->initial) {
+                    if (DocumentModel::AbstractState *s = m_stateById.value(initialState)) {
+                        initialStates.append(s);
+                    } else {
+                        error(state->xmlLocation,
+                              QStringLiteral("undefined initial state '%1' for state '%2'")
+                              .arg(initialState, state->id));
+                    }
+                }
+                state->initialTransition = createInitialTransition(initialStates);
             }
         } else {
-            Q_ASSERT(state->type == DocumentModel::State::Normal);
-            foreach (const QString &initialState, state->initial) {
-                if (DocumentModel::AbstractState *s = m_stateById.value(initialState)) {
-                    state->initialStates += s;
-                } else {
-                    error(state->xmlLocation,
-                          QStringLiteral("undefined initial state '%1' for state '%2'")
-                          .arg(initialState, state->id));
-                }
+            if (state->initial.isEmpty()) {
+                visit(state->initialTransition);
+            } else {
+                error(state->xmlLocation,
+                      QStringLiteral("initial transition and initial attribute for state '%1'")
+                      .arg(state->id));
             }
         }
 
@@ -177,27 +189,8 @@ private:
             break;
         case DocumentModel::State::Parallel:
             if (!state->initial.isEmpty()) {
-                error(state->xmlLocation, QStringLiteral("parallel states cannot have an initial state"));
-            }
-            break;
-        case DocumentModel::State::Initial:
-            if (transitionCount(state) != 1)
-                error(state->xmlLocation, QStringLiteral("an initial state can only have one transition, but has '%1'").arg(transitionCount(state)));
-            if (DocumentModel::Transition *t = firstTransition(state)) {
-                if (!t->events.isEmpty() || !t->condition.isNull()) {
-                    error(t->xmlLocation, QStringLiteral("the transition in an initial state cannot have an event or a condition"));
-                }
-                if (t->targets.isEmpty()) {
-                    error(t->xmlLocation, QStringLiteral("the transition in an initial state must have at least one target"));
-                }
-            }
-            foreach (DocumentModel::StateOrTransition *child, state->children) {
-                if (DocumentModel::State *s = child->asState()) {
-                    error(s->xmlLocation, QStringLiteral("substates are not allowed in initial states"));
-                }
-            }
-            if (parentState() == Q_NULLPTR) {
-                error(state->xmlLocation, QStringLiteral("initial states can only occur in a state"));
+                error(state->xmlLocation,
+                      QStringLiteral("parallel states cannot have an initial state"));
             }
             break;
         case DocumentModel::State::Final:
@@ -296,6 +289,9 @@ private:
 
     bool visit(DocumentModel::Invoke *node) Q_DECL_OVERRIDE
     {
+        if (!node->srcexpr.isEmpty())
+            return false;
+
         if (node->content.isNull()) {
             error(node->xmlLocation, QStringLiteral("no valid content found in <invoke> tag"));
         } else {
@@ -444,6 +440,18 @@ private:
                 return h;
         }
         return Q_NULLPTR;
+    }
+
+    DocumentModel::Transition *createInitialTransition(
+            const QVector<DocumentModel::AbstractState *> &states)
+    {
+        auto *newTransition = m_doc->newTransition(nullptr, DocumentModel::XmlLocation(-1, -1));
+        foreach (auto *s, states) {
+            newTransition->targets.append(s->id);
+        }
+
+        newTransition->targetStates = states;
+        return newTransition;
     }
 
     void checkExpr(const DocumentModel::XmlLocation &loc, const QString &tag, const QString &attrName, const QString &attrValue)
@@ -735,8 +743,32 @@ private:
 };
 
 #ifndef BUILD_QSCXMLC
-class QStateMachineBuilder;
-class DynamicStateMachine: public QScxmlStateMachine, public QScxmlEventFilter
+class InvokeDynamicScxmlFactory: public QScxmlInvokableScxmlServiceFactory
+{
+public:
+    InvokeDynamicScxmlFactory(QScxmlExecutableContent::StringId invokeLocation,
+                              QScxmlExecutableContent::EvaluatorId srcexpr,
+                              QScxmlExecutableContent::StringId id,
+                              QScxmlExecutableContent::StringId idPrefix,
+                              QScxmlExecutableContent::StringId idlocation,
+                              const QVector<QScxmlExecutableContent::StringId> &namelist,
+                              bool autoforward,
+                              const QVector<QScxmlExecutableContent::Param> &params,
+                              QScxmlExecutableContent::ContainerId finalize)
+        : QScxmlInvokableScxmlServiceFactory(invokeLocation, srcexpr, id, idPrefix, idlocation,
+                                             namelist, autoforward, params, finalize)
+    {}
+
+    void setContent(const QSharedPointer<DocumentModel::ScxmlDocument> &content)
+    { m_content = content; }
+
+    QScxmlInvokableService *invoke(QScxmlStateMachine *child) Q_DECL_OVERRIDE;
+
+private:
+    QSharedPointer<DocumentModel::ScxmlDocument> m_content;
+};
+
+class DynamicStateMachine: public QScxmlStateMachine, public QScxmlInternal::GeneratedTableData
 {
     // Manually expanded from Q_OBJECT macro:
 public:
@@ -764,35 +796,30 @@ public:
     }
 
 private:
-    static void qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
+    Q_DECL_HIDDEN_STATIC_METACALL static void qt_static_metacall(QObject *_o, QMetaObject::Call _c,
+                                                                 int _id, void **_a)
     {
         if (_c == QMetaObject::InvokeMetaMethod) {
             DynamicStateMachine *_t = static_cast<DynamicStateMachine *>(_o);
-            if (_id >= _t->m_eventNamesByIndex.size() || _id < 0) {
+            if (_id < 0) {
                 // out of bounds
                 return;
             }
-            if (_id >= _t->m_firstSubStateMachineSignal && _id < _t->m_firstSlot) {
+            if (_id < _t->m_firstSlot) {
                 // these signals are only emitted, not activated by another signal
                 return;
             }
-            if (_id >= _t->m_firstStateChangedSignal && _id < _t->m_firstSubStateMachineSignal) {
-                // re-propagate QAbstractState::activeChanged as stateChanged
-                QMetaObject::activate(_t, _t->m_metaObject, _id, _a);
-                return;
-            }
             // We have 1 kind of slots: those to submit events.
-            const QString &event = _t->m_eventNamesByIndex.at(_id);
-            if (!event.isEmpty()) {
-                if (_id < _t->m_firstSlotWithoutData) {
-                    QVariant data = *reinterpret_cast< QVariant(*)>(_a[1]);
-                    if (data.canConvert<QJSValue>()) {
-                        data = data.value<QJSValue>().toVariant();
-                    }
-                    _t->submitEvent(event, data);
-                } else {
-                    _t->submitEvent(event, QVariant());
+            if (_id < _t->m_firstSlotWithoutData) {
+                const QString &event = _t->m_incomingEvents.at(_id - _t->m_firstSlot);
+                QVariant data = *reinterpret_cast< QVariant(*)>(_a[1]);
+                if (data.canConvert<QJSValue>()) {
+                    data = data.value<QJSValue>().toVariant();
                 }
+                _t->submitEvent(event, data);
+            } else {
+                const QString &event = _t->m_incomingEvents.at(_id - _t->m_firstSlotWithoutData);
+                _t->submitEvent(event, QVariant());
             }
         } else if (_c == QMetaObject::RegisterPropertyMetaType) {
             DynamicStateMachine *_t = static_cast<DynamicStateMachine *>(_o);
@@ -804,16 +831,14 @@ private:
         } else if (_c == QMetaObject::ReadProperty) {
             DynamicStateMachine *_t = static_cast<DynamicStateMachine *>(_o);
             void *_v = _a[0];
-            if (_id >= 0 && _id < _t->m_propertyNamesByIndex.size()) {
+            if (_id >= 0 && _id < _t->m_propertyCount) {
                 if (_id < _t->m_firstSubStateMachineProperty) {
                     // getter for the state
-                    auto smp = QScxmlStateMachinePrivate::get(_t);
-                    auto name = _t->m_propertyNamesByIndex.at(_id);
-                    *reinterpret_cast<bool*>(_v) = smp->stateByScxmlName(name)->active();
+                    *reinterpret_cast<bool*>(_v) = _t->isActive(_id);
                 } else {
                     // getter for a child statemachine
                     int idx = _id - _t->m_firstSubStateMachineProperty;
-                    *reinterpret_cast<QScxmlStateMachine **>(_v) = _t->m_subStateMachines.at(idx);
+                    *reinterpret_cast<QScxmlStateMachine **>(_v) = _t->subStateMachine(idx);
                 }
             }
         }
@@ -821,34 +846,31 @@ private:
     // end of Q_OBJECT macro
 
 private:
-    friend QStateMachineBuilder;
     DynamicStateMachine()
         : m_metaObject(Q_NULLPTR)
+        , m_propertyCount(0)
         , m_firstSubStateMachineSignal(0)
         , m_firstSlot(0)
         , m_firstSlotWithoutData(0)
         , m_firstSubStateMachineProperty(0)
     {
-        // Temporarily wire up the QMetaObject, because qobject_cast needs it while building MyQStateMachine.
+        // Temporarily wire up the QMetaObject
         QMetaObjectBuilder b;
         b.setClassName("DynamicStateMachine");
         b.setSuperClass(&QScxmlStateMachine::staticMetaObject);
         b.setStaticMetacallFunction(qt_static_metacall);
         m_metaObject = b.toMetaObject();
-
-        setScxmlEventFilter(this);
     }
 
-    void initDynamicParts(const QSet<QString> &eventSignals,
-                          const QSet<QString> &eventSlots,
-                          const QList<QString> &stateNames,
-                          const QList<QString> &subStateMachineNames)
+    void initDynamicParts(const MetaDataInfo &info)
     {
         // Release the temporary QMetaObject.
         Q_ASSERT(m_metaObject);
         free(m_metaObject);
 
-        m_eventNamesByIndex.reserve(eventSignals.size() + subStateMachineNames.size() + eventSlots.size());
+        m_incomingEvents = info.incomingEvents;
+        m_outgoingEvents = info.outgoingEvents;
+        std::sort(m_outgoingEvents.begin(), m_outgoingEvents.end());
 
         // Build the real one.
         QMetaObjectBuilder b;
@@ -857,77 +879,59 @@ private:
         b.setStaticMetacallFunction(qt_static_metacall);
 
         // signals
-        foreach (const QString &eventName, eventSignals) {
-            QByteArray signalName = eventName.toUtf8() + "(const QVariant &)";
-            QMetaMethodBuilder signalBuilder = b.addSignal(signalName);
-            signalBuilder.setParameterNames(init("data"));
-            int idx = signalBuilder.index();
-            m_eventNamesByIndex.resize(std::max(idx + 1, m_eventNamesByIndex.size()));
-            m_eventNamesByIndex[idx] = eventName;
-        }
-
-        m_firstStateChangedSignal = m_eventNamesByIndex.size();
-        foreach (const QString &stateName, stateNames) {
+        foreach (const QString &stateName, info.stateNames) {
             auto name = stateName.toUtf8();
-            QByteArray signalName = name + "Changed(bool)";
+            const QByteArray signalName = name + "Changed(bool)";
             QMetaMethodBuilder signalBuilder = b.addSignal(signalName);
             signalBuilder.setParameterNames(init("active"));
-            int idx = signalBuilder.index();
-            m_eventNamesByIndex.resize(std::max(idx + 1, m_eventNamesByIndex.size()));
         }
 
-        m_firstSubStateMachineSignal = m_eventNamesByIndex.size();
-        foreach (const QString &machineName, subStateMachineNames) {
+        m_firstSubStateMachineSignal = info.stateNames.size();
+        foreach (const QString &machineName, info.subStateMachineNames) {
             auto name = machineName.toUtf8();
-            QByteArray signalName = name + "Changed(QScxmlStateMachine *)";
+            const QByteArray signalName = name + "Changed(QScxmlStateMachine *)";
             QMetaMethodBuilder signalBuilder = b.addSignal(signalName);
             signalBuilder.setParameterNames(init("statemachine"));
-            int idx = signalBuilder.index();
-            m_eventNamesByIndex.resize(std::max(idx + 1, m_eventNamesByIndex.size()));
+        }
+
+        foreach (const QString &eventName, info.outgoingEvents) {
+            const QByteArray signalName = eventName.toUtf8() + "(const QVariant &)";
+            QMetaMethodBuilder signalBuilder = b.addSignal(signalName);
+            signalBuilder.setParameterNames(init("data"));
         }
 
         // slots
-        m_firstSlot = m_eventNamesByIndex.size();
-        foreach (const QString &eventName, eventSlots) {
-            QByteArray slotName = eventName.toUtf8() + "(const QVariant &)";
+        m_firstSlot = info.stateNames.size() + info.subStateMachineNames.size()
+                + info.outgoingEvents.size();
+        foreach (const QString &eventName, info.incomingEvents) {
+            const QByteArray slotName = eventName.toUtf8() + "(const QVariant &)";
             QMetaMethodBuilder slotBuilder = b.addSlot(slotName);
             slotBuilder.setParameterNames(init("data"));
-            int idx = slotBuilder.index();
-            m_eventNamesByIndex.resize(std::max(idx + 1, m_eventNamesByIndex.size()));
-            m_eventNamesByIndex[idx] = eventName;
         }
 
-        m_firstSlotWithoutData = m_eventNamesByIndex.size();
-        foreach (const QString &eventName, eventSlots) {
-            QByteArray slotName = eventName.toUtf8() + "()";
-            QMetaMethodBuilder slotBuilder = b.addSlot(slotName);
-            int idx = slotBuilder.index();
-            m_eventNamesByIndex.resize(std::max(idx + 1, m_eventNamesByIndex.size()));
-            m_eventNamesByIndex[idx] = eventName;
+        m_firstSlotWithoutData = m_firstSlot + info.incomingEvents.size();
+        foreach (const QString &eventName, info.incomingEvents) {
+            const QByteArray slotName = eventName.toUtf8() + "()";
+            b.addSlot(slotName);
         }
 
         // properties
-        int stateNotifier = m_firstStateChangedSignal;
-        foreach (const QString &stateName, stateNames) {
-            QMetaPropertyBuilder prop = b.addProperty(stateName.toUtf8(), "bool", stateNotifier);
+        int notifier = 0;
+        foreach (const QString &stateName, info.stateNames) {
+            QMetaPropertyBuilder prop = b.addProperty(stateName.toUtf8(), "bool", notifier);
             prop.setWritable(false);
-            int idx = prop.index();
-            m_propertyNamesByIndex.resize(std::max(idx + 1, m_propertyNamesByIndex.size()));
-            m_propertyNamesByIndex[idx] = stateName;
-            ++stateNotifier;
-        }
-
-        m_firstSubStateMachineProperty = m_propertyNamesByIndex.size();
-        int notifier = m_firstSubStateMachineSignal;
-        foreach (const QString &machineName, subStateMachineNames) {
-            QMetaPropertyBuilder prop = b.addProperty(machineName.toUtf8(), "QScxmlStateMachine *", notifier);
-            prop.setWritable(false);
-            int idx = prop.index();
-            m_propertyNamesByIndex.resize(std::max(idx + 1, m_propertyNamesByIndex.size()));
-            m_propertyNamesByIndex[idx] = machineName;
+            ++m_propertyCount;
             ++notifier;
         }
-        m_subStateMachines.resize(subStateMachineNames.size());
+
+        m_firstSubStateMachineProperty = m_propertyCount;
+        foreach (const QString &machineName, info.subStateMachineNames) {
+            QMetaPropertyBuilder prop = b.addProperty(machineName.toUtf8(), "QScxmlStateMachine *",
+                                                      notifier);
+            prop.setWritable(false);
+            ++m_propertyCount;
+            ++notifier;
+        }
 
         // And we're done
         m_metaObject = b.toMetaObject();
@@ -935,48 +939,59 @@ private:
 
 public:
     ~DynamicStateMachine()
-    { if (m_metaObject) free(m_metaObject); }
-
-    bool handle(QScxmlEvent *event, QScxmlStateMachine *stateMachine) Q_DECL_OVERRIDE {
-        Q_UNUSED(stateMachine);
-
-        if (event->originType() != QStringLiteral("qt:signal")) {
-            return true;
+    {
+        if (m_metaObject) {
+            free(m_metaObject);
         }
-
-        auto eventName = event->name();
-        for (int i = 0; i < m_firstSubStateMachineSignal; ++i) {
-            if (m_eventNamesByIndex.at(i) == eventName) {
-                QVariant data = event->data();
-                void *argv[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&data)) };
-                QMetaObject::activate(this, metaObject(), i, argv);
-                return false;
-            }
-        }
-
-        return true;
     }
 
-protected:
-    void setService(const QString &id, QScxmlInvokableService *service) Q_DECL_OVERRIDE
+    QScxmlInvokableServiceFactory *serviceFactory(int id) const Q_DECL_OVERRIDE Q_DECL_FINAL
+    { return m_allFactoriesById.at(id); }
+
+    int signalIndexForEvent(const QString &event) const Q_DECL_OVERRIDE Q_DECL_FINAL
     {
-        int idx = -1;
-        for (int i = m_firstSubStateMachineProperty, ei = m_propertyNamesByIndex.size(); i != ei; ++i) {
-            if (m_propertyNamesByIndex.at(i) == id) {
-                idx = i - m_firstSubStateMachineProperty;
-                break;
-            }
+        auto it = std::lower_bound(m_outgoingEvents.begin(), m_outgoingEvents.end(), event);
+        if (it != m_outgoingEvents.end() && *it == event) {
+            return int(std::distance(m_outgoingEvents.begin(), it));
+        } else {
+            return -1;
         }
-        if (idx < 0)
-            return;
-        auto scxml = service ? dynamic_cast<QScxmlInvokableScxml *>(service) : Q_NULLPTR;
-        auto machine = scxml ? scxml->stateMachine() : Q_NULLPTR;
-        if (m_subStateMachines.at(idx) != machine) {
-            m_subStateMachines[idx] = machine;
-            // emit changed signal:
-            void *argv[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&machine)) };
-            QMetaObject::activate(this, metaObject(), m_firstSubStateMachineSignal + idx, argv);
-        }
+    }
+
+    static DynamicStateMachine *build(DocumentModel::ScxmlDocument *doc)
+    {
+        auto stateMachine = new DynamicStateMachine;
+        MetaDataInfo info;
+        DataModelInfo dm;
+        auto factoryIdCreator = [stateMachine](QScxmlExecutableContent::StringId invokeLocation,
+                QScxmlExecutableContent::EvaluatorId srcexpr,
+                QScxmlExecutableContent::StringId id,
+                QScxmlExecutableContent::StringId idPrefix,
+                QScxmlExecutableContent::StringId idlocation,
+                const QVector<QScxmlExecutableContent::StringId> &namelist,
+                bool autoforward,
+                const QVector<QScxmlExecutableContent::Param> &params,
+                QScxmlExecutableContent::ContainerId finalize,
+                const QSharedPointer<DocumentModel::ScxmlDocument> &content) -> int {
+            auto factory = new InvokeDynamicScxmlFactory(invokeLocation,
+                                                         srcexpr,
+                                                         id,
+                                                         idPrefix,
+                                                         idlocation,
+                                                         namelist,
+                                                         autoforward,
+                                                         params,
+                                                         finalize);
+            factory->setContent(content);
+            stateMachine->m_allFactoriesById.append(factory);
+            return stateMachine->m_allFactoriesById.size() - 1;
+        };
+
+        GeneratedTableData::build(doc, stateMachine, &info, &dm, factoryIdCreator);
+        stateMachine->setTableData(stateMachine);
+        stateMachine->initDynamicParts(info);
+
+        return stateMachine;
     }
 
 private:
@@ -990,387 +1005,15 @@ private:
     }
 
 private:
+    QVector<QScxmlInvokableServiceFactory *> m_allFactoriesById;
     QMetaObject *m_metaObject;
-    QVector<QString> m_eventNamesByIndex;
-    QVector<QString> m_propertyNamesByIndex;
-    QVector<QScxmlStateMachine *> m_subStateMachines;
+    QStringList m_incomingEvents;
+    QStringList m_outgoingEvents;
+    int m_propertyCount;
     int m_firstSubStateMachineSignal;
-    int m_firstStateChangedSignal;
     int m_firstSlot;
     int m_firstSlotWithoutData;
     int m_firstSubStateMachineProperty;
-};
-
-class InvokeDynamicScxmlFactory: public QScxmlInvokableScxmlServiceFactory
-{
-public:
-    InvokeDynamicScxmlFactory(QScxmlExecutableContent::StringId invokeLocation,
-                              QScxmlExecutableContent::EvaluatorId srcexpr,
-                              QScxmlExecutableContent::StringId id,
-                              QScxmlExecutableContent::StringId idPrefix,
-                              QScxmlExecutableContent::StringId idlocation,
-                              const QVector<QScxmlExecutableContent::StringId> &namelist,
-                              bool autoforward,
-                              const QVector<Param> &params,
-                              QScxmlExecutableContent::ContainerId finalize)
-        : QScxmlInvokableScxmlServiceFactory(invokeLocation,
-                                             srcexpr,
-                                             id,
-                                             idPrefix,
-                                             idlocation,
-                                             namelist,
-                                             autoforward,
-                                             params,
-                                             finalize)
-    {}
-
-    void setContent(const QSharedPointer<DocumentModel::ScxmlDocument> &content)
-    { m_content = content; }
-
-    QScxmlInvokableService *invoke(QScxmlStateMachine *child) Q_DECL_OVERRIDE;
-
-private:
-    QSharedPointer<DocumentModel::ScxmlDocument> m_content;
-};
-
-class QStateMachineBuilder: public QScxmlExecutableContent::Builder
-{
-public:
-    QStateMachineBuilder()
-        : m_stateMachine(Q_NULLPTR)
-        , m_currentTransition(Q_NULLPTR)
-        , m_bindLate(false)
-        , m_qtMode(false)
-    {}
-
-    QScxmlStateMachine *build(DocumentModel::ScxmlDocument *doc)
-    {
-        m_stateMachine = Q_NULLPTR;
-        m_parents.reserve(32);
-        m_allTransitions.reserve(doc->allTransitions.size());
-        m_docStatesToQStates.reserve(doc->allStates.size());
-        m_qtMode = doc->qtMode;
-
-        doc->root->accept(this);
-        wireTransitions();
-        applyInitialStates();
-
-        QScxmlExecutableContent::DynamicTableData *td = tableData();
-        td->setParent(m_stateMachine);
-        m_stateMachine->setTableData(td);
-        m_stateMachine->initDynamicParts(m_eventSignals, m_eventSlots, m_stateNames.keys(), m_subStateMachineNames.toList());
-
-        const auto signalCode = QByteArray::number(QSIGNAL_CODE);
-        for (auto it = m_stateNames.constBegin(), eit = m_stateNames.constEnd(); it != eit; ++it) {
-            QByteArray signal = signalCode + it.key().toUtf8() + "Changed(bool)";
-            QObject::connect(it.value(), SIGNAL(activeChanged(bool)), m_stateMachine, signal.constData());
-        }
-
-        m_parents.clear();
-        m_allTransitions.clear();
-        m_docStatesToQStates.clear();
-        m_currentTransition = Q_NULLPTR;
-
-        return m_stateMachine;
-    }
-
-private:
-    using NodeVisitor::visit;
-    using QScxmlExecutableContent::Builder::createContext;
-
-    bool visit(DocumentModel::Scxml *node) Q_DECL_OVERRIDE
-    {
-        m_stateMachine = new DynamicStateMachine;
-
-        switch (node->binding) {
-        case DocumentModel::Scxml::EarlyBinding:
-            m_stateMachine->setDataBinding(QScxmlStateMachine::EarlyBinding);
-            break;
-        case DocumentModel::Scxml::LateBinding:
-            m_stateMachine->setDataBinding(QScxmlStateMachine::LateBinding);
-            m_bindLate = true;
-            break;
-        default:
-            Q_UNREACHABLE();
-        }
-
-        setName(node->name);
-
-        m_parents.append(QScxmlStateMachinePrivate::get(m_stateMachine)->m_qStateMachine);
-        visit(node->children);
-
-        m_dataElements.append(node->dataElements);
-        if (node->script || !m_dataElements.isEmpty() || !node->initialSetup.isEmpty()) {
-            setInitialSetup(startNewSequence());
-            generate(m_dataElements);
-            if (node->script) {
-                node->script->accept(this);
-            }
-            visit(&node->initialSetup);
-            endSequence();
-        }
-
-        m_parents.removeLast();
-
-        foreach (auto initialState, node->initialStates) {
-            Q_ASSERT(initialState);
-            m_initialStates.append(qMakePair(QScxmlStateMachinePrivate::get(m_stateMachine)->m_qStateMachine, initialState));
-        }
-
-        return false;
-    }
-
-    bool visit(DocumentModel::State *node) Q_DECL_OVERRIDE
-    {
-        QAbstractState *newState = Q_NULLPTR;
-        switch (node->type) {
-        case DocumentModel::State::Normal: {
-            auto s = new QScxmlState(currentParent());
-            newState = s;
-            foreach (DocumentModel::AbstractState *initialState, node->initialStates) {
-                m_initialStates.append(qMakePair(s, initialState));
-            }
-        } break;
-        case DocumentModel::State::Parallel: {
-            auto s = new QScxmlState(currentParent());
-            s->setChildMode(QState::ParallelStates);
-            newState = s;
-        } break;
-        case DocumentModel::State::Initial: {
-            auto s = new QScxmlState(currentParent());
-            currentParent()->setInitialState(s);
-            newState = s;
-        } break;
-        case DocumentModel::State::Final: {
-            auto s = new QScxmlFinalState(currentParent());
-            newState = s;
-            s->setDoneData(generate(node->doneData));
-        } break;
-        default:
-            Q_UNREACHABLE();
-        }
-
-        newState->setObjectName(node->id);
-        m_stateNames.insert(node->id, newState);
-
-        m_docStatesToQStates.insert(node, newState);
-        m_parents.append(newState);
-
-        if (!node->dataElements.isEmpty()) {
-            if (m_bindLate) {
-                qobject_cast<QScxmlState *>(newState)->setInitInstructions(startNewSequence());
-                generate(node->dataElements);
-                endSequence();
-            } else {
-                m_dataElements.append(node->dataElements);
-            }
-        }
-
-        QScxmlExecutableContent::ContainerId onEntry = generate(node->onEntry);
-        QScxmlExecutableContent::ContainerId onExit = generate(node->onExit);
-        if (QScxmlState *s = qobject_cast<QScxmlState *>(newState)) {
-            s->setOnEntryInstructions(onEntry);
-            s->setOnExitInstructions(onExit);
-            if (!node->invokes.isEmpty()) {
-                QVector<QScxmlInvokableServiceFactory *> factories;
-                foreach (DocumentModel::Invoke *invoke, node->invokes) {
-                    auto ctxt = createContext(QStringLiteral("invoke"));
-                    QVector<QScxmlExecutableContent::StringId> namelist;
-                    foreach (const QString &name, invoke->namelist)
-                        namelist += addString(name);
-                    QVector<QScxmlInvokableServiceFactory::Param> params;
-                    foreach (DocumentModel::Param *param, invoke->params) {
-                        QScxmlInvokableServiceFactory::Param p;
-                        p.name = addString(param->name);
-                        p.expr = createEvaluatorVariant(QStringLiteral("param"), QStringLiteral("expr"), param->expr);
-                        p.location = addString(param->location);
-                        params.append(p);
-                    }
-                    QScxmlExecutableContent::ContainerId finalize = QScxmlExecutableContent::NoInstruction;
-                    if (!invoke->finalize.isEmpty()) {
-                        finalize = startNewSequence();
-                        visit(&invoke->finalize);
-                        endSequence();
-                    }
-                    auto factory = new InvokeDynamicScxmlFactory(ctxt,
-                                                                 createEvaluatorString(QStringLiteral("invoke"),
-                                                                                       QStringLiteral("srcexpr"),
-                                                                                       invoke->srcexpr),
-                                                                 addString(invoke->id),
-                                                                 addString(node->id + QStringLiteral(".session-")),
-                                                                 addString(invoke->idLocation),
-                                                                 namelist,
-                                                                 invoke->autoforward,
-                                                                 params,
-                                                                 finalize);
-                    factory->setContent(invoke->content);
-                    factories.append(factory);
-                    QString name = invoke->content->root->name;
-                    if (!name.isEmpty()) {
-                        m_subStateMachineNames.insert(name);
-                    }
-                }
-                s->setInvokableServiceFactories(factories);
-            }
-        } else if (QScxmlFinalState *f = qobject_cast<QScxmlFinalState *>(newState)) {
-            f->setOnEntryInstructions(onEntry);
-            f->setOnExitInstructions(onExit);
-        } else {
-            Q_UNREACHABLE();
-        }
-
-        visit(node->children);
-
-        m_parents.removeLast();
-        return false;
-    }
-
-    bool visit(DocumentModel::Transition *node) Q_DECL_OVERRIDE
-    {
-        if (m_qtMode) {
-            m_eventSlots.unite(node->events.toSet());
-        }
-
-        auto newTransition = new QScxmlTransition(node->events);
-        if (QHistoryState *parent = qobject_cast<QHistoryState*>(m_parents.last())) {
-            parent->setDefaultTransition(newTransition);
-        } else {
-            currentParent()->addTransition(newTransition);
-        }
-
-        if (node->condition) {
-            auto cond = createEvaluatorBool(QStringLiteral("transition"), QStringLiteral("cond"), *node->condition.data());
-            newTransition->setConditionalExpression(cond);
-        }
-
-        switch (node->type) {
-        case DocumentModel::Transition::External:
-            newTransition->setTransitionType(QAbstractTransition::ExternalTransition);
-            break;
-        case DocumentModel::Transition::Internal:
-            newTransition->setTransitionType(QAbstractTransition::InternalTransition);
-            break;
-        default:
-            Q_UNREACHABLE();
-        }
-
-        m_allTransitions.insert(newTransition, node);
-        if (!node->instructionsOnTransition.isEmpty()) {
-            m_currentTransition = newTransition;
-            newTransition->setInstructionsOnTransition(startNewSequence());
-            visit(&node->instructionsOnTransition);
-            endSequence();
-            m_currentTransition = 0;
-        }
-        Q_ASSERT(newTransition->stateMachine());
-        return false;
-    }
-
-    bool visit(DocumentModel::HistoryState *state) Q_DECL_OVERRIDE
-    {
-        QHistoryState *newState = new QScxmlHistoryState(currentParent());
-        switch (state->type) {
-        case DocumentModel::HistoryState::Shallow:
-            newState->setHistoryType(QHistoryState::ShallowHistory);
-            break;
-        case DocumentModel::HistoryState::Deep:
-            newState->setHistoryType(QHistoryState::DeepHistory);
-            break;
-        default:
-            Q_UNREACHABLE();
-        }
-
-        newState->setObjectName(state->id);
-        m_docStatesToQStates.insert(state, newState);
-        m_parents.append(newState);
-        return true;
-    }
-
-    void endVisit(DocumentModel::HistoryState *) Q_DECL_OVERRIDE
-    {
-        m_parents.removeLast();
-    }
-
-    bool visit(DocumentModel::Send *node) Q_DECL_OVERRIDE
-    {
-        if (m_qtMode && node->type == QStringLiteral("qt:signal")) {
-            m_eventSignals.insert(node->event);
-        }
-
-        return QScxmlExecutableContent::Builder::visit(node);
-    }
-
-private: // Utility methods
-    QState *currentParent() const
-    {
-        if (m_parents.isEmpty())
-            return Q_NULLPTR;
-
-        QState *parent = qobject_cast<QState*>(m_parents.last());
-        Q_ASSERT(parent);
-        return parent;
-    }
-
-    void wireTransitions()
-    {
-        for (QHash<QAbstractTransition *, DocumentModel::Transition*>::const_iterator i = m_allTransitions.begin(), ei = m_allTransitions.end(); i != ei; ++i) {
-            QList<QAbstractState *> targets;
-            targets.reserve(i.value()->targets.size());
-            foreach (DocumentModel::AbstractState *targetState, i.value()->targetStates) {
-                QAbstractState *target = m_docStatesToQStates.value(targetState);
-                Q_ASSERT(target);
-                targets.append(target);
-            }
-            i.key()->setTargetStates(targets);
-
-            if (DebugHelper_NameTransitions)
-                i.key()->setObjectName(QStringLiteral("%1 -> %2").arg(i.key()->parent()->objectName(), i.value()->targets.join(QStringLiteral(","))));
-        }
-    }
-
-    void applyInitialStates()
-    {
-        foreach (const auto &init, m_initialStates) {
-            Q_ASSERT(init.second);
-            auto initialState = m_docStatesToQStates.value(init.second);
-            Q_ASSERT(initialState);
-            init.first->setInitialState(initialState);
-        }
-    }
-
-    QString createContextString(const QString &instrName) const Q_DECL_OVERRIDE
-    {
-        if (m_currentTransition) {
-            QString state;
-            if (QState *s = m_currentTransition->sourceState()) {
-                state = QStringLiteral(" of state '%1'").arg(s->objectName());
-            }
-            return QStringLiteral("%1 instruction in transition %2 %3").arg(instrName, m_currentTransition->objectName(), state);
-        } else {
-            return QStringLiteral("%1 instruction in state %2").arg(instrName, m_parents.last()->objectName());
-        }
-    }
-
-    QString createContext(const QString &instrName, const QString &attrName, const QString &attrValue) const Q_DECL_OVERRIDE
-    {
-        QString location = createContextString(instrName);
-        return QStringLiteral("%1 with %2=\"%3\"").arg(location, attrName, attrValue);
-    }
-
-private:
-    DynamicStateMachine *m_stateMachine;
-    QVector<QAbstractState *> m_parents;
-    QHash<QAbstractTransition *, DocumentModel::Transition*> m_allTransitions;
-    QHash<DocumentModel::AbstractState *, QAbstractState *> m_docStatesToQStates;
-    QAbstractTransition *m_currentTransition;
-    QVector<QPair<QState *, DocumentModel::AbstractState *>> m_initialStates;
-    bool m_bindLate;
-    bool m_qtMode;
-    QVector<DocumentModel::DataElement *> m_dataElements;
-    QSet<QString> m_eventSignals;
-    QSet<QString> m_eventSlots;
-    QHash<QString, QAbstractState *> m_stateNames;
-    QSet<QString> m_subStateMachineNames;
 };
 
 inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(QScxmlStateMachine *parent)
@@ -1383,7 +1026,7 @@ inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(QScxmlStateMach
     if (!srcexpr.isEmpty())
         return loadAndInvokeDynamically(parent, srcexpr);
 
-    auto child = QStateMachineBuilder().build(m_content.data());
+    auto child = DynamicStateMachine::build(m_content.data());
 
     auto dm = QScxmlDataModelPrivate::instantiateDataModel(m_content->root->dataModel);
     dm->setParent(child);
@@ -1401,9 +1044,9 @@ QScxmlInvokableService *QScxmlInvokableScxmlServiceFactory::loadAndInvokeDynamic
 {
     QScxmlParser::Loader *loader = parent->loader();
 
+    const QString baseDir = sourceUrl.isEmpty() ? QString() : QFileInfo(sourceUrl).path();
     QStringList errs;
-    const QByteArray data = loader->load(sourceUrl, sourceUrl.isEmpty() ?
-                              QString() : QFileInfo(sourceUrl).path(), &errs);
+    const QByteArray data = loader->load(sourceUrl, baseDir, &errs);
 
     if (!errs.isEmpty()) {
         qWarning() << errs;
@@ -1429,7 +1072,7 @@ QScxmlInvokableService *QScxmlInvokableScxmlServiceFactory::loadAndInvokeDynamic
         return Q_NULLPTR;
     }
 
-    auto child = QStateMachineBuilder().build(mainDoc);
+    auto child = DynamicStateMachine::build(mainDoc);
 
     auto dm = QScxmlDataModelPrivate::instantiateDataModel(mainDoc->root->dataModel);
     dm->setParent(child);
@@ -1564,7 +1207,7 @@ QScxmlStateMachine *QScxmlParser::instantiateStateMachine() const
 #else // BUILD_QSCXMLC
     DocumentModel::ScxmlDocument *doc = d->scxmlDocument();
     if (doc && doc->root) {
-        return QStateMachineBuilder().build(doc);
+        return DynamicStateMachine::build(doc);
     } else {
         class InvalidStateMachine: public QScxmlStateMachine {
         public:
@@ -2286,15 +1929,36 @@ bool QScxmlParserPrivate::preReadElementInitial()
         addError(QStringLiteral("Explicit initial state for parallel states not supported (only implicitly through the initial states of its substates)"));
         return false;
     }
-    auto newState = m_doc->newState(m_currentState, DocumentModel::State::Initial, xmlLocation());
-    m_currentState = newState;
     return true;
 }
 
 bool QScxmlParserPrivate::preReadElementTransition()
 {
+    // Parser stack at this point:
+    // <transition>
+    // <initial>
+    // <state> or <scxml>
+    //
+    // Or:
+    // <transition>
+    // <state> or <scxml>
+
+    DocumentModel::Transition *transition = nullptr;
+    if (previous().kind == ParserState::Initial) {
+        transition = m_doc->newTransition(nullptr, xmlLocation());
+        const auto &initialParentState = m_stack.at(m_stack.size() - 3);
+        if (initialParentState.kind == ParserState::Scxml) {
+            m_currentState->asScxml()->initialTransition = transition;
+        } else if (initialParentState.kind == ParserState::State) {
+            m_currentState->asState()->initialTransition = transition;
+        } else {
+            Q_UNREACHABLE();
+        }
+    } else {
+        transition = m_doc->newTransition(m_currentState, xmlLocation());
+    }
+
     const QXmlStreamAttributes attributes = m_reader->attributes();
-    auto transition = m_doc->newTransition(m_currentState, xmlLocation());
     transition->events = attributes.value(QLatin1String("event")).toString().split(QLatin1Char(' '), QString::SkipEmptyParts);
     transition->targets = attributes.value(QLatin1String("target")).toString().split(QLatin1Char(' '), QString::SkipEmptyParts);
     if (attributes.hasAttribute(QStringLiteral("cond")))
@@ -2664,7 +2328,6 @@ bool QScxmlParserPrivate::postReadElementParallel()
 
 bool QScxmlParserPrivate::postReadElementInitial()
 {
-    currentStateUp();
     return true;
 }
 
@@ -2859,11 +2522,6 @@ bool QScxmlParserPrivate::postReadElementInvoke()
                 QXmlStreamReader reader(data);
                 parseSubDocument(i, &reader, fileName);
             }
-        } else { // invoke always expects sub document
-            DocumentModel::ScxmlDocument *doc = new DocumentModel::ScxmlDocument(m_fileName);
-            doc->root = new DocumentModel::Scxml(DocumentModel::XmlLocation(0, 0));
-            i->content.reset(doc);
-            m_doc->allSubDocuments.append(i->content.data());
         }
     } else if (!fileName.isEmpty()) {
         addError(QStringLiteral("both src and content given to invoke"));

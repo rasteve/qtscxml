@@ -32,12 +32,11 @@
 #include "qscxmlglobals.h"
 
 #include <QtScxml/private/qscxmlparser_p.h>
+#include <QtScxml/private/qscxmltabledata_p.h>
 
 #include <QTextStream>
 
 QT_BEGIN_NAMESPACE
-
-struct ClassDump;
 
 struct TranslationUnit
 {
@@ -74,13 +73,30 @@ public:
 
 private:
     void writeHeaderStart(const QString &headerGuard, const QStringList &forwardDecls);
-    void writeClass(const ClassDump &clazz);
+    void writeClass(const QString &className,
+                    const QScxmlInternal::GeneratedTableData::MetaDataInfo &info);
     void writeHeaderEnd(const QString &headerGuard, const QStringList &metatypeDecls);
-    void writeImplStart(const QVector<ClassDump> &allClazzes);
-    void writeImplBody(const ClassDump &clazz);
+    void writeImplStart();
+    void writeImplBody(const QScxmlInternal::GeneratedTableData &table,
+                       const QString &className,
+                       DocumentModel::ScxmlDocument *doc,
+                       const QStringList &factory,
+                       const QScxmlInternal::GeneratedTableData::MetaDataInfo &info);
     void writeImplEnd();
+    QString mangleIdentifier(const QString &str);
 
 private:
+    QString generateSignalDecls(const QScxmlInternal::GeneratedTableData::MetaDataInfo &info);
+    QString generateSlotDecls(const QScxmlInternal::GeneratedTableData::MetaDataInfo &info);
+    QString generateSlotDefs(const QString &className,
+                             const QScxmlInternal::GeneratedTableData::MetaDataInfo &info);
+    QString generateGetterDecls(const QScxmlInternal::GeneratedTableData::MetaDataInfo &info);
+    QString generateGetterDefs(const QString &className,
+                               const QScxmlInternal::GeneratedTableData::MetaDataInfo &info);
+    QString generateMetaObject(const QString &className,
+                               const QScxmlInternal::GeneratedTableData::MetaDataInfo &info,
+                               bool m_qtMode);
+
     QTextStream &h;
     QTextStream &cpp;
 
@@ -88,6 +104,8 @@ private:
     static QLatin1String l (const char *str) { return QLatin1String(str); }
 
     TranslationUnit *m_translationUnit;
+
+    mutable QHash<QString, QString> m_mangledToOriginal;
 };
 
 QT_END_NAMESPACE
