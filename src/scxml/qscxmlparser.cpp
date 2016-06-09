@@ -1528,7 +1528,8 @@ void QScxmlParser::setFileName(const QString &fileName)
 }
 
 /*!
- * Returns the loader that is currently used to resolve and load URIs.
+ * Returns the loader that is currently used to resolve and load URIs for the
+ * SCXML parser.
  *
  * \sa setLoader()
  */
@@ -1538,7 +1539,8 @@ QScxmlParser::Loader *QScxmlParser::loader() const
 }
 
 /*!
- * Sets \a newLoader to be used for resolving and loading URIs.
+ * Sets \a newLoader to be used for resolving and loading URIs for the SCXML
+ * parser.
  *
  * \sa loader()
  */
@@ -2084,7 +2086,7 @@ bool DocumentModel::isEventToBeGenerated(const QString &event)
  */
 
 /*!
- * Creates a new loader for the specified \a parser.
+ * Creates a new loader.
  */
 QScxmlParser::Loader::Loader()
 {
@@ -2097,10 +2099,10 @@ QScxmlParser::Loader::~Loader()
 {}
 
 /*!
- * \fn QScxmlParser::Loader::load(const QString &name, const QString &baseDir, bool *ok)
+ * \fn QScxmlParser::Loader::load(const QString &name, const QString &baseDir, QStringList *errors)
  * Resolves the URI \a name and loads an SCXML file from the directory
- * specified by \a baseDir. The boolean parameter \a ok indicates whether
- * the loading was successful.
+ * specified by \a baseDir. \a errors contains information about the errors that
+ * might have occurred.
  *
  * Returns a QByteArray that stores the contents of the file.
  */

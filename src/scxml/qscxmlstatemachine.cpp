@@ -598,7 +598,12 @@ QScxmlDataModel *QScxmlStateMachine::dataModel() const
     return d->m_dataModel;
 }
 
+/*!
+    Sets \a loader to be used for resolving and loading URIs for the state
+    machine.
 
+    \sa loader()
+*/
 void QScxmlStateMachine::setLoader(QScxmlParser::Loader *loader)
 {
     Q_D(QScxmlStateMachine);
@@ -606,6 +611,12 @@ void QScxmlStateMachine::setLoader(QScxmlParser::Loader *loader)
     d->m_loader = loader;
 }
 
+/*!
+    Returns the loader that is currently used to resolve and load URIs for the
+    state machine.
+
+    \sa setLoader()
+*/
 QScxmlParser::Loader *QScxmlStateMachine::loader() const
 {
     Q_D(const QScxmlStateMachine);
