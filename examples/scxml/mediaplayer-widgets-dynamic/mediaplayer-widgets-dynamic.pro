@@ -16,5 +16,5 @@ RESOURCES += \
     mediaplayer.qrc
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/scxml/mediaplayer-widgets
+target.path = $$[QT_INSTALL_EXAMPLES]/scxml/mediaplayer-widgets-dynamic
 INSTALLS += target
