@@ -1456,21 +1456,6 @@ QScxmlInvokableService *QScxmlInvokableScxmlServiceFactory::loadAndInvokeDynamic
  */
 
 /*!
-    \enum QScxmlParser::State
-
-    This enum specifies the state the parser is in.
-
-    \value  StartingParsing
-            The state before parse() is called.
-    \value  ParsingScxml
-            The state when parsing, before any errors have occurred.
-    \value  ParsingError
-            The final state, indicating that an error occurred while parsing.
-    \value  FinishedParsing
-            The final state, indicating that the file was successfully parsed.
- */
-
-/*!
     \enum QScxmlParser::QtMode
 
     This enum specifies if the document should be parsed in Qt mode. In Qt
