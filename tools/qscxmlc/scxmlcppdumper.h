@@ -86,6 +86,8 @@ private:
     QString mangleIdentifier(const QString &str);
 
 private:
+    QString generatePropertyDecls(const QScxmlInternal::GeneratedTableData::MetaDataInfo &info,
+                                  bool qtMode);
     QString generateSignalDecls(const QScxmlInternal::GeneratedTableData::MetaDataInfo &info);
     QString generateSlotDecls(const QScxmlInternal::GeneratedTableData::MetaDataInfo &info);
     QString generateSlotDefs(const QString &className,

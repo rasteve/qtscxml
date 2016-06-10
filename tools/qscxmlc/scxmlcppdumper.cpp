@@ -528,6 +528,7 @@ void CppDumper::writeClass(const QString &className, const GeneratedTableData::M
     const bool qtMode = m_translationUnit->mainDocument->qtMode;
     Replacements r;
     r[QStringLiteral("classname")] = className;
+    r[QStringLiteral("properties")] = generatePropertyDecls(info, qtMode);
     r[QStringLiteral("signals")] = qtMode ? generateSignalDecls(info) : QString();
     r[QStringLiteral("slots")] = qtMode ? generateSlotDecls(info) : QString();
     r[QStringLiteral("getters")] = qtMode ? generateGetterDecls(info) : QString();
@@ -714,6 +715,36 @@ QString CppDumper::mangleIdentifier(const QString &str)
     }
 
     return mangled;
+}
+
+QString CppDumper::generatePropertyDecls(const GeneratedTableData::MetaDataInfo &info, bool qtMode)
+{
+    QString decls;
+
+    foreach (const QString &stateName, info.stateNames) {
+        if (!stateName.isEmpty()) {
+            const QString decl = QString::fromLatin1(
+                        qtMode ? "    Q_PROPERTY(bool %1 READ %2 NOTIFY %2Changed)\n" :
+                                 "    Q_PROPERTY(bool %1 NOTIFY %2Changed)\n");
+            decls += decl.arg(stateName, mangleIdentifier(stateName));
+        }
+    }
+
+    QString namespacePrefix;
+    if (!m_translationUnit->namespaceName.isEmpty()) {
+        namespacePrefix = QStringLiteral("::%1").arg(m_translationUnit->namespaceName);
+    }
+
+    foreach (const QString &machineName, info.subStateMachineNames) {
+        if (!machineName.isEmpty()) {
+            const QString decl = QString::fromLatin1(
+                        qtMode ? "    Q_PROPERTY(%1::%2 *%3 READ %2 NOTIFY %2Changed)\n" :
+                                 "    Q_PROPERTY(%1::%2 *%3 NOTIFY %2Changed)\n");
+            decls += decl.arg(namespacePrefix, mangleIdentifier(machineName), machineName);
+        }
+    }
+
+    return decls;
 }
 
 QString CppDumper::generateSignalDecls(const GeneratedTableData::MetaDataInfo &info)
