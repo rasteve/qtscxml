@@ -545,7 +545,7 @@ void CppDumper::writeHeaderEnd(const QString &headerGuard, const QStringList &me
     }
 
     foreach (const QString &name, metatypeDecls) {
-        h << QStringLiteral("Q_DECLARE_METATYPE(%1::%2*);").arg(ns, name) << endl;
+        h << QStringLiteral("Q_DECLARE_METATYPE(%1::%2*)").arg(ns, name) << endl;
     }
     h << endl;
 
