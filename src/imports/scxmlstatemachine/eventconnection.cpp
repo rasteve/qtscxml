@@ -37,41 +37,68 @@
 **
 ****************************************************************************/
 
-#include "statemachineloader.h"
 #include "eventconnection.h"
-#include "qscxmlevent.h"
-
-#include <QQmlExtensionPlugin>
-#include <qqml.h>
 
 QT_BEGIN_NAMESPACE
 
-class QScxmlStateMachinePlugin : public QQmlExtensionPlugin
+QScxmlEventConnection::QScxmlEventConnection(QObject *parent) :
+    QObject(parent), m_stateMachine(nullptr)
 {
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.Scxml/1.0")
+}
 
-public:
-    void registerTypes(const char *uri)
-    {
-        // @uri QtScxml
-        Q_ASSERT(uri == QStringLiteral("QtScxml"));
+QStringList QScxmlEventConnection::events() const
+{
+    return m_events;
+}
 
-        int major = 5;
-        int minor = 7;
-        // Do not rely on RegisterMethodArgumentMetaType meta-call to register the QScxmlEvent type.
-        // This registration is required for the receiving end of the signal emission that carries
-        // parameters of this type to be able to treat them correctly as a gadget. This is because the
-        // receiving end of the signal is a generic method in the QML engine, at which point it's too late
-        // to do a meta-type registration.
-        static const int qScxmlEventMetaTypeId = qMetaTypeId<QScxmlEvent>();
-        Q_UNUSED(qScxmlEventMetaTypeId)
-        qmlRegisterType<QScxmlStateMachineLoader>(uri, major, minor, "StateMachineLoader");
-        qmlRegisterType<QScxmlEventConnection>(uri, major, minor, "EventConnection");
-        qmlProtectModule(uri, 1);
+void QScxmlEventConnection::setEvents(const QStringList &events)
+{
+    if (events != m_events) {
+        m_events = events;
+        doConnect();
+        emit eventsChanged();
     }
-};
+}
+
+QScxmlStateMachine *QScxmlEventConnection::stateMachine() const
+{
+    return m_stateMachine;
+}
+
+void QScxmlEventConnection::setStateMachine(QScxmlStateMachine *stateMachine)
+{
+    if (stateMachine != m_stateMachine) {
+        m_stateMachine = stateMachine;
+        doConnect();
+        emit stateMachineChanged();
+    }
+}
+
+void QScxmlEventConnection::doConnect()
+{
+    foreach (const QMetaObject::Connection &connection, m_connections)
+        disconnect(connection);
+    m_connections.clear();
+    if (m_stateMachine) {
+        foreach (const QString &event, m_events) {
+            m_connections.append(m_stateMachine->connectToEvent(event, this,
+                                                                &QScxmlEventConnection::occurred));
+        }
+
+    }
+
+}
+
+void QScxmlEventConnection::classBegin()
+{
+}
+
+void QScxmlEventConnection::componentComplete()
+{
+    if (!m_stateMachine) {
+        if ((m_stateMachine = qobject_cast<QScxmlStateMachine *>(parent())))
+            doConnect();
+    }
+}
 
 QT_END_NAMESPACE
-
-#include "plugin.moc"

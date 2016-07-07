@@ -51,6 +51,7 @@
 import CalculatorStateMachine 1.0
 import QtQuick 2.5
 import QtQuick.Window 2.0
+import QtScxml 5.7
 
 Window {
     id: window
@@ -61,9 +62,9 @@ Window {
     CalculatorStateMachine {
         id: statemachine
         running: true
-        onEventOccurred: {
-            if (event.name === "updateDisplay")
-                resultText.text = event.data.display;
+        property var connection: EventConnection {
+            events: ["updateDisplay"]
+            onOccurred: resultText.text = event.data.display
         }
     }
 

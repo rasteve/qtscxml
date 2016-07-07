@@ -78,6 +78,29 @@ public:
 protected:
     void timerEvent(QTimerEvent *timerEvent) Q_DECL_OVERRIDE;
 };
+
+class ScxmlEventRouter : public QObject
+{
+    Q_OBJECT
+public:
+    ScxmlEventRouter(QObject *parent = nullptr) : QObject(parent) {}
+    QMetaObject::Connection connectToEvent(const QStringList &segments, const QObject *receiver,
+                                           const char *method, Qt::ConnectionType type);
+    QMetaObject::Connection connectToEvent(const QStringList &segments, const QObject *receiver,
+                                           void **slot, QtPrivate::QSlotObjectBase *method,
+                                           Qt::ConnectionType type);
+
+    void route(const QStringList &segments, QScxmlEvent *event);
+
+signals:
+    void eventOccurred(const QScxmlEvent &event);
+
+private:
+    QHash<QString, ScxmlEventRouter *> children;
+    ScxmlEventRouter *child(const QString &segment);
+
+    void disconnectNotify(const QMetaMethod &signal) override;
+};
 } // QScxmlInternal namespace
 
 class QScxmlInvokableService;
@@ -297,6 +320,7 @@ public: // types & data fields:
     typedef std::vector<std::pair<int, QScxmlEvent *>> DelayedQueue;
     DelayedQueue m_delayedEvents;
     const QMetaObject *m_metaObject;
+    QScxmlInternal::ScxmlEventRouter m_router;
 
 private:
     QScopedPointer<ParserData> m_parserData; // used when created by StateMachine::fromFile.

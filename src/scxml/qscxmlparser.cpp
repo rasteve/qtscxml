@@ -722,7 +722,6 @@ private:
                 << QStringLiteral("log")
                 << QStringLiteral("reachedStableState")
                 << QStringLiteral("finished")
-                << QStringLiteral("eventOccurred")
                 << QStringLiteral("start")
                 << QStringLiteral("setDataBinding")
                 << QStringLiteral("setService")

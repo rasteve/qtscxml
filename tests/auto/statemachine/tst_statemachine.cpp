@@ -31,6 +31,7 @@
 #include <QXmlStreamReader>
 #include <QtScxml/qscxmlparser.h>
 #include <QtScxml/qscxmlstatemachine.h>
+#include <QtScxml/private/qscxmlstatemachine_p.h>
 
 Q_DECLARE_METATYPE(QScxmlError);
 
@@ -183,6 +184,13 @@ void tst_StateMachine::connections()
     QVERIFY(disconnect(final));
 }
 
+bool hasChildEventRouters(QScxmlStateMachine *stateMachine)
+{
+    // Cast to QObject, to avoid ambigous "children" member.
+    const QObject &parentRouter = QScxmlStateMachinePrivate::get(stateMachine)->m_router;
+    return !parentRouter.children().isEmpty();
+}
+
 void tst_StateMachine::eventOccurred()
 {
     QScopedPointer<QScxmlStateMachine> stateMachine(QScxmlStateMachine::fromFile(QString(":/tst_statemachine/eventoccurred.scxml")));
@@ -190,29 +198,63 @@ void tst_StateMachine::eventOccurred()
 
     qRegisterMetaType<QScxmlEvent>();
     QSignalSpy finishedSpy(stateMachine.data(), SIGNAL(finished()));
-    QSignalSpy eventOccurredSpy(stateMachine.data(), SIGNAL(eventOccurred(QScxmlEvent)));
-    QSignalSpy externalEventOccurredSpy(stateMachine.data(), SIGNAL(externalEventOccurred(QScxmlEvent)));
+
+    int events = 0;
+    auto con1 = stateMachine->connectToEvent("internalEvent2", [&events](const QScxmlEvent &event) {
+        QCOMPARE(++events, 1);
+        QCOMPARE(event.name(), QString("internalEvent2"));
+        QCOMPARE(event.eventType(), QScxmlEvent::ExternalEvent);
+    });
+    QVERIFY(con1);
+
+    auto con2 = stateMachine->connectToEvent("externalEvent", [&events](const QScxmlEvent &event) {
+        QCOMPARE(++events, 2);
+        QCOMPARE(event.name(), QString("externalEvent"));
+        QCOMPARE(event.eventType(), QScxmlEvent::ExternalEvent);
+    });
+    QVERIFY(con2);
+
+    auto con3 = stateMachine->connectToEvent("timeout", [&events](const QScxmlEvent &event) {
+        QCOMPARE(++events, 3);
+        QCOMPARE(event.name(), QString("timeout"));
+        QCOMPARE(event.eventType(), QScxmlEvent::ExternalEvent);
+    });
+    QVERIFY(con3);
+
+    auto con4 = stateMachine->connectToEvent("done.*", [&events](const QScxmlEvent &event) {
+        QCOMPARE(++events, 4);
+        QCOMPARE(event.name(), QString("done.state.top"));
+        QCOMPARE(event.eventType(), QScxmlEvent::ExternalEvent);
+    });
+    QVERIFY(con4);
+
+    auto con5 = stateMachine->connectToEvent("done.state", [&events](const QScxmlEvent &event) {
+        QCOMPARE(++events, 5);
+        QCOMPARE(event.name(), QString("done.state.top"));
+        QCOMPARE(event.eventType(), QScxmlEvent::ExternalEvent);
+    });
+    QVERIFY(con5);
+
+    auto con6 = stateMachine->connectToEvent("done.state.top", [&events](const QScxmlEvent &event) {
+        QCOMPARE(++events, 6);
+        QCOMPARE(event.name(), QString("done.state.top"));
+        QCOMPARE(event.eventType(), QScxmlEvent::ExternalEvent);
+    });
+    QVERIFY(con6);
 
     stateMachine->start();
 
     finishedSpy.wait(5000);
+    QCOMPARE(events, 6);
 
-    auto event = [&eventOccurredSpy](int eventIndex) -> QScxmlEvent {
-        return qvariant_cast<QScxmlEvent>(eventOccurredSpy.at(eventIndex).at(0));
-    };
+    QVERIFY(disconnect(con1));
+    QVERIFY(disconnect(con2));
+    QVERIFY(disconnect(con3));
+    QVERIFY(disconnect(con4));
+    QVERIFY(disconnect(con5));
+    QVERIFY(disconnect(con6));
 
-    QCOMPARE(eventOccurredSpy.count(), 4);
-    QCOMPARE(event(0).name(), QLatin1String("internalEvent2"));
-    QCOMPARE(event(0).eventType(), QScxmlEvent::ExternalEvent);
-    QCOMPARE(event(1).name(), QLatin1String("externalEvent"));
-    QCOMPARE(event(1).eventType(), QScxmlEvent::ExternalEvent);
-    QCOMPARE(event(2).name(), QLatin1String("timeout"));
-    QCOMPARE(event(2).eventType(), QScxmlEvent::ExternalEvent);
-    QCOMPARE(event(3).name(), QLatin1String("done.state.top"));
-    QCOMPARE(event(3).eventType(), QScxmlEvent::ExternalEvent);
-
-    QCOMPARE(externalEventOccurredSpy.count(), 1);
-    QCOMPARE(qvariant_cast<QScxmlEvent>(externalEventOccurredSpy.at(0).at(0)).name(), QLatin1String("externalEvent"));
+    QTRY_VERIFY(!hasChildEventRouters(stateMachine.data()));
 }
 
 void tst_StateMachine::doneDotStateEvent()

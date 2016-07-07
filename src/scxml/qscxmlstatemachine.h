@@ -165,6 +165,65 @@ public:
     }
 #endif
 
+    QMetaObject::Connection connectToEvent(const QString &scxmlEventSpec,
+                                           const QObject *receiver, const char *method,
+                                           Qt::ConnectionType type = Qt::AutoConnection);
+
+#ifdef Q_QDOC
+    template<typename PointerToMemberFunction>
+    QMetaObject::Connection connectToEvent(const QString &scxmlEventSpec,
+                                           const QObject *receiver, PointerToMemberFunction method,
+                                           Qt::ConnectionType type = Qt::AutoConnection);
+    template<typename Functor>
+    QMetaObject::Connection connectToEvent(const QString &scxmlEventSpec, Functor functor,
+                                           Qt::ConnectionType type = Qt::AutoConnection);
+    template<typename Functor>
+    QMetaObject::Connection connectToEvent(const QString &scxmlEventSpec,
+                                           const QObject *context, Functor functor,
+                                           Qt::ConnectionType type = Qt::AutoConnection);
+#else
+
+    // connect state to a QObject slot
+    template <typename Func1>
+    inline QMetaObject::Connection connectToEvent(
+            const QString &scxmlEventSpec,
+            const typename QtPrivate::FunctionPointer<Func1>::Object *receiver, Func1 slot,
+            Qt::ConnectionType type = Qt::AutoConnection)
+    {
+        typedef QtPrivate::FunctionPointer<Func1> SlotType;
+        return connectToEventImpl(
+                    scxmlEventSpec, receiver, nullptr,
+                    new QtPrivate::QSlotObject<Func1, typename SlotType::Arguments, void>(slot),
+                    type);
+    }
+
+    // connect state to a functor or function pointer (without context)
+    template <typename Func1>
+    inline typename QtPrivate::QEnableIf<
+            !QtPrivate::FunctionPointer<Func1>::IsPointerToMemberFunction &&
+            !QtPrivate::is_same<const char*, Func1>::value, QMetaObject::Connection>::Type
+    connectToEvent(const QString &scxmlEventSpec, Func1 slot,
+                   Qt::ConnectionType type = Qt::AutoConnection)
+    {
+        // Use this as context
+        return connectToEvent(scxmlEventSpec, this, slot, type);
+    }
+
+    // connectToEvent to a functor or function pointer (with context)
+    template <typename Func1>
+    inline typename QtPrivate::QEnableIf<
+            !QtPrivate::FunctionPointer<Func1>::IsPointerToMemberFunction &&
+            !QtPrivate::is_same<const char*, Func1>::value, QMetaObject::Connection>::Type
+    connectToEvent(const QString &scxmlEventSpec, QObject *context, Func1 slot,
+                   Qt::ConnectionType type = Qt::AutoConnection)
+    {
+        QtPrivate::QSlotObjectBase *slotObj = new QtPrivate::QFunctorSlotObject<Func1, 1,
+                QtPrivate::List<QScxmlEvent>, void>(slot);
+        return connectToEventImpl(scxmlEventSpec, context, reinterpret_cast<void **>(&slot),
+                                  slotObj, type);
+    }
+#endif
+
     Q_INVOKABLE void submitEvent(QScxmlEvent *event);
     Q_INVOKABLE void submitEvent(const QString &eventName);
     Q_INVOKABLE void submitEvent(const QString &eventName, const QVariant &data);
@@ -177,11 +236,9 @@ Q_SIGNALS:
     void log(const QString &label, const QString &msg);
     void reachedStableState();
     void finished();
-    void eventOccurred(const QScxmlEvent &event);
     void dataModelChanged(QScxmlDataModel *model);
     void initialValuesChanged(const QVariantMap &initialValues);
     void initializedChanged(bool initialized);
-    void externalEventOccurred(const QScxmlEvent &event);
 
 public Q_SLOTS:
     void start();
@@ -204,6 +261,10 @@ protected: // methods for friends:
 
 private:
     QMetaObject::Connection connectToStateImpl(const QString &scxmlStateName,
+                                               const QObject *receiver, void **slot,
+                                               QtPrivate::QSlotObjectBase *slotObj,
+                                               Qt::ConnectionType type = Qt::AutoConnection);
+    QMetaObject::Connection connectToEventImpl(const QString &scxmlEventSpec,
                                                const QObject *receiver, void **slot,
                                                QtPrivate::QSlotObjectBase *slotObj,
                                                Qt::ConnectionType type = Qt::AutoConnection);

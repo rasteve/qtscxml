@@ -115,11 +115,9 @@ MainWindow::MainWindow(QScxmlStateMachine *machine, QWidget *parent) :
         m_machine->submitEvent("C");
     });
 
-    connect(m_machine, &QScxmlStateMachine::eventOccurred, [this](const QScxmlEvent &event) {
-        if (event.name() == QLatin1String("updateDisplay")) {
-            const QString display = event.data().toMap().value("display").toString();
-            ui->display->setText(display);
-        }
+    m_machine->connectToEvent(QLatin1String("updateDisplay"), this, [this](const QScxmlEvent &event) {
+        const QString display = event.data().toMap().value("display").toString();
+        ui->display->setText(display);
     });
 }
 

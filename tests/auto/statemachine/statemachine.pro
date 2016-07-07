@@ -1,4 +1,4 @@
-QT = core gui qml testlib scxml
+QT = core gui qml testlib scxml-private
 CONFIG += testcase
 
 TARGET = tst_statemachine

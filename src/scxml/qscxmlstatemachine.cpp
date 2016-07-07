@@ -94,25 +94,6 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
  * \e event attribute of one \c <send> tag in the SCXML file.
  */
 
-/*!
-    \fn QScxmlStateMachine::eventOccurred(const QScxmlEvent &event)
-
-    This signal is emitted when the SCXML event \a event occurs. This signal is
-    emitted for all external events.
-
-    \sa externalEventOccurred()
-*/
-
-/*!
-    \fn QScxmlStateMachine::externalEventOccurred(const QScxmlEvent &event)
-
-    This signal is emitted for each \c <send> element in the SCXML file that
-    contains the attribute \c {type="qt:signal"}. The event that occurred is
-    specified by \a event.
-
-    \sa eventOccurred()
-*/
-
 namespace QScxmlInternal {
 
 static int signalIndex(const QMetaObject *meta, const QByteArray &signalName)
@@ -166,6 +147,91 @@ void EventLoopHook::timerEvent(QTimerEvent *timerEvent)
     }
 }
 
+void ScxmlEventRouter::route(const QStringList &segments, QScxmlEvent *event)
+{
+    emit eventOccurred(*event);
+    if (!segments.isEmpty()) {
+        auto it = children.find(segments.first());
+        if (it != children.end())
+            it.value()->route(segments.mid(1), event);
+    }
+}
+
+static QString nextSegment(const QStringList &segments)
+{
+    if (segments.isEmpty())
+        return QString();
+
+    const QString &segment = segments.first();
+    return segment == QLatin1String("*") ? QString() : segment;
+}
+
+ScxmlEventRouter *ScxmlEventRouter::child(const QString &segment)
+{
+    ScxmlEventRouter *&child = children[segment];
+    if (child == nullptr)
+        child = new ScxmlEventRouter(this);
+    return child;
+}
+
+void ScxmlEventRouter::disconnectNotify(const QMetaMethod &signal)
+{
+    Q_UNUSED(signal);
+
+    // Defer the actual work, as this may be called from a destructor, or the signal may not
+    // actually be disconnected, yet.
+    QTimer::singleShot(0, this, [this] {
+        if (!children.isEmpty() || receivers(SIGNAL(eventOccurred(QScxmlEvent))) > 0)
+            return;
+
+        ScxmlEventRouter *parentRouter = qobject_cast<ScxmlEventRouter *>(parent());
+        if (!parentRouter) // root node
+            return;
+
+        QHash<QString, ScxmlEventRouter *>::Iterator it = parentRouter->children.begin(),
+                end = parentRouter->children.end();
+        for (; it != end; ++it) {
+            if (it.value() == this) {
+                parentRouter->children.erase(it);
+                parentRouter->disconnectNotify(QMetaMethod());
+                break;
+            }
+        }
+
+        deleteLater(); // The parent might delete itself, triggering QObject delete cascades.
+    });
+}
+
+QMetaObject::Connection ScxmlEventRouter::connectToEvent(const QStringList &segments,
+                                                         const QObject *receiver,
+                                                         const char *method,
+                                                         Qt::ConnectionType type)
+{
+    QString segment = nextSegment(segments);
+    return segment.isEmpty() ?
+                connect(this, SIGNAL(eventOccurred(QScxmlEvent)), receiver, method, type) :
+                child(segment)->connectToEvent(segments.mid(1), receiver, method, type);
+}
+
+QMetaObject::Connection ScxmlEventRouter::connectToEvent(const QStringList &segments,
+                                                         const QObject *receiver, void **slot,
+                                                         QtPrivate::QSlotObjectBase *method,
+                                                         Qt::ConnectionType type)
+{
+    QString segment = nextSegment(segments);
+    if (segment.isEmpty()) {
+        const int *types = Q_NULLPTR;
+        if (type == Qt::QueuedConnection || type == Qt::BlockingQueuedConnection)
+            types = QtPrivate::ConnectionTypes<QtPrivate::List<QScxmlEvent> >::types();
+
+        const QMetaObject *meta = metaObject();
+        static const int eventOccurredIndex = signalIndex(meta, "eventOccurred(QScxmlEvent)");
+        return QObjectPrivate::connectImpl(this, eventOccurredIndex, receiver, slot, method, type,
+                                           types, meta);
+    } else {
+        return child(segment)->connectToEvent(segments.mid(1), receiver, slot, method, type);
+    }
+}
 
 } // namespace QScxmlInternal
 
@@ -313,10 +379,7 @@ void QScxmlStateMachinePrivate::postEvent(QScxmlEvent *event)
     }
 
     if (event->eventType() == QScxmlEvent::ExternalEvent)
-        emit q->eventOccurred(*event);
-
-    if (event->originType() == QLatin1String("qt:signal"))
-        emit q->externalEventOccurred(*event);
+        m_router.route(event->name().split(QLatin1Char('.')), event);
 
     const int signalIndex = m_tableData->signalIndexForEvent(event->name());
     if (signalIndex != -1) {
@@ -1517,6 +1580,26 @@ QMetaObject::Connection QScxmlStateMachine::connectToState(const QString &scxmlS
     QByteArray signalName = QByteArray::number(QSIGNAL_CODE) + scxmlStateName.toUtf8()
             + "Changed(bool)";
     return QObject::connect(this, signalName.constData(), receiver, method, type);
+}
+
+QMetaObject::Connection QScxmlStateMachine::connectToEvent(const QString &scxmlEventSpec,
+                                                           const QObject *receiver,
+                                                           const char *method,
+                                                           Qt::ConnectionType type)
+{
+    Q_D(QScxmlStateMachine);
+    return d->m_router.connectToEvent(scxmlEventSpec.split(QLatin1Char('.')), receiver, method,
+                                      type);
+}
+
+QMetaObject::Connection QScxmlStateMachine::connectToEventImpl(const QString &scxmlEventSpec,
+                                                               const QObject *receiver, void **slot,
+                                                               QtPrivate::QSlotObjectBase *slotObj,
+                                                               Qt::ConnectionType type)
+{
+    Q_D(QScxmlStateMachine);
+    return d->m_router.connectToEvent(scxmlEventSpec.split(QLatin1Char('.')), receiver, slot,
+                                      slotObj, type);
 }
 
 /*!
