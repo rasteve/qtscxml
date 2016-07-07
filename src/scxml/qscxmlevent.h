@@ -47,10 +47,6 @@
 
 QT_BEGIN_NAMESPACE
 
-namespace QScxmlInternal {
-class WrappedQStateMachine;
-}
-
 class QScxmlEventPrivate;
 
 class Q_SCXML_EXPORT QScxmlEvent
@@ -110,7 +106,6 @@ public:
     void setErrorMessage(const QString &message);
 
 private:
-    friend class QScxmlInternal::WrappedQStateMachine;
     QScxmlEventPrivate *d;
 
 };
