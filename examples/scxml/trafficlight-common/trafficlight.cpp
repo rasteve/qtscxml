@@ -103,15 +103,15 @@ TrafficLight::TrafficLight(QScxmlStateMachine *machine, QWidget *parent)
     setFixedSize(widget->sizeHint());
 
     machine->connectToState(QStringLiteral("red"),
-                     widget->redLight(), SLOT(switchLight(bool)));
+                            widget->redLight(), &LightWidget::switchLight);
     machine->connectToState(QStringLiteral("redGoingGreen"),
-                     widget->redLight(), SLOT(switchLight(bool)));
+                            widget->redLight(), &LightWidget::switchLight);
     machine->connectToState(QStringLiteral("yellow"),
-                     widget->yellowLight(), SLOT(switchLight(bool)));
+                            widget->yellowLight(), &LightWidget::switchLight);
     machine->connectToState(QStringLiteral("blinking"),
-                     widget->yellowLight(), SLOT(switchLight(bool)));
+                            widget->yellowLight(), &LightWidget::switchLight);
     machine->connectToState(QStringLiteral("green"),
-                     widget->greenLight(), SLOT(switchLight(bool)));
+                            widget->greenLight(), &LightWidget::switchLight);
 
     QAbstractButton *button = new ButtonWidget(this);
     auto setButtonGeometry = [this, button](){

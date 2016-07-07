@@ -113,7 +113,34 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
     \sa eventOccurred()
 */
 
-void QScxmlInternal::EventLoopHook::queueProcessEvents()
+namespace QScxmlInternal {
+
+static int signalIndex(const QMetaObject *meta, const QByteArray &signalName)
+{
+    Q_ASSERT(meta);
+
+    int signalIndex = meta->indexOfSignal(signalName.constData());
+
+    // signal exists
+    Q_ASSERT(signalIndex >= 0);
+
+    // signal belongs to class whose meta object was passed, not some derived class.
+    Q_ASSERT(meta->methodOffset() <= signalIndex);
+
+    // Duplicate of computeOffsets in qobject.cpp
+    const QMetaObject *m = meta->d.superdata;
+    while (m) {
+        const QMetaObjectPrivate *d = QMetaObjectPrivate::get(m);
+        signalIndex = signalIndex - d->methodCount + d->signalCount;
+        m = m->d.superdata;
+    }
+
+    // Asserting about the signal not being cloned would be nice, too, but not practical.
+
+    return signalIndex;
+}
+
+void EventLoopHook::queueProcessEvents()
 {
     if (smp->m_isProcessingEvents)
         return;
@@ -121,12 +148,12 @@ void QScxmlInternal::EventLoopHook::queueProcessEvents()
     QMetaObject::invokeMethod(this, "doProcessEvents", Qt::QueuedConnection);
 }
 
-void QScxmlInternal::EventLoopHook::doProcessEvents()
+void EventLoopHook::doProcessEvents()
 {
     smp->processEvents();
 }
 
-void QScxmlInternal::EventLoopHook::timerEvent(QTimerEvent *timerEvent)
+void EventLoopHook::timerEvent(QTimerEvent *timerEvent)
 {
     const int timerId = timerEvent->timerId();
     for (auto it = smp->m_delayedEvents.begin(), eit = smp->m_delayedEvents.end(); it != eit; ++it) {
@@ -138,6 +165,9 @@ void QScxmlInternal::EventLoopHook::timerEvent(QTimerEvent *timerEvent)
         }
     }
 }
+
+
+} // namespace QScxmlInternal
 
 QAtomicInt QScxmlStateMachinePrivate::m_sessionIdCounter = QAtomicInt(0);
 
@@ -1455,6 +1485,22 @@ bool QScxmlStateMachine::isActive(const QString &scxmlStateName) const
     }
 
     return false;
+}
+
+QMetaObject::Connection QScxmlStateMachine::connectToStateImpl(const QString &scxmlStateName,
+                                                               const QObject *receiver, void **slot,
+                                                               QtPrivate::QSlotObjectBase *slotObj,
+                                                               Qt::ConnectionType type)
+{
+    const int *types = Q_NULLPTR;
+    if (type == Qt::QueuedConnection || type == Qt::BlockingQueuedConnection)
+        types = QtPrivate::ConnectionTypes<QtPrivate::List<bool> >::types();
+
+    Q_D(QScxmlStateMachine);
+    return QObjectPrivate::connectImpl(this, QScxmlInternal::signalIndex(
+                                           d->m_metaObject,
+                                           scxmlStateName.toUtf8() + "Changed(bool)"),
+                                       receiver, slot, slotObj, type, types, d->m_metaObject);
 }
 
 /*!

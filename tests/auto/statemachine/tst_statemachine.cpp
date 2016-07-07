@@ -45,7 +45,7 @@ private Q_SLOTS:
     void stateNames();
     void activeStateNames_data();
     void activeStateNames();
-    void connectToFinal();
+    void connections();
     void eventOccurred();
 
     void doneDotStateEvent();
@@ -127,13 +127,60 @@ void tst_StateMachine::activeStateNames()
     QCOMPARE(stateMachine->activeStateNames(compressed), expectedStates);
 }
 
-void tst_StateMachine::connectToFinal()
-{
-    QScopedPointer<QScxmlStateMachine> stateMachine(QScxmlStateMachine::fromFile(QString(":/tst_statemachine/statenames.scxml")));
-    QVERIFY(!stateMachine.isNull());
+class Receiver : public QObject {
+    Q_OBJECT
+public slots:
+    void a(bool enabled)
+    {
+        aReached = aReached || enabled;
+    }
 
-    QState dummy;
-    QVERIFY(stateMachine->connectToState(QString("final"), &dummy, SLOT(deleteLater())));
+    void b(bool enabled)
+    {
+        bReached = bReached || enabled;
+    }
+
+public:
+    bool aReached = false;
+    bool bReached = false;
+
+};
+
+void tst_StateMachine::connections()
+{
+    QScopedPointer<QScxmlStateMachine> stateMachine(
+                QScxmlStateMachine::fromFile(QString(":/tst_statemachine/statenames.scxml")));
+    QVERIFY(!stateMachine.isNull());
+    Receiver receiver;
+
+    bool a1Reached = false;
+    bool finalReached = false;
+    QMetaObject::Connection a = stateMachine->connectToState("a", &receiver, &Receiver::a);
+    QVERIFY(a);
+    QMetaObject::Connection b = stateMachine->connectToState("b", &receiver, SLOT(b(bool)));
+    QVERIFY(b);
+    QMetaObject::Connection a1 = stateMachine->connectToState("a1", &receiver,
+                                                              [&a1Reached](bool enabled) {
+        a1Reached = a1Reached || enabled;
+    });
+    QVERIFY(a1);
+    QMetaObject::Connection final = stateMachine->connectToState("final",
+                                                                 [&finalReached](bool enabled) {
+        finalReached = finalReached || enabled;
+    });
+    QVERIFY(final);
+
+    stateMachine->start();
+
+    QTRY_VERIFY(a1Reached);
+    QTRY_VERIFY(finalReached);
+    QTRY_VERIFY(receiver.aReached);
+    QTRY_VERIFY(receiver.bReached);
+
+    QVERIFY(disconnect(a));
+    QVERIFY(disconnect(b));
+    QVERIFY(disconnect(a1));
+    QVERIFY(disconnect(final));
 }
 
 void tst_StateMachine::eventOccurred()

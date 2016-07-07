@@ -54,6 +54,8 @@
 #include <QtScxml/private/qscxmlexecutablecontent_p.h>
 #include <QtScxml/qscxmlstatemachine.h>
 #include <QtCore/private/qobject_p.h>
+#include <QtCore/private/qmetaobject_p.h>
+#include <QtCore/qmetaobject.h>
 
 QT_BEGIN_NAMESPACE
 

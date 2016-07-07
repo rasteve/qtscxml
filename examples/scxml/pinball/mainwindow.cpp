@@ -124,7 +124,7 @@ MainWindow::~MainWindow()
 void MainWindow::initAndConnect(const QString &state, QWidget *widget)
 {
     widget->setEnabled(m_machine->isActive(state));
-    m_machine->connectToState(state, widget, SLOT(setEnabled(bool)));
+    m_machine->connectToState(state, widget, &QWidget::setEnabled);
 }
 
 void MainWindow::eventOccurred(const QScxmlEvent &event)
