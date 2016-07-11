@@ -626,8 +626,15 @@ void CppDumper::writeImplBody(const GeneratedTableData &table,
         name = QStringLiteral("string(%1)").arg(table.theName);
     }
 
-    QString serviceFactories = factory.join(QStringLiteral("\n        "))
-            + QStringLiteral("\n        default: Q_UNREACHABLE();");
+    QString serviceFactories;
+    if (factory.isEmpty()) {
+        serviceFactories = QStringLiteral("    Q_UNUSED(id);\n    Q_UNREACHABLE();");
+    } else {
+        serviceFactories = QStringLiteral("    switch (id) {\n        ")
+                + factory.join(QStringLiteral("\n        "))
+                + QStringLiteral("\n        default: Q_UNREACHABLE();\n    }");
+    }
+
 
     Replacements r;
     r[QStringLiteral("classname")] = className;

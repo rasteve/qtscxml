@@ -69,9 +69,7 @@ ${classname}::~${classname}()
 
 QScxmlInvokableServiceFactory *${classname}::Data::serviceFactory(int id) const
 {
-    switch (id) {
-        ${serviceFactories}
-    }
+${serviceFactories}
 }
 
 std::vector<QString> ${classname}::Data::outgoingEvents = {
