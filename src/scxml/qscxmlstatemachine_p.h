@@ -204,7 +204,7 @@ public: // types
     };
 
 public:
-    QScxmlStateMachinePrivate();
+    QScxmlStateMachinePrivate(const QMetaObject *qMetaObject);
     ~QScxmlStateMachinePrivate();
 
     static QScxmlStateMachinePrivate *get(QScxmlStateMachine *t)
@@ -294,6 +294,7 @@ public: // types & data fields:
     QScxmlInternal::EventLoopHook m_eventLoopHook;
     typedef std::vector<std::pair<int, QScxmlEvent *>> DelayedQueue;
     DelayedQueue m_delayedEvents;
+    const QMetaObject *m_metaObject;
 
 private:
     QScopedPointer<ParserData> m_parserData; // used when created by StateMachine::fromFile.

@@ -768,21 +768,30 @@ private:
     QSharedPointer<DocumentModel::ScxmlDocument> m_content;
 };
 
+class DynamicStateMachinePrivate : public QScxmlStateMachinePrivate
+{
+public:
+    DynamicStateMachinePrivate() :
+        QScxmlStateMachinePrivate(&QScxmlStateMachine::staticMetaObject) {}
+};
+
 class DynamicStateMachine: public QScxmlStateMachine, public QScxmlInternal::GeneratedTableData
 {
+    Q_DECLARE_PRIVATE(DynamicStateMachine)
     // Manually expanded from Q_OBJECT macro:
 public:
     Q_OBJECT_CHECK
 
     const QMetaObject *metaObject() const Q_DECL_OVERRIDE
-    { return m_metaObject; }
+    { return d_func()->m_metaObject; }
 
     int qt_metacall(QMetaObject::Call _c, int _id, void **_a) Q_DECL_OVERRIDE
     {
+        Q_D(DynamicStateMachine);
         _id = QScxmlStateMachine::qt_metacall(_c, _id, _a);
         if (_id < 0)
             return _id;
-        int ownMethodCount = m_metaObject->methodCount() - m_metaObject->methodOffset();
+        int ownMethodCount = d->m_metaObject->methodCount() - d->m_metaObject->methodOffset();
         if (_c == QMetaObject::InvokeMetaMethod) {
             if (_id < ownMethodCount)
                 qt_static_metacall(this, _c, _id, _a);
@@ -790,7 +799,7 @@ public:
         } else if (_c == QMetaObject::ReadProperty || _c == QMetaObject::WriteProperty
                    || _c == QMetaObject::ResetProperty || _c == QMetaObject::RegisterPropertyMetaType) {
             qt_static_metacall(this, _c, _id, _a);
-            _id -= m_metaObject->propertyCount();
+            _id -= d->m_metaObject->propertyCount();
         }
         return _id;
     }
@@ -847,7 +856,7 @@ private:
 
 private:
     DynamicStateMachine()
-        : m_metaObject(Q_NULLPTR)
+        : QScxmlStateMachine(*new DynamicStateMachinePrivate)
         , m_propertyCount(0)
         , m_firstSubStateMachineSignal(0)
         , m_firstSlot(0)
@@ -855,18 +864,21 @@ private:
         , m_firstSubStateMachineProperty(0)
     {
         // Temporarily wire up the QMetaObject
+        Q_D(DynamicStateMachine);
         QMetaObjectBuilder b;
         b.setClassName("DynamicStateMachine");
         b.setSuperClass(&QScxmlStateMachine::staticMetaObject);
         b.setStaticMetacallFunction(qt_static_metacall);
-        m_metaObject = b.toMetaObject();
+        d->m_metaObject = b.toMetaObject();
     }
 
     void initDynamicParts(const MetaDataInfo &info)
     {
+        Q_D(DynamicStateMachine);
         // Release the temporary QMetaObject.
-        Q_ASSERT(m_metaObject);
-        free(m_metaObject);
+        Q_ASSERT(d->m_metaObject != &QScxmlStateMachine::staticMetaObject);
+        free(const_cast<QMetaObject *>(d->m_metaObject));
+        d->m_metaObject = &QScxmlStateMachine::staticMetaObject;
 
         m_incomingEvents = info.incomingEvents;
         m_outgoingEvents = info.outgoingEvents;
@@ -934,14 +946,16 @@ private:
         }
 
         // And we're done
-        m_metaObject = b.toMetaObject();
+        d->m_metaObject = b.toMetaObject();
     }
 
 public:
     ~DynamicStateMachine()
     {
-        if (m_metaObject) {
-            free(m_metaObject);
+        Q_D(DynamicStateMachine);
+        if (d->m_metaObject != &QScxmlStateMachine::staticMetaObject) {
+            free(const_cast<QMetaObject *>(d->m_metaObject));
+            d->m_metaObject = &QScxmlStateMachine::staticMetaObject;
         }
     }
 
@@ -1006,7 +1020,6 @@ private:
 
 private:
     QVector<QScxmlInvokableServiceFactory *> m_allFactoriesById;
-    QMetaObject *m_metaObject;
     QStringList m_incomingEvents;
     QStringList m_outgoingEvents;
     int m_propertyCount;
@@ -1211,7 +1224,7 @@ QScxmlStateMachine *QScxmlParser::instantiateStateMachine() const
     } else {
         class InvalidStateMachine: public QScxmlStateMachine {
         public:
-            InvalidStateMachine()
+            InvalidStateMachine() : QScxmlStateMachine(&QScxmlStateMachine::staticMetaObject)
             {}
         };
 

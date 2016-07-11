@@ -141,7 +141,7 @@ void QScxmlInternal::EventLoopHook::timerEvent(QTimerEvent *timerEvent)
 
 QAtomicInt QScxmlStateMachinePrivate::m_sessionIdCounter = QAtomicInt(0);
 
-QScxmlStateMachinePrivate::QScxmlStateMachinePrivate()
+QScxmlStateMachinePrivate::QScxmlStateMachinePrivate(const QMetaObject *metaObject)
     : QObjectPrivate()
     , m_sessionId(QScxmlStateMachine::generateSessionId(QStringLiteral("session-")))
     , m_isInvoked(false)
@@ -153,6 +153,7 @@ QScxmlStateMachinePrivate::QScxmlStateMachinePrivate()
     , m_tableData(Q_NULLPTR)
     , m_parentStateMachine(Q_NULLPTR)
     , m_eventLoopHook(this)
+    , m_metaObject(metaObject)
 {}
 
 QScxmlStateMachinePrivate::~QScxmlStateMachinePrivate()
@@ -439,7 +440,7 @@ void QScxmlStateMachinePrivate::emitStateActive(int stateIndex, bool active)
 {
     Q_Q(QScxmlStateMachine);
     void *args[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&active)) };
-    QMetaObject::activate(q, q->metaObject(), stateIndex, args);
+    QMetaObject::activate(q, m_metaObject, stateIndex, args);
 }
 
 void QScxmlStateMachinePrivate::emitServiceChanged(int machineIndex,
@@ -447,14 +448,14 @@ void QScxmlStateMachinePrivate::emitServiceChanged(int machineIndex,
 {
     Q_Q(QScxmlStateMachine);
     void *args[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&service)) };
-    QMetaObject::activate(q, q->metaObject(), machineIndex + m_stateTable->stateCount, args);
+    QMetaObject::activate(q, m_metaObject, machineIndex + m_stateTable->stateCount, args);
 }
 
 void QScxmlStateMachinePrivate::emitSignalForEvent(int signalIndex, const QVariant &data)
 {
     Q_Q(QScxmlStateMachine);
     void *args[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&data)) };
-    QMetaObject::activate(q, q->metaObject(),
+    QMetaObject::activate(q, m_metaObject,
                           signalIndex + m_stateTable->stateCount + m_stateTable->maxServiceId + 1,
                           args);
 }
@@ -1128,7 +1129,7 @@ QScxmlStateMachine *QScxmlStateMachine::fromFile(const QString &fileName)
 {
     QFile scxmlFile(fileName);
     if (!scxmlFile.open(QIODevice::ReadOnly)) {
-        auto stateMachine = new QScxmlStateMachine;
+        auto stateMachine = new QScxmlStateMachine(&QScxmlStateMachine::staticMetaObject);
         QScxmlError err(scxmlFile.fileName(), 0, 0, QStringLiteral("cannot open for reading"));
         QScxmlStateMachinePrivate::get(stateMachine)->parserData()->m_errors.append(err);
         return stateMachine;
@@ -1169,8 +1170,8 @@ QVector<QScxmlError> QScxmlStateMachine::parseErrors() const
     return d->m_parserData ? d->m_parserData->m_errors : QVector<QScxmlError>();
 }
 
-QScxmlStateMachine::QScxmlStateMachine(QObject *parent)
-    : QObject(*new QScxmlStateMachinePrivate, parent)
+QScxmlStateMachine::QScxmlStateMachine(const QMetaObject *metaObject, QObject *parent)
+    : QObject(*new QScxmlStateMachinePrivate(metaObject), parent)
 {
     Q_D(QScxmlStateMachine);
     d->m_executionEngine = new QScxmlExecutableContent::QScxmlExecutionEngine(this);

@@ -74,8 +74,8 @@ class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
 
 protected:
 #ifndef Q_QDOC
-    explicit QScxmlStateMachine(QObject *parent = nullptr);
-    QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *parent);
+    explicit QScxmlStateMachine(const QMetaObject *metaObject, QObject *parent = nullptr);
+    QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *parent = nullptr);
 #endif // Q_QDOC
 
 public:

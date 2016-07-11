@@ -60,7 +60,7 @@ struct ${classname}::Data: private QScxmlTableData {
 };
 
 ${classname}::${classname}(QObject *parent)
-    : QScxmlStateMachine(parent)
+    : QScxmlStateMachine(&staticMetaObject, parent)
     , data(new Data(*this))
 { qRegisterMetaType<${classname} *>(); data->init(); }
 
