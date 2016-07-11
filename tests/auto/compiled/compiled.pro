@@ -18,6 +18,7 @@ STATECHARTS = \
     anonymousstate.scxml \
     submachineunicodename.scxml \
     datainnulldatamodel.scxml \
-    initialhistory.scxml
+    initialhistory.scxml \
+    connection.scxml
 
 load(qscxmlc)

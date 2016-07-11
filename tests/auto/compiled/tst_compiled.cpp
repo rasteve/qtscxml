@@ -36,6 +36,7 @@
 #include "datainnulldatamodel.h"
 #include "submachineunicodename.h"
 #include "eventnames1.h"
+#include "connection.h"
 
 Q_DECLARE_METATYPE(QScxmlError);
 
@@ -50,6 +51,8 @@ private Q_SLOTS:
     void nullDataInit();
     void subMachineUnicodeName();
     void unicodeEventName();
+    void connection();
+    void myConnection();
 };
 
 void tst_Compiled::stateNames()
@@ -116,6 +119,102 @@ void tst_Compiled::unicodeEventName()
     stableStateSpy.wait(5000);
     QCOMPARE(names.activeStateNames(), QStringList(QLatin1String("b")));
 }
+
+class Receiver : public QObject
+{
+    Q_OBJECT
+public slots:
+    void receive(bool enabled)
+    {
+        received = received || enabled;
+    }
+public:
+    bool received = false;
+};
+
+void tst_Compiled::connection()
+{
+    Connection stateMachine;
+
+    Receiver receiverA;
+    Receiver receiverA1;
+    Receiver receiverA2;
+    Receiver receiverB;
+    Receiver receiverFinal;
+
+    QMetaObject::Connection conA     = stateMachine.connectToState("a",     &receiverA,     SLOT(receive(bool)));
+    QMetaObject::Connection conA1    = stateMachine.connectToState("a1",    &receiverA1,    SLOT(receive(bool)));
+    QMetaObject::Connection conA2    = stateMachine.connectToState("a2",    &receiverA2,    SLOT(receive(bool)));
+    QMetaObject::Connection conB     = stateMachine.connectToState("b",     &receiverB,     SLOT(receive(bool)));
+    QMetaObject::Connection conFinal = stateMachine.connectToState("final", &receiverFinal, SLOT(receive(bool)));
+
+    QVERIFY(conA);
+    QVERIFY(conA1);
+    QVERIFY(conA2);
+    QVERIFY(conB);
+    QVERIFY(conFinal);
+
+    stateMachine.start();
+
+    QTRY_VERIFY(receiverA.received);
+    QTRY_VERIFY(receiverA1.received);
+    QTRY_VERIFY(!receiverA2.received);
+    QTRY_VERIFY(receiverB.received);
+    QTRY_VERIFY(receiverFinal.received);
+
+    QVERIFY(disconnect(conA));
+    QVERIFY(disconnect(conA1));
+    QVERIFY(disconnect(conA2));
+    QVERIFY(disconnect(conB));
+    QVERIFY(disconnect(conFinal));
+}
+
+class MyConnection : public Connection
+{
+    Q_OBJECT
+public:
+    MyConnection(QObject *parent = 0)
+        : Connection(parent)
+    {}
+};
+
+void tst_Compiled::myConnection()
+{
+    MyConnection stateMachine;
+
+    Receiver receiverA;
+    Receiver receiverA1;
+    Receiver receiverA2;
+    Receiver receiverB;
+    Receiver receiverFinal;
+
+    QMetaObject::Connection conA     = stateMachine.connectToState("a",     &receiverA,     SLOT(receive(bool)));
+    QMetaObject::Connection conA1    = stateMachine.connectToState("a1",    &receiverA1,    SLOT(receive(bool)));
+    QMetaObject::Connection conA2    = stateMachine.connectToState("a2",    &receiverA2,    SLOT(receive(bool)));
+    QMetaObject::Connection conB     = stateMachine.connectToState("b",     &receiverB,     SLOT(receive(bool)));
+    QMetaObject::Connection conFinal = stateMachine.connectToState("final", &receiverFinal, SLOT(receive(bool)));
+
+    QVERIFY(conA);
+    QVERIFY(conA1);
+    QVERIFY(conA2);
+    QVERIFY(conB);
+    QVERIFY(conFinal);
+
+    stateMachine.start();
+
+    QTRY_VERIFY(receiverA.received);
+    QTRY_VERIFY(receiverA1.received);
+    QTRY_VERIFY(!receiverA2.received);
+    QTRY_VERIFY(receiverB.received);
+    QTRY_VERIFY(receiverFinal.received);
+
+    QVERIFY(disconnect(conA));
+    QVERIFY(disconnect(conA1));
+    QVERIFY(disconnect(conA2));
+    QVERIFY(disconnect(conB));
+    QVERIFY(disconnect(conFinal));
+}
+
 
 QTEST_MAIN(tst_Compiled)
 
