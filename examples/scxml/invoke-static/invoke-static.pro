@@ -9,8 +9,6 @@ RESOURCES += invoke-static.qrc
 
 STATECHARTS = ../invoke-common/statemachine.scxml
 
-load(qscxmlc)
-
 target.path = $$[QT_INSTALL_EXAMPLES]/scxml/invoke-static
 INSTALLS += target
 

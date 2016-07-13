@@ -11,5 +11,3 @@ RESOURCES += tst_statemachine.qrc
 
 SOURCES += \
     tst_statemachine.cpp
-
-load(qscxmlc)

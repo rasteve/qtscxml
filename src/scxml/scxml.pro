@@ -1,6 +1,6 @@
 TARGET = QtScxml
 QT = core-private qml-private
-MODULE_CONFIG += c++11
+MODULE_CONFIG += c++11 qscxmlc
 
 load(qt_module)
 

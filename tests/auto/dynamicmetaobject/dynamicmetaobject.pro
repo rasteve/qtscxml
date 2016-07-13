@@ -11,5 +11,3 @@ RESOURCES += tst_dynamicmetaobject.qrc
 
 SOURCES += \
     tst_dynamicmetaobject.cpp
-
-load(qscxmlc)

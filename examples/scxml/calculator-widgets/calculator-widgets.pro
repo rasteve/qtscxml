@@ -17,5 +17,3 @@ FORMS += \
 # install
 target.path = $$[QT_INSTALL_EXAMPLES]/scxml/calculator-widgets
 INSTALLS += target
-
-load(qscxmlc)

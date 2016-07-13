@@ -5,8 +5,6 @@ SOURCES = ../trafficlight-common/trafficlight.cpp
 HEADERS = ../trafficlight-common/trafficlight.h
 STATECHARTS = ../trafficlight-common/statemachine.scxml
 
-load(qscxmlc)
-
 SOURCES += trafficlight-widgets-static.cpp
 
 # install

@@ -21,4 +21,3 @@ STATECHARTS = \
     initialhistory.scxml \
     connection.scxml
 
-load(qscxmlc)

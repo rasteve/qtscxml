@@ -9,7 +9,5 @@ SOURCES += trafficlight-widgets-dynamic.cpp
 target.path = $$[QT_INSTALL_EXAMPLES]/scxml/trafficlight-widgets-dynamic
 INSTALLS += target
 
-load(qscxmlc)
-
 RESOURCES += \
     trafficlight-widgets-dynamic.qrc

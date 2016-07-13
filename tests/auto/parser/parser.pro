@@ -11,5 +11,3 @@ RESOURCES += tst_parser.qrc
 
 SOURCES += \
     tst_parser.cpp
-
-load(qscxmlc)

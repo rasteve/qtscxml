@@ -17,5 +17,3 @@ HEADERS += \
 # install
 target.path = $$[QT_INSTALL_EXAMPLES]/scxml/pinball
 INSTALLS += target
-
-load(qscxmlc)

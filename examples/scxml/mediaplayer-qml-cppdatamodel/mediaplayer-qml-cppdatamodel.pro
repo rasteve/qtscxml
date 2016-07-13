@@ -12,8 +12,6 @@ RESOURCES += mediaplayer-qml-cppdatamodel.qrc
 
 STATECHARTS = mediaplayer-cppdatamodel.scxml
 
-load(qscxmlc)
-
 target.path = $$[QT_INSTALL_EXAMPLES]/scxml/mediaplayer-qml-cppdatamodel
 INSTALLS += target
 

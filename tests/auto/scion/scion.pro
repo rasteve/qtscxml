@@ -102,5 +102,3 @@ write_file("scxml/scion.h", contents)|error("Aborting.")
 
 contents = '<!DOCTYPE RCC><RCC version=\"1.0\">' '<qresource>' $$qrc '</qresource></RCC>'
 write_file("scion.qrc", contents)|error("Aborting.")
-
-load(qscxmlc)
