@@ -277,96 +277,76 @@
 
                     <if cond="In('lightImpulseOn')">
                         <if cond="In('offState')">
-                            <raise event="turnOnC"/>
-                            <raise event="turnOnR"/>
-                            <raise event="turnOnA"/>
-                            <raise event="turnOnZ"/>
-                            <raise event="turnOnY"/>
+                            <raise event="turnOnLights"/>
                             <raise event="turnOnHurry"/>
                             <raise event="turnOnJackpot"/>
                             <raise event="turnOnGameOver"/>
                         <elseif cond="In('hurryStateOff')"/>
-                            <if cond="In('cLetterOn')">
-                                <raise event="turnOnC"/>
-                            <else/>
-                                <raise event="turnOffC"/>
-                            </if>
-                            <if cond="In('rLetterOn')">
-                                <raise event="turnOnR"/>
-                            <else/>
-                                <raise event="turnOffR"/>
-                            </if>
-                            <if cond="In('aLetterOn')">
-                                <raise event="turnOnA"/>
-                            <else/>
-                                <raise event="turnOffA"/>
-                            </if>
-                            <if cond="In('zLetterOn')">
-                                <raise event="turnOnZ"/>
-                            <else/>
-                                <raise event="turnOffZ"/>
-                            </if>
-                            <if cond="In('yLetterOn')">
-                                <raise event="turnOnY"/>
-                            <else/>
-                                <raise event="turnOffY"/>
-                            </if>
+                            <raise event="updateLightsAccordingToLettersState"/>
                             <raise event="turnOffHurry"/>
                             <raise event="turnOffGameOver"/>
                         <else/>
-                            <raise event="turnOnC"/>
-                            <raise event="turnOnR"/>
-                            <raise event="turnOnA"/>
-                            <raise event="turnOnZ"/>
-                            <raise event="turnOnY"/>
+                            <raise event="turnOnLights"/>
                             <raise event="turnOnHurry"/>
                             <raise event="turnOffGameOver"/>
                         </if>
                     <else/>
                         <if cond="In('offState')">
-                            <raise event="turnOffC"/>
-                            <raise event="turnOffR"/>
-                            <raise event="turnOffA"/>
-                            <raise event="turnOffZ"/>
-                            <raise event="turnOffY"/>
+                            <raise event="turnOffLights"/>
                             <raise event="turnOffHurry"/>
                             <raise event="turnOffJackpot"/>
                         <elseif cond="In('hurryStateOff')"/>
-                            <raise event="turnOffC"/>
-                            <raise event="turnOffR"/>
-                            <raise event="turnOffA"/>
-                            <raise event="turnOffZ"/>
-                            <raise event="turnOffY"/>
+                            <raise event="turnOffLights"/>
                         <else/>
-                            <if cond="In('cLetterOn')">
-                                <raise event="turnOnC"/>
-                            <else/>
-                                <raise event="turnOffC"/>
-                            </if>
-                            <if cond="In('rLetterOn')">
-                                <raise event="turnOnR"/>
-                            <else/>
-                                <raise event="turnOffR"/>
-                            </if>
-                            <if cond="In('aLetterOn')">
-                                <raise event="turnOnA"/>
-                            <else/>
-                                <raise event="turnOffA"/>
-                            </if>
-                            <if cond="In('zLetterOn')">
-                                <raise event="turnOnZ"/>
-                            <else/>
-                                <raise event="turnOffZ"/>
-                            </if>
-                            <if cond="In('yLetterOn')">
-                                <raise event="turnOnY"/>
-                            <else/>
-                                <raise event="turnOffY"/>
-                            </if>
+                            <raise event="updateLightsAccordingToLettersState"/>
                         </if>
                         <raise event="turnOffHurry"/>
                         <raise event="turnOffGameOver"/>
                     </if>
+                </transition>
+
+                <transition event="updateLightsAccordingToLettersState">
+                    <if cond="In('cLetterOn')">
+                        <raise event="turnOnC"/>
+                    <else/>
+                        <raise event="turnOffC"/>
+                    </if>
+                    <if cond="In('rLetterOn')">
+                        <raise event="turnOnR"/>
+                    <else/>
+                        <raise event="turnOffR"/>
+                    </if>
+                    <if cond="In('aLetterOn')">
+                        <raise event="turnOnA"/>
+                    <else/>
+                        <raise event="turnOffA"/>
+                    </if>
+                    <if cond="In('zLetterOn')">
+                        <raise event="turnOnZ"/>
+                    <else/>
+                        <raise event="turnOffZ"/>
+                    </if>
+                    <if cond="In('yLetterOn')">
+                        <raise event="turnOnY"/>
+                    <else/>
+                        <raise event="turnOffY"/>
+                    </if>
+                </transition>
+
+                <transition event="turnOnLights">
+                    <raise event="turnOnC"/>
+                    <raise event="turnOnR"/>
+                    <raise event="turnOnA"/>
+                    <raise event="turnOnZ"/>
+                    <raise event="turnOnY"/>
+                </transition>
+
+                <transition event="turnOffLights">
+                    <raise event="turnOffC"/>
+                    <raise event="turnOffR"/>
+                    <raise event="turnOffA"/>
+                    <raise event="turnOffZ"/>
+                    <raise event="turnOffY"/>
                 </transition>
             </state>
         </parallel>

@@ -344,6 +344,15 @@
     \printuntil updateLights
     \dots 20
     \skipto /^\ {16}<\//
+    \printuntil updateLightsAccordingToLettersState
+    \dots 20
+    \skipto /^\ {16}<\//
+    \printuntil turnOnLights
+    \dots 20
+    \skipto /^\ {16}<\//
+    \printuntil turnOffLights
+    \dots 20
+    \skipto /^\ {16}<\//
     \printuntil /^\ {12}<\//
 
     The \c lightImpulseGenerator contains two child states:
@@ -405,30 +414,12 @@
     the machine to activate the \c jackpotStateOn.
 
     \skipto updateLights
-    \printuntil rLetterOn
-    \dots 32
-    \skipto /^\ {28}<\//
-    \printuntil aLetterOn
-    \dots 32
-    \skipto /^\ {28}<\//
-    \printuntil zLetterOn
-    \dots 32
-    \skipto /^\ {28}<\//
-    \printuntil yLetterOn
-    \dots 32
-    \skipto /^\ {28}<\//
-    \printuntil rLetterOn
-    \dots 32
-    \skipto /^\ {28}<\//
-    \printuntil aLetterOn
-    \dots 32
-    \skipto /^\ {28}<\//
-    \printuntil zLetterOn
-    \dots 32
-    \skipto /^\ {28}<\//
-    \printuntil yLetterOn
-    \dots 32
-    \skipto /^\ {28}<\//
+    \printuntil /^\ {16}<\//
+    \printuntil updateLightsAccordingToLettersState
+    \printuntil /^\ {16}<\//
+    \printuntil turnOnLights
+    \printuntil /^\ {16}<\//
+    \printuntil turnOffLights
     \printuntil /^\ {16}<\//
 
     When we receive the \c updateLights event, we first want to send a
