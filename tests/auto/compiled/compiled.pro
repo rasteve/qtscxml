@@ -19,5 +19,6 @@ STATECHARTS = \
     submachineunicodename.scxml \
     datainnulldatamodel.scxml \
     initialhistory.scxml \
-    connection.scxml
+    connection.scxml \
+    topmachine.scxml
 

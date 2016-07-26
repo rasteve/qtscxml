@@ -37,6 +37,7 @@
 #include "submachineunicodename.h"
 #include "eventnames1.h"
 #include "connection.h"
+#include "topmachine.h"
 
 Q_DECLARE_METATYPE(QScxmlError);
 
@@ -53,6 +54,7 @@ private Q_SLOTS:
     void unicodeEventName();
     void connection();
     void myConnection();
+    void topMachine();
 };
 
 void tst_Compiled::stateNames()
@@ -215,6 +217,18 @@ void tst_Compiled::myConnection()
     QVERIFY(disconnect(conFinal));
 }
 
+void tst_Compiled::topMachine()
+{
+    TopMachine stateMachine;
+    int doneCounter = 0;
+
+    stateMachine.connectToEvent("done.invoke.submachine", [&doneCounter](const QScxmlEvent &) {
+        ++doneCounter;
+    });
+    stateMachine.start();
+
+    QTRY_COMPARE(doneCounter, 3);
+}
 
 QTEST_MAIN(tst_Compiled)
 
