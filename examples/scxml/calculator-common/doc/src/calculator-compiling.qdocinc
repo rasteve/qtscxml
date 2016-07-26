@@ -9,11 +9,8 @@
     We then specify the state machine to compile:
 
     \skipto STATECHARTS
-    \printline calculator
+    \printuntil statemachine.scxml
 
-    We also tell qmake to run \c qscxmlc, which generates \e statemachine.h and
-    \e statemachine.cpp, and adds them to the \c HEADERS and \c SOURCES
-    variables for compilation:
-
-    \skipto load
-    \printline qscxmlc
+    The Qt SCXML Compiler, \c qscxmlc, is run automatically to generate
+    \e statemachine.h and \e statemachine.cpp, and to add them to the \c HEADERS
+    and \c SOURCES variables for compilation.

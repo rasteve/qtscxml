@@ -66,9 +66,16 @@
     \printuntil digit2
     \printuntil }
 
-    To be notified when a state machine sends out an event, we connect to the
-    corresponding signal:
+    The state machine can notify other code when events occur:
 
-    \skipto eventOccurred
+    \quotefromfile calculator-common/statemachine.scxml
+    \skipto transition event="DISPLAY.UPDATE
+    \printuntil </transition
+
+    We connect to the \c updateDisplay event to display the data passed by
+    the events:
+
+    \quotefromfile calculator-widgets/mainwindow.cpp
+    \skipto connectToEvent
     \printuntil });
 */
