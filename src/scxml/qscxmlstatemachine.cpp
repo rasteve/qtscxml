@@ -87,6 +87,65 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
  * \e event attribute of one \c <send> tag in the SCXML file.
  */
 
+/*!
+    \fn QScxmlStateMachine::connectToEvent(const QString &scxmlEventSpec,
+                                          const QObject *receiver,
+                                          PointerToMemberFunction method,
+                                          Qt::ConnectionType type)
+
+    Creates an automatic connection from the event specified by
+    \a scxmlEventSpec to \a method in the \a receiver object.
+*/
+
+/*!
+    \fn QScxmlStateMachine::connectToEvent(const QString &scxmlEventSpec,
+                                          Functor functor,
+                                          Qt::ConnectionType type)
+
+    Creates an automatic connection from the event specified by
+    \a scxmlEventSpec to \a functor.
+*/
+
+/*!
+    \fn QScxmlStateMachine::connectToEvent(const QString &scxmlEventSpec,
+                                          const QObject *context,
+                                          Functor functor,
+                                          Qt::ConnectionType type)
+
+    Creates an automatic connection from the event specified by
+    \a scxmlEventSpec to \a functor using \a context as context.
+*/
+
+/*!
+    \fn QScxmlStateMachine::connectToState(const QString &scxmlStateName,
+                                           const QObject *receiver,
+                                           PointerToMemberFunction method,
+                                           Qt::ConnectionType type)
+
+    Creates an automatic connection from the state specified by
+    \a scxmlStateName to \a method in the \a receiver object.
+*/
+
+
+/*!
+    \fn QScxmlStateMachine::connectToState(const QString &scxmlStateName,
+                                           Functor functor,
+                                           Qt::ConnectionType type)
+
+    Creates an automatic connection from the state specified by
+    \a scxmlStateName to \a functor.
+*/
+
+/*!
+    \fn QScxmlStateMachine::connectToState(const QString &scxmlStateName,
+                                           const QObject *context,
+                                           Functor functor,
+                                           Qt::ConnectionType type)
+
+    Creates an automatic connection from the state specified by
+    \a scxmlStateName to \a functor using \a context as context.
+*/
+
 namespace QScxmlInternal {
 
 static int signalIndex(const QMetaObject *meta, const QByteArray &signalName)
@@ -1549,7 +1608,8 @@ QMetaObject::Connection QScxmlStateMachine::connectToStateImpl(const QString &sc
 /*!
  * Creates a connection of the given \a type from the state identified by \a scxmlStateName
  * to the \a method in the \a receiver object. The receiver's \a method
- * may contain a boolean argument that indicates whether the state connected * became active or inactive.
+ * may contain a boolean argument that indicates whether the state connected
+ * became active or inactive.
  *
  * Returns a handle to the connection, which can be used later to disconnect.
  */
@@ -1562,6 +1622,12 @@ QMetaObject::Connection QScxmlStateMachine::connectToState(const QString &scxmlS
     return QObject::connect(this, signalName.constData(), receiver, method, type);
 }
 
+/*!
+    Creates a connection of the specified \a type from the event specified by
+    \a scxmlEventSpec to the \a method in the \a receiver object.
+
+    Returns a handle to the connection, which can be used later to disconnect.
+*/
 QMetaObject::Connection QScxmlStateMachine::connectToEvent(const QString &scxmlEventSpec,
                                                            const QObject *receiver,
                                                            const char *method,
