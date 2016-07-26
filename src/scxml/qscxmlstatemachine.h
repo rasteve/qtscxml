@@ -66,7 +66,6 @@ class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
 {
     Q_DECLARE_PRIVATE(QScxmlStateMachine)
     Q_OBJECT
-    Q_ENUMS(BindingMethod)
     Q_PROPERTY(bool running READ isRunning WRITE setRunning NOTIFY runningChanged)
     Q_PROPERTY(bool initialized READ isInitialized NOTIFY initializedChanged)
     Q_PROPERTY(QScxmlDataModel *dataModel READ dataModel WRITE setDataModel NOTIFY dataModelChanged)
