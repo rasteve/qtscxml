@@ -64,11 +64,9 @@
     \skipto STATECHARTS
     \printline statemachine
 
-    We also tell qmake to run \c qscxmlc, which generates \e statemachine.h and
-    \e statemachine.cpp, and adds them to the \c HEADERS and \c SOURCES
-    variables for compilation:
-
-    \printuntil qscxmlc
+    The Qt SCXML Compiler, \c qscxmlc, is run automatically to generate
+    \e statemachine.h and \e statemachine.cpp, and to add them to the \c HEADERS
+    and \c SOURCES variables for compilation.
 
     \section1 Instantiating the State Machine
 

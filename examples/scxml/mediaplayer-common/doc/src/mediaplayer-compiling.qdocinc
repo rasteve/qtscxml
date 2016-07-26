@@ -12,9 +12,6 @@
     \skipto STATECHARTS
     \printline scxml
 
-    We also tell qmake to run \c qscxmlc, which generates \e mediaplayer.h and
-    \e mediaplayer.cpp, and adds them to the \c HEADERS and \c SOURCES
-    variables for compilation:
-
-    \skipto load
-    \printline qscxmlc
+    The Qt SCXML Compiler, \c qscxmlc, is run automatically to generate
+    \e statemachine.h and \e statemachine.cpp, and to add them to the \c HEADERS
+    and \c SOURCES variables for compilation.
