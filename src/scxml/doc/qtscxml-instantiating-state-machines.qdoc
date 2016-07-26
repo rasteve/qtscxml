@@ -96,7 +96,8 @@
     and MyStatemachine.cpp, and adds them to \l [QMake] HEADERS and
     \l [QMake] SOURCES variables. By default, the generated files are saved in
     the build directory. The \e QSCXMLC_DIR variable can be set to specify
-    another directory.
+    another directory. The \e QSCXMLC_NAMESPACE variable can be set to put the
+    state machine code into a C++ namespace.
 
     After instantiating a state machine, you can connect to any state's
     active property as follows. For example, if the state machine for a
