@@ -61,13 +61,6 @@ Q_LOGGING_CATEGORY(qscxmlLog, "qt.scxml.statemachine")
 Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
 /*!
- * \fn QScxmlEventFilter::handle(QScxmlEvent *event, QScxmlStateMachine *stateMachine)
- *
- * Returns \c true if the \a event should be submitted to the \a stateMachine
- * and it was not intercepted inside the event filter, \c false otherwise.
- */
-
-/*!
  * \class QScxmlStateMachine
  * \brief The QScxmlStateMachine class provides an interface to the state machines
  * created from SCXML files.
@@ -1318,19 +1311,6 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
 
     \sa QScxmlStateMachine::init(), QScxmlDataModel
 */
-
-/*!
-    \enum QScxmlStateMachine::BindingMethod
-
-    This enum specifies the binding method. The binding method controls the point in time
-    when the initial values are assigned to the data elements.
-
-    \value EarlyBinding All data elements are created and initialized at data-model initialization.
-           This is the default.
-    \value LateBinding All data elements are created at initialization, but the initial values are
-           assigned only when the containing state is entered for the first time. This is done
-           before any executable content is executed.
- */
 
 /*!
  * Returns the session ID for the current state machine.
