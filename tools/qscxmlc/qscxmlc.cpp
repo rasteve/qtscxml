@@ -236,9 +236,16 @@ int run(const QStringList &arguments)
     tu.outCppFileName = outCppFileName;
     for (QMap<DocumentModel::ScxmlDocument *, QString>::const_iterator i = docs.begin(), ei = docs.end(); i != ei; ++i) {
         auto name = i.value();
+        auto prefix = name;
         if (name.isEmpty()) {
-            name = QStringLiteral("%1_StateMachine_%2").arg(mainClassName).arg(tu.classnameForDocument.size() + 1);
+            prefix = QStringLiteral("%1_StateMachine").arg(mainClassName);
+            name = prefix;
         }
+
+        int counter = 1;
+        while (tu.classnameForDocument.key(name) != nullptr)
+            name = QStringLiteral("%1_%2").arg(prefix).arg(++counter);
+
         tu.classnameForDocument.insert(i.key(), name);
     }
 
