@@ -439,13 +439,12 @@ void CppDumper::dump(TranslationUnit *unit)
     QVector<GeneratedTableData::MetaDataInfo> metaDataInfos;
     QVector<GeneratedTableData::DataModelInfo> dataModelInfos;
     QVector<QStringList> factories;
-    auto docs = m_translationUnit->otherDocuments();
-    docs.prepend(unit->mainDocument);
+    auto docs = m_translationUnit->allDocuments;
     tables.resize(docs.size());
     metaDataInfos.resize(tables.size());
     dataModelInfos.resize(tables.size());
     factories.resize(tables.size());
-    auto classnameForDocument = unit->classnameForDocument;
+    auto classnameForDocument = m_translationUnit->classnameForDocument;
 
     for (int i = 0, ei = docs.size(); i != ei; ++i) {
         auto doc = docs.at(i);
@@ -474,7 +473,7 @@ void CppDumper::dump(TranslationUnit *unit)
         std::sort(metaDataInfo->outgoingEvents.begin(), metaDataInfo->outgoingEvents.end());
     }
 
-    const QString headerName = QFileInfo(unit->outHFileName).fileName();
+    const QString headerName = QFileInfo(m_translationUnit->outHFileName).fileName();
     const QString headerGuard = headerName.toUpper()
             .replace(QLatin1Char('.'), QLatin1Char('_'))
             .replace(QLatin1Char('-'), QLatin1Char('_'));
@@ -560,7 +559,7 @@ void CppDumper::writeImplStart()
         << endl;
 
     QStringList includes;
-    foreach (DocumentModel::ScxmlDocument *doc, m_translationUnit->classnameForDocument.keys()) {
+    foreach (DocumentModel::ScxmlDocument *doc, m_translationUnit->allDocuments) {
         switch (doc->root->dataModel) {
         case DocumentModel::Scxml::NullDataModel:
             includes += l("QScxmlNullDataModel");

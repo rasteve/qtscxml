@@ -50,15 +50,9 @@ struct TranslationUnit
     QString namespaceName;
     bool useCxx11;
     DocumentModel::ScxmlDocument *mainDocument;
+    QList<DocumentModel::ScxmlDocument *> allDocuments;
     QHash<DocumentModel::ScxmlDocument *, QString> classnameForDocument;
     QList<TranslationUnit *> dependencies;
-
-    QList<DocumentModel::ScxmlDocument *> otherDocuments() const
-    {
-        auto docs = classnameForDocument.keys();
-        docs.removeOne(mainDocument);
-        return docs;
-    }
 };
 
 class CppDumper

@@ -89,12 +89,12 @@ int write(TranslationUnit *tu)
     return NoError;
 }
 
-static void collectAllDocuments(DocumentModel::ScxmlDocument *doc, QMap<DocumentModel::ScxmlDocument *, QString> *docs)
+static void collectAllDocuments(DocumentModel::ScxmlDocument *doc,
+                                QList<DocumentModel::ScxmlDocument *> *docs)
 {
-    docs->insert(doc, doc->root->name);
-    foreach (DocumentModel::ScxmlDocument *subDoc, doc->allSubDocuments) {
+    docs->append(doc);
+    foreach (DocumentModel::ScxmlDocument *subDoc, doc->allSubDocuments)
         collectAllDocuments(subDoc, docs);
-    }
 }
 
 int run(const QStringList &arguments)
@@ -217,8 +217,6 @@ int run(const QStringList &arguments)
         return ScxmlVerificationError;
     }
 
-    QMap<DocumentModel::ScxmlDocument *, QString> docs;
-    collectAllDocuments(mainDoc, &docs);
     if (mainClassName.isEmpty())
         mainClassName = mainDoc->root->name;
     if (mainClassName.isEmpty()) {
@@ -227,15 +225,22 @@ int run(const QStringList &arguments)
         if (dot != -1)
             mainClassName = mainClassName.left(dot);
     }
-    docs.insert(mainDoc, mainClassName);
+
+    QList<DocumentModel::ScxmlDocument *> docs;
+    collectAllDocuments(mainDoc, &docs);
 
     TranslationUnit tu = options;
+    tu.allDocuments = docs;
     tu.scxmlFileName = QFileInfo(file).fileName();
     tu.mainDocument = mainDoc;
     tu.outHFileName = outHFileName;
     tu.outCppFileName = outCppFileName;
-    for (QMap<DocumentModel::ScxmlDocument *, QString>::const_iterator i = docs.begin(), ei = docs.end(); i != ei; ++i) {
-        auto name = i.value();
+    tu.classnameForDocument.insert(mainDoc, mainClassName);
+
+    docs.pop_front();
+
+    foreach (DocumentModel::ScxmlDocument *doc, docs) {
+        auto name = doc->root->name;
         auto prefix = name;
         if (name.isEmpty()) {
             prefix = QStringLiteral("%1_StateMachine").arg(mainClassName);
@@ -246,7 +251,7 @@ int run(const QStringList &arguments)
         while (tu.classnameForDocument.key(name) != nullptr)
             name = QStringLiteral("%1_%2").arg(prefix).arg(++counter);
 
-        tu.classnameForDocument.insert(i.key(), name);
+        tu.classnameForDocument.insert(doc, name);
     }
 
     return write(&tu);
