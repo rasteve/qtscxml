@@ -338,6 +338,7 @@ void QScxmlStateMachinePrivate::addService(int invokingState)
         emitServiceChanged(id, service);
         service->start();
     }
+    emitRunningSubStateMachinesChanged();
 }
 
 void QScxmlStateMachinePrivate::removeService(int invokingState)
@@ -355,6 +356,7 @@ void QScxmlStateMachinePrivate::removeService(int invokingState)
             emitServiceChanged(int(i), nullptr);
         }
     }
+    emitRunningSubStateMachinesChanged();
 }
 
 QScxmlInvokableServiceFactory *QScxmlStateMachinePrivate::serviceFactory(int id)
@@ -594,6 +596,12 @@ void QScxmlStateMachinePrivate::emitServiceChanged(int machineIndex,
     Q_Q(QScxmlStateMachine);
     void *args[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&service)) };
     QMetaObject::activate(q, m_metaObject, machineIndex + m_stateTable->stateCount, args);
+}
+
+void QScxmlStateMachinePrivate::emitRunningSubStateMachinesChanged()
+{
+    Q_Q(QScxmlStateMachine);
+    emit q->runningSubStateMachinesChanged(q->runningSubStateMachines());
 }
 
 void QScxmlStateMachinePrivate::emitSignalForEvent(int signalIndex, const QVariant &data)
@@ -1836,6 +1844,19 @@ bool QScxmlStateMachine::isDispatchableTarget(const QString &target) const
     }
 
     return false;
+}
+
+QVector<QScxmlStateMachine *> QScxmlStateMachine::runningSubStateMachines() const
+{
+    Q_D(const QScxmlStateMachine);
+
+    QVector<QScxmlStateMachine *> result;
+    for (int i = 0, ei = int(d->m_invokedServices.size()); i != ei; ++i) {
+        auto sub = subStateMachine(i);
+        if (sub)
+            result.append(sub);
+    }
+    return result;
 }
 
 /*!

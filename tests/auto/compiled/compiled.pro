@@ -22,3 +22,4 @@ STATECHARTS = \
     connection.scxml \
     topmachine.scxml
 
+RESOURCES = tst_compiled.qrc

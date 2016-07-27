@@ -55,6 +55,7 @@ private Q_SLOTS:
     void connection();
     void myConnection();
     void topMachine();
+    void topMachineDynamic();
 };
 
 void tst_Compiled::stateNames()
@@ -221,13 +222,48 @@ void tst_Compiled::topMachine()
 {
     TopMachine stateMachine;
     int doneCounter = 0;
+    int runningSubMachinesCount = 0;
 
     stateMachine.connectToEvent("done.invoke.submachine", [&doneCounter](const QScxmlEvent &) {
         ++doneCounter;
     });
+
+    QObject::connect(&stateMachine, &QScxmlStateMachine::runningSubStateMachinesChanged,
+                         [&runningSubMachinesCount](const QVector<QScxmlStateMachine *> &subMachines) {
+        runningSubMachinesCount = subMachines.count();
+    });
+
     stateMachine.start();
 
+    QTRY_COMPARE(runningSubMachinesCount, 3);
     QTRY_COMPARE(doneCounter, 3);
+    QCOMPARE(stateMachine.runningSubStateMachines().count(), 3);
+    QTRY_COMPARE(runningSubMachinesCount, 0);
+}
+
+void tst_Compiled::topMachineDynamic()
+{
+    QScopedPointer<QScxmlStateMachine> stateMachine(
+                QScxmlStateMachine::fromFile(QString(":/topmachine.scxml")));
+    QVERIFY(!stateMachine.isNull());
+    int doneCounter = 0;
+    int runningSubMachinesCount = 0;
+
+    stateMachine->connectToEvent("done.invoke.submachine", [&doneCounter](const QScxmlEvent &) {
+        ++doneCounter;
+    });
+
+    QObject::connect(stateMachine.data(), &QScxmlStateMachine::runningSubStateMachinesChanged,
+                         [&runningSubMachinesCount](const QVector<QScxmlStateMachine *> &subMachines) {
+        runningSubMachinesCount = subMachines.count();
+    });
+
+    stateMachine->start();
+
+    QTRY_COMPARE(runningSubMachinesCount, 3);
+    QTRY_COMPARE(doneCounter, 3);
+    QCOMPARE(stateMachine->runningSubStateMachines().count(), 3);
+    QTRY_COMPARE(runningSubMachinesCount, 0);
 }
 
 QTEST_MAIN(tst_Compiled)

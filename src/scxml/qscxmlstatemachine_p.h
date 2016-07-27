@@ -260,6 +260,7 @@ public:
 
     void emitStateActive(int stateIndex, bool active);
     void emitServiceChanged(int machineIndex, QScxmlInvokableService *service);
+    void emitRunningSubStateMachinesChanged();
     void emitSignalForEvent(int signalIndex, const QVariant &data);
 
 private:

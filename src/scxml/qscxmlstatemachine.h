@@ -70,6 +70,7 @@ class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
     Q_PROPERTY(bool initialized READ isInitialized NOTIFY initializedChanged)
     Q_PROPERTY(QScxmlDataModel *dataModel READ dataModel WRITE setDataModel NOTIFY dataModelChanged)
     Q_PROPERTY(QVariantMap initialValues READ initialValues WRITE setInitialValues NOTIFY initialValuesChanged)
+    Q_PROPERTY(QVector<QScxmlStateMachine *> runningSubStateMachines READ runningSubStateMachines NOTIFY runningSubStateMachinesChanged)
 
 protected:
 #ifndef Q_QDOC
@@ -230,8 +231,11 @@ public:
 
     bool isDispatchableTarget(const QString &target) const;
 
+    QVector<QScxmlStateMachine *> runningSubStateMachines() const;
+
 Q_SIGNALS:
     void runningChanged(bool running);
+    void runningSubStateMachinesChanged(const QVector<QScxmlStateMachine *> &runningMachines);
     void log(const QString &label, const QString &msg);
     void reachedStableState();
     void finished();
