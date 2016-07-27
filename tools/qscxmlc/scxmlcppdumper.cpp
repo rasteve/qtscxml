@@ -477,8 +477,7 @@ void CppDumper::dump(TranslationUnit *unit)
     const QString headerGuard = headerName.toUpper()
             .replace(QLatin1Char('.'), QLatin1Char('_'))
             .replace(QLatin1Char('-'), QLatin1Char('_'));
-    QStringList forwardDecls = classNames;
-    forwardDecls.pop_front();
+    const QStringList forwardDecls = classNames.mid(1);
     writeHeaderStart(headerGuard, forwardDecls);
     writeImplStart();
 
@@ -515,9 +514,8 @@ void CppDumper::writeHeaderStart(const QString &headerGuard, const QStringList &
         h << l("namespace ") << m_translationUnit->namespaceName << l(" {") << endl << endl;
 
     if (!forwardDecls.isEmpty()) {
-        for (int i = 1, ei = forwardDecls.size(); i != ei; ++i) {
-            h << QStringLiteral("class %1;").arg(forwardDecls.at(i)) << endl;
-        }
+        foreach (const QString &forwardDecl, forwardDecls)
+            h << QStringLiteral("class %1;").arg(forwardDecl) << endl;
         h << endl;
     }
 }
