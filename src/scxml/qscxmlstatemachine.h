@@ -257,7 +257,7 @@ protected: // methods for friends:
 #ifndef Q_QDOC
     // The methods below are used by the compiled state machines.
     bool isActive(int stateIndex) const;
-    QScxmlStateMachine *subStateMachine(int index) const;
+    QScxmlStateMachine *runningSubStateMachine(int index) const;
     QScxmlTableData *tableData() const;
     void setTableData(QScxmlTableData *tableData);
 #endif // Q_QDOC

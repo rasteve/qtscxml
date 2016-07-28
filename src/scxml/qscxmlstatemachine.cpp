@@ -1842,7 +1842,7 @@ QVector<QScxmlStateMachine *> QScxmlStateMachine::runningSubStateMachines() cons
 
     QVector<QScxmlStateMachine *> result;
     for (int i = 0, ei = int(d->m_invokedServices.size()); i != ei; ++i) {
-        auto sub = subStateMachine(i);
+        auto sub = runningSubStateMachine(i);
         if (sub)
             result.append(sub);
     }
@@ -1923,7 +1923,7 @@ bool QScxmlStateMachine::isActive(int stateIndex) const
     return d->m_configuration.contains(stateIndex);
 }
 
-QScxmlStateMachine *QScxmlStateMachine::subStateMachine(int index) const
+QScxmlStateMachine *QScxmlStateMachine::runningSubStateMachine(int index) const
 {
     Q_D(const QScxmlStateMachine);
     auto invokedService = d->m_invokedServices[size_t(index)].service;
