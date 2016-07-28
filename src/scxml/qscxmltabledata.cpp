@@ -66,7 +66,6 @@ public:
         , m_dataIds(tableData.theDataNameIds)
         , m_outgoingEvents(metaDataInfo.outgoingEvents)
         , m_stateNames(metaDataInfo.stateNames)
-        , m_subStateMachineNames(metaDataInfo.subStateMachineNames)
         , m_incomingEvents(metaDataInfo.incomingEvents)
 
     {
@@ -285,11 +284,6 @@ protected: // visitor
                 Q_ASSERT(factoryId >= 0);
                 factoryIds.append(factoryId);
                 m_stateTable.maxServiceId = std::max(m_stateTable.maxServiceId, factoryId);
-                if (invoke->content && invoke->content->root) {
-                    QString name = invoke->content->root->name;
-                    if (!name.isEmpty())
-                        m_subStateMachineNames.add(name);
-                }
             }
             addArray(&newState.serviceFactoryIds, factoryIds);
         }
@@ -900,7 +894,6 @@ private:
     QVector<DocumentModel::DataElement *> m_dataElements;
     Table<QStringList, QString, int> m_outgoingEvents;
     Table<QStringList, QString, int> m_stateNames;
-    Table<QStringList, QString, int> m_subStateMachineNames;
     Table<QStringList, QString, int> m_incomingEvents;
 };
 

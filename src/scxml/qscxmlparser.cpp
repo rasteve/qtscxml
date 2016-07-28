@@ -830,24 +830,13 @@ private:
                 _t->submitEvent(event, QVariant());
             }
         } else if (_c == QMetaObject::RegisterPropertyMetaType) {
-            DynamicStateMachine *_t = static_cast<DynamicStateMachine *>(_o);
-            if (_id < _t->m_firstSubStateMachineProperty) {
-                *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType<bool>();
-            } else {
-                *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType<QScxmlStateMachine *>();
-            }
+            *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType<bool>();
         } else if (_c == QMetaObject::ReadProperty) {
             DynamicStateMachine *_t = static_cast<DynamicStateMachine *>(_o);
             void *_v = _a[0];
             if (_id >= 0 && _id < _t->m_propertyCount) {
-                if (_id < _t->m_firstSubStateMachineProperty) {
-                    // getter for the state
-                    *reinterpret_cast<bool*>(_v) = _t->isActive(_id);
-                } else {
-                    // getter for a child statemachine
-                    int idx = _id - _t->m_firstSubStateMachineProperty;
-                    *reinterpret_cast<QScxmlStateMachine **>(_v) = _t->subStateMachine(idx);
-                }
+                // getter for the state
+                *reinterpret_cast<bool*>(_v) = _t->isActive(_id);
             }
         }
     }
@@ -857,10 +846,8 @@ private:
     DynamicStateMachine()
         : QScxmlStateMachine(*new DynamicStateMachinePrivate)
         , m_propertyCount(0)
-        , m_firstSubStateMachineSignal(0)
         , m_firstSlot(0)
         , m_firstSlotWithoutData(0)
-        , m_firstSubStateMachineProperty(0)
     {
         // Temporarily wire up the QMetaObject
         Q_D(DynamicStateMachine);
@@ -897,14 +884,6 @@ private:
             signalBuilder.setParameterNames(init("active"));
         }
 
-        m_firstSubStateMachineSignal = info.stateNames.size();
-        foreach (const QString &machineName, info.subStateMachineNames) {
-            auto name = machineName.toUtf8();
-            const QByteArray signalName = name + "Changed(QScxmlStateMachine *)";
-            QMetaMethodBuilder signalBuilder = b.addSignal(signalName);
-            signalBuilder.setParameterNames(init("statemachine"));
-        }
-
         foreach (const QString &eventName, info.outgoingEvents) {
             const QByteArray signalName = eventName.toUtf8() + "(const QVariant &)";
             QMetaMethodBuilder signalBuilder = b.addSignal(signalName);
@@ -912,8 +891,7 @@ private:
         }
 
         // slots
-        m_firstSlot = info.stateNames.size() + info.subStateMachineNames.size()
-                + info.outgoingEvents.size();
+        m_firstSlot = info.stateNames.size() + info.outgoingEvents.size();
         foreach (const QString &eventName, info.incomingEvents) {
             const QByteArray slotName = eventName.toUtf8() + "(const QVariant &)";
             QMetaMethodBuilder slotBuilder = b.addSlot(slotName);
@@ -930,15 +908,6 @@ private:
         int notifier = 0;
         foreach (const QString &stateName, info.stateNames) {
             QMetaPropertyBuilder prop = b.addProperty(stateName.toUtf8(), "bool", notifier);
-            prop.setWritable(false);
-            ++m_propertyCount;
-            ++notifier;
-        }
-
-        m_firstSubStateMachineProperty = m_propertyCount;
-        foreach (const QString &machineName, info.subStateMachineNames) {
-            QMetaPropertyBuilder prop = b.addProperty(machineName.toUtf8(), "QScxmlStateMachine *",
-                                                      notifier);
             prop.setWritable(false);
             ++m_propertyCount;
             ++notifier;
@@ -1022,10 +991,8 @@ private:
     QStringList m_incomingEvents;
     QStringList m_outgoingEvents;
     int m_propertyCount;
-    int m_firstSubStateMachineSignal;
     int m_firstSlot;
     int m_firstSlotWithoutData;
-    int m_firstSubStateMachineProperty;
 };
 
 inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(QScxmlStateMachine *parent)

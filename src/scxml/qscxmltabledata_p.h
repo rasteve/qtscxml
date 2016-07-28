@@ -85,7 +85,6 @@ public:
     struct MetaDataInfo {
         QStringList outgoingEvents;
         QStringList stateNames;
-        QStringList subStateMachineNames;
         QStringList incomingEvents;
     };
 

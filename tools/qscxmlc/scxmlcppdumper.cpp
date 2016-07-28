@@ -739,15 +739,6 @@ QString CppDumper::generatePropertyDecls(const GeneratedTableData::MetaDataInfo 
         namespacePrefix = QStringLiteral("::%1").arg(m_translationUnit->namespaceName);
     }
 
-    foreach (const QString &machineName, info.subStateMachineNames) {
-        if (!machineName.isEmpty()) {
-            const QString decl = QString::fromLatin1(
-                        qtMode ? "    Q_PROPERTY(%1::%2 *%3 READ %2 NOTIFY %2Changed)\n" :
-                                 "    Q_PROPERTY(%1::%2 *%3 NOTIFY %2Changed)\n");
-            decls += decl.arg(namespacePrefix, mangleIdentifier(machineName), machineName);
-        }
-    }
-
     return decls;
 }
 
@@ -758,11 +749,6 @@ QString CppDumper::generateSignalDecls(const GeneratedTableData::MetaDataInfo &i
     foreach (const QString &stateName, info.stateNames) {
         decls += QStringLiteral("    void %1Changed(bool active);\n")
                 .arg(mangleIdentifier(stateName));
-    }
-
-    foreach (const QString &machineName, info.subStateMachineNames) {
-        decls += QStringLiteral("    void %1Changed(QScxmlStateMachine *stateMachine);\n")
-                .arg(mangleIdentifier(machineName));
     }
 
     foreach (const QString &eventName, info.outgoingEvents) {
@@ -813,11 +799,6 @@ QString CppDumper::generateGetterDecls(const GeneratedTableData::MetaDataInfo &i
         decls += QStringLiteral("    bool %1() const;\n").arg(mangleIdentifier(stateName));
     }
 
-    foreach (const QString &machineName, info.subStateMachineNames) {
-        decls += QStringLiteral("    QScxmlStateMachine *%1() const;\n")
-                .arg(mangleIdentifier(machineName));
-    }
-
     return decls;
 }
 
@@ -831,14 +812,6 @@ QString CppDumper::generateGetterDefs(const QString &className,
         defs += QStringLiteral("bool %1::%2() const\n").arg(className, mangleIdentifier(stateName));
         defs += QStringLiteral("{ return isActive(%1); }\n\n").arg(stateIndex);
         ++stateIndex;
-    }
-
-    int machineIndex = 0;
-    foreach (const QString &machineName, info.subStateMachineNames) {
-        defs += QStringLiteral("QScxmlStateMachine *%1::%2() const\n")
-                .arg(className, mangleIdentifier(machineName));
-        defs += QStringLiteral("{ return subStateMachine(%1); }\n\n").arg(machineIndex);
-        ++machineIndex;
     }
 
     return defs;
@@ -896,46 +869,6 @@ QString CppDumper::generateMetaObject(const QString &className,
     // sub-statemachines:
     QHash<QByteArray, QByteArray> knownQObjectClasses;
     knownQObjectClasses.insert(QByteArray("QScxmlStateMachine"), QByteArray());
-    int machineIdx = 0;
-    for (const auto &service : info.subStateMachineNames) {
-        const auto serviceName = service;
-        const QString fqServiceClass = QStringLiteral("QScxmlStateMachine");
-        const QByteArray serviceClass = fqServiceClass.toUtf8();
-        knownQObjectClasses.insert(serviceClass, "");
-
-        const QByteArray mangledServiceName = mangleIdentifier(serviceName).toUtf8();
-
-        FunctionDef signal;
-        signal.type.name = "void";
-        signal.type.rawName = signal.type.name;
-        signal.normalizedType = signal.type.name;
-        signal.name = mangledServiceName + "Changed";
-        signal.access = FunctionDef::Private;
-        signal.isSignal = true;
-        if (!m_qtMode) {
-            signal.implementation = "QMetaObject::activate(_o, &staticMetaObject, %d, _a);";
-        }
-        ArgumentDef arg;
-        arg.type.name = serviceClass + " *";
-        arg.type.rawName = arg.type.name;
-        arg.type.referenceType = Type::Pointer;
-        arg.normalizedType = serviceClass + "*(*)";
-        arg.name = "statemachine";
-        arg.typeNameForCast = arg.type.name + "*";
-        signal.arguments << arg;
-        classDef.signalList << signal;
-
-        ++classDef.notifyableProperties;
-        PropertyDef prop;
-        prop.name = serviceName.toUtf8();
-        prop.type = serviceClass + "*";
-        prop.read = "subStateMachine(" + QByteArray::number(machineIdx++) + ")";
-        prop.notify = mangledServiceName + "Changed";
-        prop.notifyId = classDef.signalList.size() - 1;
-        prop.gspec = PropertyDef::ValueSpec;
-        prop.scriptable = "true";
-        classDef.propertyList << prop;
-    }
 
     // Event signals:
     foreach (const QString &signalName, info.outgoingEvents) {

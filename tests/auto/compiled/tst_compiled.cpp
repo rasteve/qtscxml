@@ -103,10 +103,12 @@ void tst_Compiled::nullDataInit()
 void tst_Compiled::subMachineUnicodeName()
 {
     Directions1 directions;
-    QVERIFY(directions.init());
-    QVariant prop = directions.property("änywhere");
-    QVERIFY(!prop.isNull());
-    QVERIFY(prop.isValid());
+    QSignalSpy stableStateSpy(&directions, SIGNAL(reachedStableState()));
+    directions.start();
+    stableStateSpy.wait(5000);
+    QScxmlStateMachine *subMachine = directions.runningSubStateMachines().value(0);
+    QVERIFY(subMachine);
+    QCOMPARE(subMachine->name(), QString("änywhere"));
 }
 
 void tst_Compiled::unicodeEventName()

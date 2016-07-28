@@ -335,7 +335,6 @@ void QScxmlStateMachinePrivate::addService(int invokingState)
             continue; // service failed to start
         const QString serviceName = service->name();
         m_invokedServices[size_t(id)] = { invokingState, service, serviceName };
-        emitServiceChanged(id, service);
         service->start();
     }
     emitRunningSubStateMachinesChanged();
@@ -353,7 +352,6 @@ void QScxmlStateMachinePrivate::removeService(int invokingState)
         if (it.invokingState == invokingState && service != nullptr) {
             it.service = nullptr;
             delete service;
-            emitServiceChanged(int(i), nullptr);
         }
     }
     emitRunningSubStateMachinesChanged();
@@ -588,14 +586,6 @@ void QScxmlStateMachinePrivate::emitStateActive(int stateIndex, bool active)
     Q_Q(QScxmlStateMachine);
     void *args[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&active)) };
     QMetaObject::activate(q, m_metaObject, stateIndex, args);
-}
-
-void QScxmlStateMachinePrivate::emitServiceChanged(int machineIndex,
-                                                   QScxmlInvokableService *service)
-{
-    Q_Q(QScxmlStateMachine);
-    void *args[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&service)) };
-    QMetaObject::activate(q, m_metaObject, machineIndex + m_stateTable->stateCount, args);
 }
 
 void QScxmlStateMachinePrivate::emitRunningSubStateMachinesChanged()
