@@ -239,7 +239,7 @@ bool QScxmlCppDataModel::setScxmlProperty(const QString &name, const QVariant &v
  * Returns \c true if the state machine is in the state specified by \a stateName, \c false
  * otherwise.
  */
-bool QScxmlCppDataModel::In(const QString &stateName) const
+bool QScxmlCppDataModel::inState(const QString &stateName) const
 {
     return stateMachine()->isActive(stateName);
 }

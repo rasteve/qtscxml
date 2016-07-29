@@ -141,8 +141,8 @@ public:
         auto platformVars = QScxmlPlatformProperties::create(engine(), stateMachine());
         dataModel.setProperty(QStringLiteral("_x"), platformVars->jsValue());
 
-        dataModel.setProperty(QStringLiteral("In"),
-                              engine()->evaluate(QStringLiteral("function(id){return _x.In(id);}")));
+        dataModel.setProperty(QStringLiteral("In"), engine()->evaluate(
+                                  QStringLiteral("function(id){return _x.inState(id);}")));
     }
 
     void assignEvent(const QScxmlEvent &event)

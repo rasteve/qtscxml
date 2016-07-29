@@ -77,7 +77,7 @@ public:
 
     QString marks() const;
 
-    Q_INVOKABLE bool In(const QString &stateName);
+    Q_INVOKABLE bool inState(const QString &stateName);
 
 private:
     class Data;

@@ -93,7 +93,7 @@ QString QScxmlPlatformProperties::marks() const
     return QStringLiteral("the spot");
 }
 
-bool QScxmlPlatformProperties::In(const QString &stateName)
+bool QScxmlPlatformProperties::inState(const QString &stateName)
 {
     return stateMachine()->isActive(stateName);
 }

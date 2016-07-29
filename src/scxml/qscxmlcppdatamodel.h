@@ -76,7 +76,7 @@ public:
     bool hasScxmlProperty(const QString &name) const Q_DECL_OVERRIDE;
     bool setScxmlProperty(const QString &name, const QVariant &value, const QString &context) Q_DECL_OVERRIDE;
 
-    bool In(const QString &stateName) const;
+    bool inState(const QString &stateName) const;
 };
 
 QT_END_NAMESPACE
