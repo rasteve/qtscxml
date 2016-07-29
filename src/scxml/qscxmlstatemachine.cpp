@@ -95,6 +95,8 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
     Creates an automatic connection from the event specified by
     \a scxmlEventSpec to \a method in the \a receiver object.
+
+    The receiver's \a method must take a QScxmlEvent as a parameter.
 */
 
 /*!
@@ -124,6 +126,9 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
     Creates an automatic connection from the state specified by
     \a scxmlStateName to \a method in the \a receiver object.
+
+    The receiver's \a method must contain a boolean argument that indicates
+    whether the state connected became active or inactive.
 */
 
 
@@ -1607,7 +1612,11 @@ QMetaObject::Connection QScxmlStateMachine::connectToStateImpl(const QString &sc
  * Creates a connection of the given \a type from the state identified by \a scxmlStateName
  * to the \a method in the \a receiver object. The receiver's \a method
  * may contain a boolean argument that indicates whether the state connected
- * became active or inactive.
+ * became active or inactive. For example:
+ *
+ * \code
+ * void mySlot(bool active);
+ * \endcode
  *
  * Returns a handle to the connection, which can be used later to disconnect.
  */
@@ -1622,7 +1631,12 @@ QMetaObject::Connection QScxmlStateMachine::connectToState(const QString &scxmlS
 
 /*!
     Creates a connection of the specified \a type from the event specified by
-    \a scxmlEventSpec to the \a method in the \a receiver object.
+    \a scxmlEventSpec to the \a method in the \a receiver object. The receiver's
+    \a method may take a QScxmlEvent as a parameter. For example:
+
+    \code
+    void mySlot(const QScxmlEvent &event);
+    \endcode
 
     Returns a handle to the connection, which can be used later to disconnect.
 */
