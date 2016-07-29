@@ -53,7 +53,7 @@ public:
     explicit QScxmlNullDataModel(QObject *parent = nullptr);
     ~QScxmlNullDataModel();
 
-    bool setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;
+    Q_INVOKABLE bool setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;
 
 #ifndef Q_QDOC
     QString evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE Q_DECL_FINAL;

@@ -74,7 +74,7 @@ public:
     void setStateMachine(QScxmlStateMachine *stateMachine);
     QScxmlStateMachine *stateMachine() const;
 
-    virtual bool setup(const QVariantMap &initialDataValues) = 0;
+    Q_INVOKABLE virtual bool setup(const QVariantMap &initialDataValues) = 0;
 
 #ifndef Q_QDOC
     virtual QString evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
