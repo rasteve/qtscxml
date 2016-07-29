@@ -71,6 +71,7 @@ class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
     Q_PROPERTY(QScxmlDataModel *dataModel READ dataModel WRITE setDataModel NOTIFY dataModelChanged)
     Q_PROPERTY(QVariantMap initialValues READ initialValues WRITE setInitialValues NOTIFY initialValuesChanged)
     Q_PROPERTY(QVector<QScxmlStateMachine *> runningSubStateMachines READ runningSubStateMachines NOTIFY runningSubStateMachinesChanged)
+    Q_PROPERTY(QString sessionId READ sessionId CONSTANT)
 
 protected:
 #ifndef Q_QDOC
@@ -84,8 +85,6 @@ public:
     QVector<QScxmlError> parseErrors() const;
 
     QString sessionId() const;
-    void setSessionId(const QString &id);
-    static QString generateSessionId(const QString &prefix);
 
     bool isInvoked() const;
     bool isInitialized() const;

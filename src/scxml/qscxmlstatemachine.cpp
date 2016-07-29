@@ -296,7 +296,7 @@ QAtomicInt QScxmlStateMachinePrivate::m_sessionIdCounter = QAtomicInt(0);
 
 QScxmlStateMachinePrivate::QScxmlStateMachinePrivate(const QMetaObject *metaObject)
     : QObjectPrivate()
-    , m_sessionId(QScxmlStateMachine::generateSessionId(QStringLiteral("session-")))
+    , m_sessionId(QScxmlStateMachinePrivate::generateSessionId(QStringLiteral("session-")))
     , m_isInvoked(false)
     , m_isInitialized(false)
     , m_isProcessingEvents(false)
@@ -1375,16 +1375,20 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
 */
 
 /*!
- * Returns the session ID for the current state machine.
- *
- * The session ID is used for message routing between parent and child state machines. If a state
- * machine is started by an \c <invoke> element, any event it sends will have the \c invokeid field
- * set to the session ID. The state machine will use the origin of an event (which is set by the
- * \e target or \e targetexpr attribute in a \c <send> element) to dispatch messages to the correct
- * child state machine.
- *
- * \sa setSessionId() QScxmlEvent::invokeId()
+    \property QScxmlStateMachine::sessionId
+
+    \brief The session ID of the current state machine.
+
+    The session ID is used for message routing between parent and child state machines. If a state
+    machine is started by an \c <invoke> element, any event it sends will have the \c invokeid field
+    set to the session ID. The state machine will use the origin of an event (which is set by the
+    \e target or \e targetexpr attribute in a \c <send> element) to dispatch messages to the correct
+    child state machine.
+
+    \sa QScxmlEvent::invokeId()
  */
+
+
 QString QScxmlStateMachine::sessionId() const
 {
     Q_D(const QScxmlStateMachine);
@@ -1392,24 +1396,7 @@ QString QScxmlStateMachine::sessionId() const
     return d->m_sessionId;
 }
 
-/*!
-  Sets the session ID for the current state machine to \a id.
-
-  \sa sessionId()
- */
-void QScxmlStateMachine::setSessionId(const QString &id)
-{
-    Q_D(QScxmlStateMachine);
-    d->m_sessionId = id;
-}
-
-/*!
- * Generates a unique ID by appending a unique number to the \a prefix.
- *
- * The number is only unique within a single run of an application. This method is used when an
- * invoked service does not have an ID set (the \e id attribute in \c <invoke>).
- */
-QString QScxmlStateMachine::generateSessionId(const QString &prefix)
+QString QScxmlStateMachinePrivate::generateSessionId(const QString &prefix)
 {
     int id = ++QScxmlStateMachinePrivate::m_sessionIdCounter;
     return prefix + QString::number(id);

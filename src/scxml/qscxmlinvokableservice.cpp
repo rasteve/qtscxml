@@ -181,7 +181,8 @@ QString QScxmlInvokableServiceFactory::calculateId(QScxmlStateMachine *parent, b
         return stateMachine->string(d->id);
     }
 
-    QString id = QScxmlStateMachine::generateSessionId(stateMachine->string(d->idPrefix));
+    const QString id
+            = QScxmlStateMachinePrivate::generateSessionId(stateMachine->string(d->idPrefix));
 
     if (d->idlocation != QScxmlExecutableContent::NoString) {
         auto idloc = stateMachine->string(d->idlocation);
@@ -286,7 +287,7 @@ bool QScxmlInvokableScxml::start()
     if (!ok)
         return false;
 
-    m_stateMachine->setSessionId(id);
+    QScxmlStateMachinePrivate::get(m_stateMachine)->m_sessionId = id;
     m_stateMachine->setInitialValues(data);
     if (m_stateMachine->init()) {
         qCDebug(qscxmlLog) << parentStateMachine() << "starting" << m_stateMachine;

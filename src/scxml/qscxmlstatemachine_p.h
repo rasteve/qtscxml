@@ -235,6 +235,8 @@ public:
     static QScxmlStateMachinePrivate *get(QScxmlStateMachine *t)
     { return t->d_func(); }
 
+    static QString generateSessionId(const QString &prefix);
+
     ParserData *parserData();
 
     void setIsInvoked(bool invoked)
