@@ -72,6 +72,10 @@ class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
     Q_PROPERTY(QVariantMap initialValues READ initialValues WRITE setInitialValues NOTIFY initialValuesChanged)
     Q_PROPERTY(QVector<QScxmlStateMachine *> runningSubStateMachines READ runningSubStateMachines NOTIFY runningSubStateMachinesChanged)
     Q_PROPERTY(QString sessionId READ sessionId CONSTANT)
+    Q_PROPERTY(QString name READ name CONSTANT)
+    Q_PROPERTY(bool invoked READ isInvoked CONSTANT)
+    Q_PROPERTY(QVector<QScxmlError> parseErrors READ parseErrors CONSTANT)
+    Q_PROPERTY(QScxmlParser::Loader *loader READ loader WRITE setLoader NOTIFY loaderChanged)
 
 protected:
 #ifndef Q_QDOC
@@ -80,8 +84,9 @@ protected:
 #endif // Q_QDOC
 
 public:
-    static QScxmlStateMachine *fromFile(const QString &fileName);
-    static QScxmlStateMachine *fromData(QIODevice *data, const QString &fileName = QString());
+    Q_INVOKABLE static QScxmlStateMachine *fromFile(const QString &fileName);
+    Q_INVOKABLE static QScxmlStateMachine *fromData(QIODevice *data,
+                                                    const QString &fileName = QString());
     QVector<QScxmlError> parseErrors() const;
 
     QString sessionId() const;
@@ -102,9 +107,9 @@ public:
     void setInitialValues(const QVariantMap &initialValues);
 
     QString name() const;
-    QStringList stateNames(bool compress = true) const;
-    QStringList activeStateNames(bool compress = true) const;
-    bool isActive(const QString &scxmlStateName) const;
+    Q_INVOKABLE QStringList stateNames(bool compress = true) const;
+    Q_INVOKABLE QStringList activeStateNames(bool compress = true) const;
+    Q_INVOKABLE bool isActive(const QString &scxmlStateName) const;
 
     QMetaObject::Connection connectToState(const QString &scxmlStateName,
                                     const QObject *receiver, const char *method,
@@ -226,9 +231,9 @@ public:
     Q_INVOKABLE void submitEvent(QScxmlEvent *event);
     Q_INVOKABLE void submitEvent(const QString &eventName);
     Q_INVOKABLE void submitEvent(const QString &eventName, const QVariant &data);
-    void cancelDelayedEvent(const QString &sendId);
+    Q_INVOKABLE void cancelDelayedEvent(const QString &sendId);
 
-    bool isDispatchableTarget(const QString &target) const;
+    Q_INVOKABLE bool isDispatchableTarget(const QString &target) const;
 
     QVector<QScxmlStateMachine *> runningSubStateMachines() const;
 
@@ -241,6 +246,7 @@ Q_SIGNALS:
     void dataModelChanged(QScxmlDataModel *model);
     void initialValuesChanged(const QVariantMap &initialValues);
     void initializedChanged(bool initialized);
+    void loaderChanged(QScxmlParser::Loader *loader);
 
 public Q_SLOTS:
     void start();

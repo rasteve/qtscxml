@@ -1308,10 +1308,6 @@ QScxmlStateMachine *QScxmlStateMachine::fromData(QIODevice *data, const QString 
     return stateMachine;
 }
 
-/*!
- * Returns the list of parse errors that occurred while creating a state machine from an
- *         SCXML file.
- */
 QVector<QScxmlError> QScxmlStateMachine::parseErrors() const
 {
     Q_D(const QScxmlStateMachine);
@@ -1388,6 +1384,32 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
     \sa QScxmlEvent::invokeId()
  */
 
+/*!
+    \property QScxmlStateMachine::name
+
+    \brief The name of the state machine as set by the \e name attribute of the \c <scxml> tag.
+ */
+
+/*!
+    \property QScxmlStateMachine::invoked
+
+    \brief Whether the state machine was invoked from an outer state machine.
+
+    \c true when the state machine was started as a service with the \c <invoke> element,
+    \c false otherwise.
+ */
+
+/*!
+    \property QScxmlStateMachine::parseErrors
+
+    \brief The list of parse errors that occurred while creating a state machine from an SCXML file.
+ */
+
+/*!
+    \property QScxmlStateMachine::loader
+
+    \brief The loader that is currently used to resolve and load URIs for the state machine.
+ */
 
 QString QScxmlStateMachine::sessionId() const
 {
@@ -1402,10 +1424,6 @@ QString QScxmlStateMachinePrivate::generateSessionId(const QString &prefix)
     return prefix + QString::number(id);
 }
 
-/*!
- * Returns \c true when the state machine was started as a service with the \c <invoke> element,
- * \c false otherwise.
- */
 bool QScxmlStateMachine::isInvoked() const
 {
     Q_D(const QScxmlStateMachine);
@@ -1446,25 +1464,16 @@ QScxmlDataModel *QScxmlStateMachine::dataModel() const
     return d->m_dataModel;
 }
 
-/*!
-    Sets \a loader to be used for resolving and loading URIs for the state
-    machine.
-
-    \sa loader()
-*/
 void QScxmlStateMachine::setLoader(QScxmlParser::Loader *loader)
 {
     Q_D(QScxmlStateMachine);
 
-    d->m_loader = loader;
+    if (loader != d->m_loader) {
+        d->m_loader = loader;
+        emit loaderChanged(loader);
+    }
 }
 
-/*!
-    Returns the loader that is currently used to resolve and load URIs for the
-    state machine.
-
-    \sa setLoader()
-*/
 QScxmlParser::Loader *QScxmlStateMachine::loader() const
 {
     Q_D(const QScxmlStateMachine);
@@ -1718,9 +1727,6 @@ void QScxmlStateMachine::setInitialValues(const QVariantMap &initialValues)
     }
 }
 
-/*!
- * Returns the name of the state machine as set by the \e name attribute of the \c <scxml> tag.
- */
 QString QScxmlStateMachine::name() const
 {
     return tableData()->name();
