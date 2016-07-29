@@ -91,7 +91,7 @@ public:
 
     QJSValue evalJSValue(const QString &expr, const QString &context, bool *ok)
     {
-        Q_ASSERT(engine());
+        assertEngine();
 
         QString script = QStringLiteral("(function(){'use strict'; return (\n%1\n); })()").arg(expr);
         return eval(script, context, ok);
@@ -100,11 +100,11 @@ public:
     QJSValue eval(const QString &script, const QString &context, bool *ok)
     {
         Q_ASSERT(ok);
-        Q_ASSERT(engine());
+        QJSEngine *engine = assertEngine();
 
         // TODO: copy QJSEngine::evaluate and handle the case of v4->catchException() "our way"
 
-        QJSValue v = engine()->evaluate(QStringLiteral("'use strict'; ") + script, QStringLiteral("<expr>"), 0);
+        QJSValue v = engine->evaluate(QStringLiteral("'use strict'; ") + script, QStringLiteral("<expr>"), 0);
         if (v.isError()) {
             *ok = false;
             submitError(QStringLiteral("error.execution"),
@@ -118,8 +118,8 @@ public:
 
     void setupDataModel()
     {
-        Q_ASSERT(engine());
-        dataModel = engine()->globalObject();
+        QJSEngine *engine = assertEngine();
+        dataModel = engine->globalObject();
 
         qCDebug(qscxmlLog) << stateMachine() << "initializing the datamodel";
         setupSystemVariables();
@@ -132,16 +132,17 @@ public:
 
         setReadonlyProperty(&dataModel, QStringLiteral("_name"), stateMachine()->name());
 
-        auto scxml = engine()->newObject();
+        QJSEngine *engine = assertEngine();
+        auto scxml = engine->newObject();
         scxml.setProperty(QStringLiteral("location"), QStringLiteral("#_scxml_%1").arg(stateMachine()->sessionId()));
-        auto ioProcs = engine()->newObject();
+        auto ioProcs = engine->newObject();
         setReadonlyProperty(&ioProcs, QStringLiteral("scxml"), scxml);
         setReadonlyProperty(&dataModel, QStringLiteral("_ioprocessors"), ioProcs);
 
-        auto platformVars = QScxmlPlatformProperties::create(engine(), stateMachine());
+        auto platformVars = QScxmlPlatformProperties::create(engine, stateMachine());
         dataModel.setProperty(QStringLiteral("_x"), platformVars->jsValue());
 
-        dataModel.setProperty(QStringLiteral("In"), engine()->evaluate(
+        dataModel.setProperty(QStringLiteral("In"), engine->evaluate(
                                   QStringLiteral("function(id){return _x.inState(id);}")));
     }
 
@@ -150,20 +151,21 @@ public:
         if (event.name().isEmpty())
             return;
 
-        QJSValue _event = engine()->newObject();
+        QJSEngine *engine = assertEngine();
+        QJSValue _event = engine->newObject();
         QJSValue dataValue = eventDataAsJSValue(event.data());
         _event.setProperty(QStringLiteral("data"), dataValue.isUndefined() ? QJSValue(QJSValue::UndefinedValue)
                                                                            : dataValue);
         _event.setProperty(QStringLiteral("invokeid"), event.invokeId().isEmpty() ? QJSValue(QJSValue::UndefinedValue)
-                                                                                  : engine()->toScriptValue(event.invokeId()));
+                                                                                  : engine->toScriptValue(event.invokeId()));
         if (!event.originType().isEmpty())
-            _event.setProperty(QStringLiteral("origintype"), engine()->toScriptValue(event.originType()));
+            _event.setProperty(QStringLiteral("origintype"), engine->toScriptValue(event.originType()));
         _event.setProperty(QStringLiteral("origin"), event.origin().isEmpty() ? QJSValue(QJSValue::UndefinedValue)
-                                                                              : engine()->toScriptValue(event.origin()) );
+                                                                              : engine->toScriptValue(event.origin()) );
         _event.setProperty(QStringLiteral("sendid"), event.sendId().isEmpty() ? QJSValue(QJSValue::UndefinedValue)
-                                                                              : engine()->toScriptValue(event.sendId()));
-        _event.setProperty(QStringLiteral("type"), engine()->toScriptValue(event.scxmlType()));
-        _event.setProperty(QStringLiteral("name"), engine()->toScriptValue(event.name()));
+                                                                              : engine->toScriptValue(event.sendId()));
+        _event.setProperty(QStringLiteral("type"), engine->toScriptValue(event.scxmlType()));
+        _event.setProperty(QStringLiteral("name"), engine->toScriptValue(event.name()));
         _event.setProperty(QStringLiteral("raw"), QStringLiteral("unsupported")); // See test178
         if (event.isErrorEvent())
             _event.setProperty(QStringLiteral("errorMessage"), event.errorMessage());
@@ -171,18 +173,19 @@ public:
         setReadonlyProperty(&dataModel, QStringLiteral("_event"), _event);
     }
 
-    QJSValue eventDataAsJSValue(const QVariant &eventData) const
+    QJSValue eventDataAsJSValue(const QVariant &eventData)
     {
         if (!eventData.isValid()) {
             return QJSValue(QJSValue::UndefinedValue);
         }
 
+        QJSEngine *engine = assertEngine();
         if (eventData.canConvert<QVariantMap>()) {
             auto keyValues = eventData.value<QVariantMap>();
-            auto data = engine()->newObject();
+            auto data = engine->newObject();
 
             for (QVariantMap::const_iterator it = keyValues.begin(), eit = keyValues.end(); it != eit; ++it) {
-                data.setProperty(it.key(), engine()->toScriptValue(it.value()));
+                data.setProperty(it.key(), engine->toScriptValue(it.value()));
             }
 
             return data;
@@ -196,9 +199,9 @@ public:
         QJsonParseError err;
         QJsonDocument doc = QJsonDocument::fromJson(data.toUtf8(), &err);
         if (err.error == QJsonParseError::NoError)
-            return engine()->toScriptValue(doc.toVariant());
+            return engine->toScriptValue(doc.toVariant());
         else
-            return engine()->toScriptValue(data);
+            return engine->toScriptValue(data);
     }
 
     QScxmlStateMachine *stateMachine() const
@@ -207,12 +210,18 @@ public:
         return q->stateMachine();
     }
 
-    QJSEngine *engine() const
+    QJSEngine *assertEngine()
     {
-        if (jsEngine == Q_NULLPTR) {
-            jsEngine = new QJSEngine(stateMachine());
+        if (!jsEngine) {
+            Q_Q(QScxmlEcmaScriptDataModel);
+            setEngine(new QJSEngine(q->stateMachine()));
         }
 
+        return jsEngine;
+    }
+
+    QJSEngine *engine() const
+    {
         return jsEngine;
     }
 
@@ -336,7 +345,7 @@ private: // Uses private API
     }
 
 private:
-    mutable QJSEngine *jsEngine;
+    QJSEngine *jsEngine;
     QJSValue dataModel;
 };
 
@@ -383,7 +392,8 @@ bool QScxmlEcmaScriptDataModel::setup(const QVariantMap &initialDataValues)
         QJSValue v = undefined;
         QVariantMap::const_iterator it = initialDataValues.find(name);
         if (it != initialDataValues.end()) {
-            v = d->engine()->toScriptValue(it.value());
+            QJSEngine *engine = d->assertEngine();
+            v = engine->toScriptValue(it.value());
         }
         if (!d->setProperty(name, v, QStringLiteral("<data>"))) {
             ok = false;
@@ -474,7 +484,9 @@ bool QScxmlEcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, Foreac
     }
 
     QString item = d->string(info.item);
-    if (engine()->evaluate(QStringLiteral("(function(){var %1 = 0})()").arg(item)).isError()) {
+
+    QJSEngine *engine = d->assertEngine();
+    if (engine->evaluate(QStringLiteral("(function(){var %1 = 0})()").arg(item)).isError()) {
         d->submitError(QStringLiteral("error.execution"), QStringLiteral("invalid item '%1' in %2")
                       .arg(d->string(info.item), d->string(info.context)));
         *ok = false;
@@ -538,27 +550,11 @@ bool QScxmlEcmaScriptDataModel::setScxmlProperty(const QString &name, const QVar
 {
     Q_D(QScxmlEcmaScriptDataModel);
     Q_ASSERT(hasScxmlProperty(name));
-    QJSValue v = d->engine()->toScriptValue(
+
+    QJSEngine *engine = d->assertEngine();
+    QJSValue v = engine->toScriptValue(
                 value.canConvert<QJSValue>() ? value.value<QJSValue>().toVariant() : value);
     return d->setProperty(name, v, context);
-}
-
-/*!
- * Returns the JavaScript engine used by this data model.
- */
-QJSEngine *QScxmlEcmaScriptDataModel::engine() const
-{
-    Q_D(const QScxmlEcmaScriptDataModel);
-    return d->engine();
-}
-
-/*!
- * Sets the JavaScript engine used by this data model to \a engine.
- */
-void QScxmlEcmaScriptDataModel::setEngine(QJSEngine *engine)
-{
-    Q_D(QScxmlEcmaScriptDataModel);
-    d->setEngine(engine);
 }
 
 QT_END_NAMESPACE

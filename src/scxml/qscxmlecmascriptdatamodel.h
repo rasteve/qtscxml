@@ -71,9 +71,6 @@ public:
     QVariant scxmlProperty(const QString &name) const Q_DECL_OVERRIDE;
     bool hasScxmlProperty(const QString &name) const Q_DECL_OVERRIDE;
     bool setScxmlProperty(const QString &name, const QVariant &value, const QString &context) Q_DECL_OVERRIDE;
-
-    QJSEngine *engine() const;
-    void setEngine(QJSEngine *engine);
 };
 
 QT_END_NAMESPACE
