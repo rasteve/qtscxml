@@ -1843,6 +1843,12 @@ bool QScxmlStateMachine::isDispatchableTarget(const QString &target) const
     return false;
 }
 
+/*!
+    \property QScxmlStateMachine::runningSubStateMachines
+    \brief A list of running sub state machines that were invoked from the main
+    state machine (possibly recursively).
+*/
+
 QVector<QScxmlStateMachine *> QScxmlStateMachine::runningSubStateMachines() const
 {
     Q_D(const QScxmlStateMachine);
