@@ -276,6 +276,12 @@ QScxmlEvent::~QScxmlEvent()
 }
 
 /*!
+    \property QScxmlEvent::scxmlType
+    \brief The event type.
+
+*/
+
+/*!
  * Returns the event type.
  */
 QString QScxmlEvent::scxmlType() const
@@ -456,6 +462,13 @@ void QScxmlEvent::setInvokeId(const QString &invokeid)
 }
 
 /*!
+    \property QScxmlEvent::delay
+
+    \brief The delay in milliseconds after which the event is to be delivered
+    after processing the \c <send> element.
+*/
+
+/*!
  * Returns the delay in milliseconds after which this event is to be delivered
  * after processing the \c <send> element.
  */
@@ -531,12 +544,22 @@ void QScxmlEvent::setData(const QVariant &data)
 }
 
 /*!
+    \property QScxmlEvent::errorEvent
+    \brief Whether the event represents an error.
+*/
+
+/*!
  * Returns \c true when this is an error event, \c false otherwise.
  */
 bool QScxmlEvent::isErrorEvent() const
 {
     return eventType() == PlatformEvent && name().startsWith(QStringLiteral("error."));
 }
+
+/*!
+    \property QScxmlEvent::errorMessage
+    \brief An error message for an error event, or an empty QString.
+*/
 
 /*!
  * If this is an error event, returns the error message. Otherwise, returns an
