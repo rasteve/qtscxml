@@ -66,6 +66,31 @@ public:
  */
 
 /*!
+    \property QScxmlError::column
+    \brief The column number in which the SCXML error occurred.
+*/
+
+/*!
+    \property QScxmlError::description
+    \brief A description of the SCXML error.
+*/
+
+/*!
+    \property QScxmlError::fileName
+    \brief The name of the file in which the SCXML error occurred.
+*/
+
+/*!
+    \property QScxmlError::line
+    \brief The line number on which the SCXML error occurred.
+*/
+
+/*!
+    \property QScxmlError::valid
+    \brief Whether the SCXML error is valid.
+*/
+
+/*!
  * Creates a new invalid SCXML error.
  */
 QScxmlError::QScxmlError()
