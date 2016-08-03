@@ -1,1 +1,1 @@
-:/tst_parser/data/invalidstatemachinename.scxml:3:55: error: scxml name 'CalculatortateMachine' is not a valid XML Nmtoken
+:/tst_parser/data/invalidstatemachinename.scxml:3:42: error: Missing root element
