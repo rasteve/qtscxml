@@ -227,10 +227,6 @@ private:
         }
         foreach (const QString &event, transition->events) {
             checkEvent(event, transition->xmlLocation, AllowWildCards);
-
-            if (!DocumentModel::isEventToBeGenerated(event))
-                continue;
-
             validateEventName(transition->xmlLocation, event);
         }
 
@@ -1695,11 +1691,6 @@ DocumentModel::NodeVisitor::~NodeVisitor()
 bool DocumentModel::isValidQPropertyName(const QString &str)
 {
     return !str.isEmpty() && !str.contains(QLatin1Char('(')) && !str.contains(QLatin1Char(')'));
-}
-
-bool DocumentModel::isEventToBeGenerated(const QString &event)
-{
-    return !event.contains(QLatin1Char('.'));
 }
 
 /*!

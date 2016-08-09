@@ -764,9 +764,6 @@ QString CppDumper::generateSlotDecls(const GeneratedTableData::MetaDataInfo &inf
     QString decls;
 
     foreach (const QString &eventName, info.incomingEvents) {
-        if (!DocumentModel::isEventToBeGenerated(eventName))
-            continue;
-
         decls += QStringLiteral("    void %1(const QVariant &data = QVariant());\n")
                 .arg(mangleIdentifier(eventName));
     }
@@ -780,9 +777,6 @@ QString CppDumper::generateSlotDefs(const QString &className,
     QString defs;
 
     foreach (const QString &eventName, info.incomingEvents) {
-        if (!DocumentModel::isEventToBeGenerated(eventName))
-            continue;
-
         const auto mangledName = mangleIdentifier(eventName);
         defs += QStringLiteral("void %1::%2(const QVariant &data)\n").arg(className, mangledName);
         defs += QStringLiteral("{ submitEvent(QStringLiteral(\"%1\"), data); }\n\n").arg(eventName);
@@ -893,9 +887,6 @@ QString CppDumper::generateMetaObject(const QString &className,
 
     // event slots:
     foreach (const QString &eventName, info.incomingEvents) {
-        if (!DocumentModel::isEventToBeGenerated(eventName))
-            continue;
-
         FunctionDef slot;
         slot.type.name = "void";
         slot.type.rawName = slot.type.name;
@@ -916,9 +907,6 @@ QString CppDumper::generateMetaObject(const QString &className,
     }
 
     foreach (const QString &eventName, info.incomingEvents) {
-        if (!DocumentModel::isEventToBeGenerated(eventName))
-            continue;
-
         FunctionDef slot;
         slot.type.name = "void";
         slot.type.rawName = slot.type.name;
