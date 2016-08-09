@@ -144,7 +144,7 @@
         </transition>
         <transition event="DISPLAY.UPDATE">
             <log label="'result'" expr="short_expr==''?res:short_expr" />
-            <send type="qt:signal" event="updateDisplay">
+            <send event="updateDisplay">
                 <param name="display" expr="short_expr==''?res:short_expr"/>
             </send>
         </transition>

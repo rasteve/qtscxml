@@ -35,7 +35,7 @@
             <onentry>
                 <raise event="internalEvent1"/>
                 <send event="internalEvent2"/>
-                <send type="qt:signal" event="externalEvent"/>
+                <send event="externalEvent"/>
                 <send event="timeout" delay="1s"/>
             </onentry>
             <transition event="timeout" target="final"/>

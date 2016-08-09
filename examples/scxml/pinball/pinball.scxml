@@ -265,7 +265,7 @@
                 </transition>
 
                 <transition event="updateLights">
-                    <send type="qt:signal" event="updateScore">
+                    <send event="updateScore">
                         <param name="highScore" expr="highScore"/>
                         <param name="score" expr="score"/>
                     </send>
