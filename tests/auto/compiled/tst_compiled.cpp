@@ -56,6 +56,7 @@ private Q_SLOTS:
     void myConnection();
     void topMachine();
     void topMachineDynamic();
+    void publicSignals();
 };
 
 void tst_Compiled::stateNames()
@@ -266,6 +267,17 @@ void tst_Compiled::topMachineDynamic()
     QTRY_COMPARE(doneCounter, 3);
     QCOMPARE(stateMachine->runningSubStateMachines().count(), 3);
     QTRY_COMPARE(runningSubMachinesCount, 0);
+}
+
+void tst_Compiled::publicSignals()
+{
+    const QMetaObject *connectionMeta = &Connection::staticMetaObject;
+    int index = connectionMeta->indexOfSignal("aChanged(bool)");
+    QVERIFY(index >= 0);
+
+    QMetaMethod aChanged = connectionMeta->method(index);
+    QVERIFY(aChanged.isValid());
+    QCOMPARE(aChanged.access(), QMetaMethod::Public);
 }
 
 QTEST_MAIN(tst_Compiled)

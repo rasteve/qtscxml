@@ -840,7 +840,7 @@ QString CppDumper::generateMetaObject(const QString &className,
         signal.type.rawName = signal.type.name;
         signal.normalizedType = signal.type.name;
         signal.name = mangledStateName + "Changed";
-        signal.access = FunctionDef::Private;
+        signal.access = FunctionDef::Public;
         signal.isSignal = true;
         if (!m_qtMode) {
             signal.implementation = "QMetaObject::activate(_o, &staticMetaObject, %d, _a);";
