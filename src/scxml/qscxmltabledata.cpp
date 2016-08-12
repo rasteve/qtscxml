@@ -197,7 +197,7 @@ protected: // visitor
                 childStates.append(s);
             }
         }
-        addStates(&m_stateTable.childStates, childStates);
+        m_stateTable.childStates = addStates(childStates);
         if (node->initialTransition) {
             visit(node->initialTransition);
             const int transitionIndex = m_docTransitionIndices.value(node->initialTransition, -1);
@@ -282,7 +282,7 @@ protected: // visitor
                 factoryIds.append(factoryId);
                 m_stateTable.maxServiceId = std::max(m_stateTable.maxServiceId, factoryId);
             }
-            addArray(&newState.serviceFactoryIds, factoryIds);
+            newState.serviceFactoryIds = addArray(factoryIds);
         }
 
         visit(state->children);
@@ -293,8 +293,8 @@ protected: // visitor
                 childStates.append(s);
             }
         }
-        addStates(&newState.childStates, childStates);
-        addArray(&newState.transitions, m_transitionsForState.at(stateIndex));
+        newState.childStates = addStates(childStates);
+        newState.transitions = addArray(m_transitionsForState.at(stateIndex));
         if (state->initialTransition) {
             visit(state->initialTransition);
             newState.initialTransition = m_transitionsForState.at(stateIndex).last();
@@ -340,13 +340,13 @@ protected: // visitor
             m_currentTransition = -1;
         }
 
-        addStates(&newTransition.targets, transition->targetStates);
+        newTransition.targets = addStates(transition->targetStates);
 
         QVector<int> eventIds;
         foreach (const QString &event, transition->events)
             eventIds.push_back(addString(event));
 
-        addArray(&newTransition.events, eventIds);
+        newTransition.events = addArray(eventIds);
 
         return false;
     }
@@ -373,7 +373,7 @@ protected: // visitor
         m_parents.append(stateIndex);
         visit(historyState->children);
         m_parents.removeLast();
-        addArray(&newState.transitions, m_transitionsForState.at(stateIndex));
+        newState.transitions = addArray(m_transitionsForState.at(stateIndex));
         return false;
     }
 
@@ -677,7 +677,7 @@ protected:
     bool isCppDataModel() const
     { return m_isCppDataModel; }
 
-    void addStates(int *idx, const QVector<DocumentModel::AbstractState *> &states)
+    int addStates(const QVector<DocumentModel::AbstractState *> &states)
     {
         QVector<int> array;
         foreach (auto *s, states) {
@@ -686,19 +686,18 @@ protected:
             array.push_back(si);
         }
 
-        addArray(idx, array);
+        return addArray(array);
     }
 
-    void addArray(int *idx, const QVector<int> &array)
+    int addArray(const QVector<int> &array)
     {
-        if (array.isEmpty()) {
-            *idx = -1;
-            return;
-        }
+        if (array.isEmpty())
+            return -1;
 
-        *idx = m_arrays.size();
+        const int res = m_arrays.size();
         m_arrays.push_back(array.size());
         m_arrays.append(array);
+        return res;
     }
 
     int currentParent() const
@@ -826,8 +825,8 @@ private:
         template <typename T>
         T *add(int extra = 0)
         {
-            int pos = m_instr.size();
-            int size = sizeof(T) / sizeof(qint32) + extra;
+            const int pos = m_instr.size();
+            const int size = sizeof(T) / sizeof(qint32) + extra;
             if (m_info)
                 m_info->entryCount += size;
             m_instr.resize(pos + size);
