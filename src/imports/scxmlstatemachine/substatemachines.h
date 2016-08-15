@@ -37,46 +37,45 @@
 **
 ****************************************************************************/
 
-#include "statemachineloader.h"
-#include "eventconnection.h"
-#include "qscxmlevent.h"
-#include "statemachineextended.h"
-#include "substatemachines.h"
+#ifndef SUBSTATEMACHINES_H
+#define SUBSTATEMACHINES_H
 
-#include <QQmlExtensionPlugin>
-#include <qqml.h>
+#include <QtQml/qqmlparserstatus.h>
+#include <QtQml/qqmllist.h>
+#include <QtScxml/qscxmlstatemachine.h>
 
 QT_BEGIN_NAMESPACE
 
-class QScxmlStateMachinePlugin : public QQmlExtensionPlugin
+class QScxmlSubStateMachines : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.Scxml/1.0")
-
+    Q_PROPERTY(QScxmlStateMachine *stateMachine READ stateMachine WRITE setStateMachine
+               NOTIFY stateMachineChanged)
+    Q_PROPERTY(QVariantMap children READ children NOTIFY childrenChanged)
+    Q_PROPERTY(QQmlListProperty<QObject> qmlChildren READ qmlChildren)
+    Q_INTERFACES(QQmlParserStatus)
+    Q_CLASSINFO("DefaultProperty", "qmlChildren")
 public:
-    void registerTypes(const char *uri)
-    {
-        // @uri QtScxml
-        Q_ASSERT(uri == QStringLiteral("QtScxml"));
+    QScxmlSubStateMachines(QObject *parent = 0);
+    QVariantMap children();
 
-        int major = 5;
-        int minor = 7;
-        // Do not rely on RegisterMethodArgumentMetaType meta-call to register the QScxmlEvent type.
-        // This registration is required for the receiving end of the signal emission that carries
-        // parameters of this type to be able to treat them correctly as a gadget. This is because the
-        // receiving end of the signal is a generic method in the QML engine, at which point it's too late
-        // to do a meta-type registration.
-        static const int qScxmlEventMetaTypeId = qMetaTypeId<QScxmlEvent>();
-        Q_UNUSED(qScxmlEventMetaTypeId)
-        qmlRegisterType<QScxmlStateMachineLoader>(uri, major, minor, "StateMachineLoader");
-        qmlRegisterType<QScxmlEventConnection>(uri, major, minor, "EventConnection");
-        qmlRegisterType<QScxmlSubStateMachines>(uri, major, minor, "SubStateMachines");
-        qmlRegisterExtendedUncreatableType<QScxmlStateMachine, QScxmlStateMachineExtended>(
-                    uri, major, minor, "QScxmlStateMachine", "Only created through derived types");
-        qmlProtectModule(uri, 1);
-    }
+    QScxmlStateMachine *stateMachine() const;
+    void setStateMachine(QScxmlStateMachine *stateMachine);
+
+    QQmlListProperty<QObject> qmlChildren();
+
+Q_SIGNALS:
+    void childrenChanged();
+    void stateMachineChanged();
+
+private:
+    void classBegin() override;
+    void componentComplete() override;
+
+    QScxmlStateMachine *m_stateMachine = 0;
+    QList<QObject *> m_qmlChildren;
 };
 
 QT_END_NAMESPACE
 
-#include "plugin.moc"
+#endif // SUBSTATEMACHINES_H

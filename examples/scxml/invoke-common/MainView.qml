@@ -50,6 +50,7 @@
 
 import QtQuick 2.5
 import QtQuick.Window 2.2
+import QtScxml 5.7
 
 Window {
     id: window
@@ -91,7 +92,13 @@ Window {
         x: parent.width / 2
         width: parent.width / 2
         height: parent.height
-        property var anywhere: stateMachine.anywhere
+
+        SubStateMachines {
+            id: subStateMachines
+            stateMachine: window.stateMachine
+        }
+
+        property var anywhere: subStateMachines.children.anywhere
     }
 }
 

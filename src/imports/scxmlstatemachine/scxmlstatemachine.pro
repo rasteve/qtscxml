@@ -7,12 +7,14 @@ SOURCES = \
     $$PWD/plugin.cpp \
     $$PWD/statemachineloader.cpp \
     $$PWD/eventconnection.cpp \
-    $$PWD/statemachineextended.cpp
+    $$PWD/statemachineextended.cpp \
+    $$PWD/substatemachines.cpp
 
 HEADERS = \
     $$PWD/statemachineloader.h \
     $$PWD/eventconnection.h \
-    $$PWD/statemachineextended.h
+    $$PWD/statemachineextended.h \
+    $$PWD/substatemachines.h
 
 load(qml_plugin)
 
