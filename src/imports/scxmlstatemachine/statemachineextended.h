@@ -37,44 +37,29 @@
 **
 ****************************************************************************/
 
-#include "statemachineloader.h"
-#include "eventconnection.h"
-#include "qscxmlevent.h"
-#include "statemachineextended.h"
+#ifndef STATEMACHINEEXTENDED_H
+#define STATEMACHINEEXTENDED_H
 
-#include <QQmlExtensionPlugin>
-#include <qqml.h>
+#include <QtScxml/qscxmlglobals.h>
+#include <QtCore/qobject.h>
+#include <QtQml/qqmllist.h>
 
 QT_BEGIN_NAMESPACE
 
-class QScxmlStateMachinePlugin : public QQmlExtensionPlugin
+/* Allow State Machines created from QML to have children. */
+class QScxmlStateMachineExtended : public QObject
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.Scxml/1.0")
-
+    Q_PROPERTY(QQmlListProperty<QObject> children READ children)
+    Q_CLASSINFO("DefaultProperty", "children")
 public:
-    void registerTypes(const char *uri)
-    {
-        // @uri QtScxml
-        Q_ASSERT(uri == QStringLiteral("QtScxml"));
+    QScxmlStateMachineExtended(QObject *extendee);
+    QQmlListProperty<QObject> children();
 
-        int major = 5;
-        int minor = 7;
-        // Do not rely on RegisterMethodArgumentMetaType meta-call to register the QScxmlEvent type.
-        // This registration is required for the receiving end of the signal emission that carries
-        // parameters of this type to be able to treat them correctly as a gadget. This is because the
-        // receiving end of the signal is a generic method in the QML engine, at which point it's too late
-        // to do a meta-type registration.
-        static const int qScxmlEventMetaTypeId = qMetaTypeId<QScxmlEvent>();
-        Q_UNUSED(qScxmlEventMetaTypeId)
-        qmlRegisterType<QScxmlStateMachineLoader>(uri, major, minor, "StateMachineLoader");
-        qmlRegisterType<QScxmlEventConnection>(uri, major, minor, "EventConnection");
-        qmlRegisterExtendedUncreatableType<QScxmlStateMachine, QScxmlStateMachineExtended>(
-                    uri, major, minor, "QScxmlStateMachine", "Only created through derived types");
-        qmlProtectModule(uri, 1);
-    }
+private:
+    QObjectList m_children;
 };
 
 QT_END_NAMESPACE
 
-#include "plugin.moc"
+#endif // STATEMACHINEEXTENDED_H

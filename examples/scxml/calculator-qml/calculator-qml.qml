@@ -62,7 +62,7 @@ Window {
     CalculatorStateMachine {
         id: statemachine
         running: true
-        property var connection: EventConnection {
+        EventConnection {
             events: ["updateDisplay"]
             onOccurred: resultText.text = event.data.display
         }
