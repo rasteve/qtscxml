@@ -159,8 +159,9 @@ static int signalIndex(const QMetaObject *meta, const QByteArray &signalName)
 
     int signalIndex = meta->indexOfSignal(signalName.constData());
 
-    // signal exists
-    Q_ASSERT(signalIndex >= 0);
+    // If signal doesn't exist, return negative value
+    if (signalIndex < 0)
+        return signalIndex;
 
     // signal belongs to class whose meta object was passed, not some derived class.
     Q_ASSERT(meta->methodOffset() <= signalIndex);
@@ -1598,10 +1599,11 @@ QMetaObject::Connection QScxmlStateMachine::connectToStateImpl(const QString &sc
         types = QtPrivate::ConnectionTypes<QtPrivate::List<bool> >::types();
 
     Q_D(QScxmlStateMachine);
-    return QObjectPrivate::connectImpl(this, QScxmlInternal::signalIndex(
-                                           d->m_metaObject,
-                                           scxmlStateName.toUtf8() + "Changed(bool)"),
-                                       receiver, slot, slotObj, type, types, d->m_metaObject);
+    int signalIndex = QScxmlInternal::signalIndex(d->m_metaObject,
+                                                  scxmlStateName.toUtf8() + "Changed(bool)");
+    return signalIndex < 0 ? QMetaObject::Connection()
+                           : QObjectPrivate::connectImpl(this, signalIndex, receiver, slot, slotObj,
+                                                         type, types, d->m_metaObject);
 }
 
 /*!
