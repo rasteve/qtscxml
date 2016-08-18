@@ -63,6 +63,9 @@
 
 /*!
     \qmlsignal StateMachineLoader::stateMachineChanged()
+
+    This signal is emitted when the stateMachine property changes. That is, when
+    a new state machine is loaded or when the old one becomes invalid.
 */
 
 QScxmlStateMachineLoader::QScxmlStateMachineLoader(QObject *parent)
