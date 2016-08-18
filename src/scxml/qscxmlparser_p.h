@@ -158,6 +158,7 @@ struct Send: public Instruction
     QStringList namelist;
     QVector<Param *> params;
     QString content;
+    QString contentexpr;
 
     Send(const XmlLocation &xmlLocation): Instruction(xmlLocation) {}
     Send *asSend() Q_DECL_OVERRIDE { return this; }

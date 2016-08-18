@@ -411,6 +411,9 @@ protected: // visitor
                                                  QStringLiteral("delayexpr"),
                                                  node->delayexpr);
         instr->content = addString(node->content);
+        instr->contentexpr = createEvaluatorString(QStringLiteral("send"),
+                                                   QStringLiteral("contentexpr"),
+                                                   node->contentexpr);
         generate(&instr->namelist, node->namelist);
         generate(instr->params(), node->params);
         return false;

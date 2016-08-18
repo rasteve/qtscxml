@@ -180,6 +180,7 @@ struct Q_SCXML_EXPORT Send: Instruction
     StringId delay;
     EvaluatorId delayexpr;
     StringId content;
+    EvaluatorId contentexpr;
     Array<StringId> namelist;
 //    Array<Param> params;
 

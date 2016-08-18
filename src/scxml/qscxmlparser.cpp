@@ -2161,7 +2161,7 @@ bool QScxmlParserPrivate::preReadElementContent()
     case ParserState::Send: {
         DocumentModel::Send *s = previous().instruction->asSend();
         Q_ASSERT(s);
-        s->content = attributes.value(QLatin1String("expr")).toString();
+        s->contentexpr = attributes.value(QLatin1String("expr")).toString();
     } break;
     case ParserState::Invoke: {
         DocumentModel::Invoke *i = previous().instruction->asInvoke();

@@ -126,6 +126,7 @@ public:
         event = stateMachine->tableData()->string(send.event);
         eventexpr = send.eventexpr;
         contents = stateMachine->tableData()->string(send.content);
+        contentExpr = send.contentexpr;
         params = send.params();
         id = stateMachine->tableData()->string(send.id);
         idLocation = stateMachine->tableData()->string(send.idLocation);
