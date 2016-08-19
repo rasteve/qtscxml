@@ -62,7 +62,7 @@ Window {
 
     Image {
         id: lights
-        source: "qrc:///background.png"
+        source: "background.png"
 
         MouseArea {
             anchors.fill: parent
@@ -75,7 +75,7 @@ Window {
             id: redLight
             x: (lights.width - width) / 2
             y: 40
-            source: "qrc:///red.png"
+            source: "red.png"
             visible: stateMachine.red || stateMachine.redGoingGreen
         }
 
@@ -83,7 +83,7 @@ Window {
             id: yellowLight
             x: (lights.width - width) / 2
             y: 135
-            source: "qrc:///yellow.png"
+            source: "yellow.png"
             visible: stateMachine.yellow || stateMachine.blinking
         }
 
@@ -91,7 +91,7 @@ Window {
             id: greenLight
             x: (lights.width - width) / 2
             y: 230
-            source: "qrc:///green.png"
+            source: "green.png"
             visible: stateMachine.green
         }
     }
@@ -102,7 +102,7 @@ Window {
         anchors.bottom: parent.bottom
         anchors.margins: 20
 
-        source: stateMachine.working ? "qrc:///pause.png" : "qrc:///play.png"
+        source: stateMachine.working ? "pause.png" : "play.png"
 
         onClicked: {
             if (stateMachine.working)
