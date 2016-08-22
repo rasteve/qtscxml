@@ -143,14 +143,10 @@
     }
     \endqml
 
-    In \e {Qt mode}, events can also be directly mapped to Qt signals by adding
-    \e {type="qt:signal"} to the \e {<send>} element in SCXML.
-
-    Sending events to a state machine is equally simple. In Qt mode, you can
-    call (or connect to) the slot:
+    Sending events to a state machine is equally simple:
 
     \code
-    stateMachine->tap(QVariantMap({
+    stateMachine->submitEvent("tap", QVariantMap({
         std::make_pair("artist", "Fatboy Slim"),
         std::make_pair("title", "The Rockafeller Skank")
     });
@@ -160,22 +156,9 @@
     _event.data inside the state machine. In QML:
 
     \code
-    stateMacine.tap({
+    stateMachine.submitEvent("tap", {
         "artist": "Fatboy Slim"
         "title": "The Rockafeller Skank"
     })
     \endcode
-
-    You can also use \c submitEvent() to send events with arbitrary
-    identifiers. This is also available when not using Qt mode:
-
-    \code
-    stateMachine->submitEvent("tap", QVariantMap({
-        std::make_pair("artist", "Fatboy Slim"),
-        std::make_pair("title", "The Rockafeller Skank")
-    });
-    \endcode
-
-    Any invoked state machine with a name property will also show up as a
-    property on its parent state machine.
 */

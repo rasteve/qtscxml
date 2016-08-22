@@ -72,19 +72,6 @@
     The Qt SCXML implementation extends SCXML in the following ways:
 
     \list
-    \li For communication purposes, the \c <send> tag supports an extra
-        value \c "qt:signal" accepted by the attribute \c type.
-        The generated state machine or the state machine that has loaded
-        the SCXML file dynamically will contain the corresponding
-        signal, the name of which will be equal to the value of the
-        \e event attribute inside the \c <send> tag.
-        All of the \c <param> children will be placed inside the
-        QMap<QString, QVariant> map, and this map will be passed as a
-        QVariant argument of the specified signal.
-    \li State machines that are compatible with Qt can be compiled or loaded in
-        the \e {Qt mode} to fully benefit from Qt. The Qt mode is enabled by
-        adding the following line to the beginning of the SCXML file:
-        \c {<!-- enable-qt-mode: yes -->}.
     \li If the event is an error event, \c _event.errorMessage will contain a
         more detailed description of the error.
     \endlist

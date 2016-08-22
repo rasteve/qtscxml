@@ -58,15 +58,8 @@ int main(int argc, char **argv)
     QApplication app(argc, argv);
 
     auto machine = QScxmlStateMachine::fromFile(QStringLiteral(":mediaplayer.scxml"));
-    MainWindow mainWindow;
+    MainWindow mainWindow(machine);
     machine->setParent(&mainWindow);
-
-    QObject::connect(&mainWindow, SIGNAL(tap(const QVariant &)),
-                     machine, SLOT(tap(const QVariant &)));
-    QObject::connect(machine, SIGNAL(playbackStarted(const QVariant &)),
-                     &mainWindow, SLOT(started(const QVariant &)));
-    QObject::connect(machine, SIGNAL(playbackStopped(const QVariant &)),
-                     &mainWindow, SLOT(stopped(const QVariant &)));
 
     machine->start();
     mainWindow.show();

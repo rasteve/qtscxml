@@ -151,8 +151,6 @@ private:
     {
         if (!state->id.isEmpty() && !isValidToken(state->id, XmlNCName)) {
             error(state->xmlLocation, QStringLiteral("'%1' is not a valid XML ID").arg(state->id));
-        } else {
-            validateStateName(state->xmlLocation, state->id);
         }
 
         if (state->initialTransition == nullptr) {
@@ -225,10 +223,8 @@ private:
                 error(transition->xmlLocation, QStringLiteral("unknown state '%1' in target").arg(target));
             }
         }
-        foreach (const QString &event, transition->events) {
+        foreach (const QString &event, transition->events)
             checkEvent(event, transition->xmlLocation, AllowWildCards);
-            validateEventName(transition->xmlLocation, event);
-        }
 
         m_parentNodes.append(transition);
         return true;
@@ -263,11 +259,6 @@ private:
     bool visit(DocumentModel::Send *node) Q_DECL_OVERRIDE
     {
         checkEvent(node->event, node->xmlLocation, ForbidWildCards);
-
-        if (node->type == QStringLiteral("qt:signal")) {
-            validateEventName(node->xmlLocation, node->event);
-        }
-
         checkExpr(node->xmlLocation, QStringLiteral("send"), QStringLiteral("eventexpr"), node->eventexpr);
         return true;
     }
@@ -475,275 +466,6 @@ private:
         return Q_NULLPTR;
     }
 
-    void validateEventName(const DocumentModel::XmlLocation &location, const QString &name)
-    {
-        if (!m_doc->qtMode)
-            return;
-
-        if (!isValidCppIdentifier(name))
-            error(location, QStringLiteral(
-                      "event name '%1' is not a valid C++ identifier in Qt mode").arg(name));
-
-        if (!isValidQtIdentifier(name))
-            error(location, QStringLiteral(
-                      "event name '%1' is not a valid Qt identifier in Qt mode").arg(name));
-
-        if (m_stateById.contains(name))
-            error(location, QStringLiteral(
-                      "event name '%1' collides with a state name '%1' in Qt mode").arg(name));
-
-        const QString changedSuffix(QStringLiteral("Changed"));
-        if (name.endsWith(changedSuffix)) {
-            const QString baseName = name.left(name.count() - changedSuffix.count());
-            if (m_stateById.contains(baseName))
-                error(location, QStringLiteral(
-                          "event name '%1' collides with a state name '%2' in Qt mode").arg(name).arg(baseName));
-        }
-    }
-
-    void validateStateName(const DocumentModel::XmlLocation &location, const QString &name)
-    {
-        if (!m_doc->qtMode)
-            return;
-
-        if (!isValidCppIdentifier(name))
-            error(location, QStringLiteral(
-                      "state name '%1' is not a valid C++ identifier in Qt mode").arg(name));
-
-        if (!isValidQtIdentifier(name))
-            error(location, QStringLiteral(
-                      "state name '%1' is not a valid Qt identifier in Qt mode").arg(name));
-
-        const QString changedSuffix(QStringLiteral("Changed"));
-        if (name.endsWith(changedSuffix)) {
-            const QString baseName = name.left(name.count() - changedSuffix.count());
-            if (m_stateById.contains(baseName))
-                error(location, QStringLiteral(
-                          "state name '%1' collides with a state name '%2' in Qt mode").arg(name).arg(baseName));
-        }
-    }
-
-    static bool isValidCppIdentifier(const QString &str)
-    {
-        static const QStringList keywords = QStringList()
-                << QStringLiteral("alignas")
-                << QStringLiteral("alignof")
-                << QStringLiteral("asm")
-                << QStringLiteral("auto")
-                << QStringLiteral("bool")
-                << QStringLiteral("break")
-                << QStringLiteral("case")
-                << QStringLiteral("catch")
-                << QStringLiteral("char")
-                << QStringLiteral("char16_t")
-                << QStringLiteral("char32_t")
-                << QStringLiteral("class")
-                << QStringLiteral("const")
-                << QStringLiteral("constexpr")
-                << QStringLiteral("const_cast")
-                << QStringLiteral("continue")
-                << QStringLiteral("decltype")
-                << QStringLiteral("default")
-                << QStringLiteral("delete")
-                << QStringLiteral("double")
-                << QStringLiteral("do")
-                << QStringLiteral("dynamic_cast")
-                << QStringLiteral("else")
-                << QStringLiteral("enum")
-                << QStringLiteral("explicit")
-                << QStringLiteral("export")
-                << QStringLiteral("extern")
-                << QStringLiteral("false")
-                << QStringLiteral("float")
-                << QStringLiteral("for")
-                << QStringLiteral("friend")
-                << QStringLiteral("goto")
-                << QStringLiteral("if")
-                << QStringLiteral("inline")
-                << QStringLiteral("int")
-                << QStringLiteral("long")
-                << QStringLiteral("mutable")
-                << QStringLiteral("namespace")
-                << QStringLiteral("new")
-                << QStringLiteral("noexcept")
-                << QStringLiteral("nullptr")
-                << QStringLiteral("operator")
-                << QStringLiteral("private")
-                << QStringLiteral("protected")
-                << QStringLiteral("public")
-                << QStringLiteral("register")
-                << QStringLiteral("reinterpret_cast")
-                << QStringLiteral("return")
-                << QStringLiteral("short")
-                << QStringLiteral("signed")
-                << QStringLiteral("sizeof")
-                << QStringLiteral("static")
-                << QStringLiteral("static_assert")
-                << QStringLiteral("static_cast")
-                << QStringLiteral("struct")
-                << QStringLiteral("switch")
-                << QStringLiteral("template")
-                << QStringLiteral("this")
-                << QStringLiteral("thread_local")
-                << QStringLiteral("throw")
-                << QStringLiteral("true")
-                << QStringLiteral("try")
-                << QStringLiteral("typedef")
-                << QStringLiteral("typeid")
-                << QStringLiteral("typename")
-                << QStringLiteral("union")
-                << QStringLiteral("unsigned")
-                << QStringLiteral("using")
-                << QStringLiteral("virtual")
-                << QStringLiteral("void")
-                << QStringLiteral("volatile")
-                << QStringLiteral("wchar_t")
-                << QStringLiteral("while");
-
-        if (keywords.contains(str)) {
-            return false;
-        }
-
-        auto isNonDigit = [](QChar ch) -> bool {
-            return (ch >= QLatin1Char('A') && ch <= QLatin1Char('Z'))
-                    || (ch >= QLatin1Char('a') && ch <= QLatin1Char('z'))
-                    || (ch == QLatin1Char('_'));
-        };
-
-        QChar ch = str.at(0);
-        if (!isNonDigit(ch)) {
-            return false;
-        }
-        for (int i = 1, ei = str.size(); i != ei; ++i) {
-            ch = str.at(i);
-            if (!isNonDigit(ch) && !ch.isDigit()) {
-                return false;
-            }
-        }
-
-        if (str.startsWith(QLatin1Char('_')) && str.size() > 1) {
-            QChar ch = str.at(1);
-            if (ch == QLatin1Char('_')
-                    || (ch >= QLatin1Char('A') && ch <= QLatin1Char('Z'))) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    static bool isValidQtIdentifier(const QString &str)
-    {
-        static const QStringList keywords = QStringList()
-
-                // QObject
-                << QStringLiteral("blockSignals")
-                << QStringLiteral("children")
-                << QStringLiteral("childEvent")
-                << QStringLiteral("connect")
-                << QStringLiteral("connectImpl")
-                << QStringLiteral("connectNotify")
-                << QStringLiteral("customEvent")
-                << QStringLiteral("deleteLater")
-                << QStringLiteral("destroyed")
-                << QStringLiteral("disconnect")
-                << QStringLiteral("disconnectImpl")
-                << QStringLiteral("disconnectNotify")
-                << QStringLiteral("dumpObjectInfo")
-                << QStringLiteral("dumpObjectTree")
-                << QStringLiteral("dynamicPropertyNames")
-                << QStringLiteral("d_func")
-                << QStringLiteral("d_ptr")
-                << QStringLiteral("event")
-                << QStringLiteral("eventFilter")
-                << QStringLiteral("findChild")
-                << QStringLiteral("findChildren")
-                << QStringLiteral("inherits")
-                << QStringLiteral("installEventFilter")
-                << QStringLiteral("isSignalConnected")
-                << QStringLiteral("isWidgetType")
-                << QStringLiteral("isWindowType")
-                << QStringLiteral("killTimer")
-                << QStringLiteral("metaObject")
-                << QStringLiteral("moveToThread")
-                << QStringLiteral("objectName")
-                << QStringLiteral("objectNameChanged")
-                << QStringLiteral("parent")
-                << QStringLiteral("property")
-                << QStringLiteral("qt_check_for_QOBJECT_macro")
-                << QStringLiteral("qt_metacall")
-                << QStringLiteral("qt_metacast")
-                << QStringLiteral("qt_static_metacall")
-                << QStringLiteral("receivers")
-                << QStringLiteral("registerUserData")
-                << QStringLiteral("removeEventFilter")
-                << QStringLiteral("sender")
-                << QStringLiteral("senderSignalIndex")
-                << QStringLiteral("setObjectName")
-                << QStringLiteral("setParent")
-                << QStringLiteral("setProperty")
-                << QStringLiteral("setUserData")
-                << QStringLiteral("signalsBlocked")
-                << QStringLiteral("startTimer")
-                << QStringLiteral("staticMetaObject")
-                << QStringLiteral("staticQtMetaObject")
-                << QStringLiteral("thread")
-                << QStringLiteral("timerEvent")
-                << QStringLiteral("tr")
-                << QStringLiteral("trUtf8")
-                << QStringLiteral("userData")
-                << QStringLiteral("QObject")
-
-                // QScxmlStateMachine
-                << QStringLiteral("activeStateNames")
-                << QStringLiteral("cancelDelayedEvent")
-                << QStringLiteral("connectToEvent")
-                << QStringLiteral("connectToEventImpl")
-                << QStringLiteral("connectToState")
-                << QStringLiteral("connectToStateImpl")
-                << QStringLiteral("dataModel")
-                << QStringLiteral("dataModelChanged")
-                << QStringLiteral("finished")
-                << QStringLiteral("fromData")
-                << QStringLiteral("fromFile")
-                << QStringLiteral("init")
-                << QStringLiteral("initializedChanged")
-                << QStringLiteral("initialValues")
-                << QStringLiteral("initialValuesChanged")
-                << QStringLiteral("isActive")
-                << QStringLiteral("isDispatchableTarget")
-                << QStringLiteral("isInitialized")
-                << QStringLiteral("isInvoked")
-                << QStringLiteral("isRunning")
-                << QStringLiteral("loader")
-                << QStringLiteral("log")
-                << QStringLiteral("name")
-                << QStringLiteral("parseErrors")
-                << QStringLiteral("reachedStableState")
-                << QStringLiteral("runningChanged")
-                << QStringLiteral("runningSubStateMachine")
-                << QStringLiteral("runningSubStateMachines")
-                << QStringLiteral("runningSubStateMachinesChanged")
-                << QStringLiteral("sessionId")
-                << QStringLiteral("setDataModel")
-                << QStringLiteral("setInitialValues")
-                << QStringLiteral("setLoader")
-                << QStringLiteral("setRunning")
-                << QStringLiteral("setTableData")
-                << QStringLiteral("start")
-                << QStringLiteral("stateNames")
-                << QStringLiteral("stop")
-                << QStringLiteral("submitEvent")
-                << QStringLiteral("tableData")
-                << QStringLiteral("QScxmlStateMachine")
-                ;
-
-        if (keywords.contains(str))
-            return false;
-
-        return true;
-    }
-
 private:
     std::function<void (const DocumentModel::XmlLocation &, const QString &)> m_errorHandler;
     DocumentModel::ScxmlDocument *m_doc;
@@ -818,29 +540,7 @@ private:
     Q_DECL_HIDDEN_STATIC_METACALL static void qt_static_metacall(QObject *_o, QMetaObject::Call _c,
                                                                  int _id, void **_a)
     {
-        if (_c == QMetaObject::InvokeMetaMethod) {
-            DynamicStateMachine *_t = static_cast<DynamicStateMachine *>(_o);
-            if (_id < 0) {
-                // out of bounds
-                return;
-            }
-            if (_id < _t->m_firstSlot) {
-                // these signals are only emitted, not activated by another signal
-                return;
-            }
-            // We have 1 kind of slots: those to submit events.
-            if (_id < _t->m_firstSlotWithoutData) {
-                const QString &event = _t->m_incomingEvents.at(_id - _t->m_firstSlot);
-                QVariant data = *reinterpret_cast< QVariant(*)>(_a[1]);
-                if (data.canConvert<QJSValue>()) {
-                    data = data.value<QJSValue>().toVariant();
-                }
-                _t->submitEvent(event, data);
-            } else {
-                const QString &event = _t->m_incomingEvents.at(_id - _t->m_firstSlotWithoutData);
-                _t->submitEvent(event, QVariant());
-            }
-        } else if (_c == QMetaObject::RegisterPropertyMetaType) {
+        if (_c == QMetaObject::RegisterPropertyMetaType) {
             *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType<bool>();
         } else if (_c == QMetaObject::ReadProperty) {
             DynamicStateMachine *_t = static_cast<DynamicStateMachine *>(_o);
@@ -857,8 +557,6 @@ private:
     DynamicStateMachine()
         : QScxmlStateMachine(*new DynamicStateMachinePrivate)
         , m_propertyCount(0)
-        , m_firstSlot(0)
-        , m_firstSlotWithoutData(0)
     {
         // Temporarily wire up the QMetaObject
         Q_D(DynamicStateMachine);
@@ -877,10 +575,6 @@ private:
         free(const_cast<QMetaObject *>(d->m_metaObject));
         d->m_metaObject = &QScxmlStateMachine::staticMetaObject;
 
-        m_incomingEvents = info.incomingEvents;
-        m_outgoingEvents = info.outgoingEvents;
-        std::sort(m_outgoingEvents.begin(), m_outgoingEvents.end());
-
         // Build the real one.
         QMetaObjectBuilder b;
         b.setClassName("DynamicStateMachine");
@@ -893,26 +587,6 @@ private:
             const QByteArray signalName = name + "Changed(bool)";
             QMetaMethodBuilder signalBuilder = b.addSignal(signalName);
             signalBuilder.setParameterNames(init("active"));
-        }
-
-        foreach (const QString &eventName, info.outgoingEvents) {
-            const QByteArray signalName = eventName.toUtf8() + "(const QVariant &)";
-            QMetaMethodBuilder signalBuilder = b.addSignal(signalName);
-            signalBuilder.setParameterNames(init("data"));
-        }
-
-        // slots
-        m_firstSlot = info.stateNames.size() + info.outgoingEvents.size();
-        foreach (const QString &eventName, info.incomingEvents) {
-            const QByteArray slotName = eventName.toUtf8() + "(const QVariant &)";
-            QMetaMethodBuilder slotBuilder = b.addSlot(slotName);
-            slotBuilder.setParameterNames(init("data"));
-        }
-
-        m_firstSlotWithoutData = m_firstSlot + info.incomingEvents.size();
-        foreach (const QString &eventName, info.incomingEvents) {
-            const QByteArray slotName = eventName.toUtf8() + "()";
-            b.addSlot(slotName);
         }
 
         // properties
@@ -940,16 +614,6 @@ public:
 
     QScxmlInvokableServiceFactory *serviceFactory(int id) const Q_DECL_OVERRIDE Q_DECL_FINAL
     { return m_allFactoriesById.at(id); }
-
-    int signalIndexForEvent(const QString &event) const Q_DECL_OVERRIDE Q_DECL_FINAL
-    {
-        auto it = std::lower_bound(m_outgoingEvents.begin(), m_outgoingEvents.end(), event);
-        if (it != m_outgoingEvents.end() && *it == event) {
-            return int(std::distance(m_outgoingEvents.begin(), it));
-        } else {
-            return -1;
-        }
-    }
 
     static DynamicStateMachine *build(DocumentModel::ScxmlDocument *doc)
     {
@@ -999,11 +663,7 @@ private:
 
 private:
     QVector<QScxmlInvokableServiceFactory *> m_allFactoriesById;
-    QStringList m_incomingEvents;
-    QStringList m_outgoingEvents;
     int m_propertyCount;
-    int m_firstSlot;
-    int m_firstSlotWithoutData;
 };
 
 inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(QScxmlStateMachine *parent)
@@ -1086,26 +746,6 @@ QScxmlInvokableService *QScxmlInvokableScxmlServiceFactory::loadAndInvokeDynamic
  * To load an SCXML file, QScxmlStateMachine::fromFile or QScxmlStateMachine::fromData should be
  * used. Using QScxmlParser directly is only needed when the parser needs to use a custom
  * QScxmlParser::Loader.
- */
-
-/*!
-    \enum QScxmlParser::QtMode
-
-    This enum specifies if the document should be parsed in Qt mode. In Qt
-    mode, event and state names have to be valid C++ identifiers. If that is
-    the case some additional convenience methods are generated. If not, the
-    parser will reject the document. Qt mode can be enabled in the document
-    itself by adding an XML comment of the form:
-
-    \c {<!-- enable-qt-mode: yes -->}
-
-    \value QtModeDisabled
-           Ignore the XML comment and do not generate additional methods.
-    \value QtModeEnabled
-           Force parsing in Qt mode and try to generate the additional methods,
-           no matter if the XML comment is present.
-    \value QtModeFromInputFile
-           Enable Qt mode only if the XML comment is present in the document.
  */
 
 /*!
@@ -1253,31 +893,6 @@ QVector<QScxmlError> QScxmlParser::errors() const
 void QScxmlParser::addError(const QString &msg)
 {
     d->addError(msg);
-}
-
-/*!
- * Returns how the parser decides if the SCXML document should conform to Qt
- * mode.
- *
- * \sa QtMode
- */
-QScxmlParser::QtMode QScxmlParser::qtMode() const
-{
-    return d->qtMode();
-}
-
-/*!
- * Sets the \c qtMode to \a mode. This property overrides the XML comment. You
- * can force Qt mode to be used by setting it to \c QtModeEnabled or force any
- * XML comments to be ignored and Qt mode to be used by setting it to
- * \c QtModeDisabled. The default is \c QtModeFromInputFile, which will switch
- * Qt mode on if the XML comment is present in the source file.
- *
- * \sa QtMode
- */
-void QScxmlParser::setQtMode(QScxmlParser::QtMode mode)
-{
-    d->setQtMode(mode);
 }
 
 bool QScxmlParserPrivate::ParserState::collectChars() {
@@ -1686,11 +1301,6 @@ void DocumentModel::Scxml::accept(DocumentModel::NodeVisitor *visitor)
 DocumentModel::NodeVisitor::~NodeVisitor()
 {}
 
-bool DocumentModel::isValidQPropertyName(const QString &str)
-{
-    return !str.isEmpty() && !str.contains(QLatin1Char('(')) && !str.contains(QLatin1Char(')'));
-}
-
 /*!
  * \class QScxmlParser::Loader
  * \brief The Loader class is a URI resolver and resource loader for an SCXML parser.
@@ -1729,7 +1339,6 @@ QScxmlParserPrivate::QScxmlParserPrivate(QXmlStreamReader *reader)
     : m_currentState(Q_NULLPTR)
     , m_loader(&m_defaultLoader)
     , m_reader(reader)
-    , m_qtMode(QScxmlParser::QtModeFromInputFile)
 {}
 
 bool QScxmlParserPrivate::verifyDocument()
@@ -1797,18 +1406,7 @@ bool QScxmlParserPrivate::parseSubElement(DocumentModel::Invoke *parentInvoke,
     parentInvoke->content.reset(p.d->m_doc.take());
     m_doc->allSubDocuments.append(parentInvoke->content.data());
     m_errors.append(p.errors());
-    parentInvoke->content->qtMode = m_doc->qtMode;
     return ok;
-}
-
-static bool isWordEnd(const QStringRef &str, int start)
-{
-    if (str.size() <= start) {
-        return true;
-    }
-
-    QChar ch = str.at(start);
-    return ch.isSpace();
 }
 
 bool QScxmlParserPrivate::preReadElementScxml()
@@ -2528,10 +2126,6 @@ void QScxmlParserPrivate::resetDocument()
 bool QScxmlParserPrivate::readDocument()
 {
     resetDocument();
-    if (m_qtMode == QScxmlParser::QtModeEnabled)
-        m_doc->qtMode = true;
-    else if (m_qtMode == QScxmlParser::QtModeDisabled)
-        m_doc->qtMode = false;
     m_currentState = m_doc->root;
     for (bool finished = false; !finished && !m_reader->hasError();) {
         switch (m_reader->readNext()) {
@@ -2557,9 +2151,6 @@ bool QScxmlParserPrivate::readDocument()
             break;
         case QXmlStreamReader::EndElement :
             finished = true;
-            break;
-        case QXmlStreamReader::Comment:
-            parseComment();
             break;
         default :
             break;
@@ -2673,9 +2264,6 @@ bool QScxmlParserPrivate::readElement()
             if (current().collectChars())
                 current().chars.append(m_reader->text());
             break;
-        case QXmlStreamReader::Comment:
-            parseComment();
-            break;
         default :
             break;
         }
@@ -2719,33 +2307,6 @@ bool QScxmlParserPrivate::readElement()
     }
 
     return true;
-}
-
-void QScxmlParserPrivate::parseComment()
-{
-    static const QString qtModeSwitch = QStringLiteral("enable-qt-mode:");
-    const QStringRef commentText = m_reader->text();
-    int qtModeIdx = commentText.indexOf(qtModeSwitch);
-    if (qtModeIdx != -1) {
-        qtModeIdx += qtModeSwitch.size();
-        while (qtModeIdx < commentText.size()) {
-            if (commentText.at(qtModeIdx).isSpace()) {
-                ++qtModeIdx;
-            } else {
-                break;
-            }
-        }
-        const QStringRef value = commentText.mid(qtModeIdx);
-        if (value.startsWith(QStringLiteral("yes")) && isWordEnd(value, 3)) {
-            if (m_qtMode == QScxmlParser::QtModeFromInputFile)
-                m_doc->qtMode = true;
-        } else if (value.startsWith(QStringLiteral("no")) && isWordEnd(value, 2)) {
-            if (m_qtMode == QScxmlParser::QtModeFromInputFile)
-                m_doc->qtMode = false;
-        } else {
-            addError(QStringLiteral("expected 'yes' or 'no' after enable-qt-mode in comment"));
-        }
-    }
 }
 
 void QScxmlParserPrivate::currentStateUp()
@@ -2796,16 +2357,6 @@ void QScxmlParserPrivate::addError(const QString &msg)
 void QScxmlParserPrivate::addError(const DocumentModel::XmlLocation &location, const QString &msg)
 {
     m_errors.append(QScxmlError(m_fileName, location.line, location.column, msg));
-}
-
-QScxmlParser::QtMode QScxmlParserPrivate::qtMode() const
-{
-    return m_qtMode;
-}
-
-void QScxmlParserPrivate::setQtMode(QScxmlParser::QtMode mode)
-{
-    m_qtMode = mode;
 }
 
 DocumentModel::AbstractState *QScxmlParserPrivate::currentParent() const

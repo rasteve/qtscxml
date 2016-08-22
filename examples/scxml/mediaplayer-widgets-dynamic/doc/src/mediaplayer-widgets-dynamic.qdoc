@@ -44,5 +44,22 @@
 
     \include mediaplayer-ecmascript-data-model.qdocinc
 
-    \include mediaplayer-dynamic.qdocinc
+    \section1 Dynamically Loading the State Machine
+
+    We link against the Qt SCXML module by adding the following line to the
+    example \e .pro file:
+
+    \quotefromfile mediaplayer-widgets-dynamic/mediaplayer-widgets-dynamic.pro
+    \skipto QT
+    \printuntil scxml
+
+    \quotefromfile mediaplayer-widgets-dynamic/mediaplayer-widgets-dynamic.cpp
+
+    We dynamically create and instantiate the state machine in
+    \e mediaplayer-wigdets-dynamic/mediaplayer-widgets-dynamic.cpp:
+
+    \skipto mainwindow.h
+    \printuntil /^\}/
+
+    \include mediaplayer-widgets-connecting-to-states.qdocinc
 */

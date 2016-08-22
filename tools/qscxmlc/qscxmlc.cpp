@@ -124,13 +124,6 @@ int run(const QStringList &arguments)
     QCommandLineOption optionClassName(QLatin1String("classname"),
                        QCoreApplication::translate("main", "Generate <name> for state machine class name."),
                        QCoreApplication::translate("main", "name"));
-    QCommandLineOption optionQtMode(QLatin1String("qt-mode"),
-                       QCoreApplication::translate("main", "Enables or disables Qt mode. "
-                                                           "In order to unconditionally enable qt-mode, specify \"yes\". "
-                                                           "To unconditionally disable qt-mode, specify \"no\". "
-                                                           "To read the setting from the input file, specify \"from-input\". "
-                                                           "The default is \"from-input\"."),
-                       QCoreApplication::translate("main", "mode"), QLatin1String("from-input"));
 
     cmdParser.addPositionalArgument(QLatin1String("input"),
                        QCoreApplication::translate("main", "Input SCXML file."));
@@ -140,7 +133,6 @@ int run(const QStringList &arguments)
     cmdParser.addOption(optionOutputHeaderName);
     cmdParser.addOption(optionOutputSourceName);
     cmdParser.addOption(optionClassName);
-    cmdParser.addOption(optionQtMode);
 
     cmdParser.process(arguments);
 
@@ -167,21 +159,6 @@ int run(const QStringList &arguments)
     QString outHFileName = cmdParser.value(optionOutputHeaderName);
     QString outCppFileName = cmdParser.value(optionOutputSourceName);
     QString mainClassName = cmdParser.value(optionClassName);
-    QString qtModeName = cmdParser.value(optionQtMode);
-
-    QScxmlParser::QtMode qtMode = QScxmlParser::QtModeFromInputFile;
-
-    if (qtModeName == QLatin1String("yes")) {
-        qtMode = QScxmlParser::QtModeEnabled;
-    } else if (qtModeName == QLatin1String("no")) {
-        qtMode = QScxmlParser::QtModeDisabled;
-    } else if (qtModeName == QLatin1String("from-input")) {
-        qtMode = QScxmlParser::QtModeFromInputFile;
-    } else {
-        errs << QCoreApplication::translate("main", "Error: unexpected value for qt-mode option: %1")
-                .arg(qtModeName) << endl;
-        cmdParser.showHelp(CommandLineArgumentsError);
-    }
 
     if (outFileName.isEmpty())
         outFileName = QFileInfo(scxmlFileName).baseName();
@@ -199,7 +176,6 @@ int run(const QStringList &arguments)
     QXmlStreamReader reader(&file);
     QScxmlParser parser(&reader);
     parser.setFileName(file.fileName());
-    parser.setQtMode(qtMode);
     parser.parse();
     if (!parser.errors().isEmpty()) {
         foreach (const QScxmlError &error, parser.errors()) {

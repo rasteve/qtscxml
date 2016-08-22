@@ -50,7 +50,7 @@
     \c <scxml> element in the SCXML file:
 
     \quotefromfile mediaplayer-qml-cppdatamodel/mediaplayer-cppdatamodel.scxml
-    \skipto enable-qt-mode
+    \skipto scxml
     \printuntil datamodel
 
     The format of the \e datamodel attribute is:

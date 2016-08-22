@@ -83,9 +83,7 @@ public:
     > CreateFactoryId;
 
     struct MetaDataInfo {
-        QStringList outgoingEvents;
         QStringList stateNames;
-        QStringList incomingEvents;
     };
 
     struct DataModelInfo {
@@ -115,7 +113,6 @@ public:
     QString name() const Q_DECL_OVERRIDE Q_DECL_FINAL;
     const qint32 *stateMachineTable() const Q_DECL_OVERRIDE Q_DECL_FINAL;
     QScxmlInvokableServiceFactory *serviceFactory(int id) const Q_DECL_OVERRIDE;
-    int signalIndexForEvent(const QString &event) const Q_DECL_OVERRIDE;
 
 public:
     QVector<qint32> theStateMachineTable;

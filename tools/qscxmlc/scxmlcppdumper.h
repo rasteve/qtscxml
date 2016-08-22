@@ -80,18 +80,9 @@ private:
     QString mangleIdentifier(const QString &str);
 
 private:
-    QString generatePropertyDecls(const QScxmlInternal::GeneratedTableData::MetaDataInfo &info,
-                                  bool qtMode);
-    QString generateSignalDecls(const QScxmlInternal::GeneratedTableData::MetaDataInfo &info);
-    QString generateSlotDecls(const QScxmlInternal::GeneratedTableData::MetaDataInfo &info);
-    QString generateSlotDefs(const QString &className,
-                             const QScxmlInternal::GeneratedTableData::MetaDataInfo &info);
-    QString generateGetterDecls(const QScxmlInternal::GeneratedTableData::MetaDataInfo &info);
-    QString generateGetterDefs(const QString &className,
-                               const QScxmlInternal::GeneratedTableData::MetaDataInfo &info);
+    QString generatePropertyDecls(const QScxmlInternal::GeneratedTableData::MetaDataInfo &info);
     QString generateMetaObject(const QString &className,
-                               const QScxmlInternal::GeneratedTableData::MetaDataInfo &info,
-                               bool m_qtMode);
+                               const QScxmlInternal::GeneratedTableData::MetaDataInfo &info);
 
     QTextStream &h;
     QTextStream &cpp;

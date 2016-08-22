@@ -58,14 +58,7 @@ int main(int argc, char **argv)
     QApplication app(argc, argv);
 
     MediaPlayerStateMachine machine;
-    MainWindow mainWindow;
-
-    QObject::connect(&mainWindow, &MainWindow::tap,
-                     &machine, &MediaPlayerStateMachine::tap);
-    QObject::connect(&machine, &MediaPlayerStateMachine::playbackStarted,
-                     &mainWindow, &MainWindow::started);
-    QObject::connect(&machine, &MediaPlayerStateMachine::playbackStopped,
-                     &mainWindow, &MainWindow::stopped);
+    MainWindow mainWindow(&machine);
 
     machine.start();
     mainWindow.show();

@@ -50,7 +50,6 @@
 **
 ****************************************************************************/
 -->
-<!-- enable-qt-mode: yes -->
 <scxml
     xmlns="http://www.w3.org/2005/07/scxml"
     version="1.0"
@@ -76,13 +75,13 @@
     <state id="playing">
         <onentry>
             <assign location="media" expr="_event.data.media"/>
-            <send type="qt:signal" event="playbackStarted">
+            <send event="playbackStarted">
                 <param name="media" expr="media"/>
             </send>
         </onentry>
 
         <onexit>
-            <send type="qt:signal" event="playbackStopped">
+            <send event="playbackStopped">
                 <param name="media" expr="media"/>
             </send>
         </onexit>

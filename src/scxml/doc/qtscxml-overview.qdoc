@@ -90,26 +90,6 @@
     differ in the way they are instantiated. For more information, see
     \l{Instantiating State Machines} and \l{Qt SCXML Examples}.
 
-    \section1 Qt Mode
-
-    State machines that are compatible with Qt can be compiled or loaded in the
-    \e {Qt mode} to fully benefit from Qt. The Qt mode is unconditionally
-    enabled by adding the following line to the beginning of the SCXML file:
-    \c {<!-- enable-qt-mode: yes -->}. It is unconditionally disabled by the
-    value \c no.
-
-    The Qt mode should be disabled for random SCXML files that do not comply to
-    the Qt rules. For example, for an SCXML file to be compatible with the Qt
-    mode, all IDs and names must be valid Qt identifiers.
-
-    In the Qt mode, external signals defined inside an SCXML file that are of
-    the \c qt:signal type, are accessible as signals of QScxmlStateMachine. As
-    an argument, they take QVariant. It is of QMap<QString, QVariant> type and
-    contains the content of all the \c <param> elements specified as children of
-    a \c <send> element. The name of each QScxmlStateMachine signal corresponds
-    to the value defined in the \e event attribute of one \c <send> tag in the
-    SCXML file.
-
     \section1 Logging Categories
 
     The Qt SCXML module exports the following logging categories:

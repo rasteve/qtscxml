@@ -64,9 +64,7 @@ public:
         , m_assignments(tableData.theAssignments)
         , m_foreaches(tableData.theForeaches)
         , m_dataIds(tableData.theDataNameIds)
-        , m_outgoingEvents(metaDataInfo.outgoingEvents)
         , m_stateNames(metaDataInfo.stateNames)
-        , m_incomingEvents(metaDataInfo.incomingEvents)
 
     {
         m_activeSequences.reserve(4);
@@ -75,7 +73,6 @@ public:
 
     void buildTableData(DocumentModel::ScxmlDocument *doc)
     {
-        m_qtMode = doc->qtMode;
         m_isCppDataModel = doc->root->dataModel == DocumentModel::Scxml::CppDataModel;
         m_parents.reserve(32);
         m_allTransitions.resize(doc->allTransitions.size());
@@ -346,12 +343,9 @@ protected: // visitor
         addStates(&newTransition.targets, transition->targetStates);
 
         QVector<int> eventIds;
-        foreach (const QString &event, transition->events) {
+        foreach (const QString &event, transition->events)
             eventIds.push_back(addString(event));
-            if (m_qtMode) {
-                m_incomingEvents.add(event);
-            }
-        }
+
         addArray(&newTransition.events, eventIds);
 
         return false;
@@ -385,10 +379,6 @@ protected: // visitor
 
     bool visit(DocumentModel::Send *node) Q_DECL_OVERRIDE Q_DECL_FINAL
     {
-        if (m_qtMode && node->type == QStringLiteral("qt:signal")) {
-            m_outgoingEvents.add(m_stringTable.item(addString(node->event)));
-        }
-
         auto instr = m_instructions.add<Send>(Send::calculateExtraSize(node->params.size(),
                                                                        node->namelist.size()));
         instr->instructionLocation = createContext(QStringLiteral("send"));
@@ -893,11 +883,8 @@ private:
 
     int m_currentTransition = StateTable::InvalidIndex;
     bool m_bindLate = false;
-    bool m_qtMode = false;
     QVector<DocumentModel::DataElement *> m_dataElements;
-    Table<QStringList, QString, int> m_outgoingEvents;
     Table<QStringList, QString, int> m_stateNames;
-    Table<QStringList, QString, int> m_incomingEvents;
 };
 
 } // anonymous namespace
@@ -1042,10 +1029,4 @@ QScxmlInvokableServiceFactory *GeneratedTableData::serviceFactory(int id) const
 {
     Q_UNUSED(id);
     return nullptr;
-}
-
-int GeneratedTableData::signalIndexForEvent(const QString &event) const
-{
-    Q_UNUSED(event);
-    return -1;
 }

@@ -4,6 +4,6 @@
     \c <scxml> element in \e mediaplayer-common/mediaplayer.scxml:
 
     \quotefromfile mediaplayer-common/mediaplayer.scxml
-    \skipto enable-qt-mode
+    \skipto scxml
     \printuntil </datamodel>
 

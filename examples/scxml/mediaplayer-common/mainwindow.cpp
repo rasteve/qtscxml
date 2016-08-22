@@ -52,10 +52,11 @@
 #include "ui_mainwindow.h"
 
 #include <QStringListModel>
+#include <QScxmlStateMachine>
 
 QT_USE_NAMESPACE
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(QScxmlStateMachine *stateMachine, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MainWindow)
 {
@@ -66,11 +67,15 @@ MainWindow::MainWindow(QWidget *parent) :
                                                     << QStringLiteral("song 3"), this);
     ui->mediaListView->setModel(model);
 
-    connect(ui->mediaListView, &QAbstractItemView::clicked, [model,this](const QModelIndex & index){
+    connect(ui->mediaListView, &QAbstractItemView::clicked,
+            [model, stateMachine](const QModelIndex & index) {
         QVariantMap data;
         data.insert(QStringLiteral("media"), model->data(index, Qt::EditRole).toString());
-        emit tap(data);
+        stateMachine->submitEvent("tap", data);
     });
+
+    stateMachine->connectToEvent("playbackStarted", this, &MainWindow::started);
+    stateMachine->connectToEvent("playbackStopped", this, &MainWindow::stopped);
 }
 
 MainWindow::~MainWindow()
@@ -78,16 +83,16 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::started(const QVariant &data)
+void MainWindow::started(const QScxmlEvent &event)
 {
-    QString media = data.toMap().value("media").toString();
+    const QString media = event.data().toMap().value("media").toString();
     ui->logText->appendPlainText(QStringLiteral("call on slot started with media '%1'").arg(media));
     ui->statusLabel->setText(QStringLiteral("Playing %1").arg(media));
 }
 
-void MainWindow::stopped(const QVariant &data)
+void MainWindow::stopped(const QScxmlEvent &event)
 {
-    QString media = data.toMap().value("media").toString();
+    const QString media = event.data().toMap().value("media").toString();
     ui->logText->appendPlainText(QStringLiteral("call on slot stopped with media '%1'").arg(media));
     ui->statusLabel->setText(QStringLiteral("Stopped"));
 }

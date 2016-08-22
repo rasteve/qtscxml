@@ -63,12 +63,6 @@ public:
                                 QStringList *errors) = 0;
     };
 
-    enum QtMode {
-        QtModeDisabled,
-        QtModeEnabled,
-        QtModeFromInputFile
-    };
-
 public:
     QScxmlParser(QXmlStreamReader *xmlReader);
     ~QScxmlParser();
@@ -85,9 +79,6 @@ public:
 
     QVector<QScxmlError> errors() const;
     void addError(const QString &msg);
-
-    QtMode qtMode() const;
-    void setQtMode(QtMode mode);
 
 private:
     friend class QScxmlParserPrivate;

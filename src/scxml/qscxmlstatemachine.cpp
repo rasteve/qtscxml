@@ -74,17 +74,6 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
  * are accessible as properties of QScxmlStateMachine.
  * These properties are boolean values and indicate
  * whether the state is active or inactive.
- *
- * All external signals defined inside the SCXML file
- * that are of the \c qt:signal type, are accessible
- * as signals of QScxmlStateMachine in the \e {Qt mode}.
- * The only argument of these signals
- * is always QVariant, which is of QMap<QString, QVariant>
- * type containing the content of all the \c <param>
- * elements specified as children of a \c <send> element.
- * The name of each QScxmlStateMachine signal
- * corresponds to the value defined in the
- * \e event attribute of one \c <send> tag in the SCXML file.
  */
 
 /*!
@@ -439,13 +428,6 @@ void QScxmlStateMachinePrivate::postEvent(QScxmlEvent *event)
     if (event->eventType() == QScxmlEvent::ExternalEvent)
         m_router.route(event->name().split(QLatin1Char('.')), event);
 
-    const int signalIndex = m_tableData->signalIndexForEvent(event->name());
-    if (signalIndex != -1) {
-        emitSignalForEvent(signalIndex, event->data());
-        delete event;
-        return;
-    }
-
     if (event->eventType() == QScxmlEvent::ExternalEvent) {
         qCDebug(qscxmlLog) << q << "posting external event" << event->name();
         m_externalQueue.enqueue(event);
@@ -598,15 +580,6 @@ void QScxmlStateMachinePrivate::emitRunningSubStateMachinesChanged()
 {
     Q_Q(QScxmlStateMachine);
     emit q->runningSubStateMachinesChanged(q->runningSubStateMachines());
-}
-
-void QScxmlStateMachinePrivate::emitSignalForEvent(int signalIndex, const QVariant &data)
-{
-    Q_Q(QScxmlStateMachine);
-    void *args[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&data)) };
-    QMetaObject::activate(q, m_metaObject,
-                          signalIndex + m_stateTable->stateCount + m_stateTable->maxServiceId + 1,
-                          args);
 }
 
 QStringList QScxmlStateMachinePrivate::stateNames(const std::vector<int> &stateIndexes) const

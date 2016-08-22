@@ -137,7 +137,6 @@ QScxmlEvent *QScxmlEventBuilder::buildEvent()
             return Q_NULLPTR;
     }
     if (!origintype.isEmpty()
-            && origintype != QStringLiteral("qt:signal")
             && origintype != QStringLiteral("http://www.w3.org/TR/scxml/#SCXMLEventProcessor")) {
         // [6.2.5] and test199
         submitError(QStringLiteral("error.execution"),

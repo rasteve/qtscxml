@@ -58,7 +58,7 @@ Item {
         text: "Go There"
         width: parent.width / 2
         height: parent.height
-        onClicked: anywhere.goThere()
+        onClicked: anywhere.submitEvent("goThere")
     }
 
     Button {
@@ -68,6 +68,6 @@ Item {
         width: parent.width / 2
         height: parent.height
         x: width
-        onClicked: anywhere.goHere()
+        onClicked: anywhere.submitEvent("goHere")
     }
 }

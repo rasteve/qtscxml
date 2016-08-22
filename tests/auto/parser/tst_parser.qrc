@@ -48,8 +48,6 @@
         <file>data/prematureEndOfDocument1.scxml</file>
         <file>data/prematureEndOfDocument2.scxml.errors</file>
         <file>data/prematureEndOfDocument2.scxml</file>
-        <file>data/qtmode.scxml.errors</file>
-        <file>data/qtmode.scxml</file>
         <file>data/scxml1.scxml.errors</file>
         <file>data/scxml1.scxml</file>
         <file>data/scxml2.scxml.errors</file>

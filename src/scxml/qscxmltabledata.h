@@ -68,7 +68,6 @@ public:
 
     virtual const qint32 *stateMachineTable() const = 0;
     virtual QScxmlInvokableServiceFactory *serviceFactory(int id) const = 0;
-    virtual int signalIndexForEvent(const QString &event) const = 0;
 };
 
 QT_END_NAMESPACE

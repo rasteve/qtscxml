@@ -55,9 +55,5 @@
     \skipto mediaplayer.h
     \printuntil MainWindow mainWindow
 
-    To be notified when a state machine sends out an event, we connect to the
-    corresponding signals. The media player state machine will send out events
-    when users tap a control and when playback starts or stops:
-
-    \printuntil MainWindow::stopped
+    \include mediaplayer-widgets-connecting-to-states.qdocinc
 */

@@ -409,13 +409,11 @@ struct ScxmlDocument
     QVector<Node *> allNodes;
     QVector<InstructionSequence *> allSequences;
     QVector<ScxmlDocument *> allSubDocuments; // weak pointers
-    bool qtMode;
     bool isVerified;
 
     ScxmlDocument(const QString &fileName)
         : fileName(fileName)
         , root(Q_NULLPTR)
-        , qtMode(false)
         , isVerified(false)
     {}
 
@@ -548,9 +546,6 @@ public:
     }
 };
 
-Q_SCXML_EXPORT bool isValidCppIdentifier(const QString &str);
-Q_SCXML_EXPORT bool isValidQPropertyName(const QString &str);
-
 } // DocumentModel namespace
 
 class Q_SCXML_EXPORT QScxmlParserPrivate
@@ -582,9 +577,6 @@ public:
 
     void addError(const QString &msg);
     void addError(const DocumentModel::XmlLocation &location, const QString &msg);
-
-    QScxmlParser::QtMode qtMode() const;
-    void setQtMode(QScxmlParser::QtMode mode);
 
 private:
     DocumentModel::AbstractState *currentParent() const;
@@ -652,7 +644,6 @@ private:
     bool readElement();
 
     void resetDocument();
-    void parseComment();
     void currentStateUp();
     bool flushInstruction();
 
@@ -733,7 +724,6 @@ private:
     QXmlStreamReader *m_reader;
     QVector<ParserState> m_stack;
     QVector<QScxmlError> m_errors;
-    QScxmlParser::QtMode m_qtMode;
 };
 
 QT_END_NAMESPACE

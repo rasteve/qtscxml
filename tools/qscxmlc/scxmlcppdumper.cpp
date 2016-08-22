@@ -188,8 +188,7 @@ static void generateList(QString &out, std::function<QString(int)> next)
         out += line;
 }
 
-void generateTables(const GeneratedTableData &td, const QStringList &outgoingEvents,
-                    Replacements &replacements, bool useCxx11)
+void generateTables(const GeneratedTableData &td, Replacements &replacements)
 {
     { // instructions
         auto instr = td.theInstructions;
@@ -306,16 +305,6 @@ void generateTables(const GeneratedTableData &td, const QStringList &outgoingEve
         }
         replacements[QStringLiteral("uniLits")] = out;
         replacements[QStringLiteral("stringdataSize")] = QString::number(ucharCount + 1);
-    }
-
-    {
-        QStringList items;
-        foreach (const QString &event, outgoingEvents) {
-            items += QStringLiteral("QString({static_cast<QStringData*>(strings.data + %1)})")
-                    .arg(td.theStrings.indexOf(event));
-        }
-        replacements[QStringLiteral("outgoingEvents")] = createContainer(
-                    QStringLiteral("std::vector"), QStringLiteral("QString"), items, useCxx11);
     }
 }
 
@@ -470,7 +459,6 @@ void CppDumper::dump(TranslationUnit *unit)
                                    finalize, m_translationUnit->useCxx11);
         });
         classNames.append(mangleIdentifier(classnameForDocument.value(doc)));
-        std::sort(metaDataInfo->outgoingEvents.begin(), metaDataInfo->outgoingEvents.end());
     }
 
     const QString headerName = QFileInfo(m_translationUnit->outHFileName).fileName();
@@ -522,13 +510,9 @@ void CppDumper::writeHeaderStart(const QString &headerGuard, const QStringList &
 
 void CppDumper::writeClass(const QString &className, const GeneratedTableData::MetaDataInfo &info)
 {
-    const bool qtMode = m_translationUnit->mainDocument->qtMode;
     Replacements r;
     r[QStringLiteral("classname")] = className;
-    r[QStringLiteral("properties")] = generatePropertyDecls(info, qtMode);
-    r[QStringLiteral("signals")] = qtMode ? generateSignalDecls(info) : QString();
-    r[QStringLiteral("slots")] = qtMode ? generateSlotDecls(info) : QString();
-    r[QStringLiteral("getters")] = qtMode ? generateGetterDecls(info) : QString();
+    r[QStringLiteral("properties")] = generatePropertyDecls(info);
     genTemplate(h, QStringLiteral(":/decl.t"), r);
 }
 
@@ -597,8 +581,6 @@ void CppDumper::writeImplBody(const GeneratedTableData &table,
                               const QStringList &factory,
                               const GeneratedTableData::MetaDataInfo &info)
 {
-    const bool qtMode = m_translationUnit->mainDocument->qtMode;
-
     QString dataModelField, dataModelInitialization;
     switch (doc->root->dataModel) {
     case DocumentModel::Scxml::NullDataModel:
@@ -637,15 +619,13 @@ void CppDumper::writeImplBody(const GeneratedTableData &table,
     r[QStringLiteral("classname")] = className;
     r[QStringLiteral("name")] = name;
     r[QStringLiteral("initialSetup")] = QString::number(table.initialSetup());
-    generateTables(table, info.outgoingEvents, r, m_translationUnit->useCxx11);
+    generateTables(table, r);
     r[QStringLiteral("dataModelField")] = dataModelField;
     r[QStringLiteral("dataModelInitialization")] = dataModelInitialization;
     r[QStringLiteral("theStateMachineTable")] =
             GeneratedTableData::toString(table.stateMachineTable());
-    r[QStringLiteral("metaObject")] = generateMetaObject(className, info, qtMode);
+    r[QStringLiteral("metaObject")] = generateMetaObject(className, info);
     r[QStringLiteral("serviceFactories")] = serviceFactories;
-    r[QStringLiteral("slots")] = qtMode ? generateSlotDefs(className, info) : QString();
-    r[QStringLiteral("getters")] = qtMode ? generateGetterDefs(className, info) : QString();
     genTemplate(cpp, QStringLiteral(":/data.t"), r);
 }
 
@@ -721,99 +701,23 @@ QString CppDumper::mangleIdentifier(const QString &str)
     return mangled;
 }
 
-QString CppDumper::generatePropertyDecls(const GeneratedTableData::MetaDataInfo &info, bool qtMode)
+QString CppDumper::generatePropertyDecls(const GeneratedTableData::MetaDataInfo &info)
 {
     QString decls;
 
     foreach (const QString &stateName, info.stateNames) {
         if (!stateName.isEmpty()) {
             const QString decl = QString::fromLatin1(
-                        qtMode ? "    Q_PROPERTY(bool %1 READ %2 NOTIFY %2Changed)\n" :
                                  "    Q_PROPERTY(bool %1 NOTIFY %2Changed)\n");
             decls += decl.arg(stateName, mangleIdentifier(stateName));
         }
     }
 
-    QString namespacePrefix;
-    if (!m_translationUnit->namespaceName.isEmpty()) {
-        namespacePrefix = QStringLiteral("::%1").arg(m_translationUnit->namespaceName);
-    }
-
     return decls;
-}
-
-QString CppDumper::generateSignalDecls(const GeneratedTableData::MetaDataInfo &info)
-{
-    QString decls;
-
-    foreach (const QString &stateName, info.stateNames) {
-        decls += QStringLiteral("    void %1Changed(bool active);\n")
-                .arg(mangleIdentifier(stateName));
-    }
-
-    foreach (const QString &eventName, info.outgoingEvents) {
-        decls += QStringLiteral("    void %1(const QVariant &data);\n")
-                .arg(mangleIdentifier(eventName));
-    }
-
-    return decls;
-}
-
-QString CppDumper::generateSlotDecls(const GeneratedTableData::MetaDataInfo &info)
-{
-    QString decls;
-
-    foreach (const QString &eventName, info.incomingEvents) {
-        decls += QStringLiteral("    void %1(const QVariant &data = QVariant());\n")
-                .arg(mangleIdentifier(eventName));
-    }
-
-    return decls;
-}
-
-QString CppDumper::generateSlotDefs(const QString &className,
-                                    const GeneratedTableData::MetaDataInfo &info)
-{
-    QString defs;
-
-    foreach (const QString &eventName, info.incomingEvents) {
-        const auto mangledName = mangleIdentifier(eventName);
-        defs += QStringLiteral("void %1::%2(const QVariant &data)\n").arg(className, mangledName);
-        defs += QStringLiteral("{ submitEvent(QStringLiteral(\"%1\"), data); }\n\n").arg(eventName);
-    }
-
-    return defs;
-}
-
-QString CppDumper::generateGetterDecls(const GeneratedTableData::MetaDataInfo &info)
-{
-    QString decls;
-
-    foreach (const QString &stateName, info.stateNames) {
-        decls += QStringLiteral("    bool %1() const;\n").arg(mangleIdentifier(stateName));
-    }
-
-    return decls;
-}
-
-QString CppDumper::generateGetterDefs(const QString &className,
-                                      const GeneratedTableData::MetaDataInfo &info)
-{
-    QString defs;
-
-    int stateIndex = 0;
-    foreach (const QString &stateName, info.stateNames) {
-        defs += QStringLiteral("bool %1::%2() const\n").arg(className, mangleIdentifier(stateName));
-        defs += QStringLiteral("{ return isActive(%1); }\n\n").arg(stateIndex);
-        ++stateIndex;
-    }
-
-    return defs;
 }
 
 QString CppDumper::generateMetaObject(const QString &className,
-                                      const GeneratedTableData::MetaDataInfo &info,
-                                      bool m_qtMode)
+                                      const GeneratedTableData::MetaDataInfo &info)
 {
     ClassDef classDef;
     classDef.classname = className.toUtf8();
@@ -836,9 +740,8 @@ QString CppDumper::generateMetaObject(const QString &className,
         signal.name = mangledStateName + "Changed";
         signal.access = FunctionDef::Public;
         signal.isSignal = true;
-        if (!m_qtMode) {
-            signal.implementation = "QMetaObject::activate(_o, &staticMetaObject, %d, _a);";
-        }
+        signal.implementation = "QMetaObject::activate(_o, &staticMetaObject, %d, _a);";
+
         ArgumentDef arg;
         arg.type.name = "bool";
         arg.type.rawName = arg.type.name;
@@ -863,60 +766,6 @@ QString CppDumper::generateMetaObject(const QString &className,
     // sub-statemachines:
     QHash<QByteArray, QByteArray> knownQObjectClasses;
     knownQObjectClasses.insert(QByteArray("QScxmlStateMachine"), QByteArray());
-
-    // Event signals:
-    foreach (const QString &signalName, info.outgoingEvents) {
-        FunctionDef signal;
-        signal.type.name = "void";
-        signal.type.rawName = signal.type.name;
-        signal.normalizedType = signal.type.name;
-        signal.name = signalName.toUtf8();
-        signal.access = FunctionDef::Public;
-        signal.isSignal = true;
-
-        ArgumentDef arg;
-        arg.type.name = "const QVariant &";
-        arg.type.rawName = arg.type.name;
-        arg.normalizedType = "QVariant";
-        arg.name = "data";
-        arg.typeNameForCast = arg.normalizedType + "*";
-        signal.arguments << arg;
-
-        classDef.signalList << signal;
-    }
-
-    // event slots:
-    foreach (const QString &eventName, info.incomingEvents) {
-        FunctionDef slot;
-        slot.type.name = "void";
-        slot.type.rawName = slot.type.name;
-        slot.normalizedType = slot.type.name;
-        slot.name = eventName.toUtf8();
-        slot.access = FunctionDef::Public;
-        slot.isSlot = true;
-
-        ArgumentDef arg;
-        arg.type.name = "const QVariant &";
-        arg.type.rawName = arg.type.name;
-        arg.normalizedType = "QVariant";
-        arg.name = "data";
-        arg.typeNameForCast = arg.normalizedType + "*";
-        slot.arguments << arg;
-
-        classDef.slotList << slot;
-    }
-
-    foreach (const QString &eventName, info.incomingEvents) {
-        FunctionDef slot;
-        slot.type.name = "void";
-        slot.type.rawName = slot.type.name;
-        slot.normalizedType = slot.type.name;
-        slot.name = eventName.toUtf8();
-        slot.access = FunctionDef::Public;
-        slot.isSlot = true;
-
-        classDef.slotList << slot;
-    }
 
     QBuffer buf;
     buf.open(QIODevice::WriteOnly);

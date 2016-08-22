@@ -92,7 +92,7 @@ class TheDataModel: public QScxmlCppDataModel
             <script>
                 media = eventData().value(QStringLiteral(&quot;media&quot;)).toString();
             </script>
-            <send type="qt:signal" event="playbackStarted">
+            <send event="playbackStarted">
                 <param name="media" expr="media"/>
             </send>
         </onentry>

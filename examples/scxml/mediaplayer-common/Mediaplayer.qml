@@ -50,7 +50,7 @@
 
 import QtQuick 2.5
 import QtQuick.Window 2.2
-import QtScxml 5.7 as Scxml
+import QtScxml 5.7
 
 Window {
     id: root
@@ -111,27 +111,30 @@ Window {
         color: stateMachine.playing ? "green" : "red"
     }
 
-    Scxml.StateMachineLoader {
+    StateMachineLoader {
         id: scxmlLoader
     }
 
-    Connections {
-        target: stateMachine
-        onPlaybackStarted: {
-            var media = data.media
-            theText.text = "Playing '" + media + "'"
-            theLog.text = theLog.text + "\nplaybackStarted with data: " + JSON.stringify(data)
-        }
-        onPlaybackStopped: {
-            var media = data.media
-            theText.text = "Stopped '" + media + "'"
-            theLog.text = theLog.text + "\nplaybackStopped with data: " + JSON.stringify(data)
+    EventConnection {
+        stateMachine: root.stateMachine
+        events: ["playbackStarted", "playbackStopped"]
+        onOccurred: {
+            var media = event.data.media
+            if (event.name === "playbackStarted") {
+                theText.text = "Playing '" + media + "'"
+                theLog.text = theLog.text + "\nplaybackStarted with data: "
+                                          + JSON.stringify(event.data)
+            } else if (event.name === "playbackStopped") {
+                theText.text = "Stopped '" + media + "'"
+                theLog.text = theLog.text + "\nplaybackStopped with data: "
+                                          + JSON.stringify(event.data)
+            }
         }
     }
 
     function tap(idx) {
         var media = theModel.get(idx).media
         var data = { "media": media }
-        stateMachine.tap(data)
+        stateMachine.submitEvent("tap", data)
     }
 }

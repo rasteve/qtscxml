@@ -40,7 +40,6 @@ struct ${classname}::Data: private QScxmlTableData {
     { return theStateMachineTable; }
 
     QScxmlInvokableServiceFactory *serviceFactory(int id) const Q_DECL_OVERRIDE Q_DECL_FINAL;
-    int signalIndexForEvent(const QString &event) const Q_DECL_OVERRIDE Q_DECL_FINAL;
 
     ${classname} &stateMachine;
     ${dataModelField}
@@ -55,8 +54,6 @@ struct ${classname}::Data: private QScxmlTableData {
         QArrayData data[${stringCount}];
         qunicodechar stringdata[${stringdataSize}];
     } strings;
-
-    static std::vector<QString> outgoingEvents;
 };
 
 ${classname}::${classname}(QObject *parent)
@@ -70,20 +67,6 @@ ${classname}::~${classname}()
 QScxmlInvokableServiceFactory *${classname}::Data::serviceFactory(int id) const
 {
 ${serviceFactories}
-}
-
-std::vector<QString> ${classname}::Data::outgoingEvents = {
-${outgoingEvents}
-};
-
-int ${classname}::Data::signalIndexForEvent(const QString &event) const
-{
-    auto it = std::lower_bound(outgoingEvents.begin(), outgoingEvents.end(), event);
-    if (it != outgoingEvents.end() && *it == event) {
-        return int(std::distance(outgoingEvents.begin(), it));
-    } else {
-        return -1;
-    }
 }
 
 qint32 ${classname}::Data::theInstructions[] = {
@@ -119,5 +102,3 @@ ${uniLits}
 const qint32 ${classname}::Data::theStateMachineTable[] = ${theStateMachineTable};
 
 ${metaObject}
-${getters}
-${slots}

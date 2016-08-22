@@ -28,7 +28,6 @@
 **
 ****************************************************************************/
 -->
-<!-- enable-qt-mode: no -->
 <scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" name="eventnames2">
     <state id="a">
         <onentry>

@@ -57,6 +57,10 @@ QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
 }
+
+class QScxmlEvent;
+class QScxmlStateMachine;
+
 QT_END_NAMESPACE
 
 class MainWindow : public QWidget
@@ -64,15 +68,12 @@ class MainWindow : public QWidget
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QScxmlStateMachine *stateMachine, QWidget *parent = 0);
     ~MainWindow();
 
-signals:
-    void tap(const QVariant &data);
-
 public slots:
-    void started(const QVariant &data);
-    void stopped(const QVariant &data);
+    void started(const QScxmlEvent &event);
+    void stopped(const QScxmlEvent &event);
 
 private:
     QT_PREPEND_NAMESPACE(Ui::MainWindow) *ui;
