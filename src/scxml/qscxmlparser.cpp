@@ -49,7 +49,6 @@
 #include <QString>
 
 #ifndef BUILD_QSCXMLC
-#include "qscxmlnulldatamodel.h"
 #include "qscxmlecmascriptdatamodel.h"
 #include "qscxmlinvokableservice.h"
 #include "qscxmldatamodel_p.h"

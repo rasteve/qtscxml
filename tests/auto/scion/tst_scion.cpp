@@ -32,7 +32,6 @@
 
 #include <QtScxml/qscxmlparser.h>
 #include <QtScxml/qscxmlecmascriptdatamodel.h>
-#include <QtScxml/qscxmlnulldatamodel.h>
 
 #include <functional>
 
