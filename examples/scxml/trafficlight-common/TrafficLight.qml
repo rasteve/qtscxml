@@ -71,28 +71,28 @@ Window {
             }
         }
 
-        Image {
-            id: redLight
-            x: (lights.width - width) / 2
+        Column {
             y: 40
-            source: "red.png"
-            visible: stateMachine.red || stateMachine.redGoingGreen
-        }
+            spacing: 27
+            anchors.horizontalCenter: parent.horizontalCenter
 
-        Image {
-            id: yellowLight
-            x: (lights.width - width) / 2
-            y: 135
-            source: "yellow.png"
-            visible: stateMachine.yellow || stateMachine.blinking
-        }
+            Image {
+                id: redLight
+                source: "red.png"
+                opacity: stateMachine.red || stateMachine.redGoingGreen ? 1 : 0.2
+            }
 
-        Image {
-            id: greenLight
-            x: (lights.width - width) / 2
-            y: 230
-            source: "green.png"
-            visible: stateMachine.green
+            Image {
+                id: yellowLight
+                source: "yellow.png"
+                opacity: stateMachine.yellow || stateMachine.blinking ? 1 : 0.2
+            }
+
+            Image {
+                id: greenLight
+                source: "green.png"
+                opacity: stateMachine.green ? 1 : 0.2
+            }
         }
     }
 
