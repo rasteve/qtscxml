@@ -77,8 +77,17 @@ Window {
 
         button.source: stateMachine.working ? "pause.png" : "play.png"
 
-        redLight.opacity: stateMachine.red || stateMachine.redGoingGreen ? 1 : 0.2
-        yellowLight.opacity: stateMachine.yellow || stateMachine.blinking ? 1 : 0.2
-        greenLight.opacity: stateMachine.green ? 1 : 0.2
+        state: {
+            if (stateMachine.red)
+                return "Red"
+            if (stateMachine.redGoingGreen)
+                return "RedGoingGreen"
+            if (stateMachine.green)
+                return "Green"
+            if (stateMachine.yellow || stateMachine.blinking)
+                return "Yellow"
+            return ""
+        }
+
     }
 }

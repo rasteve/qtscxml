@@ -75,16 +75,19 @@ Image {
 
         Image {
             id: redLight
+            opacity: 0.2
             source: "red.png"
         }
 
         Image {
             id: yellowLight
+            opacity: 0.2
             source: "yellow.png"
         }
 
         Image {
             id: greenLight
+            opacity: 0.2
             source: "green.png"
         }
     }
@@ -97,4 +100,42 @@ Image {
         anchors.margins: 20
         source: "pause.png"
     }
+    states: [
+        State {
+            name: "Red"
+
+            PropertyChanges {
+                target: redLight
+                opacity: 1
+            }
+        },
+        State {
+            name: "RedGoingGreen"
+            PropertyChanges {
+                target: redLight
+                opacity: 1
+            }
+
+            PropertyChanges {
+                target: yellowLight
+                opacity: 1
+            }
+        },
+        State {
+            name: "Yellow"
+
+            PropertyChanges {
+                target: yellowLight
+                opacity: 1
+            }
+        },
+        State {
+            name: "Green"
+
+            PropertyChanges {
+                target: greenLight
+                opacity: 1
+            }
+        }
+    ]
 }
