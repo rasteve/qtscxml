@@ -2,6 +2,7 @@
     <qresource prefix="/">
         <file alias="TrafficLight.qml">../trafficlight-common/TrafficLight.qml</file>
         <file alias="Button.qml">../trafficlight-common/Button.qml</file>
+        <file alias="Lights.ui.qml">../trafficlight-common/Lights.ui.qml</file>
         <file>trafficlight-qml-dynamic.qml</file>
         <file alias="statemachine.scxml">../trafficlight-common/statemachine.scxml</file>
         <file alias="green.png">../trafficlight-common/green.png</file>

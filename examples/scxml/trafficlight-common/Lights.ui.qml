@@ -48,37 +48,53 @@
 **
 ****************************************************************************/
 
+
 import QtQuick 2.5
 import QtQuick.Window 2.2
 
-Window {
-    id: root
-    property QtObject stateMachine
+Image {
+    id: lights
 
-    visible: true
-    color: "black"
-    width: lights.width
-    height: lights.height
+    property alias mouseArea: mouseArea
+    property alias button: button
+    property alias redLight: redLight
+    property alias yellowLight: yellowLight
+    property alias greenLight: greenLight
 
-    Lights {
-        id: lights
+    source: "background.png"
 
-        mouseArea.onClicked: {
-            Qt.quit();
+    MouseArea {
+        id: mouseArea
+        anchors.fill: parent
+    }
+
+    Column {
+        y: 40
+        spacing: 27
+        anchors.horizontalCenter: parent.horizontalCenter
+
+        Image {
+            id: redLight
+            source: "red.png"
         }
 
-        button.onClicked: {
-
-            if (stateMachine.working)
-                stateMachine.submitEvent("smash")
-            else
-                stateMachine.submitEvent("repair")
+        Image {
+            id: yellowLight
+            source: "yellow.png"
         }
 
-        button.source: stateMachine.working ? "pause.png" : "play.png"
+        Image {
+            id: greenLight
+            source: "green.png"
+        }
+    }
 
-        redLight.opacity: stateMachine.red || stateMachine.redGoingGreen ? 1 : 0.2
-        yellowLight.opacity: stateMachine.yellow || stateMachine.blinking ? 1 : 0.2
-        greenLight.opacity: stateMachine.green ? 1 : 0.2
+    Button {
+        id: button
+
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.margins: 20
+        source: "pause.png"
     }
 }
