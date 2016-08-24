@@ -50,10 +50,11 @@
 
 import QtQuick 2.5
 import QtQuick.Window 2.2
+import TrafficLightStateMachine 1.0
 
 Window {
     id: root
-    property QtObject stateMachine
+    property TrafficLightStateMachine stateMachine
 
     visible: true
     color: "black"
