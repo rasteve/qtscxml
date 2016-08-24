@@ -58,7 +58,6 @@ Window {
     property TrafficLightStateMachine stateMachine
 
     visible: true
-    color: "black"
     width: lights.width
     height: lights.height
 
@@ -66,19 +65,8 @@ Window {
         id: lights
 
         stateMachine: root.stateMachine
-
-        mouseArea.onClicked: {
-            Qt.quit();
-        }
-
-        button.onClicked: {
-
-            if (stateMachine.working)
-                stateMachine.submitEvent("smash")
-            else
-                stateMachine.submitEvent("repair")
-        }
-
         button.source: stateMachine.working ? "pause.png" : "play.png"
+
+        button.onClicked: stateMachine.submitEvent(stateMachine.working ? "smash" : "repair");
     }
 }

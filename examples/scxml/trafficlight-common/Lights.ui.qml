@@ -56,20 +56,10 @@ import TrafficLightStateMachine 1.0
 Image {
     id: lights
 
-    property alias mouseArea: mouseArea
     property alias button: button
-    property alias redLight: redLight
-    property alias yellowLight: yellowLight
-    property alias greenLight: greenLight
-
     property TrafficLightStateMachine stateMachine
 
     source: "background.png"
-
-    MouseArea {
-        id: mouseArea
-        anchors.fill: parent
-    }
 
     Column {
         y: 40
@@ -103,6 +93,7 @@ Image {
         anchors.margins: 20
         source: "pause.png"
     }
+
     states: [
         State {
             name: "Red"
