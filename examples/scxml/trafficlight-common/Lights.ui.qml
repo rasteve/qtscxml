@@ -51,6 +51,7 @@
 
 import QtQuick 2.5
 import QtQuick.Window 2.2
+import TrafficLightStateMachine 1.0
 
 Image {
     id: lights
@@ -60,6 +61,8 @@ Image {
     property alias redLight: redLight
     property alias yellowLight: yellowLight
     property alias greenLight: greenLight
+
+    property TrafficLightStateMachine stateMachine
 
     source: "background.png"
 
@@ -103,6 +106,7 @@ Image {
     states: [
         State {
             name: "Red"
+            when: stateMachine.red
 
             PropertyChanges {
                 target: redLight
@@ -111,6 +115,8 @@ Image {
         },
         State {
             name: "RedGoingGreen"
+            when: stateMachine.redGoingGreen
+
             PropertyChanges {
                 target: redLight
                 opacity: 1
@@ -123,6 +129,7 @@ Image {
         },
         State {
             name: "Yellow"
+            when: stateMachine.yellow || stateMachine.blinking
 
             PropertyChanges {
                 target: yellowLight
@@ -131,6 +138,7 @@ Image {
         },
         State {
             name: "Green"
+            when: stateMachine.green
 
             PropertyChanges {
                 target: greenLight

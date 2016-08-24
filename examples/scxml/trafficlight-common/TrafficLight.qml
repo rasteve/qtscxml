@@ -54,6 +54,7 @@ import TrafficLightStateMachine 1.0
 
 Window {
     id: root
+
     property TrafficLightStateMachine stateMachine
 
     visible: true
@@ -63,6 +64,8 @@ Window {
 
     Lights {
         id: lights
+
+        stateMachine: root.stateMachine
 
         mouseArea.onClicked: {
             Qt.quit();
@@ -77,18 +80,5 @@ Window {
         }
 
         button.source: stateMachine.working ? "pause.png" : "play.png"
-
-        state: {
-            if (stateMachine.red)
-                return "Red"
-            if (stateMachine.redGoingGreen)
-                return "RedGoingGreen"
-            if (stateMachine.green)
-                return "Green"
-            if (stateMachine.yellow || stateMachine.blinking)
-                return "Yellow"
-            return ""
-        }
-
     }
 }
