@@ -14,6 +14,7 @@ qtHaveModule(qml) {
     SUBDIRS +=  calculator-qml
     SUBDIRS +=  trafficlight-qml-static
     SUBDIRS +=  trafficlight-qml-dynamic
+    SUBDIRS +=  trafficlight-qml-simple
     SUBDIRS +=  mediaplayer-qml-static
     SUBDIRS +=  mediaplayer-qml-dynamic
 
