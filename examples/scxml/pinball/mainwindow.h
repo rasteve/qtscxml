@@ -57,26 +57,22 @@ QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
 }
-class QScxmlEvent;
+class QScxmlStateMachine;
 QT_END_NAMESPACE
 
-class Pinball;
 
 class MainWindow : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit MainWindow(Pinball *machine, QWidget *parent = 0);
+    explicit MainWindow(QScxmlStateMachine *machine, QWidget *parent = 0);
     ~MainWindow();
-
-private slots:
-    void eventOccurred(const QScxmlEvent &event);
 
 private:
     void initAndConnect(const QString &state, QWidget *widget);
     QT_PREPEND_NAMESPACE(Ui::MainWindow) *m_ui;
-    Pinball *m_machine;
+    QScxmlStateMachine *m_machine;
 };
 
 #endif // MAINWINDOW_H

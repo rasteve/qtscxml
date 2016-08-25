@@ -12,5 +12,5 @@
     corresponding signals:
 
     \quotefromfile mediaplayer-common/mainwindow.cpp
-    \skipto connect(ui
+    \skipto connectToEvent
     \printuntil playbackStopped

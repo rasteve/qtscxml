@@ -52,11 +52,11 @@
 #include "ui_mainwindow.h"
 
 #include <QStringListModel>
-#include "pinball.h"
+#include <QScxmlStateMachine>
 
 QT_USE_NAMESPACE
 
-MainWindow::MainWindow(Pinball *machine, QWidget *parent) :
+MainWindow::MainWindow(QScxmlStateMachine *machine, QWidget *parent) :
     QWidget(parent),
     m_ui(new Ui::MainWindow),
     m_machine(machine)
@@ -89,7 +89,13 @@ MainWindow::MainWindow(Pinball *machine, QWidget *parent) :
     initAndConnect(QLatin1String("onState"), m_ui->ballOutButton);
 
     // datamodel update
-    m_machine->connectToEvent("updateScore", this, &MainWindow::eventOccurred);
+    m_machine->connectToEvent("updateScore", [this] (const QScxmlEvent &event) {
+        const QVariant data = event.data();
+        const QString highScore = data.toMap().value("highScore").toString();
+        m_ui->highScoreLabel->setText(highScore);
+        const QString score = data.toMap().value("score").toString();
+        m_ui->scoreLabel->setText(score);
+    });
 
     // gui interaction
     connect(m_ui->cButton, &QAbstractButton::clicked,
@@ -125,13 +131,3 @@ void MainWindow::initAndConnect(const QString &state, QWidget *widget)
     widget->setEnabled(m_machine->isActive(state));
     m_machine->connectToState(state, widget, &QWidget::setEnabled);
 }
-
-void MainWindow::eventOccurred(const QScxmlEvent &event)
-{
-    const QVariant data = event.data();
-    const QString highScore = data.toMap().value("highScore").toString();
-    m_ui->highScoreLabel->setText(highScore);
-    const QString score = data.toMap().value("score").toString();
-    m_ui->scoreLabel->setText(score);
-}
-

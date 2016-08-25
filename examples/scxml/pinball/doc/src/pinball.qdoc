@@ -423,12 +423,12 @@
     \printuntil /^\ {16}<\//
 
     When we receive the \c updateLights event, we first want to send a
-    \c updateScore signal outside of the state machine. We pass
-    the current values of the \c highScore and \c score variables to the signal.
-    This signal is received by the C++ part.
+    \c updateScore event outside of the state machine. We pass
+    the current values of the \c highScore and \c score variables to the event.
+    This event is received by the C++ part.
 
     Next, depending on whether we are in \c jackpotStateOn or \c jackpotStateOff,
-    we send the \c turnOnJackpot or the \c turnOffJackpot signal,
+    we send the \c turnOnJackpot or the \c turnOffJackpot event,
     which instructs the \c guiControl state to transition to
     \c jackpotLightOn or \c jackpotLightOff, respectively.
 
@@ -454,7 +454,7 @@
     The class is declared in \e mainwindow.h.
 
     \quotefromfile pinball/mainwindow.h
-    \skipto Pinball
+    \skipto MainWindow
     \printuntil };
 
     The \c MainWindow class holds the pointer to the
@@ -482,10 +482,9 @@
     the widget is disabled. We do that for all lights, targets,
     and description labels.
 
-    We also connect to the \c eventOccurred() signal, propagated
-    by the state machine and intercept the \c updateScore
-    event sent from the SCXML document in order to update
-    the score displays with the values passed with the event.
+    We also intercept the \c updateScore event sent by the state machine,
+    in order to update the score displays with the values
+    passed with the event.
 
     The info about hitting any GUI target needs to be passed
     to the state machine and we do that by connecting

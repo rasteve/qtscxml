@@ -63,7 +63,7 @@ class TrafficLight : public QWidget
 public:
     TrafficLight(QScxmlStateMachine *machine, QWidget *parent = 0);
 
-public slots:
+private slots:
     void toggleWorking(bool pause);
 
 private:

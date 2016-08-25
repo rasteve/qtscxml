@@ -71,7 +71,7 @@ public:
     explicit MainWindow(QScxmlStateMachine *stateMachine, QWidget *parent = 0);
     ~MainWindow();
 
-public slots:
+private slots:
     void started(const QScxmlEvent &event);
     void stopped(const QScxmlEvent &event);
 
