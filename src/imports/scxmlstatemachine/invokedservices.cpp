@@ -37,61 +37,62 @@
 **
 ****************************************************************************/
 
-#include "substatemachines.h"
+#include "invokedservices.h"
+#include <QtScxml/qscxmlinvokableservice.h>
 
 QT_BEGIN_NAMESPACE
 
-QScxmlSubStateMachines::QScxmlSubStateMachines(QObject *parent) : QObject(parent)
+QScxmlInvokedServices::QScxmlInvokedServices(QObject *parent) : QObject(parent)
 {
 }
 
-QVariantMap QScxmlSubStateMachines::children()
+QVariantMap QScxmlInvokedServices::children()
 {
     QVariantMap ret;
     if (m_stateMachine) {
-        const QVector<QScxmlStateMachine *> children = m_stateMachine->runningSubStateMachines();
-        for (QScxmlStateMachine *stateMachine : children)
-            ret.insertMulti(stateMachine->name(), QVariant::fromValue(stateMachine));
+        const QVector<QScxmlInvokableService *> children = m_stateMachine->invokedServices();
+        for (QScxmlInvokableService *service : children)
+            ret.insertMulti(service->name(), QVariant::fromValue(service));
     }
     return ret;
 }
 
-void QScxmlSubStateMachines::classBegin()
+void QScxmlInvokedServices::classBegin()
 {
 }
 
-QScxmlStateMachine *QScxmlSubStateMachines::stateMachine() const
+QScxmlStateMachine *QScxmlInvokedServices::stateMachine() const
 {
     return m_stateMachine;
 }
 
-void QScxmlSubStateMachines::setStateMachine(QScxmlStateMachine *stateMachine)
+void QScxmlInvokedServices::setStateMachine(QScxmlStateMachine *stateMachine)
 {
     if (stateMachine != m_stateMachine) {
         if (m_stateMachine) {
-            disconnect(m_stateMachine, &QScxmlStateMachine::runningSubStateMachinesChanged,
-                       this, &QScxmlSubStateMachines::childrenChanged);
+            disconnect(m_stateMachine, &QScxmlStateMachine::invokedServicesChanged,
+                       this, &QScxmlInvokedServices::childrenChanged);
         }
         m_stateMachine = stateMachine;
-        connect(m_stateMachine, &QScxmlStateMachine::runningSubStateMachinesChanged,
-                this, &QScxmlSubStateMachines::childrenChanged);
+        connect(m_stateMachine, &QScxmlStateMachine::invokedServicesChanged,
+                this, &QScxmlInvokedServices::childrenChanged);
         emit stateMachineChanged();
         emit childrenChanged();
     }
 }
 
-QQmlListProperty<QObject> QScxmlSubStateMachines::qmlChildren()
+QQmlListProperty<QObject> QScxmlInvokedServices::qmlChildren()
 {
     return QQmlListProperty<QObject>(this, m_qmlChildren);
 }
 
 
-void QScxmlSubStateMachines::componentComplete()
+void QScxmlInvokedServices::componentComplete()
 {
     if (!m_stateMachine) {
         if ((m_stateMachine = qobject_cast<QScxmlStateMachine *>(parent()))) {
-            connect(m_stateMachine, &QScxmlStateMachine::runningSubStateMachinesChanged,
-                    this, &QScxmlSubStateMachines::childrenChanged);
+            connect(m_stateMachine, &QScxmlStateMachine::invokedServicesChanged,
+                    this, &QScxmlInvokedServices::childrenChanged);
         }
     }
 }

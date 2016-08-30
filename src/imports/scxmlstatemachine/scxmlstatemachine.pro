@@ -8,13 +8,13 @@ SOURCES = \
     $$PWD/statemachineloader.cpp \
     $$PWD/eventconnection.cpp \
     $$PWD/statemachineextended.cpp \
-    $$PWD/substatemachines.cpp
+    $$PWD/invokedservices.cpp
 
 HEADERS = \
     $$PWD/statemachineloader.h \
     $$PWD/eventconnection.h \
     $$PWD/statemachineextended.h \
-    $$PWD/substatemachines.h
+    $$PWD/invokedservices.h
 
 load(qml_plugin)
 

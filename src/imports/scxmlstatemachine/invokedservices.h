@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef SUBSTATEMACHINES_H
-#define SUBSTATEMACHINES_H
+#ifndef INVOKEDSERVICES_H
+#define INVOKEDSERVICES_H
 
 #include <QtQml/qqmlparserstatus.h>
 #include <QtQml/qqmllist.h>
@@ -46,7 +46,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QScxmlSubStateMachines : public QObject, public QQmlParserStatus
+class QScxmlInvokedServices : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
     Q_PROPERTY(QScxmlStateMachine *stateMachine READ stateMachine WRITE setStateMachine
@@ -56,7 +56,7 @@ class QScxmlSubStateMachines : public QObject, public QQmlParserStatus
     Q_INTERFACES(QQmlParserStatus)
     Q_CLASSINFO("DefaultProperty", "qmlChildren")
 public:
-    QScxmlSubStateMachines(QObject *parent = 0);
+    QScxmlInvokedServices(QObject *parent = 0);
     QVariantMap children();
 
     QScxmlStateMachine *stateMachine() const;
@@ -78,4 +78,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // SUBSTATEMACHINES_H
+#endif // INVOKEDSERVICES_H
