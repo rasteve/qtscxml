@@ -1176,6 +1176,15 @@ DocumentModel::Node::~Node()
 {
 }
 
+DocumentModel::AbstractState *DocumentModel::Node::asAbstractState()
+{
+    if (State *state = asState())
+        return state;
+    if (HistoryState *history = asHistoryState())
+        return history;
+    return Q_NULLPTR;
+}
+
 void DocumentModel::DataElement::accept(DocumentModel::NodeVisitor *visitor)
 {
     visitor->visit(this);
@@ -1981,7 +1990,7 @@ bool QScxmlParserPrivate::postReadElementData()
     DocumentModel::DataElement *data = Q_NULLPTR;
     if (auto state = m_currentState->asState()) {
         data = state->dataElements.last();
-    } else if (auto scxml = m_currentState->asNode()->asScxml()) {
+    } else if (auto scxml = m_currentState->asScxml()) {
         data = scxml->dataElements.last();
     } else {
         Q_UNREACHABLE();

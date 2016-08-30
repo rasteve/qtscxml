@@ -98,6 +98,7 @@ struct Node {
     virtual Transition *asTransition() { return Q_NULLPTR; }
     virtual HistoryState *asHistoryState() { return Q_NULLPTR; }
     virtual Scxml *asScxml() { return Q_NULLPTR; }
+    AbstractState *asAbstractState();
 
 private:
     Q_DISABLE_COPY(Node)
@@ -270,7 +271,6 @@ struct StateContainer
     virtual AbstractState *asAbstractState() { return Q_NULLPTR; }
     virtual State *asState() { return Q_NULLPTR; }
     virtual Scxml *asScxml() { return Q_NULLPTR; }
-    Node *asNode() { return dynamic_cast<Node *>(this); }
 };
 
 struct AbstractState: public StateContainer
