@@ -78,9 +78,9 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
 /*!
     \fn QScxmlStateMachine::connectToEvent(const QString &scxmlEventSpec,
-                                          const QObject *receiver,
-                                          PointerToMemberFunction method,
-                                          Qt::ConnectionType type)
+                                           const QObject *receiver,
+                                           PointerToMemberFunction method,
+                                           Qt::ConnectionType type)
 
     Creates an automatic connection from the event specified by
     \a scxmlEventSpec to \a method in the \a receiver object.
@@ -90,8 +90,8 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
 /*!
     \fn QScxmlStateMachine::connectToEvent(const QString &scxmlEventSpec,
-                                          Functor functor,
-                                          Qt::ConnectionType type)
+                                           Functor functor,
+                                           Qt::ConnectionType type)
 
     Creates an automatic connection from the event specified by
     \a scxmlEventSpec to \a functor.
@@ -99,9 +99,9 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
 /*!
     \fn QScxmlStateMachine::connectToEvent(const QString &scxmlEventSpec,
-                                          const QObject *context,
-                                          Functor functor,
-                                          Qt::ConnectionType type)
+                                           const QObject *context,
+                                           Functor functor,
+                                           Qt::ConnectionType type)
 
     Creates an automatic connection from the event specified by
     \a scxmlEventSpec to \a functor using \a context as context.
