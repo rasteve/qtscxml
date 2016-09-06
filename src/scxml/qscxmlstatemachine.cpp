@@ -177,6 +177,102 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
     Returns a handle to the connection, which can be used later to disconnect.
 */
 
+/*!
+    \fn auto QScxmlStateMachine::onEntry(const QObject *receiver,
+                                         const char *method)
+
+    Returns a functor that accepts a boolean argument and calls the given
+    \a method on \a receiver using QMetaObject::invokeMethod() if that argument
+    is \c true and \a receiver has not been deleted, yet.
+
+    The given \a method must not accept any arguments. \a method is the plain
+    method name, not enclosed in \c SIGNAL() or \c SLOT().
+
+    This is useful to wrap handlers for connectToState() that should only
+    be executed when the state is entered.
+
+    onEntry() is only available if the compiler supports return type
+    deduction for functions.
+*/
+
+/*!
+    \fn auto QScxmlStateMachine::onExit(const QObject *receiver,
+                                        const char *method)
+
+    Returns a functor that accepts a boolean argument and calls the given
+    \a method on \a receiver using QMetaObject::invokeMethod() if that argument
+    is \c false and \a receiver has not been deleted, yet.
+
+    The given \a method must not accept any arguments. \a method is the plain
+    method name, not enclosed in SIGNAL(...) or SLOT(...).
+
+    This is useful to wrap handlers for connectToState() that should only
+    be executed when the state is left.
+
+    onExit() is only available if the compiler supports return type
+    deduction for functions.
+*/
+
+/*!
+    \fn QScxmlStateMachine::onEntry(Functor functor)
+
+    Returns a functor that accepts a boolean argument and calls the given
+    \a functor if that argument is \c true. The given \a functor must not
+    accept any arguments.
+
+    This is useful to wrap handlers for connectToState() that should only
+    be executed when the state is entered.
+
+    onEntry() is only available if the compiler supports return type
+    deduction for functions.
+ */
+
+/*!
+    \fn QScxmlStateMachine::onExit(Functor functor)
+
+    Returns a functor that accepts a boolean argument and calls the given
+    \a functor if that argument is \c false. The given \a functor must not
+    accept any arguments.
+
+    This is useful to wrap handlers for connectToState() that should only
+    be executed when the state is left.
+
+    onExit() is only available if the compiler supports return type
+    deduction for functions.
+ */
+
+/*!
+    \fn QScxmlStateMachine::onEntry(const QObject *receiver,
+                                    PointerToMemberFunction method)
+
+    Returns a functor that accepts a boolean argument and calls the given
+    \a method on \a receiver if that argument is \c true and the \a receiver
+    has not been deleted, yet. The given \a method must not accept any
+    arguments.
+
+    This is useful to wrap handlers for connectToState() that should only
+    be executed when the state is entered.
+
+    onEntry() is only available if the compiler supports return type
+    deduction for functions.
+ */
+
+/*!
+    \fn QScxmlStateMachine::onExit(const QObject *receiver,
+                                   PointerToMemberFunction method)
+
+    Returns a functor that accepts a boolean argument and calls the given
+    \a method on \a receiver if that argument is \c false and the \a receiver
+    has not been deleted, yet. The given \a method must not accept any
+    arguments.
+
+    This is useful to wrap handlers for connectToState() that should only
+    be executed when the state is left.
+
+    onExit() is only available if the compiler supports return type
+    deduction for functions.
+ */
+
 namespace QScxmlInternal {
 
 static int signalIndex(const QMetaObject *meta, const QByteArray &signalName)
