@@ -55,6 +55,6 @@ MainView {
 
     Scxml.StateMachineLoader {
         id: directions
-        filename: "qrc:///statemachine.scxml"
+        source: "qrc:///statemachine.scxml"
     }
 }

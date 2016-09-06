@@ -13,7 +13,7 @@ Module {
         prototype: "QObject"
         exports: ["QtScxml/StateMachineLoader 5.7"]
         exportMetaObjectRevisions: [0]
-        Property { name: "filename"; type: "QUrl" }
+        Property { name: "source"; type: "QUrl" }
         Property { name: "stateMachine"; type: "QScxmlStateMachine"; isReadonly: true; isPointer: true }
         Property { name: "initialValues"; type: "QVariantMap" }
         Property { name: "dataModel"; type: "QScxmlDataModel"; isPointer: true }

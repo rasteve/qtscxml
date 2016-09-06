@@ -55,7 +55,7 @@ import QtScxml 5.7
 Window {
     id: root
     property QtObject stateMachine: scxmlLoader.stateMachine
-    property alias filename: scxmlLoader.filename
+    property alias source: scxmlLoader.source
 
     visible: true
     width: 750

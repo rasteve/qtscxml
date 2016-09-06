@@ -49,5 +49,5 @@
 ****************************************************************************/
 
 Mediaplayer {
-    filename: "qrc:///mediaplayer.scxml"
+    source: "qrc:///mediaplayer.scxml"
 }
