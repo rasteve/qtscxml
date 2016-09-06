@@ -70,7 +70,7 @@ class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
     Q_PROPERTY(bool initialized READ isInitialized NOTIFY initializedChanged)
     Q_PROPERTY(QScxmlDataModel *dataModel READ dataModel WRITE setDataModel NOTIFY dataModelChanged)
     Q_PROPERTY(QVariantMap initialValues READ initialValues WRITE setInitialValues NOTIFY initialValuesChanged)
-    Q_PROPERTY(QVector<QScxmlStateMachine *> runningSubStateMachines READ runningSubStateMachines NOTIFY runningSubStateMachinesChanged)
+    Q_PROPERTY(QVector<QScxmlInvokableService *> invokedServices READ invokedServices NOTIFY invokedServicesChanged)
     Q_PROPERTY(QString sessionId READ sessionId CONSTANT)
     Q_PROPERTY(QString name READ name CONSTANT)
     Q_PROPERTY(bool invoked READ isInvoked CONSTANT)
@@ -235,11 +235,11 @@ public:
 
     Q_INVOKABLE bool isDispatchableTarget(const QString &target) const;
 
-    QVector<QScxmlStateMachine *> runningSubStateMachines() const;
+    QVector<QScxmlInvokableService *> invokedServices() const;
 
 Q_SIGNALS:
     void runningChanged(bool running);
-    void runningSubStateMachinesChanged(const QVector<QScxmlStateMachine *> &runningMachines);
+    void invokedServicesChanged(const QVector<QScxmlInvokableService *> &invokedServices);
     void log(const QString &label, const QString &msg);
     void reachedStableState();
     void finished();
@@ -262,7 +262,6 @@ protected: // methods for friends:
 #ifndef Q_QDOC
     // The methods below are used by the compiled state machines.
     bool isActive(int stateIndex) const;
-    QScxmlStateMachine *runningSubStateMachine(int index) const;
     QScxmlTableData *tableData() const;
     void setTableData(QScxmlTableData *tableData);
 #endif // Q_QDOC

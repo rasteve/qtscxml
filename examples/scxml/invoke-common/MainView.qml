@@ -93,12 +93,13 @@ Window {
         width: parent.width / 2
         height: parent.height
 
-        SubStateMachines {
-            id: subStateMachines
+        InvokedServices {
+            id: services
             stateMachine: window.stateMachine
         }
 
-        property var anywhere: subStateMachines.children.anywhere
+        property var anywhere: services.children.anywhere ? services.children.anywhere.stateMachine
+                                                          : undefined
     }
 }
 

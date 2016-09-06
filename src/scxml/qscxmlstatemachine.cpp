@@ -332,7 +332,7 @@ void QScxmlStateMachinePrivate::addService(int invokingState)
         m_invokedServices[size_t(id)] = { invokingState, service, serviceName };
         service->start();
     }
-    emitRunningSubStateMachinesChanged();
+    emitInvokedServicesChanged();
 }
 
 void QScxmlStateMachinePrivate::removeService(int invokingState)
@@ -349,7 +349,7 @@ void QScxmlStateMachinePrivate::removeService(int invokingState)
             delete service;
         }
     }
-    emitRunningSubStateMachinesChanged();
+    emitInvokedServicesChanged();
 }
 
 QScxmlInvokableServiceFactory *QScxmlStateMachinePrivate::serviceFactory(int id)
@@ -576,10 +576,10 @@ void QScxmlStateMachinePrivate::emitStateActive(int stateIndex, bool active)
     QMetaObject::activate(q, m_metaObject, stateIndex, args);
 }
 
-void QScxmlStateMachinePrivate::emitRunningSubStateMachinesChanged()
+void QScxmlStateMachinePrivate::emitInvokedServicesChanged()
 {
     Q_Q(QScxmlStateMachine);
-    emit q->runningSubStateMachinesChanged(q->runningSubStateMachines());
+    emit q->invokedServicesChanged(q->invokedServices());
 }
 
 QStringList QScxmlStateMachinePrivate::stateNames(const std::vector<int> &stateIndexes) const
@@ -1819,20 +1819,19 @@ bool QScxmlStateMachine::isDispatchableTarget(const QString &target) const
 }
 
 /*!
-    \property QScxmlStateMachine::runningSubStateMachines
-    \brief A list of running sub state machines that were invoked from the main
+    \property QScxmlStateMachine::invokedServices
+    \brief A list of SCXML services that were invoked from the main
     state machine (possibly recursively).
 */
 
-QVector<QScxmlStateMachine *> QScxmlStateMachine::runningSubStateMachines() const
+QVector<QScxmlInvokableService *> QScxmlStateMachine::invokedServices() const
 {
     Q_D(const QScxmlStateMachine);
 
-    QVector<QScxmlStateMachine *> result;
+    QVector<QScxmlInvokableService *> result;
     for (int i = 0, ei = int(d->m_invokedServices.size()); i != ei; ++i) {
-        auto sub = runningSubStateMachine(i);
-        if (sub)
-            result.append(sub);
+        if (auto service = d->m_invokedServices[size_t(i)].service)
+            result.append(service);
     }
     return result;
 }
@@ -1909,16 +1908,6 @@ bool QScxmlStateMachine::isActive(int stateIndex) const
 {
     Q_D(const QScxmlStateMachine);
     return d->m_configuration.contains(stateIndex);
-}
-
-QScxmlStateMachine *QScxmlStateMachine::runningSubStateMachine(int index) const
-{
-    Q_D(const QScxmlStateMachine);
-    auto invokedService = d->m_invokedServices[size_t(index)].service;
-    if (auto scxmlService = dynamic_cast<QScxmlInvokableScxml *>(invokedService))
-        return scxmlService->stateMachine();
-    else
-        return nullptr;
 }
 
 QT_END_NAMESPACE

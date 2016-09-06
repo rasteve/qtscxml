@@ -261,7 +261,7 @@ public:
     void resetEvent();
 
     void emitStateActive(int stateIndex, bool active);
-    void emitRunningSubStateMachinesChanged();
+    void emitInvokedServicesChanged();
     void emitSignalForEvent(int signalIndex, const QVariant &data);
 
 private:

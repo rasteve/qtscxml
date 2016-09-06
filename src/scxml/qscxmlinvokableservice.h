@@ -51,8 +51,14 @@ class QScxmlEvent;
 class QScxmlStateMachine;
 class QScxmlInvokableServiceFactory;
 
-class Q_SCXML_EXPORT QScxmlInvokableService
+class Q_SCXML_EXPORT QScxmlInvokableService : public QObject
 {
+    Q_OBJECT
+    Q_PROPERTY(QScxmlStateMachine *parentStateMachine READ parentStateMachine CONSTANT)
+    Q_PROPERTY(bool autoforward READ autoforward CONSTANT)
+    Q_PROPERTY(QString id READ id CONSTANT)
+    Q_PROPERTY(QString name READ name CONSTANT)
+
 public:
     QScxmlInvokableService(QScxmlInvokableServiceFactory *service, QScxmlStateMachine *parentStateMachine);
     virtual ~QScxmlInvokableService();
@@ -105,6 +111,8 @@ private:
 
 class Q_SCXML_EXPORT QScxmlInvokableScxml: public QScxmlInvokableService
 {
+    Q_OBJECT
+    Q_PROPERTY(QScxmlStateMachine *stateMachine READ stateMachine CONSTANT)
 public:
     QScxmlInvokableScxml(QScxmlInvokableServiceFactory *service,
                          QScxmlStateMachine *stateMachine,

@@ -31,6 +31,7 @@
 #include <QXmlStreamReader>
 #include <QtScxml/qscxmlparser.h>
 #include <QtScxml/qscxmlstatemachine.h>
+#include <QtScxml/qscxmlinvokableservice.h>
 #include "ids1.h"
 #include "statemachineunicodename.h"
 #include "datainnulldatamodel.h"
@@ -107,9 +108,9 @@ void tst_Compiled::subMachineUnicodeName()
     QSignalSpy stableStateSpy(&directions, SIGNAL(reachedStableState()));
     directions.start();
     stableStateSpy.wait(5000);
-    QScxmlStateMachine *subMachine = directions.runningSubStateMachines().value(0);
-    QVERIFY(subMachine);
-    QCOMPARE(subMachine->name(), QString("änywhere"));
+    QScxmlInvokableService *service = directions.invokedServices().value(0);
+    QVERIFY(service);
+    QCOMPARE(service->name(), QString("änywhere"));
 }
 
 void tst_Compiled::unicodeEventName()
@@ -225,23 +226,23 @@ void tst_Compiled::topMachine()
 {
     TopMachine stateMachine;
     int doneCounter = 0;
-    int runningSubMachinesCount = 0;
+    int invokableServicesCount = 0;
 
     stateMachine.connectToEvent("done.invoke.submachine", [&doneCounter](const QScxmlEvent &) {
         ++doneCounter;
     });
 
-    QObject::connect(&stateMachine, &QScxmlStateMachine::runningSubStateMachinesChanged,
-                         [&runningSubMachinesCount](const QVector<QScxmlStateMachine *> &subMachines) {
-        runningSubMachinesCount = subMachines.count();
+    QObject::connect(&stateMachine, &QScxmlStateMachine::invokedServicesChanged,
+                     [&invokableServicesCount](const QVector<QScxmlInvokableService *> &services) {
+        invokableServicesCount = services.count();
     });
 
     stateMachine.start();
 
-    QTRY_COMPARE(runningSubMachinesCount, 3);
+    QTRY_COMPARE(invokableServicesCount, 3);
     QTRY_COMPARE(doneCounter, 3);
-    QCOMPARE(stateMachine.runningSubStateMachines().count(), 3);
-    QTRY_COMPARE(runningSubMachinesCount, 0);
+    QCOMPARE(stateMachine.invokedServices().count(), 3);
+    QTRY_COMPARE(invokableServicesCount, 0);
 }
 
 void tst_Compiled::topMachineDynamic()
@@ -250,23 +251,23 @@ void tst_Compiled::topMachineDynamic()
                 QScxmlStateMachine::fromFile(QString(":/topmachine.scxml")));
     QVERIFY(!stateMachine.isNull());
     int doneCounter = 0;
-    int runningSubMachinesCount = 0;
+    int invokableServicesCount = 0;
 
     stateMachine->connectToEvent("done.invoke.submachine", [&doneCounter](const QScxmlEvent &) {
         ++doneCounter;
     });
 
-    QObject::connect(stateMachine.data(), &QScxmlStateMachine::runningSubStateMachinesChanged,
-                         [&runningSubMachinesCount](const QVector<QScxmlStateMachine *> &subMachines) {
-        runningSubMachinesCount = subMachines.count();
+    QObject::connect(stateMachine.data(), &QScxmlStateMachine::invokedServicesChanged,
+                     [&invokableServicesCount](const QVector<QScxmlInvokableService *> &services) {
+        invokableServicesCount = services.count();
     });
 
     stateMachine->start();
 
-    QTRY_COMPARE(runningSubMachinesCount, 3);
+    QTRY_COMPARE(invokableServicesCount, 3);
     QTRY_COMPARE(doneCounter, 3);
-    QCOMPARE(stateMachine->runningSubStateMachines().count(), 3);
-    QTRY_COMPARE(runningSubMachinesCount, 0);
+    QCOMPARE(stateMachine->invokedServices().count(), 3);
+    QTRY_COMPARE(invokableServicesCount, 0);
 }
 
 void tst_Compiled::publicSignals()

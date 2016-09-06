@@ -193,7 +193,7 @@ protected: // visitor
 
         QVector<DocumentModel::AbstractState *> childStates;
         foreach (DocumentModel::StateOrTransition *sot, node->children) {
-            if (DocumentModel::AbstractState *s = dynamic_cast<DocumentModel::AbstractState *>(sot)) {
+            if (DocumentModel::AbstractState *s = sot->asAbstractState()) {
                 childStates.append(s);
             }
         }
@@ -289,7 +289,7 @@ protected: // visitor
 
         QVector<DocumentModel::AbstractState *> childStates;
         foreach (DocumentModel::StateOrTransition *sot, state->children) {
-            if (auto s = dynamic_cast<DocumentModel::AbstractState *>(sot)) {
+            if (auto s = sot->asAbstractState()) {
                 childStates.append(s);
             }
         }

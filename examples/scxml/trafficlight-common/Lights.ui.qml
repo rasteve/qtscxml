@@ -48,25 +48,93 @@
 **
 ****************************************************************************/
 
+
 import QtQuick 2.5
 import QtQuick.Window 2.2
 import TrafficLightStateMachine 1.0
 
-Window {
-    id: root
+Image {
+    id: lights
 
+    property alias button: button
     property TrafficLightStateMachine stateMachine
 
-    visible: true
-    width: lights.width
-    height: lights.height
+    source: "background.png"
 
-    Lights {
-        id: lights
+    Column {
+        y: 40
+        spacing: 27
+        anchors.horizontalCenter: parent.horizontalCenter
 
-        stateMachine: root.stateMachine
-        button.source: stateMachine.working ? "pause.png" : "play.png"
+        Image {
+            id: redLight
+            opacity: 0.2
+            source: "red.png"
+        }
 
-        button.onClicked: stateMachine.submitEvent(stateMachine.working ? "smash" : "repair");
+        Image {
+            id: yellowLight
+            opacity: 0.2
+            source: "yellow.png"
+        }
+
+        Image {
+            id: greenLight
+            opacity: 0.2
+            source: "green.png"
+        }
     }
+
+    Button {
+        id: button
+
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.margins: 20
+        source: "pause.png"
+    }
+
+    states: [
+        State {
+            name: "Red"
+            when: stateMachine.red
+
+            PropertyChanges {
+                target: redLight
+                opacity: 1
+            }
+        },
+        State {
+            name: "RedGoingGreen"
+            when: stateMachine.redGoingGreen
+
+            PropertyChanges {
+                target: redLight
+                opacity: 1
+            }
+
+            PropertyChanges {
+                target: yellowLight
+                opacity: 1
+            }
+        },
+        State {
+            name: "Yellow"
+            when: stateMachine.yellow || stateMachine.blinking
+
+            PropertyChanges {
+                target: yellowLight
+                opacity: 1
+            }
+        },
+        State {
+            name: "Green"
+            when: stateMachine.green
+
+            PropertyChanges {
+                target: greenLight
+                opacity: 1
+            }
+        }
+    ]
 }
