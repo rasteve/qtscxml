@@ -112,8 +112,8 @@ public:
     Q_INVOKABLE bool isActive(const QString &scxmlStateName) const;
 
     QMetaObject::Connection connectToState(const QString &scxmlStateName,
-                                    const QObject *receiver, const char *method,
-                                    Qt::ConnectionType type = Qt::AutoConnection);
+                                           const QObject *receiver, const char *method,
+                                           Qt::ConnectionType type = Qt::AutoConnection);
 #ifdef Q_QDOC
     template<typename PointerToMemberFunction>
     QMetaObject::Connection connectToState(const QString &scxmlStateName,

@@ -1629,8 +1629,9 @@ QMetaObject::Connection QScxmlStateMachine::connectToStateImpl(const QString &sc
     Returns a handle to the connection, which can be used later to disconnect.
  */
 QMetaObject::Connection QScxmlStateMachine::connectToState(const QString &scxmlStateName,
-                                            const QObject *receiver, const char *method,
-                                            Qt::ConnectionType type)
+                                                           const QObject *receiver,
+                                                           const char *method,
+                                                           Qt::ConnectionType type)
 {
     QByteArray signalName = QByteArray::number(QSIGNAL_CODE) + scxmlStateName.toUtf8()
             + "Changed(bool)";
