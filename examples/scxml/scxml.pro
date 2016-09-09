@@ -22,4 +22,6 @@ qtHaveModule(qml) {
     SUBDIRS +=  invoke-static
     SUBDIRS +=  invoke-dynamic
 }
+
+SUBDIRS += ftpclient
 }
