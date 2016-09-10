@@ -518,7 +518,7 @@ void QScxmlStateMachinePrivate::routeEvent(QScxmlEvent *event)
     } else if (origin.startsWith(QStringLiteral("#_")) && origin != QStringLiteral("#_internal")) {
         // route to children
         auto originId = origin.midRef(2);
-        for (auto invokedService : m_invokedServices) {
+        for (const auto &invokedService : m_invokedServices) {
             auto service = invokedService.service;
             if (service == nullptr)
                 continue;
