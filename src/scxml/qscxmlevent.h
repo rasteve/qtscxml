@@ -52,7 +52,6 @@ class QScxmlEventPrivate;
 class Q_SCXML_EXPORT QScxmlEvent
 {
     Q_GADGET
-    Q_ENUMS(EventType)
     Q_PROPERTY(QString name READ name WRITE setName)
     Q_PROPERTY(EventType eventType READ eventType WRITE setEventType)
     Q_PROPERTY(QString scxmlType READ scxmlType)
@@ -77,6 +76,7 @@ public:
         InternalEvent,
         ExternalEvent
     };
+    Q_ENUM(EventType)
 
     QString name() const;
     void setName(const QString &name);
