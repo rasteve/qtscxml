@@ -311,49 +311,68 @@ void generateTables(const GeneratedTableData &td, Replacements &replacements)
 void generateCppDataModelEvaluators(const GeneratedTableData::DataModelInfo &info,
                                     Replacements &replacements)
 {
-    {
-        QString evals;
+    const QString switchStart = QStringLiteral("    switch (id) {\n");
+    const QString switchEnd = QStringLiteral("    default: break;\n    }");
+    const QString unusedId = QStringLiteral("    Q_UNUSED(id);");
+    QString stringEvals;
+    if (!info.stringEvaluators.isEmpty()) {
+        stringEvals += switchStart;
         for (auto it = info.stringEvaluators.constBegin(), eit = info.stringEvaluators.constEnd();
              it != eit; ++it) {
-            evals += QStringLiteral("    case %1:\n").arg(it.key());
-            evals += QStringLiteral("        return [this]()->QString{ return %1; }();\n")
+            stringEvals += QStringLiteral("    case %1:\n").arg(it.key());
+            stringEvals += QStringLiteral("        return [this]()->QString{ return %1; }();\n")
                     .arg(it.value());
         }
-        replacements[QStringLiteral("evaluateToStringCases")] = evals;
+        stringEvals += switchEnd;
+    } else {
+        stringEvals += unusedId;
     }
+    replacements[QStringLiteral("evaluateToStringCases")] = stringEvals;
 
-    {
-        QString evals;
+    QString boolEvals;
+    if (!info.boolEvaluators.isEmpty()) {
+        boolEvals += switchStart;
         for (auto it = info.boolEvaluators.constBegin(), eit = info.boolEvaluators.constEnd();
              it != eit; ++it) {
-            evals += QStringLiteral("    case %1:\n").arg(it.key());
-            evals += QStringLiteral("        return [this]()->bool{ return %1; }();\n")
+            boolEvals += QStringLiteral("    case %1:\n").arg(it.key());
+            boolEvals += QStringLiteral("        return [this]()->bool{ return %1; }();\n")
                     .arg(it.value());
         }
-        replacements[QStringLiteral("evaluateToBoolCases")] = evals;
+        boolEvals += switchEnd;
+    } else {
+        boolEvals += unusedId;
     }
+    replacements[QStringLiteral("evaluateToBoolCases")] = boolEvals;
 
-    {
-        QString evals;
+    QString variantEvals;
+    if (!info.variantEvaluators.isEmpty()) {
+        variantEvals += switchStart;
         for (auto it = info.variantEvaluators.constBegin(), eit = info.variantEvaluators.constEnd();
              it != eit; ++it) {
-            evals += QStringLiteral("    case %1:\n").arg(it.key());
-            evals += QStringLiteral("        return [this]()->QVariant{ return %1; }();\n")
+            variantEvals += QStringLiteral("    case %1:\n").arg(it.key());
+            variantEvals += QStringLiteral("        return [this]()->QVariant{ return %1; }();\n")
                     .arg(it.value());
         }
-        replacements[QStringLiteral("evaluateToVariantCases")] = evals;
+        variantEvals += switchEnd;
+    } else {
+        variantEvals += unusedId;
     }
+    replacements[QStringLiteral("evaluateToVariantCases")] = variantEvals;
 
-    {
-        QString evals;
+    QString voidEvals;
+    if (!info.voidEvaluators.isEmpty()) {
+        voidEvals = switchStart;
         for (auto it = info.voidEvaluators.constBegin(), eit = info.voidEvaluators.constEnd();
              it != eit; ++it) {
-            evals += QStringLiteral("    case %1:\n").arg(it.key());
-            evals += QStringLiteral("        [this]()->void{ %1 }();\n").arg(it.value());
-            evals += QStringLiteral("        break;\n");
+            voidEvals += QStringLiteral("    case %1:\n").arg(it.key());
+            voidEvals += QStringLiteral("        [this]()->void{ %1 }();\n").arg(it.value());
+            voidEvals += QStringLiteral("        return;\n");
         }
-        replacements[QStringLiteral("evaluateToVoidCases")] = evals;
+        voidEvals += switchEnd;
+    } else {
+        voidEvals += unusedId;
     }
+    replacements[QStringLiteral("evaluateToVoidCases")] = voidEvals;
 }
 
 int createFactoryId(QStringList &factories, const QString &className,
