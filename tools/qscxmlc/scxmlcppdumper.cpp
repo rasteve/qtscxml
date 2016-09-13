@@ -26,17 +26,18 @@
 **
 ****************************************************************************/
 
-#include <QtScxml/private/qscxmlexecutablecontent_p.h>
 #include "scxmlcppdumper.h"
+#include "generator.h"
+
+#include <QtScxml/private/qscxmlexecutablecontent_p.h>
+
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qbuffer.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qresource.h>
 
 #include <algorithm>
 #include <functional>
-#include <QFileInfo>
-#include <QBuffer>
-#include <QFile>
-#include <QResource>
-
-#include "generator.h"
 
 QT_BEGIN_NAMESPACE
 

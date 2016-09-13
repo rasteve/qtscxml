@@ -29,13 +29,10 @@
 #ifndef MOC_H
 #define MOC_H
 
-#include <qstringlist.h>
-#include <qmap.h>
-#include <qpair.h>
-#include <qjsondocument.h>
-#include <qjsonarray.h>
-#include <qjsonobject.h>
-#include <stdio.h>
+#include <QtCore/qmap.h>
+#include <QtCore/qpair.h>
+#include <QtCore/qjsondocument.h>
+#include <QtCore/qjsonarray.h>
 #include <ctype.h>
 
 QT_BEGIN_NAMESPACE

@@ -30,9 +30,9 @@
 #define GENERATOR_H
 
 #include "moc.h"
-#include <QHash>
-#include <QVector>
-#include <QIODevice>
+#include <QtCore/qhash.h>
+#include <QtCore/qvector.h>
+#include <QtCore/qiodevice.h>
 
 QT_BEGIN_NAMESPACE
 
