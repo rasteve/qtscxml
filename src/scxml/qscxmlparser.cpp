@@ -432,6 +432,7 @@ private:
             const QVector<DocumentModel::AbstractState *> &states)
     {
         auto *newTransition = m_doc->newTransition(nullptr, DocumentModel::XmlLocation(-1, -1));
+        newTransition->type = DocumentModel::Transition::Synthetic;
         foreach (auto *s, states) {
             newTransition->targets.append(s->id);
         }

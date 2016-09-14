@@ -315,7 +315,7 @@ struct State: public AbstractState, public StateOrTransition
 
 struct Transition: public StateOrTransition
 {
-    enum Type { External, Internal };
+    enum Type { Internal, External, Synthetic };
     QStringList events;
     QScopedPointer<QString> condition;
     QStringList targets;
