@@ -154,8 +154,13 @@ private:
 
         if (state->initialTransition == nullptr) {
             if (state->initial.isEmpty()) {
-                if (auto firstChild = firstAbstractState(state)) {
-                    state->initialTransition = createInitialTransition({firstChild});
+                if (state->type == DocumentModel::State::Parallel) {
+                    auto allChildren = allAbstractStates(state);
+                    state->initialTransition = createInitialTransition(allChildren);
+                } else {
+                    if (auto firstChild = firstAbstractState(state)) {
+                        state->initialTransition = createInitialTransition({firstChild});
+                    }
                 }
             } else {
                 Q_ASSERT(state->type == DocumentModel::State::Normal);
@@ -410,22 +415,44 @@ private:
         return Q_NULLPTR;
     }
 
-    static DocumentModel::AbstractState *firstAbstractState(DocumentModel::StateContainer *container)
+    static const QVector<DocumentModel::StateOrTransition *> &allChildrenOfContainer(
+            DocumentModel::StateContainer *container)
     {
-        QVector<DocumentModel::StateOrTransition *> children;
         if (auto state = container->asState())
-            children = state->children;
+            return state->children;
         else if (auto scxml = container->asScxml())
-            children = scxml->children;
+            return scxml->children;
         else
             Q_UNREACHABLE();
-        foreach (DocumentModel::StateOrTransition *child, children) {
+    }
+
+    static DocumentModel::AbstractState *firstAbstractState(DocumentModel::StateContainer *container)
+    {
+        const auto &allChildren = allChildrenOfContainer(container);
+
+        QVector<DocumentModel::AbstractState *> childStates;
+        for (DocumentModel::StateOrTransition *child : qAsConst(allChildren)) {
             if (DocumentModel::State *s = child->asState())
                 return s;
             else if (DocumentModel::HistoryState *h = child->asHistoryState())
                 return h;
         }
-        return Q_NULLPTR;
+        return nullptr;
+    }
+
+    static QVector<DocumentModel::AbstractState *> allAbstractStates(
+            DocumentModel::StateContainer *container)
+    {
+        const auto &allChildren = allChildrenOfContainer(container);
+
+        QVector<DocumentModel::AbstractState *> childStates;
+        for (DocumentModel::StateOrTransition *child : qAsConst(allChildren)) {
+            if (DocumentModel::State *s = child->asState())
+                childStates.append(s);
+            else if (DocumentModel::HistoryState *h = child->asHistoryState())
+                childStates.append(h);
+        }
+        return childStates;
     }
 
     DocumentModel::Transition *createInitialTransition(
