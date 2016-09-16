@@ -564,8 +564,7 @@ public:
     }
 
 private:
-    Q_DECL_HIDDEN_STATIC_METACALL static void qt_static_metacall(QObject *_o, QMetaObject::Call _c,
-                                                                 int _id, void **_a)
+    static void qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void **_a)
     {
         if (_c == QMetaObject::RegisterPropertyMetaType) {
             *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType<bool>();
