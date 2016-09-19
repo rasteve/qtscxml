@@ -77,13 +77,13 @@ public:
         m_parents.reserve(32);
         m_allTransitions.resize(doc->allTransitions.size());
         m_docTransitionIndices.reserve(doc->allTransitions.size());
-        foreach (auto *t, doc->allTransitions) {
+        for (auto *t : qAsConst(doc->allTransitions)) {
             m_docTransitionIndices.insert(t, m_docTransitionIndices.size());
         }
         m_docStatesIndices.reserve(doc->allStates.size());
         m_transitionsForState.resize(doc->allStates.size());
         m_allStates.resize(doc->allStates.size());
-        foreach (DocumentModel::AbstractState *s, doc->allStates) {
+        for (DocumentModel::AbstractState *s : qAsConst(doc->allStates)) {
             m_docStatesIndices.insert(s, m_docStatesIndices.size());
         }
 
@@ -192,7 +192,7 @@ protected: // visitor
         }
 
         QVector<DocumentModel::AbstractState *> childStates;
-        foreach (DocumentModel::StateOrTransition *sot, node->children) {
+        for (DocumentModel::StateOrTransition *sot : qAsConst(node->children)) {
             if (DocumentModel::AbstractState *s = sot->asAbstractState()) {
                 childStates.append(s);
             }
@@ -249,13 +249,13 @@ protected: // visitor
         newState.exitInstructions = generate(state->onExit);
         if (!state->invokes.isEmpty()) {
             QVector<int> factoryIds;
-            foreach (DocumentModel::Invoke *invoke, state->invokes) {
+            for (DocumentModel::Invoke *invoke : qAsConst(state->invokes)) {
                 auto ctxt = createContext(QStringLiteral("invoke"));
                 QVector<QScxmlExecutableContent::StringId> namelist;
-                foreach (const QString &name, invoke->namelist)
+                for (const QString &name : qAsConst(invoke->namelist))
                     namelist += addString(name);
                 QVector<QScxmlExecutableContent::Param> params;
-                foreach (DocumentModel::Param *param, invoke->params) {
+                for (DocumentModel::Param *param : qAsConst(invoke->params)) {
                     QScxmlExecutableContent::Param p;
                     p.name = addString(param->name);
                     p.expr = createEvaluatorVariant(QStringLiteral("param"), QStringLiteral("expr"),
@@ -288,7 +288,7 @@ protected: // visitor
         visit(state->children);
 
         QVector<DocumentModel::AbstractState *> childStates;
-        foreach (DocumentModel::StateOrTransition *sot, state->children) {
+        for (DocumentModel::StateOrTransition *sot : qAsConst(state->children)) {
             if (auto s = sot->asAbstractState()) {
                 childStates.append(s);
             }
@@ -346,7 +346,7 @@ protected: // visitor
         newTransition.targets = addStates(transition->targetStates);
 
         QVector<int> eventIds;
-        foreach (const QString &event, transition->events)
+        for (const QString &event : qAsConst(transition->events))
             eventIds.push_back(addString(event));
 
         newTransition.events = addArray(eventIds);
@@ -508,7 +508,7 @@ protected:
 
     void generate(const QVector<DocumentModel::DataElement *> &dataElements)
     {
-        foreach (DocumentModel::DataElement *el, dataElements) {
+        for (DocumentModel::DataElement *el : dataElements) {
             auto ctxt = createContext(QStringLiteral("data"), QStringLiteral("expr"), el->expr);
             auto evaluator = addDataElement(el->id, el->expr, ctxt);
             if (evaluator != NoEvaluator) {
@@ -533,7 +533,7 @@ protected:
     {
         out->count = in.size();
         Param *it = out->data();
-        foreach (DocumentModel::Param *f, in) {
+        for (DocumentModel::Param *f : in) {
             it->name = addString(f->name);
             it->expr = createEvaluatorVariant(QStringLiteral("param"), QStringLiteral("expr"),
                                               f->expr);
@@ -548,7 +548,7 @@ protected:
         int sequencesOffset = m_instructions.offset(outSequences);
         int sequenceCount = 0;
         int entryCount = 0;
-        foreach (DocumentModel::InstructionSequence *sequence, inSequences) {
+        for (DocumentModel::InstructionSequence *sequence : inSequences) {
             ++sequenceCount;
             startNewSequence();
             visit(sequence);
@@ -563,7 +563,7 @@ protected:
     {
         out->count = in.size();
         StringId *it = out->data();
-        foreach (const QString &str, in) {
+        for (const QString &str : in) {
             *it++ = addString(str);
         }
     }
@@ -683,7 +683,7 @@ protected:
     int addStates(const QVector<DocumentModel::AbstractState *> &states)
     {
         QVector<int> array;
-        foreach (auto *s, states) {
+        for (auto *s : states) {
             int si = m_docStatesIndices.value(s, -1);
             Q_ASSERT(si != -1);
             array.push_back(si);

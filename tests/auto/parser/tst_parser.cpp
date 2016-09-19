@@ -49,7 +49,8 @@ void tst_Parser::error_data()
     QTest::addColumn<QString>("errorFileName");
 
     QDir dir(QLatin1String(":/tst_parser/data/"));
-    foreach (const QString &entry, dir.entryList()) {
+    const auto dirEntries = dir.entryList();
+    for (const QString &entry : dirEntries) {
         if (!entry.endsWith(QLatin1String(".errors"))) {
             QString scxmlFileName = dir.filePath(entry);
             QTest::newRow(entry.toLatin1().constData())
@@ -73,7 +74,7 @@ void tst_Parser::error()
 
     const QVector<QScxmlError> errors = stateMachine->parseErrors();
     if (errors.count() != expectedErrors.count()) {
-        foreach (const QScxmlError &error, errors) {
+        for (const QScxmlError &error : errors) {
             qDebug() << error.toString();
         }
     }

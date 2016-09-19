@@ -96,7 +96,7 @@ public:
 
         doc->isVerified = true;
         m_doc = doc;
-        foreach (DocumentModel::AbstractState *state, doc->allStates) {
+        for (DocumentModel::AbstractState *state : qAsConst(doc->allStates)) {
             if (state->id.isEmpty()) {
                 continue;
 #ifndef QT_NO_DEBUG
@@ -127,7 +127,7 @@ private:
             }
         } else {
             QVector<DocumentModel::AbstractState *> initialStates;
-            foreach (const QString &initial, scxml->initial) {
+            for (const QString &initial : qAsConst(scxml->initial)) {
                 if (DocumentModel::AbstractState *s = m_stateById.value(initial))
                     initialStates.append(s);
                 else
@@ -165,7 +165,7 @@ private:
             } else {
                 Q_ASSERT(state->type == DocumentModel::State::Normal);
                 QVector<DocumentModel::AbstractState *> initialStates;
-                foreach (const QString &initialState, state->initial) {
+                for (const QString &initialState : qAsConst(state->initial)) {
                     if (DocumentModel::AbstractState *s = m_stateById.value(initialState)) {
                         initialStates.append(s);
                     } else {
@@ -216,7 +216,7 @@ private:
 
         if (int size = transition->targets.size())
             transition->targetStates.reserve(size);
-        foreach (const QString &target, transition->targets) {
+        for (const QString &target : qAsConst(transition->targets)) {
             if (DocumentModel::AbstractState *s = m_stateById.value(target)) {
                 if (transition->targetStates.contains(s)) {
                     error(transition->xmlLocation, QStringLiteral("duplicate target '%1'").arg(target));
@@ -227,7 +227,7 @@ private:
                 error(transition->xmlLocation, QStringLiteral("unknown state '%1' in target").arg(target));
             }
         }
-        foreach (const QString &event, transition->events)
+        for (const QString &event : qAsConst(transition->events))
             checkEvent(event, transition->xmlLocation, AllowWildCards);
 
         m_parentNodes.append(transition);
@@ -242,7 +242,7 @@ private:
     bool visit(DocumentModel::HistoryState *state) Q_DECL_OVERRIDE
     {
         bool seenTransition = false;
-        foreach (DocumentModel::StateOrTransition *sot, state->children) {
+        for (DocumentModel::StateOrTransition *sot : qAsConst(state->children)) {
             if (DocumentModel::State *s = sot->asState()) {
                 error(s->xmlLocation, QStringLiteral("history state cannot have substates"));
             } else if (DocumentModel::Transition *t = sot->asTransition()) {
@@ -441,7 +441,7 @@ private:
     {
         auto *newTransition = m_doc->newTransition(nullptr, DocumentModel::XmlLocation(-1, -1));
         newTransition->type = DocumentModel::Transition::Synthetic;
-        foreach (auto *s, states) {
+        for (auto *s : states) {
             newTransition->targets.append(s->id);
         }
 
@@ -579,7 +579,7 @@ private:
         b.setStaticMetacallFunction(qt_static_metacall);
 
         // signals
-        foreach (const QString &stateName, info.stateNames) {
+        for (const QString &stateName : info.stateNames) {
             auto name = stateName.toUtf8();
             const QByteArray signalName = name + "Changed(bool)";
             QMetaMethodBuilder signalBuilder = b.addSignal(signalName);
@@ -588,7 +588,7 @@ private:
 
         // properties
         int notifier = 0;
-        foreach (const QString &stateName, info.stateNames) {
+        for (const QString &stateName : info.stateNames) {
             QMetaPropertyBuilder prop = b.addProperty(stateName.toUtf8(), "bool", notifier);
             prop.setWritable(false);
             ++m_propertyCount;
@@ -706,7 +706,8 @@ QScxmlInvokableService *QScxmlInvokableScxmlServiceFactory::loadAndInvokeDynamic
     parser.setLoader(parent->loader());
     parser.parse();
     if (!parser.errors().isEmpty()) {
-        foreach (const QScxmlError &error, parser.errors())
+        const auto errors = parser.errors();
+        for (const QScxmlError &error : errors)
             qWarning() << error.toString();
         return Q_NULLPTR;
     }
@@ -714,7 +715,8 @@ QScxmlInvokableService *QScxmlInvokableScxmlServiceFactory::loadAndInvokeDynamic
     auto mainDoc = QScxmlParserPrivate::get(&parser)->scxmlDocument();
     if (mainDoc == nullptr) {
         Q_ASSERT(!parser.errors().isEmpty());
-        foreach (const QScxmlError &error, parser.errors())
+        const auto errors = parser.errors();
+        for (const QScxmlError &error : errors)
             qWarning() << error.toString();
         return Q_NULLPTR;
     }
@@ -1194,7 +1196,7 @@ void DocumentModel::Param::accept(DocumentModel::NodeVisitor *visitor)
 void DocumentModel::DoneData::accept(DocumentModel::NodeVisitor *visitor)
 {
     if (visitor->visit(this)) {
-        foreach (Param *param, params)
+        for (Param *param : qAsConst(params))
             param->accept(visitor);
     }
     visitor->endVisit(this);
@@ -1267,7 +1269,7 @@ void DocumentModel::State::accept(DocumentModel::NodeVisitor *visitor)
         visitor->visit(onExit);
         if (doneData)
             doneData->accept(visitor);
-        foreach (Invoke *invoke, invokes)
+        for (Invoke *invoke : qAsConst(invokes))
             invoke->accept(visitor);
     }
     visitor->endVisit(this);
@@ -2436,7 +2438,7 @@ bool QScxmlParserPrivate::checkAttributes(const QXmlStreamAttributes &attributes
                                           const QStringList &optionalNames)
 {
     QStringList required = requiredNames;
-    foreach (const QXmlStreamAttribute &attribute, attributes) {
+    for (const QXmlStreamAttribute &attribute : attributes) {
         const QStringRef ns = attribute.namespaceUri();
         if (!ns.isEmpty() && ns != scxmlNamespace && ns != qtScxmlNamespace)
             continue;

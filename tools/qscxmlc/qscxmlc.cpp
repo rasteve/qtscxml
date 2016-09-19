@@ -93,7 +93,7 @@ static void collectAllDocuments(DocumentModel::ScxmlDocument *doc,
                                 QList<DocumentModel::ScxmlDocument *> *docs)
 {
     docs->append(doc);
-    foreach (DocumentModel::ScxmlDocument *subDoc, doc->allSubDocuments)
+    for (DocumentModel::ScxmlDocument *subDoc : qAsConst(doc->allSubDocuments))
         collectAllDocuments(subDoc, docs);
 }
 
@@ -178,7 +178,8 @@ int run(const QStringList &arguments)
     parser.setFileName(file.fileName());
     parser.parse();
     if (!parser.errors().isEmpty()) {
-        foreach (const QScxmlError &error, parser.errors()) {
+        const auto errors = parser.errors();
+        for (const QScxmlError &error : errors) {
             errs << error.toString() << endl;
         }
         return ParseError;
@@ -187,7 +188,8 @@ int run(const QStringList &arguments)
     auto mainDoc = QScxmlParserPrivate::get(&parser)->scxmlDocument();
     if (mainDoc == nullptr) {
         Q_ASSERT(!parser.errors().isEmpty());
-        foreach (const QScxmlError &error, parser.errors()) {
+        const auto errors = parser.errors();
+        for (const QScxmlError &error : errors) {
             errs << error.toString() << endl;
         }
         return ScxmlVerificationError;
@@ -215,7 +217,7 @@ int run(const QStringList &arguments)
 
     docs.pop_front();
 
-    foreach (DocumentModel::ScxmlDocument *doc, docs) {
+    for (DocumentModel::ScxmlDocument *doc : qAsConst(docs)) {
         auto name = doc->root->name;
         auto prefix = name;
         if (name.isEmpty()) {

@@ -76,11 +76,11 @@ void QScxmlEventConnection::setStateMachine(QScxmlStateMachine *stateMachine)
 
 void QScxmlEventConnection::doConnect()
 {
-    foreach (const QMetaObject::Connection &connection, m_connections)
+    for (const QMetaObject::Connection &connection : qAsConst(m_connections))
         disconnect(connection);
     m_connections.clear();
     if (m_stateMachine) {
-        foreach (const QString &event, m_events) {
+        for (const QString &event : qAsConst(m_events)) {
             m_connections.append(m_stateMachine->connectToEvent(event, this,
                                                                 &QScxmlEventConnection::occurred));
         }

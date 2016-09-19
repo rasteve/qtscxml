@@ -404,7 +404,7 @@ int createFactoryId(QStringList &factories, const QString &className,
     line += QStringLiteral("%1, ").arg(QString::number(idlocation));
     {
         QStringList l;
-        foreach (auto name, namelist) {
+        for (auto name : namelist) {
             l.append(QString::number(name));
         }
         line += QStringLiteral("%1, ").arg(
@@ -414,7 +414,7 @@ int createFactoryId(QStringList &factories, const QString &className,
                                                    : QStringLiteral("false"));
     {
         QStringList l;
-        foreach (const auto &param, params) {
+        for (const auto &param : params) {
             l += QStringLiteral("QScxmlExecutableContent::Param(%1, %2, %3)")
                     .arg(QString::number(param.name),
                          QString::number(param.expr),
@@ -522,7 +522,7 @@ void CppDumper::writeHeaderStart(const QString &headerGuard, const QStringList &
         h << l("namespace ") << m_translationUnit->namespaceName << l(" {") << endl << endl;
 
     if (!forwardDecls.isEmpty()) {
-        foreach (const QString &forwardDecl, forwardDecls)
+        for (const QString &forwardDecl : forwardDecls)
             h << QStringLiteral("class %1;").arg(forwardDecl) << endl;
         h << endl;
     }
@@ -545,7 +545,7 @@ void CppDumper::writeHeaderEnd(const QString &headerGuard, const QStringList &me
         ns = QStringLiteral("::%1").arg(m_translationUnit->namespaceName);
     }
 
-    foreach (const QString &name, metatypeDecls) {
+    for (const QString &name : metatypeDecls) {
         h << QStringLiteral("Q_DECLARE_METATYPE(%1::%2*)").arg(ns, name) << endl;
     }
     h << endl;
@@ -561,7 +561,7 @@ void CppDumper::writeImplStart()
         << endl;
 
     QStringList includes;
-    foreach (DocumentModel::ScxmlDocument *doc, m_translationUnit->allDocuments) {
+    for (DocumentModel::ScxmlDocument *doc : qAsConst(m_translationUnit->allDocuments)) {
         switch (doc->root->dataModel) {
         case DocumentModel::Scxml::NullDataModel:
             includes += l("QScxmlNullDataModel");
@@ -583,7 +583,7 @@ void CppDumper::writeImplStart()
     cpp << endl
         << QStringLiteral("#include <qscxmlinvokableservice.h>") << endl
         << QStringLiteral("#include <qscxmltabledata.h>") << endl;
-    foreach (const QString &inc, includes) {
+    for (const QString &inc : qAsConst(includes)) {
         cpp << l("#include <") << inc << l(">") << endl;
     }
     cpp << endl
@@ -725,7 +725,7 @@ QString CppDumper::generatePropertyDecls(const GeneratedTableData::MetaDataInfo 
 {
     QString decls;
 
-    foreach (const QString &stateName, info.stateNames) {
+    for (const QString &stateName : info.stateNames) {
         if (!stateName.isEmpty()) {
             const QString decl = QString::fromLatin1(
                                  "    Q_PROPERTY(bool %1 NOTIFY %2Changed)\n");
@@ -747,7 +747,7 @@ QString CppDumper::generateMetaObject(const QString &className,
 
     // stateNames:
     int stateIdx = 0;
-    foreach (const QString &stateName, info.stateNames) {
+    for (const QString &stateName : info.stateNames) {
         if (stateName.isEmpty())
             continue;
 

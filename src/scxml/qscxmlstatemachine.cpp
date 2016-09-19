@@ -1359,7 +1359,7 @@ void QScxmlStateMachinePrivate::getEffectiveTargetStates(OrderedSet *targets,
         if (state.isHistoryState()) {
             HistoryValues::const_iterator historyValueIter = m_historyValue.find(s);
             if (historyValueIter != m_historyValue.end()) {
-                foreach (int historyState, historyValueIter.value()) {
+                for (int historyState : historyValueIter.value()) {
                     targets->add(historyState);
                 }
             } else {

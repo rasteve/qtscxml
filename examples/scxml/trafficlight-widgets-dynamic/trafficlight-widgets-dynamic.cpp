@@ -60,7 +60,8 @@ int main(int argc, char **argv)
     QScxmlStateMachine *machine = QScxmlStateMachine::fromFile(QStringLiteral(":statemachine.scxml"));
     if (!machine->parseErrors().isEmpty()) {
         QTextStream errs(stderr, QIODevice::WriteOnly);
-        foreach (const QScxmlError &error, machine->parseErrors()) {
+        const auto errors = machine->parseErrors();
+        for (const QScxmlError &error : errors) {
             errs << error.toString();
         }
 
