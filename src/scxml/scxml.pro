@@ -30,7 +30,8 @@ HEADERS += \
     qscxmlerror.h \
     qscxmlinvokableservice.h \
     qscxmltabledata.h \
-    qscxmltabledata_p.h
+    qscxmltabledata_p.h \
+    qscxmlstatemachineinfo_p.h
 
 SOURCES += \
     qscxmlparser.cpp \
@@ -44,7 +45,8 @@ SOURCES += \
     qscxmlcppdatamodel.cpp \
     qscxmlerror.cpp \
     qscxmlinvokableservice.cpp \
-    qscxmltabledata.cpp
+    qscxmltabledata.cpp \
+    qscxmlstatemachineinfo.cpp
 
 FEATURES += ../../mkspecs/features/qscxmlc.prf
 features.files = $$FEATURES

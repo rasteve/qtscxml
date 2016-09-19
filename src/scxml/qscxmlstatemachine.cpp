@@ -430,6 +430,7 @@ QScxmlStateMachinePrivate::QScxmlStateMachinePrivate(const QMetaObject *metaObje
     , m_parentStateMachine(Q_NULLPTR)
     , m_eventLoopHook(this)
     , m_metaObject(metaObject)
+    , m_infoSignalProxy(nullptr)
 {}
 
 QScxmlStateMachinePrivate::~QScxmlStateMachinePrivate()
@@ -713,6 +714,21 @@ void QScxmlStateMachinePrivate::emitInvokedServicesChanged()
 {
     Q_Q(QScxmlStateMachine);
     emit q->invokedServicesChanged(q->invokedServices());
+}
+
+void QScxmlStateMachinePrivate::attach(QScxmlStateMachineInfo *info)
+{
+    Q_Q(QScxmlStateMachine);
+
+    if (!m_infoSignalProxy)
+        m_infoSignalProxy = new QScxmlInternal::StateMachineInfoProxy(q);
+
+    QObject::connect(m_infoSignalProxy, &QScxmlInternal::StateMachineInfoProxy::statesEntered,
+                     info, &QScxmlStateMachineInfo::statesEntered);
+    QObject::connect(m_infoSignalProxy, &QScxmlInternal::StateMachineInfoProxy::statesExited,
+                     info, &QScxmlStateMachineInfo::statesExited);
+    QObject::connect(m_infoSignalProxy,&QScxmlInternal::StateMachineInfoProxy::transitionsTriggered,
+                     info, &QScxmlStateMachineInfo::transitionsTriggered);
 }
 
 QStringList QScxmlStateMachinePrivate::stateNames(const std::vector<int> &stateIndexes) const
@@ -1022,6 +1038,11 @@ void QScxmlStateMachinePrivate::exitStates(const OrderedSet &enabledTransitions)
         emitStateActive(s, false);
         removeService(s);
     }
+
+    if (m_infoSignalProxy) {
+        emit m_infoSignalProxy->statesExited(
+                QVector<QScxmlStateMachineInfo::StateId>::fromStdVector(statesToExitSorted));
+    }
 }
 
 void QScxmlStateMachinePrivate::computeExitSet(const OrderedSet &enabledTransitions,
@@ -1047,6 +1068,12 @@ void QScxmlStateMachinePrivate::executeTransitionContent(const OrderedSet &enabl
         const auto &transition = m_stateTable->transition(t);
         if (transition.transitionInstructions != StateTable::InvalidIndex)
             m_executionEngine->execute(transition.transitionInstructions);
+    }
+
+    if (m_infoSignalProxy) {
+        emit m_infoSignalProxy->transitionsTriggered(
+                QVector<QScxmlStateMachineInfo::TransitionId>::fromStdVector(
+                    enabledTransitions.list()));
     }
 }
 
@@ -1104,6 +1131,10 @@ void QScxmlStateMachinePrivate::enterStates(const OrderedSet &enabledTransitions
     }
     for (int s : sortedStates)
         emitStateActive(s, true);
+    if (m_infoSignalProxy) {
+        emit m_infoSignalProxy->statesEntered(
+                QVector<QScxmlStateMachineInfo::StateId>::fromStdVector(sortedStates));
+    }
 }
 
 void QScxmlStateMachinePrivate::computeEntrySet(const OrderedSet &enabledTransitions,

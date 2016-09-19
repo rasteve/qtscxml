@@ -53,6 +53,7 @@
 
 #include <QtScxml/private/qscxmlexecutablecontent_p.h>
 #include <QtScxml/qscxmlstatemachine.h>
+#include <QtScxml/private/qscxmlstatemachineinfo_p.h>
 #include <QtCore/private/qobject_p.h>
 #include <QtCore/private/qmetaobject_p.h>
 #include <QtCore/qmetaobject.h>
@@ -100,6 +101,21 @@ private:
     ScxmlEventRouter *child(const QString &segment);
 
     void disconnectNotify(const QMetaMethod &signal) override;
+};
+
+class StateMachineInfoProxy: public QObject
+{
+    Q_OBJECT
+
+public:
+    StateMachineInfoProxy(QObject *parent)
+        : QObject(parent)
+    {}
+
+Q_SIGNALS:
+    void statesEntered(const QVector<QScxmlStateMachineInfo::StateId> &states);
+    void statesExited(const QVector<QScxmlStateMachineInfo::StateId> &states);
+    void transitionsTriggered(const QVector<QScxmlStateMachineInfo::TransitionId> &transitions);
 };
 } // QScxmlInternal namespace
 
@@ -264,6 +280,9 @@ public:
     void emitInvokedServicesChanged();
     void emitSignalForEvent(int signalIndex, const QVariant &data);
 
+    void attach(QScxmlStateMachineInfo *info);
+    const OrderedSet &configuration() const { return m_configuration; }
+
 private:
     QStringList stateNames(const std::vector<int> &stateIndexes) const;
     std::vector<int> historyStates(int stateIdx) const;
@@ -358,6 +377,8 @@ private:
     }
 
     bool isPaused() const { return m_runningState == Paused; }
+
+    QScxmlInternal::StateMachineInfoProxy *m_infoSignalProxy;
 };
 
 QT_END_NAMESPACE
