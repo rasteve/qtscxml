@@ -396,25 +396,6 @@ private:
         return true;
     }
 
-    static int transitionCount(DocumentModel::State *state)
-    {
-        int count = 0;
-        foreach (DocumentModel::StateOrTransition *child, state->children) {
-            if (child->asTransition())
-                ++count;
-        }
-        return count;
-    }
-
-    static DocumentModel::Transition *firstTransition(DocumentModel::State *state)
-    {
-        foreach (DocumentModel::StateOrTransition *child, state->children) {
-            if (DocumentModel::Transition *t = child->asTransition())
-                return t;
-        }
-        return Q_NULLPTR;
-    }
-
     static const QVector<DocumentModel::StateOrTransition *> &allChildrenOfContainer(
             DocumentModel::StateContainer *container)
     {
@@ -481,16 +462,6 @@ private:
         m_hasErrors = true;
         if (m_errorHandler)
             m_errorHandler(location, message);
-    }
-
-    DocumentModel::Node *parentState() const
-    {
-        for (int i = m_parentNodes.size() - 1; i >= 0; --i) {
-            if (DocumentModel::State *s = m_parentNodes.at(i)->asState())
-                return s;
-        }
-
-        return Q_NULLPTR;
     }
 
 private:
