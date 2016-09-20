@@ -393,10 +393,10 @@ int createFactoryId(QStringList &factories, const QString &className,
 
     QString line = QStringLiteral("case %1: return new ").arg(QString::number(idx));
     if (srcexpr == QScxmlExecutableContent::NoInstruction) {
-        line += QStringLiteral("QScxmlInvokeScxmlFactory<%1::%2>(%3, ")
+        line += QStringLiteral("QScxmlStaticScxmlServiceFactory<%1::%2>(%3, ")
                 .arg(namespacePrefix, className, QString::number(invokeLocation));
     } else {
-        line += QStringLiteral("QScxmlDynamicScxmlFactory(%1, %2, ")
+        line += QStringLiteral("QScxmlDynamicScxmlServiceFactory(%1, %2, ")
                 .arg(invokeLocation).arg(srcexpr);
     }
     line += QStringLiteral("%1, ").arg(QString::number(id));

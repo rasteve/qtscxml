@@ -473,7 +473,7 @@ private:
 };
 
 #ifndef BUILD_QSCXMLC
-class InvokeDynamicScxmlFactory: public QScxmlInvokableScxmlServiceFactory
+class InvokeDynamicScxmlFactory: public QScxmlScxmlServiceFactory
 {
 public:
     InvokeDynamicScxmlFactory(QScxmlExecutableContent::StringId invokeLocation,
@@ -485,7 +485,7 @@ public:
                               bool autoforward,
                               const QVector<QScxmlExecutableContent::ParameterInfo> &params,
                               QScxmlExecutableContent::ContainerId finalize)
-        : QScxmlInvokableScxmlServiceFactory(invokeLocation, srcexpr, id, idPrefix, idlocation,
+        : QScxmlScxmlServiceFactory(invokeLocation, srcexpr, id, idPrefix, idlocation,
                                              namelist, autoforward, params, finalize)
     {}
 
@@ -663,33 +663,34 @@ private:
     int m_propertyCount;
 };
 
-inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(QScxmlStateMachine *parent)
+inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(
+        QScxmlStateMachine *parentStateMachine)
 {
     bool ok = true;
-    auto srcexpr = calculateSrcexpr(parent, &ok);
+    auto srcexpr = calculateSrcexpr(parentStateMachine, &ok);
     if (!ok)
         return Q_NULLPTR;
 
     if (!srcexpr.isEmpty())
-        return loadAndInvokeDynamically(parent, srcexpr);
+        return invokeDynamic(parentStateMachine, srcexpr);
 
-    auto child = DynamicStateMachine::build(m_content.data());
+    auto childStateMachine = DynamicStateMachine::build(m_content.data());
 
     auto dm = QScxmlDataModelPrivate::instantiateDataModel(m_content->root->dataModel);
-    dm->setParent(child);
-    child->setDataModel(dm);
+    dm->setParent(childStateMachine);
+    childStateMachine->setDataModel(dm);
 
-    return finishInvoke(child, parent);
+    return invokeStatic(childStateMachine, parentStateMachine);
 }
 #endif // BUILD_QSCXMLC
 
 } // anonymous namespace
 
 #ifndef BUILD_QSCXMLC
-QScxmlInvokableService *QScxmlInvokableScxmlServiceFactory::loadAndInvokeDynamically(QScxmlStateMachine *parent,
-                                                                                     const QString &sourceUrl)
+QScxmlScxmlService *QScxmlScxmlServiceFactory::invokeDynamic(
+        QScxmlStateMachine *parentStateMachine, const QString &sourceUrl)
 {
-    QScxmlParser::Loader *loader = parent->loader();
+    QScxmlParser::Loader *loader = parentStateMachine->loader();
 
     const QString baseDir = sourceUrl.isEmpty() ? QString() : QFileInfo(sourceUrl).path();
     QStringList errs;
@@ -703,7 +704,7 @@ QScxmlInvokableService *QScxmlInvokableScxmlServiceFactory::loadAndInvokeDynamic
     QXmlStreamReader reader(data);
     QScxmlParser parser(&reader);
     parser.setFileName(sourceUrl);
-    parser.setLoader(parent->loader());
+    parser.setLoader(parentStateMachine->loader());
     parser.parse();
     if (!parser.errors().isEmpty()) {
         const auto errors = parser.errors();
@@ -721,13 +722,13 @@ QScxmlInvokableService *QScxmlInvokableScxmlServiceFactory::loadAndInvokeDynamic
         return Q_NULLPTR;
     }
 
-    auto child = DynamicStateMachine::build(mainDoc);
+    auto childStateMachine = DynamicStateMachine::build(mainDoc);
 
     auto dm = QScxmlDataModelPrivate::instantiateDataModel(mainDoc->root->dataModel);
-    dm->setParent(child);
-    child->setDataModel(dm);
+    dm->setParent(childStateMachine);
+    childStateMachine->setDataModel(dm);
 
-    return finishInvoke(child, parent);
+    return invokeStatic(childStateMachine, parentStateMachine);
 }
 #endif // BUILD_QSCXMLC
 
