@@ -331,8 +331,8 @@ public: // types & data fields:
     bool m_isProcessingEvents;
     QVariantMap m_initialValues;
     QScxmlDataModel *m_dataModel;
-    QScxmlParserPrivate::DefaultLoader m_defaultLoader;
-    QScxmlParser::Loader *m_loader;
+    QScxmlCompilerPrivate::DefaultLoader m_defaultLoader;
+    QScxmlCompiler::Loader *m_loader;
     QScxmlExecutionEngine *m_executionEngine;
     QScxmlTableData *m_tableData;
     const StateTable *m_stateTable;

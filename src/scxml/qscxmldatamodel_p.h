@@ -52,7 +52,7 @@
 //
 
 #include "qscxmldatamodel.h"
-#include "qscxmlparser_p.h"
+#include "qscxmlcompiler_p.h"
 #include <private/qobject_p.h>
 
 QT_BEGIN_NAMESPACE

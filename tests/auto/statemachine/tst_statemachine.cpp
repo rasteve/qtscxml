@@ -29,7 +29,7 @@
 #include <QtTest>
 #include <QObject>
 #include <QXmlStreamReader>
-#include <QtScxml/qscxmlparser.h>
+#include <QtScxml/qscxmlcompiler.h>
 #include <QtScxml/qscxmlstatemachine.h>
 #include <QtScxml/private/qscxmlstatemachine_p.h>
 

@@ -10,8 +10,8 @@ CONFIG  += $$MODULE_CONFIG
 DEFINES += QT_NO_CAST_FROM_ASCII QT_NO_CAST_TO_ASCII
 
 HEADERS += \
-    qscxmlparser.h \
-    qscxmlparser_p.h \
+    qscxmlcompiler.h \
+    qscxmlcompiler_p.h \
     qscxmlstatemachine.h \
     qscxmlstatemachine_p.h \
     qscxmlglobals.h \
@@ -34,7 +34,7 @@ HEADERS += \
     qscxmlstatemachineinfo_p.h
 
 SOURCES += \
-    qscxmlparser.cpp \
+    qscxmlcompiler.cpp \
     qscxmlstatemachine.cpp \
     qscxmlnulldatamodel.cpp \
     qscxmlecmascriptdatamodel.cpp \

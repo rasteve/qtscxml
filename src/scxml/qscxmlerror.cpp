@@ -62,7 +62,7 @@ public:
  * \since 5.7
  * \inmodule QtScxml
  *
- * \sa QScxmlStateMachine QScxmlParser
+ * \sa QScxmlStateMachine QScxmlCompiler
  */
 
 /*!

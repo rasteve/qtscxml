@@ -30,7 +30,7 @@
 #include <QCoreApplication>
 #include <QJsonDocument>
 
-#include <QtScxml/qscxmlparser.h>
+#include <QtScxml/qscxmlcompiler.h>
 #include <QtScxml/qscxmlecmascriptdatamodel.h>
 
 #include <functional>
@@ -86,7 +86,7 @@ public:
     }
 };
 
-class DynamicLoader: public QScxmlParser::Loader
+class DynamicLoader: public QScxmlCompiler::Loader
 {
 public:
     DynamicLoader();
@@ -201,12 +201,12 @@ void TestScion::dynamic()
     QFile scxmlFile(QLatin1String(":/") + scxml);
     QVERIFY(scxmlFile.open(QIODevice::ReadOnly));
     QXmlStreamReader xmlReader(&scxmlFile);
-    QScxmlParser parser(&xmlReader);
-    parser.setFileName(scxml);
+    QScxmlCompiler compiler(&xmlReader);
+    compiler.setFileName(scxml);
     DynamicLoader loader;
-    parser.setLoader(&loader);
-    QScopedPointer<QScxmlStateMachine> stateMachine(parser.parse());
-    QVERIFY(parser.errors().isEmpty());
+    compiler.setLoader(&loader);
+    QScopedPointer<QScxmlStateMachine> stateMachine(compiler.compile());
+    QVERIFY(compiler.errors().isEmpty());
     scxmlFile.close();
 
     QVERIFY(stateMachine != Q_NULLPTR);

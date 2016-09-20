@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "qscxmlparser_p.h"
+#include "qscxmlcompiler_p.h"
 #include "qscxmlexecutablecontent_p.h"
 
 #include <QXmlStreamReader>
@@ -101,7 +101,7 @@ public:
                 continue;
 #ifndef QT_NO_DEBUG
             } else if (m_stateById.contains(state->id)) {
-                Q_ASSERT(!"Should be unreachable: the parser should check for this case!");
+                Q_ASSERT(!"Should be unreachable: the compiler should check for this case!");
 #endif // QT_NO_DEBUG
             } else {
                 m_stateById[state->id] = state;
@@ -690,7 +690,7 @@ inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(
 QScxmlScxmlService *QScxmlScxmlServiceFactory::invokeDynamic(
         QScxmlStateMachine *parentStateMachine, const QString &sourceUrl)
 {
-    QScxmlParser::Loader *loader = parentStateMachine->loader();
+    QScxmlCompiler::Loader *loader = parentStateMachine->loader();
 
     const QString baseDir = sourceUrl.isEmpty() ? QString() : QFileInfo(sourceUrl).path();
     QStringList errs;
@@ -702,21 +702,21 @@ QScxmlScxmlService *QScxmlScxmlServiceFactory::invokeDynamic(
     }
 
     QXmlStreamReader reader(data);
-    QScxmlParser parser(&reader);
-    parser.setFileName(sourceUrl);
-    parser.setLoader(parentStateMachine->loader());
-    parser.parse();
-    if (!parser.errors().isEmpty()) {
-        const auto errors = parser.errors();
+    QScxmlCompiler compiler(&reader);
+    compiler.setFileName(sourceUrl);
+    compiler.setLoader(parentStateMachine->loader());
+    compiler.compile();
+    if (!compiler.errors().isEmpty()) {
+        const auto errors = compiler.errors();
         for (const QScxmlError &error : errors)
             qWarning() << error.toString();
         return Q_NULLPTR;
     }
 
-    auto mainDoc = QScxmlParserPrivate::get(&parser)->scxmlDocument();
+    auto mainDoc = QScxmlCompilerPrivate::get(&compiler)->scxmlDocument();
     if (mainDoc == nullptr) {
-        Q_ASSERT(!parser.errors().isEmpty());
-        const auto errors = parser.errors();
+        Q_ASSERT(!compiler.errors().isEmpty());
+        const auto errors = compiler.errors();
         for (const QScxmlError &error : errors)
             qWarning() << error.toString();
         return Q_NULLPTR;
@@ -733,32 +733,32 @@ QScxmlScxmlService *QScxmlScxmlServiceFactory::invokeDynamic(
 #endif // BUILD_QSCXMLC
 
 /*!
- * \class QScxmlParser
- * \brief The QScxmlParser class is a parser for SCXML files.
+ * \class QScxmlCompiler
+ * \brief The QScxmlCompiler class is a compiler for SCXML files.
  * \since 5.7
  * \inmodule QtScxml
  *
- * Parses an \l{SCXML Specification}{SCXML} file. It can also dynamically instantiate a
- * state machine for a successfully parsed SCXML file. If parsing failed and
- * instantiateStateMachine() is called, the new state machine cannot start. All errors are
- * returned by QScxmlStateMachine::parseErrors().
+ * Parses an \l{SCXML Specification}{SCXML} file and dynamically instantiates a
+ * state machine for a successfully parsed SCXML file. If parsing fails, the
+ * new state machine cannot start. All errors are returned by
+ * QScxmlStateMachine::parseErrors().
  *
  * To load an SCXML file, QScxmlStateMachine::fromFile or QScxmlStateMachine::fromData should be
- * used. Using QScxmlParser directly is only needed when the parser needs to use a custom
- * QScxmlParser::Loader.
+ * used. Using QScxmlCompiler directly is only needed when the compiler needs to use a custom
+ * QScxmlCompiler::Loader.
  */
 
 /*!
- * Creates a new SCXML parser for the specified \a reader.
+ * Creates a new SCXML compiler for the specified \a reader.
  */
-QScxmlParser::QScxmlParser(QXmlStreamReader *reader)
-    : d(new QScxmlParserPrivate(reader))
+QScxmlCompiler::QScxmlCompiler(QXmlStreamReader *reader)
+    : d(new QScxmlCompilerPrivate(reader))
 { }
 
 /*!
- * Destroys the SCXML parser.
+ * Destroys the SCXML compiler.
  */
-QScxmlParser::~QScxmlParser()
+QScxmlCompiler::~QScxmlCompiler()
 {
     delete d;
 }
@@ -768,7 +768,7 @@ QScxmlParser::~QScxmlParser()
  *
  * \sa setFileName()
  */
-QString QScxmlParser::fileName() const
+QString QScxmlCompiler::fileName() const
 {
     return d->fileName();
 }
@@ -780,29 +780,29 @@ QString QScxmlParser::fileName() const
  *
  * \sa fileName()
  */
-void QScxmlParser::setFileName(const QString &fileName)
+void QScxmlCompiler::setFileName(const QString &fileName)
 {
     d->setFileName(fileName);
 }
 
 /*!
  * Returns the loader that is currently used to resolve and load URIs for the
- * SCXML parser.
+ * SCXML compiler.
  *
  * \sa setLoader()
  */
-QScxmlParser::Loader *QScxmlParser::loader() const
+QScxmlCompiler::Loader *QScxmlCompiler::loader() const
 {
     return d->loader();
 }
 
 /*!
  * Sets \a newLoader to be used for resolving and loading URIs for the SCXML
- * parser.
+ * compiler.
  *
  * \sa loader()
  */
-void QScxmlParser::setLoader(QScxmlParser::Loader *newLoader)
+void QScxmlCompiler::setLoader(QScxmlCompiler::Loader *newLoader)
 {
     d->setLoader(newLoader);
 }
@@ -813,7 +813,7 @@ void QScxmlParser::setLoader(QScxmlParser::Loader *newLoader)
  * If parsing is successful, the returned state machine can be initialized and started. If
  * parsing fails, QScxmlStateMachine::parseErrors() can be used to retrieve a list of errors.
  */
-QScxmlStateMachine *QScxmlParser::parse()
+QScxmlStateMachine *QScxmlCompiler::compile()
 {
     d->readDocument();
     if (d->errors().isEmpty()) {
@@ -833,9 +833,9 @@ QScxmlStateMachine *QScxmlParser::parse()
  * parsing fails, QScxmlStateMachine::parseErrors() can be used to retrieve a list of errors.
  *
  * \note The instantiated state machine will not have an associated data model set.
- * \sa QScxmlParser::instantiateDataModel
+ * \sa QScxmlCompilerPrivate::instantiateDataModel
  */
-QScxmlStateMachine *QScxmlParserPrivate::instantiateStateMachine() const
+QScxmlStateMachine *QScxmlCompilerPrivate::instantiateStateMachine() const
 {
 #ifdef BUILD_QSCXMLC
     return Q_NULLPTR;
@@ -866,7 +866,7 @@ QScxmlStateMachine *QScxmlParserPrivate::instantiateStateMachine() const
  *
  * After instantiation, the \a stateMachine takes ownership of the data model.
  */
-void QScxmlParserPrivate::instantiateDataModel(QScxmlStateMachine *stateMachine) const
+void QScxmlCompilerPrivate::instantiateDataModel(QScxmlStateMachine *stateMachine) const
 {
 #ifdef BUILD_QSCXMLC
     Q_UNUSED(stateMachine)
@@ -888,12 +888,12 @@ void QScxmlParserPrivate::instantiateDataModel(QScxmlStateMachine *stateMachine)
 /*!
  * Returns the list of parse errors.
  */
-QVector<QScxmlError> QScxmlParser::errors() const
+QVector<QScxmlError> QScxmlCompiler::errors() const
 {
     return d->errors();
 }
 
-bool QScxmlParserPrivate::ParserState::collectChars() {
+bool QScxmlCompilerPrivate::ParserState::collectChars() {
     switch (kind) {
     case Content:
     case Data:
@@ -905,11 +905,11 @@ bool QScxmlParserPrivate::ParserState::collectChars() {
     return false;
 }
 
-bool QScxmlParserPrivate::ParserState::validChild(ParserState::Kind child) const {
+bool QScxmlCompilerPrivate::ParserState::validChild(ParserState::Kind child) const {
     return validChild(kind, child);
 }
 
-bool QScxmlParserPrivate::ParserState::validChild(ParserState::Kind parent, ParserState::Kind child)
+bool QScxmlCompilerPrivate::ParserState::validChild(ParserState::Kind parent, ParserState::Kind child)
 {
     switch (parent) {
     case ParserState::Scxml:
@@ -1014,7 +1014,7 @@ bool QScxmlParserPrivate::ParserState::validChild(ParserState::Kind parent, Pars
     return false;
 }
 
-bool QScxmlParserPrivate::ParserState::isExecutableContent(ParserState::Kind kind) {
+bool QScxmlCompilerPrivate::ParserState::isExecutableContent(ParserState::Kind kind) {
     switch (kind) {
     case Raise:
     case Send:
@@ -1032,7 +1032,7 @@ bool QScxmlParserPrivate::ParserState::isExecutableContent(ParserState::Kind kin
     return false;
 }
 
-QScxmlParserPrivate::ParserState::Kind QScxmlParserPrivate::ParserState::nameToParserStateKind(const QStringRef &name)
+QScxmlCompilerPrivate::ParserState::Kind QScxmlCompilerPrivate::ParserState::nameToParserStateKind(const QStringRef &name)
 {
     static QMap<QString, ParserState::Kind> nameToKind;
     if (nameToKind.isEmpty()) {
@@ -1073,7 +1073,7 @@ QScxmlParserPrivate::ParserState::Kind QScxmlParserPrivate::ParserState::nameToP
     return None;
 }
 
-QStringList QScxmlParserPrivate::ParserState::requiredAttributes(QScxmlParserPrivate::ParserState::Kind kind)
+QStringList QScxmlCompilerPrivate::ParserState::requiredAttributes(QScxmlCompilerPrivate::ParserState::Kind kind)
 {
     switch (kind) {
     case Scxml:      return QStringList() << QStringLiteral("version");
@@ -1108,7 +1108,7 @@ QStringList QScxmlParserPrivate::ParserState::requiredAttributes(QScxmlParserPri
     return QStringList();
 }
 
-QStringList QScxmlParserPrivate::ParserState::optionalAttributes(QScxmlParserPrivate::ParserState::Kind kind)
+QStringList QScxmlCompilerPrivate::ParserState::optionalAttributes(QScxmlCompilerPrivate::ParserState::Kind kind)
 {
     switch (kind) {
     case Scxml:      return QStringList() << QStringLiteral("initial")
@@ -1309,27 +1309,27 @@ DocumentModel::NodeVisitor::~NodeVisitor()
 {}
 
 /*!
- * \class QScxmlParser::Loader
- * \brief The Loader class is a URI resolver and resource loader for an SCXML parser.
- * \since 5.7
+ * \class QScxmlCompiler::Loader
+ * \brief The Loader class is a URI resolver and resource loader for an SCXML compiler.
+ * \since 5.8
  * \inmodule QtScxml
  */
 
 /*!
  * Creates a new loader.
  */
-QScxmlParser::Loader::Loader()
+QScxmlCompiler::Loader::Loader()
 {
 }
 
 /*!
  * Destroys the loader.
  */
-QScxmlParser::Loader::~Loader()
+QScxmlCompiler::Loader::~Loader()
 {}
 
 /*!
- * \fn QScxmlParser::Loader::load(const QString &name, const QString &baseDir, QStringList *errors)
+ * \fn QScxmlCompiler::Loader::load(const QString &name, const QString &baseDir, QStringList *errors)
  * Resolves the URI \a name and loads an SCXML file from the directory
  * specified by \a baseDir. \a errors contains information about the errors that
  * might have occurred.
@@ -1337,18 +1337,18 @@ QScxmlParser::Loader::~Loader()
  * Returns a QByteArray that stores the contents of the file.
  */
 
-QScxmlParserPrivate *QScxmlParserPrivate::get(QScxmlParser *parser)
+QScxmlCompilerPrivate *QScxmlCompilerPrivate::get(QScxmlCompiler *compiler)
 {
-    return parser->d;
+    return compiler->d;
 }
 
-QScxmlParserPrivate::QScxmlParserPrivate(QXmlStreamReader *reader)
+QScxmlCompilerPrivate::QScxmlCompilerPrivate(QXmlStreamReader *reader)
     : m_currentState(Q_NULLPTR)
     , m_loader(&m_defaultLoader)
     , m_reader(reader)
 {}
 
-bool QScxmlParserPrivate::verifyDocument()
+bool QScxmlCompilerPrivate::verifyDocument()
 {
     if (!m_doc)
         return false;
@@ -1363,36 +1363,36 @@ bool QScxmlParserPrivate::verifyDocument()
         return false;
 }
 
-DocumentModel::ScxmlDocument *QScxmlParserPrivate::scxmlDocument() const
+DocumentModel::ScxmlDocument *QScxmlCompilerPrivate::scxmlDocument() const
 {
     return m_doc && m_errors.isEmpty() ? m_doc.data() : Q_NULLPTR;
 }
 
-QString QScxmlParserPrivate::fileName() const
+QString QScxmlCompilerPrivate::fileName() const
 {
     return m_fileName;
 }
 
-void QScxmlParserPrivate::setFileName(const QString &fileName)
+void QScxmlCompilerPrivate::setFileName(const QString &fileName)
 {
     m_fileName = fileName;
 }
 
-QScxmlParser::Loader *QScxmlParserPrivate::loader() const
+QScxmlCompiler::Loader *QScxmlCompilerPrivate::loader() const
 {
     return m_loader;
 }
 
-void QScxmlParserPrivate::setLoader(QScxmlParser::Loader *loader)
+void QScxmlCompilerPrivate::setLoader(QScxmlCompiler::Loader *loader)
 {
     m_loader = loader;
 }
 
-void QScxmlParserPrivate::parseSubDocument(DocumentModel::Invoke *parentInvoke,
+void QScxmlCompilerPrivate::parseSubDocument(DocumentModel::Invoke *parentInvoke,
                                            QXmlStreamReader *reader,
                                            const QString &fileName)
 {
-    QScxmlParser p(reader);
+    QScxmlCompiler p(reader);
     p.setFileName(fileName);
     p.setLoader(loader());
     p.d->readDocument();
@@ -1401,11 +1401,11 @@ void QScxmlParserPrivate::parseSubDocument(DocumentModel::Invoke *parentInvoke,
     m_errors.append(p.errors());
 }
 
-bool QScxmlParserPrivate::parseSubElement(DocumentModel::Invoke *parentInvoke,
+bool QScxmlCompilerPrivate::parseSubElement(DocumentModel::Invoke *parentInvoke,
                                           QXmlStreamReader *reader,
                                           const QString &fileName)
 {
-    QScxmlParser p(reader);
+    QScxmlCompiler p(reader);
     p.setFileName(fileName);
     p.setLoader(loader());
     p.d->resetDocument();
@@ -1416,7 +1416,7 @@ bool QScxmlParserPrivate::parseSubElement(DocumentModel::Invoke *parentInvoke,
     return ok;
 }
 
-bool QScxmlParserPrivate::preReadElementScxml()
+bool QScxmlCompilerPrivate::preReadElementScxml()
 {
     if (m_doc->root) {
         addError(QLatin1String("Doc root already allocated"));
@@ -1475,7 +1475,7 @@ bool QScxmlParserPrivate::preReadElementScxml()
 }
 
 
-bool QScxmlParserPrivate::preReadElementState()
+bool QScxmlCompilerPrivate::preReadElementState()
 {
     const QXmlStreamAttributes attributes = m_reader->attributes();
     auto newState = m_doc->newState(m_currentState, DocumentModel::State::Normal, xmlLocation());
@@ -1490,7 +1490,7 @@ bool QScxmlParserPrivate::preReadElementState()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementParallel()
+bool QScxmlCompilerPrivate::preReadElementParallel()
 {
     const QXmlStreamAttributes attributes = m_reader->attributes();
     auto newState = m_doc->newState(m_currentState, DocumentModel::State::Parallel, xmlLocation());
@@ -1501,7 +1501,7 @@ bool QScxmlParserPrivate::preReadElementParallel()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementInitial()
+bool QScxmlCompilerPrivate::preReadElementInitial()
 {
     DocumentModel::AbstractState *parent = currentParent();
     if (!parent) {
@@ -1522,7 +1522,7 @@ bool QScxmlParserPrivate::preReadElementInitial()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementTransition()
+bool QScxmlCompilerPrivate::preReadElementTransition()
 {
     // Parser stack at this point:
     // <transition>
@@ -1566,7 +1566,7 @@ bool QScxmlParserPrivate::preReadElementTransition()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementFinal()
+bool QScxmlCompilerPrivate::preReadElementFinal()
 {
     const QXmlStreamAttributes attributes = m_reader->attributes();
     auto newState = m_doc->newState(m_currentState, DocumentModel::State::Final, xmlLocation());
@@ -1576,7 +1576,7 @@ bool QScxmlParserPrivate::preReadElementFinal()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementHistory()
+bool QScxmlCompilerPrivate::preReadElementHistory()
 {
     const QXmlStreamAttributes attributes = m_reader->attributes();
 
@@ -1602,7 +1602,7 @@ bool QScxmlParserPrivate::preReadElementHistory()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementOnEntry()
+bool QScxmlCompilerPrivate::preReadElementOnEntry()
 {
     const ParserState::Kind previousKind = previous().kind;
     switch (previousKind) {
@@ -1621,7 +1621,7 @@ bool QScxmlParserPrivate::preReadElementOnEntry()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementOnExit()
+bool QScxmlCompilerPrivate::preReadElementOnExit()
 {
     ParserState::Kind previousKind = previous().kind;
     switch (previousKind) {
@@ -1640,7 +1640,7 @@ bool QScxmlParserPrivate::preReadElementOnExit()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementRaise()
+bool QScxmlCompilerPrivate::preReadElementRaise()
 {
     const QXmlStreamAttributes attributes = m_reader->attributes();
     auto raise = m_doc->newNode<DocumentModel::Raise>(xmlLocation());
@@ -1649,7 +1649,7 @@ bool QScxmlParserPrivate::preReadElementRaise()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementIf()
+bool QScxmlCompilerPrivate::preReadElementIf()
 {
     const QXmlStreamAttributes attributes = m_reader->attributes();
     auto *ifI = m_doc->newNode<DocumentModel::If>(xmlLocation());
@@ -1659,7 +1659,7 @@ bool QScxmlParserPrivate::preReadElementIf()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementElseIf()
+bool QScxmlCompilerPrivate::preReadElementElseIf()
 {
     const QXmlStreamAttributes attributes = m_reader->attributes();
 
@@ -1672,7 +1672,7 @@ bool QScxmlParserPrivate::preReadElementElseIf()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementElse()
+bool QScxmlCompilerPrivate::preReadElementElse()
 {
     DocumentModel::If *ifI = lastIf();
     if (!ifI)
@@ -1682,7 +1682,7 @@ bool QScxmlParserPrivate::preReadElementElse()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementForeach()
+bool QScxmlCompilerPrivate::preReadElementForeach()
 {
     const QXmlStreamAttributes attributes = m_reader->attributes();
     auto foreachI = m_doc->newNode<DocumentModel::Foreach>(xmlLocation());
@@ -1694,7 +1694,7 @@ bool QScxmlParserPrivate::preReadElementForeach()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementLog()
+bool QScxmlCompilerPrivate::preReadElementLog()
 {
     const QXmlStreamAttributes attributes = m_reader->attributes();
     auto logI = m_doc->newNode<DocumentModel::Log>(xmlLocation());
@@ -1704,12 +1704,12 @@ bool QScxmlParserPrivate::preReadElementLog()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementDataModel()
+bool QScxmlCompilerPrivate::preReadElementDataModel()
 {
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementData()
+bool QScxmlCompilerPrivate::preReadElementData()
 {
     const QXmlStreamAttributes attributes = m_reader->attributes();
     auto data = m_doc->newNode<DocumentModel::DataElement>(xmlLocation());
@@ -1726,7 +1726,7 @@ bool QScxmlParserPrivate::preReadElementData()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementAssign()
+bool QScxmlCompilerPrivate::preReadElementAssign()
 {
     const QXmlStreamAttributes attributes = m_reader->attributes();
     auto assign = m_doc->newNode<DocumentModel::Assign>(xmlLocation());
@@ -1736,7 +1736,7 @@ bool QScxmlParserPrivate::preReadElementAssign()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementDoneData()
+bool QScxmlCompilerPrivate::preReadElementDoneData()
 {
     DocumentModel::State *s = m_currentState->asState();
     if (s && s->type == DocumentModel::State::Final) {
@@ -1751,7 +1751,7 @@ bool QScxmlParserPrivate::preReadElementDoneData()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementContent()
+bool QScxmlCompilerPrivate::preReadElementContent()
 {
     const QXmlStreamAttributes attributes = m_reader->attributes();
     ParserState::Kind previousKind = previous().kind;
@@ -1781,7 +1781,7 @@ bool QScxmlParserPrivate::preReadElementContent()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementParam()
+bool QScxmlCompilerPrivate::preReadElementParam()
 {
     const QXmlStreamAttributes attributes = m_reader->attributes();
     auto param = m_doc->newNode<DocumentModel::Param>(xmlLocation());
@@ -1813,7 +1813,7 @@ bool QScxmlParserPrivate::preReadElementParam()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementScript()
+bool QScxmlCompilerPrivate::preReadElementScript()
 {
     const QXmlStreamAttributes attributes = m_reader->attributes();
     auto *script = m_doc->newNode<DocumentModel::Script>(xmlLocation());
@@ -1822,7 +1822,7 @@ bool QScxmlParserPrivate::preReadElementScript()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementSend()
+bool QScxmlCompilerPrivate::preReadElementSend()
 {
     const QXmlStreamAttributes attributes = m_reader->attributes();
     auto *send = m_doc->newNode<DocumentModel::Send>(xmlLocation());
@@ -1842,7 +1842,7 @@ bool QScxmlParserPrivate::preReadElementSend()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementCancel()
+bool QScxmlCompilerPrivate::preReadElementCancel()
 {
     const QXmlStreamAttributes attributes = m_reader->attributes();
     auto *cancel = m_doc->newNode<DocumentModel::Cancel>(xmlLocation());
@@ -1852,7 +1852,7 @@ bool QScxmlParserPrivate::preReadElementCancel()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementInvoke()
+bool QScxmlCompilerPrivate::preReadElementInvoke()
 {
     const QXmlStreamAttributes attributes = m_reader->attributes();
     DocumentModel::State *parentState = m_currentState->asState();
@@ -1883,7 +1883,7 @@ bool QScxmlParserPrivate::preReadElementInvoke()
     return true;
 }
 
-bool QScxmlParserPrivate::preReadElementFinalize()
+bool QScxmlCompilerPrivate::preReadElementFinalize()
 {
     auto instr = previous().instruction;
     if (!instr) {
@@ -1899,91 +1899,91 @@ bool QScxmlParserPrivate::preReadElementFinalize()
     return true;
 }
 
-bool QScxmlParserPrivate::postReadElementScxml()
+bool QScxmlCompilerPrivate::postReadElementScxml()
 {
     return true;
 }
 
-bool QScxmlParserPrivate::postReadElementState()
+bool QScxmlCompilerPrivate::postReadElementState()
 {
     currentStateUp();
     return true;
 }
 
-bool QScxmlParserPrivate::postReadElementParallel()
+bool QScxmlCompilerPrivate::postReadElementParallel()
 {
     currentStateUp();
     return true;
 }
 
-bool QScxmlParserPrivate::postReadElementInitial()
+bool QScxmlCompilerPrivate::postReadElementInitial()
 {
     return true;
 }
 
-bool QScxmlParserPrivate::postReadElementTransition()
+bool QScxmlCompilerPrivate::postReadElementTransition()
 {
     return true;
 }
 
-bool QScxmlParserPrivate::postReadElementFinal()
+bool QScxmlCompilerPrivate::postReadElementFinal()
 {
     currentStateUp();
     return true;
 }
 
-bool QScxmlParserPrivate::postReadElementHistory()
+bool QScxmlCompilerPrivate::postReadElementHistory()
 {
     currentStateUp();
     return true;
 }
 
-bool QScxmlParserPrivate::postReadElementOnEntry()
+bool QScxmlCompilerPrivate::postReadElementOnEntry()
 {
     return true;
 }
 
-bool QScxmlParserPrivate::postReadElementOnExit()
+bool QScxmlCompilerPrivate::postReadElementOnExit()
 {
     return true;
 }
 
-bool QScxmlParserPrivate::postReadElementRaise()
+bool QScxmlCompilerPrivate::postReadElementRaise()
 {
     return flushInstruction();
 }
 
-bool QScxmlParserPrivate::postReadElementIf()
+bool QScxmlCompilerPrivate::postReadElementIf()
 {
     return flushInstruction();
 }
 
-bool QScxmlParserPrivate::postReadElementElseIf()
+bool QScxmlCompilerPrivate::postReadElementElseIf()
 {
     return true;
 }
 
-bool QScxmlParserPrivate::postReadElementElse()
+bool QScxmlCompilerPrivate::postReadElementElse()
 {
     return true;
 }
 
-bool QScxmlParserPrivate::postReadElementForeach()
+bool QScxmlCompilerPrivate::postReadElementForeach()
 {
     return flushInstruction();
 }
 
-bool QScxmlParserPrivate::postReadElementLog()
+bool QScxmlCompilerPrivate::postReadElementLog()
 {
     return flushInstruction();
 }
 
-bool QScxmlParserPrivate::postReadElementDataModel()
+bool QScxmlCompilerPrivate::postReadElementDataModel()
 {
     return true;
 }
 
-bool QScxmlParserPrivate::postReadElementData()
+bool QScxmlCompilerPrivate::postReadElementData()
 {
     const ParserState parserState = current();
     DocumentModel::DataElement *data = Q_NULLPTR;
@@ -2030,17 +2030,17 @@ bool QScxmlParserPrivate::postReadElementData()
     return true;
 }
 
-bool QScxmlParserPrivate::postReadElementAssign()
+bool QScxmlCompilerPrivate::postReadElementAssign()
 {
     return flushInstruction();
 }
 
-bool QScxmlParserPrivate::postReadElementDoneData()
+bool QScxmlCompilerPrivate::postReadElementDoneData()
 {
     return true;
 }
 
-bool QScxmlParserPrivate::postReadElementContent()
+bool QScxmlCompilerPrivate::postReadElementContent()
 {
     const ParserState parserState = current();
     if (!parserState.chars.trimmed().isEmpty()) {
@@ -2059,12 +2059,12 @@ bool QScxmlParserPrivate::postReadElementContent()
     return true;
 }
 
-bool QScxmlParserPrivate::postReadElementParam()
+bool QScxmlCompilerPrivate::postReadElementParam()
 {
     return true;
 }
 
-bool QScxmlParserPrivate::postReadElementScript()
+bool QScxmlCompilerPrivate::postReadElementScript()
 {
     const ParserState parserState = current();
     DocumentModel::Script *scriptI = parserState.instruction->asScript();
@@ -2088,17 +2088,17 @@ bool QScxmlParserPrivate::postReadElementScript()
     return flushInstruction();
 }
 
-bool QScxmlParserPrivate::postReadElementSend()
+bool QScxmlCompilerPrivate::postReadElementSend()
 {
     return flushInstruction();
 }
 
-bool QScxmlParserPrivate::postReadElementCancel()
+bool QScxmlCompilerPrivate::postReadElementCancel()
 {
     return flushInstruction();
 }
 
-bool QScxmlParserPrivate::postReadElementInvoke()
+bool QScxmlCompilerPrivate::postReadElementInvoke()
 {
     DocumentModel::Invoke *i = current().instruction->asInvoke();
     const QString fileName = i->src;
@@ -2120,17 +2120,17 @@ bool QScxmlParserPrivate::postReadElementInvoke()
     return true;
 }
 
-bool QScxmlParserPrivate::postReadElementFinalize()
+bool QScxmlCompilerPrivate::postReadElementFinalize()
 {
     return true;
 }
 
-void QScxmlParserPrivate::resetDocument()
+void QScxmlCompilerPrivate::resetDocument()
 {
     m_doc.reset(new DocumentModel::ScxmlDocument(fileName()));
 }
 
-bool QScxmlParserPrivate::readDocument()
+bool QScxmlCompilerPrivate::readDocument()
 {
     resetDocument();
     m_currentState = m_doc->root;
@@ -2176,7 +2176,7 @@ bool QScxmlParserPrivate::readDocument()
     return true;
 }
 
-bool QScxmlParserPrivate::readElement()
+bool QScxmlCompilerPrivate::readElement()
 {
     const QStringRef currentTag = m_reader->name();
     const QXmlStreamAttributes attributes = m_reader->attributes();
@@ -2316,13 +2316,13 @@ bool QScxmlParserPrivate::readElement()
     return true;
 }
 
-void QScxmlParserPrivate::currentStateUp()
+void QScxmlCompilerPrivate::currentStateUp()
 {
     Q_ASSERT(m_currentState->parent);
     m_currentState = m_currentState->parent;
 }
 
-bool QScxmlParserPrivate::flushInstruction()
+bool QScxmlCompilerPrivate::flushInstruction()
 {
     if (!hasPrevious()) {
         addError(QStringLiteral("missing instructionContainer"));
@@ -2338,7 +2338,7 @@ bool QScxmlParserPrivate::flushInstruction()
 }
 
 
-QByteArray QScxmlParserPrivate::load(const QString &name, bool *ok)
+QByteArray QScxmlCompilerPrivate::load(const QString &name, bool *ok)
 {
     QStringList errs;
     const QByteArray result = m_loader->load(name, m_fileName.isEmpty() ?
@@ -2351,32 +2351,32 @@ QByteArray QScxmlParserPrivate::load(const QString &name, bool *ok)
     return result;
 }
 
-QVector<QScxmlError> QScxmlParserPrivate::errors() const
+QVector<QScxmlError> QScxmlCompilerPrivate::errors() const
 {
     return m_errors;
 }
 
-void QScxmlParserPrivate::addError(const QString &msg)
+void QScxmlCompilerPrivate::addError(const QString &msg)
 {
     m_errors.append(QScxmlError(m_fileName, m_reader->lineNumber(), m_reader->columnNumber(), msg));
 }
 
-void QScxmlParserPrivate::addError(const DocumentModel::XmlLocation &location, const QString &msg)
+void QScxmlCompilerPrivate::addError(const DocumentModel::XmlLocation &location, const QString &msg)
 {
     m_errors.append(QScxmlError(m_fileName, location.line, location.column, msg));
 }
 
-DocumentModel::AbstractState *QScxmlParserPrivate::currentParent() const
+DocumentModel::AbstractState *QScxmlCompilerPrivate::currentParent() const
 {
     return m_currentState ? m_currentState->asAbstractState() : Q_NULLPTR;
 }
 
-DocumentModel::XmlLocation QScxmlParserPrivate::xmlLocation() const
+DocumentModel::XmlLocation QScxmlCompilerPrivate::xmlLocation() const
 {
     return DocumentModel::XmlLocation(m_reader->lineNumber(), m_reader->columnNumber());
 }
 
-bool QScxmlParserPrivate::maybeId(const QXmlStreamAttributes &attributes, QString *id)
+bool QScxmlCompilerPrivate::maybeId(const QXmlStreamAttributes &attributes, QString *id)
 {
     Q_ASSERT(id);
     QString idStr = attributes.value(QLatin1String("id")).toString();
@@ -2391,7 +2391,7 @@ bool QScxmlParserPrivate::maybeId(const QXmlStreamAttributes &attributes, QStrin
     return true;
 }
 
-DocumentModel::If *QScxmlParserPrivate::lastIf()
+DocumentModel::If *QScxmlCompilerPrivate::lastIf()
 {
     if (!hasPrevious()) {
         addError(QStringLiteral("No previous instruction found for else block"));
@@ -2411,30 +2411,30 @@ DocumentModel::If *QScxmlParserPrivate::lastIf()
     return ifI;
 }
 
-QScxmlParserPrivate::ParserState &QScxmlParserPrivate::current()
+QScxmlCompilerPrivate::ParserState &QScxmlCompilerPrivate::current()
 {
     return m_stack.last();
 }
 
-QScxmlParserPrivate::ParserState &QScxmlParserPrivate::previous()
+QScxmlCompilerPrivate::ParserState &QScxmlCompilerPrivate::previous()
 {
     return m_stack[m_stack.count() - 2];
 }
 
-bool QScxmlParserPrivate::hasPrevious() const
+bool QScxmlCompilerPrivate::hasPrevious() const
 {
     return m_stack.count() > 1;
 }
 
-bool QScxmlParserPrivate::checkAttributes(const QXmlStreamAttributes &attributes,
-                                          QScxmlParserPrivate::ParserState::Kind kind)
+bool QScxmlCompilerPrivate::checkAttributes(const QXmlStreamAttributes &attributes,
+                                          QScxmlCompilerPrivate::ParserState::Kind kind)
 {
     return checkAttributes(attributes,
                            ParserState::requiredAttributes(kind),
                            ParserState::optionalAttributes(kind));
 }
 
-bool QScxmlParserPrivate::checkAttributes(const QXmlStreamAttributes &attributes,
+bool QScxmlCompilerPrivate::checkAttributes(const QXmlStreamAttributes &attributes,
                                           const QStringList &requiredNames,
                                           const QStringList &optionalNames)
 {
@@ -2458,11 +2458,11 @@ bool QScxmlParserPrivate::checkAttributes(const QXmlStreamAttributes &attributes
     return true;
 }
 
-QScxmlParserPrivate::DefaultLoader::DefaultLoader()
+QScxmlCompilerPrivate::DefaultLoader::DefaultLoader()
     : Loader()
 {}
 
-QByteArray QScxmlParserPrivate::DefaultLoader::load(const QString &name, const QString &baseDir, QStringList *errors)
+QByteArray QScxmlCompilerPrivate::DefaultLoader::load(const QString &name, const QString &baseDir, QStringList *errors)
 {
     QStringList errs;
     QByteArray contents;
@@ -2496,7 +2496,7 @@ QByteArray QScxmlParserPrivate::DefaultLoader::load(const QString &name, const Q
     return contents;
 }
 
-QScxmlParserPrivate::ParserState::ParserState(QScxmlParserPrivate::ParserState::Kind someKind)
+QScxmlCompilerPrivate::ParserState::ParserState(QScxmlCompilerPrivate::ParserState::Kind someKind)
     : kind(someKind)
     , instruction(0)
     , instructionContainer(0)

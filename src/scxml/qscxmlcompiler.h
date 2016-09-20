@@ -37,20 +37,18 @@
 **
 ****************************************************************************/
 
-#ifndef SCXMLPARSER_H
-#define SCXMLPARSER_H
+#ifndef QSCXMLCOMPILER_H
+#define QSCXMLCOMPILER_H
 
 #include <QtScxml/qscxmlerror.h>
-
-#include <QStringList>
-#include <QString>
+#include <QtCore/qstring.h>
 
 QT_BEGIN_NAMESPACE
 class QXmlStreamReader;
 class QScxmlStateMachine;
 
-class QScxmlParserPrivate;
-class Q_SCXML_EXPORT QScxmlParser
+class QScxmlCompilerPrivate;
+class Q_SCXML_EXPORT QScxmlCompiler
 {
 public:
     class Q_SCXML_EXPORT Loader
@@ -64,8 +62,8 @@ public:
     };
 
 public:
-    QScxmlParser(QXmlStreamReader *xmlReader);
-    ~QScxmlParser();
+    QScxmlCompiler(QXmlStreamReader *xmlReader);
+    ~QScxmlCompiler();
 
     QString fileName() const;
     void setFileName(const QString &fileName);
@@ -73,14 +71,14 @@ public:
     Loader *loader() const;
     void setLoader(Loader *newLoader);
 
-    QScxmlStateMachine *parse();
+    QScxmlStateMachine *compile();
     QVector<QScxmlError> errors() const;
 
 private:
-    friend class QScxmlParserPrivate;
-    QScxmlParserPrivate *d;
+    friend class QScxmlCompilerPrivate;
+    QScxmlCompilerPrivate *d;
 };
 
 QT_END_NAMESPACE
 
-#endif // SCXMLPARSER_H
+#endif // QSCXMLCOMPILER_H

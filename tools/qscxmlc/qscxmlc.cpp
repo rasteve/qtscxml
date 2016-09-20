@@ -26,7 +26,7 @@
 **
 ****************************************************************************/
 
-#include <QtScxml/private/qscxmlparser_p.h>
+#include <QtScxml/private/qscxmlcompiler_p.h>
 #include <QtScxml/qscxmltabledata.h>
 #include "scxmlcppdumper.h"
 #include "qscxmlc.h"
@@ -174,21 +174,21 @@ int run(const QStringList &arguments)
     }
 
     QXmlStreamReader reader(&file);
-    QScxmlParser parser(&reader);
-    parser.setFileName(file.fileName());
-    parser.parse();
-    if (!parser.errors().isEmpty()) {
-        const auto errors = parser.errors();
+    QScxmlCompiler compiler(&reader);
+    compiler.setFileName(file.fileName());
+    compiler.compile();
+    if (!compiler.errors().isEmpty()) {
+        const auto errors = compiler.errors();
         for (const QScxmlError &error : errors) {
             errs << error.toString() << endl;
         }
         return ParseError;
     }
 
-    auto mainDoc = QScxmlParserPrivate::get(&parser)->scxmlDocument();
+    auto mainDoc = QScxmlCompilerPrivate::get(&compiler)->scxmlDocument();
     if (mainDoc == nullptr) {
-        Q_ASSERT(!parser.errors().isEmpty());
-        const auto errors = parser.errors();
+        Q_ASSERT(!compiler.errors().isEmpty());
+        const auto errors = compiler.errors();
         for (const QScxmlError &error : errors) {
             errs << error.toString() << endl;
         }

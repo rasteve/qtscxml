@@ -1419,9 +1419,9 @@ QScxmlStateMachine *QScxmlStateMachine::fromFile(const QString &fileName)
 QScxmlStateMachine *QScxmlStateMachine::fromData(QIODevice *data, const QString &fileName)
 {
     QXmlStreamReader xmlReader(data);
-    QScxmlParser parser(&xmlReader);
-    parser.setFileName(fileName);
-    return parser.parse();
+    QScxmlCompiler compiler(&xmlReader);
+    compiler.setFileName(fileName);
+    return compiler.compile();
 }
 
 QVector<QScxmlError> QScxmlStateMachine::parseErrors() const
@@ -1580,7 +1580,7 @@ QScxmlDataModel *QScxmlStateMachine::dataModel() const
     return d->m_dataModel;
 }
 
-void QScxmlStateMachine::setLoader(QScxmlParser::Loader *loader)
+void QScxmlStateMachine::setLoader(QScxmlCompiler::Loader *loader)
 {
     Q_D(QScxmlStateMachine);
 
@@ -1590,7 +1590,7 @@ void QScxmlStateMachine::setLoader(QScxmlParser::Loader *loader)
     }
 }
 
-QScxmlParser::Loader *QScxmlStateMachine::loader() const
+QScxmlCompiler::Loader *QScxmlStateMachine::loader() const
 {
     Q_D(const QScxmlStateMachine);
 

@@ -31,7 +31,7 @@
 
 #include "qscxmlglobals.h"
 
-#include <QtScxml/private/qscxmlparser_p.h>
+#include <QtScxml/private/qscxmlcompiler_p.h>
 #include <QtScxml/private/qscxmltabledata_p.h>
 
 #include <QTextStream>

@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef SCXMLPARSER_P_H
-#define SCXMLPARSER_P_H
+#ifndef QSCXMLCOMPILER_P_H
+#define QSCXMLCOMPILER_P_H
 
 //
 //  W A R N I N G
@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include "qscxmlparser.h"
+#include "qscxmlcompiler.h"
 
 #include <QDir>
 #include <QFileInfo>
@@ -548,12 +548,12 @@ public:
 
 } // DocumentModel namespace
 
-class Q_SCXML_EXPORT QScxmlParserPrivate
+class Q_SCXML_EXPORT QScxmlCompilerPrivate
 {
 public:
-    static QScxmlParserPrivate *get(QScxmlParser *parser);
+    static QScxmlCompilerPrivate *get(QScxmlCompiler *compiler);
 
-    QScxmlParserPrivate(QXmlStreamReader *reader);
+    QScxmlCompilerPrivate(QXmlStreamReader *reader);
 
     bool verifyDocument();
     DocumentModel::ScxmlDocument *scxmlDocument() const;
@@ -561,8 +561,8 @@ public:
     QString fileName() const;
     void setFileName(const QString &fileName);
 
-    QScxmlParser::Loader *loader() const;
-    void setLoader(QScxmlParser::Loader *loader);
+    QScxmlCompiler::Loader *loader() const;
+    void setLoader(QScxmlCompiler::Loader *loader);
 
     bool readDocument();
     void parseSubDocument(DocumentModel::Invoke *parentInvoke,
@@ -699,7 +699,7 @@ private:
     };
 
 public:
-    class DefaultLoader: public QScxmlParser::Loader
+    class DefaultLoader: public QScxmlCompiler::Loader
     {
     public:
         DefaultLoader();
@@ -709,7 +709,7 @@ public:
     };
 
 private:
-    bool checkAttributes(const QXmlStreamAttributes &attributes, QScxmlParserPrivate::ParserState::Kind kind);
+    bool checkAttributes(const QXmlStreamAttributes &attributes, QScxmlCompilerPrivate::ParserState::Kind kind);
     ParserState &current();
     ParserState &previous();
     bool hasPrevious() const;
@@ -721,7 +721,7 @@ private:
     QScopedPointer<DocumentModel::ScxmlDocument> m_doc;
     DocumentModel::StateContainer *m_currentState;
     DefaultLoader m_defaultLoader;
-    QScxmlParser::Loader *m_loader;
+    QScxmlCompiler::Loader *m_loader;
 
     QXmlStreamReader *m_reader;
     QVector<ParserState> m_stack;
@@ -730,4 +730,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // SCXMLPARSER_P_H
+#endif // QSCXMLCOMPILER_P_H

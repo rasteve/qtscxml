@@ -44,7 +44,7 @@
 #include <QtScxml/qscxmlexecutablecontent.h>
 #include <QtScxml/qscxmlerror.h>
 #include <QtScxml/qscxmlevent.h>
-#include <QtScxml/qscxmlparser.h>
+#include <QtScxml/qscxmlcompiler.h>
 
 #include <QString>
 #include <QVector>
@@ -74,7 +74,7 @@ class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
     Q_PROPERTY(QString name READ name CONSTANT)
     Q_PROPERTY(bool invoked READ isInvoked CONSTANT)
     Q_PROPERTY(QVector<QScxmlError> parseErrors READ parseErrors CONSTANT)
-    Q_PROPERTY(QScxmlParser::Loader *loader READ loader WRITE setLoader NOTIFY loaderChanged)
+    Q_PROPERTY(QScxmlCompiler::Loader *loader READ loader WRITE setLoader NOTIFY loaderChanged)
 
 protected:
 #ifndef Q_QDOC
@@ -95,8 +95,8 @@ public:
     void setDataModel(QScxmlDataModel *model);
     QScxmlDataModel *dataModel() const;
 
-    void setLoader(QScxmlParser::Loader *loader);
-    QScxmlParser::Loader *loader() const;
+    void setLoader(QScxmlCompiler::Loader *loader);
+    QScxmlCompiler::Loader *loader() const;
 
     bool isRunning() const;
     void setRunning(bool running);
@@ -323,7 +323,7 @@ Q_SIGNALS:
     void dataModelChanged(QScxmlDataModel *model);
     void initialValuesChanged(const QVariantMap &initialValues);
     void initializedChanged(bool initialized);
-    void loaderChanged(QScxmlParser::Loader *loader);
+    void loaderChanged(QScxmlCompiler::Loader *loader);
 
 public Q_SLOTS:
     void start();

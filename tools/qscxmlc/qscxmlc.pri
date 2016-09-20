@@ -14,8 +14,8 @@ HEADERS += \
     $$PWD/scxmlcppdumper.h
 
 HEADERS += \
-    $$PWD/../../src/scxml/qscxmlparser.h \
-    $$PWD/../../src/scxml/qscxmlparser_p.h \
+    $$PWD/../../src/scxml/qscxmlcompiler.h \
+    $$PWD/../../src/scxml/qscxmlcompiler_p.h \
     $$PWD/../../src/scxml/qscxmlglobals.h \
     $$PWD/../../src/scxml/qscxmlexecutablecontent.h \
     $$PWD/../../src/scxml/qscxmlexecutablecontent_p.h \
@@ -23,7 +23,7 @@ HEADERS += \
     $$PWD/../../src/scxml/qscxmltabledata.h
 
 SOURCES += \
-    $$PWD/../../src/scxml/qscxmlparser.cpp \
+    $$PWD/../../src/scxml/qscxmlcompiler.cpp \
     $$PWD/../../src/scxml/qscxmlexecutablecontent.cpp \
     $$PWD/../../src/scxml/qscxmlerror.cpp \
     $$PWD/../../src/scxml/qscxmltabledata.cpp
