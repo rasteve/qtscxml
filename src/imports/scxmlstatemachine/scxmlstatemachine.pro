@@ -11,10 +11,11 @@ SOURCES = \
     $$PWD/invokedservices.cpp
 
 HEADERS = \
-    $$PWD/statemachineloader.h \
-    $$PWD/eventconnection.h \
-    $$PWD/statemachineextended.h \
-    $$PWD/invokedservices.h
+    $$PWD/eventconnection_p.h \
+    $$PWD/invokedservices_p.h \
+    $$PWD/statemachineextended_p.h \
+    $$PWD/statemachineloader_p.h
+
 
 load(qml_plugin)
 

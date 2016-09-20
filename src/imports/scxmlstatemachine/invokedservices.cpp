@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "invokedservices.h"
+#include "invokedservices_p.h"
 #include <QtScxml/qscxmlinvokableservice.h>
 
 QT_BEGIN_NAMESPACE

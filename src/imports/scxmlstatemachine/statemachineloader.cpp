@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "statemachineloader.h"
+#include "statemachineloader_p.h"
 
 #include <QtScxml/qscxmlstatemachine.h>
 #include <QQmlContext>
