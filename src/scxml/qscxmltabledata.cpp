@@ -985,9 +985,9 @@ QString GeneratedTableData::string(StringId id) const
     return id == NoString ? QString() : theStrings.at(id);
 }
 
-Instructions GeneratedTableData::instructions() const
+InstructionId *GeneratedTableData::instructions() const
 {
-    return const_cast<Instructions>(theInstructions.data());
+    return const_cast<InstructionId *>(theInstructions.data());
 }
 
 EvaluatorInfo GeneratedTableData::evaluatorInfo(EvaluatorId evaluatorId) const

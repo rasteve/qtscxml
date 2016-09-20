@@ -101,7 +101,7 @@ public:
 
 public:
     QString string(QScxmlExecutableContent::StringId id) const Q_DECL_OVERRIDE Q_DECL_FINAL;
-    QScxmlExecutableContent::Instructions instructions() const Q_DECL_OVERRIDE Q_DECL_FINAL;
+    QScxmlExecutableContent::InstructionId *instructions() const Q_DECL_OVERRIDE Q_DECL_FINAL;
     QScxmlExecutableContent::EvaluatorInfo evaluatorInfo(
             QScxmlExecutableContent::EvaluatorId evaluatorId) const Q_DECL_OVERRIDE Q_DECL_FINAL;
     QScxmlExecutableContent::AssignmentInfo assignmentInfo(

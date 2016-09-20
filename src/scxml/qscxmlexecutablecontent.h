@@ -49,12 +49,11 @@ QT_BEGIN_NAMESPACE
 namespace QScxmlExecutableContent {
 
 typedef int ContainerId;
-enum { NoInstruction = -1 };
 typedef qint32 StringId;
 typedef QVector<StringId> StringIds;
 enum { NoString = -1 };
-typedef qint32 *Instructions;
-
+typedef qint32 InstructionId;
+enum { NoInstruction = -1 };
 class QScxmlExecutionEngine;
 
 #if defined(Q_CC_MSVC) || defined(Q_CC_GNU)

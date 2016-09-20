@@ -103,7 +103,7 @@ struct Array
     T *data() { return const_cast<T *>(const_data()); }
     const T *const_data() const { return reinterpret_cast<const T *>(reinterpret_cast<const char *>(this) + sizeof(Array<T>)); }
 
-    const T &at(int pos) { return *(data() + pos); }
+    const T &at(int pos) const { return *(const_data() + pos); }
     int dataSize() const { return count * sizeof(T) / sizeof(qint32); }
     int size() const { return sizeof(Array<T>) / sizeof(qint32) + dataSize(); }
 };
@@ -142,7 +142,11 @@ struct Q_SCXML_EXPORT InstructionSequence: Instruction
     // Instruction[] instructions;
 
     static InstructionType kind() { return Instruction::Sequence; }
-    Instructions instructions() { return reinterpret_cast<Instructions>(this) + sizeof(InstructionSequence) / sizeof(qint32); }
+    const InstructionId *instructions() const
+    {
+        return reinterpret_cast<const InstructionId *>(this)
+                + sizeof(InstructionSequence) / sizeof(qint32);
+    }
     int size() const { return sizeof(InstructionSequence) / sizeof(qint32) + entryCount; }
 };
 
@@ -153,14 +157,17 @@ struct Q_SCXML_EXPORT InstructionSequences: Instruction
     // InstructionSequence[] sequences;
 
     static InstructionType kind() { return Instruction::Sequences; }
-    InstructionSequence *sequences() {
-        return reinterpret_cast<InstructionSequence *>(reinterpret_cast<Instructions>(this) + sizeof(InstructionSequences) / sizeof(qint32));
+    const InstructionSequence *sequences() const {
+        return reinterpret_cast<const InstructionSequence *>(
+                    reinterpret_cast<const InstructionId *>(this)
+                    + sizeof(InstructionSequences) / sizeof(qint32));
     }
     int size() const { return sizeof(InstructionSequences)/sizeof(qint32) + entryCount; }
-    Instructions at(int pos) {
-        Instructions seq = reinterpret_cast<Instructions>(sequences());
+    const InstructionId *at(int pos) const
+    {
+        const InstructionId *seq = reinterpret_cast<const InstructionId *>(sequences());
         while (pos--) {
-            seq += reinterpret_cast<InstructionSequence *>(seq)->size();
+            seq += reinterpret_cast<const InstructionSequence *>(seq)->size();
         }
         return seq;
     }
@@ -185,11 +192,27 @@ struct Q_SCXML_EXPORT Send: Instruction
 //    Array<Param> params;
 
     static InstructionType kind() { return Instruction::Send; }
-    int size() { return sizeof(Send) / sizeof(qint32) + namelist.dataSize() + params()->size(); }
+
+    int paramsOffset() const
+    {
+        return sizeof(Send) / sizeof(qint32) + namelist.dataSize();
+    }
+
+    int size() const
+    {
+        return paramsOffset() + params()->size();
+    }
+
+    const Array<Param> *params() const {
+        return reinterpret_cast<const Array<Param> *>(
+                    reinterpret_cast<const InstructionId *>(this) + paramsOffset());
+    }
+
     Array<Param> *params() {
         return reinterpret_cast<Array<Param> *>(
-                    reinterpret_cast<Instructions>(this) + sizeof(Send) / sizeof(qint32) + namelist.dataSize());
+                    reinterpret_cast<InstructionId *>(this) + paramsOffset());
     }
+
     static int calculateExtraSize(int paramCount, int nameCount) {
         return 1 + paramCount * sizeof(Param) / sizeof(qint32) + nameCount * sizeof(StringId) / sizeof(qint32);
     }
@@ -240,13 +263,17 @@ struct Q_SCXML_EXPORT If: Instruction
 {
     Array<EvaluatorId> conditions;
     // InstructionSequences blocks;
-    InstructionSequences *blocks() {
-        return reinterpret_cast<InstructionSequences *>(
-                    reinterpret_cast<Instructions>(this) + sizeof(If) / sizeof(qint32) + conditions.dataSize());
+    const InstructionSequences *blocks() const {
+        return reinterpret_cast<const InstructionSequences *>(
+                    reinterpret_cast<const InstructionId *>(this) + sizeof(If) / sizeof(qint32)
+                    + conditions.dataSize());
     }
 
     static InstructionType kind() { return Instruction::If; }
-    int size() { return sizeof(If) / sizeof(qint32) + blocks()->size() + conditions.dataSize(); }
+    int size() const
+    {
+        return sizeof(If) / sizeof(qint32) + blocks()->size() + conditions.dataSize();
+    }
 };
 
 struct Q_SCXML_EXPORT Foreach: Instruction
@@ -256,7 +283,10 @@ struct Q_SCXML_EXPORT Foreach: Instruction
 
     static InstructionType kind() { return Instruction::Foreach; }
     int size() const { return sizeof(Foreach) / sizeof(qint32) + block.entryCount; }
-    Instructions blockstart() { return reinterpret_cast<Instructions>(&block); }
+    const InstructionId *blockstart() const
+    {
+        return reinterpret_cast<const InstructionId *>(&block);
+    }
 };
 
 struct Q_SCXML_EXPORT Cancel: Instruction
@@ -468,7 +498,7 @@ public:
     bool execute(ContainerId ip, const QVariant &extraData = QVariant());
 
 private:
-    bool step(Instructions &ip);
+    const InstructionId *step(const QScxmlExecutableContent::InstructionId *ip, bool *ok);
 
     QScxmlStateMachine *stateMachine;
     QVariant extraData;

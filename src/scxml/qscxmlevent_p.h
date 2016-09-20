@@ -118,7 +118,7 @@ public:
         eventType = QScxmlEvent::InternalEvent;
     }
 
-    QScxmlEventBuilder(QScxmlStateMachine *stateMachine, QScxmlExecutableContent::Send &send)
+    QScxmlEventBuilder(QScxmlStateMachine *stateMachine, const QScxmlExecutableContent::Send &send)
     {
         init();
         this->stateMachine = stateMachine;
