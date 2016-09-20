@@ -805,9 +805,12 @@ void QScxmlParser::setLoader(QScxmlParser::Loader *newLoader)
 }
 
 /*!
- * Parses an SCXML file.
+ * Parses an SCXML file and creates a new state machine from it.
+ *
+ * If parsing is successful, the returned state machine can be initialized and started. If
+ * parsing fails, QScxmlStateMachine::parseErrors() can be used to retrieve a list of errors.
  */
-void QScxmlParser::parse()
+QScxmlStateMachine *QScxmlParser::parse()
 {
     d->readDocument();
     if (d->errors().isEmpty()) {
@@ -816,9 +819,11 @@ void QScxmlParser::parse()
         // top of other errors.
         d->verifyDocument();
     }
+    return d->instantiateStateMachine();
 }
 
 /*!
+ * \internal
  * Instantiates a new state machine from the parsed SCXML.
  *
  * If parsing is successful, the returned state machine can be initialized and started. If
@@ -827,14 +832,16 @@ void QScxmlParser::parse()
  * \note The instantiated state machine will not have an associated data model set.
  * \sa QScxmlParser::instantiateDataModel
  */
-QScxmlStateMachine *QScxmlParser::instantiateStateMachine() const
+QScxmlStateMachine *QScxmlParserPrivate::instantiateStateMachine() const
 {
 #ifdef BUILD_QSCXMLC
     return Q_NULLPTR;
 #else // BUILD_QSCXMLC
-    DocumentModel::ScxmlDocument *doc = d->scxmlDocument();
+    DocumentModel::ScxmlDocument *doc = scxmlDocument();
     if (doc && doc->root) {
-        return DynamicStateMachine::build(doc);
+        auto stateMachine = DynamicStateMachine::build(doc);
+        instantiateDataModel(stateMachine);
+        return stateMachine;
     } else {
         class InvalidStateMachine: public QScxmlStateMachine {
         public:
@@ -844,22 +851,24 @@ QScxmlStateMachine *QScxmlParser::instantiateStateMachine() const
 
         auto stateMachine = new InvalidStateMachine;
         QScxmlStateMachinePrivate::get(stateMachine)->parserData()->m_errors = errors();
+        instantiateDataModel(stateMachine);
         return stateMachine;
     }
 #endif // BUILD_QSCXMLC
 }
 
 /*!
+ * \internal
  * Instantiates the data model as described in the SCXML file.
  *
  * After instantiation, the \a stateMachine takes ownership of the data model.
  */
-void QScxmlParser::instantiateDataModel(QScxmlStateMachine *stateMachine) const
+void QScxmlParserPrivate::instantiateDataModel(QScxmlStateMachine *stateMachine) const
 {
 #ifdef BUILD_QSCXMLC
     Q_UNUSED(stateMachine)
 #else
-    auto doc = d->scxmlDocument();
+    auto doc = scxmlDocument();
     auto root = doc ? doc->root : Q_NULLPTR;
     if (root == Q_NULLPTR) {
         qWarning() << "SCXML document has no root element";
@@ -879,17 +888,6 @@ void QScxmlParser::instantiateDataModel(QScxmlStateMachine *stateMachine) const
 QVector<QScxmlError> QScxmlParser::errors() const
 {
     return d->errors();
-}
-
-/*!
- * Adds the error message \a msg.
- *
- * The line and column numbers for the error message are the current line and
- * column numbers of the QXmlStreamReader.
- */
-void QScxmlParser::addError(const QString &msg)
-{
-    d->addError(msg);
 }
 
 bool QScxmlParserPrivate::ParserState::collectChars() {

@@ -577,6 +577,8 @@ public:
 
     void addError(const QString &msg);
     void addError(const DocumentModel::XmlLocation &location, const QString &msg);
+    QScxmlStateMachine *instantiateStateMachine() const;
+    void instantiateDataModel(QScxmlStateMachine *stateMachine) const;
 
 private:
     DocumentModel::AbstractState *currentParent() const;

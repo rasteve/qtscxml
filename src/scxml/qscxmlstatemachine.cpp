@@ -1409,10 +1409,7 @@ QScxmlStateMachine *QScxmlStateMachine::fromData(QIODevice *data, const QString 
     QXmlStreamReader xmlReader(data);
     QScxmlParser parser(&xmlReader);
     parser.setFileName(fileName);
-    parser.parse();
-    auto stateMachine = parser.instantiateStateMachine();
-    parser.instantiateDataModel(stateMachine);
-    return stateMachine;
+    return parser.parse();
 }
 
 QVector<QScxmlError> QScxmlStateMachine::parseErrors() const
