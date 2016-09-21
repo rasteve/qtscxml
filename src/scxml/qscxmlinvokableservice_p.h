@@ -37,66 +37,65 @@
 **
 ****************************************************************************/
 
-#ifndef EXECUTABLECONTENT_H
-#define EXECUTABLECONTENT_H
+#ifndef QSCXMLINVOKABLESERVICE_P_H
+#define QSCXMLINVOKABLESERVICE_P_H
 
-#include <QtScxml/qscxmlglobals.h>
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include "qscxmlinvokableservice.h"
+#include <QtCore/private/qobject_p.h>
 
 QT_BEGIN_NAMESPACE
 
-namespace QScxmlExecutableContent {
+class QScxmlInvokableServicePrivate : public QObjectPrivate
+{
+public:
+    QScxmlInvokableServicePrivate(QScxmlStateMachine *parentStateMachine);
 
-typedef qint32 ContainerId;
-enum { NoContainer = -1 };
-typedef qint32 StringId;
-enum { NoString = -1 };
-typedef qint32 InstructionId;
-enum { NoInstruction = -1 };
-typedef qint32 EvaluatorId;
-enum { NoEvaluator = -1 };
+    QString calculateId(QScxmlStateMachine *parent,
+                        const QScxmlExecutableContent::InvokeInfo &invokeInfo, bool *ok) const;
+    QVariantMap calculateData(QScxmlStateMachine *parent,
+                              const QVector<QScxmlExecutableContent::ParameterInfo> &parameters,
+                              const QVector<QScxmlExecutableContent::StringId> &names,
+                              bool *ok) const;
 
-#if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
-#pragma pack(push, 4) // 4 == sizeof(qint32)
-#endif
-struct EvaluatorInfo {
-    StringId expr;
-    StringId context;
+    QScxmlStateMachine *parentStateMachine;
 };
 
-struct AssignmentInfo {
-    StringId dest;
-    StringId expr;
-    StringId context;
+class QScxmlInvokableServiceFactoryPrivate
+{
+public:
+    QScxmlInvokableServiceFactoryPrivate(
+            const QScxmlExecutableContent::InvokeInfo &invokeInfo,
+            const QVector<QScxmlExecutableContent::StringId> &names,
+            const QVector<QScxmlExecutableContent::ParameterInfo> &parameters);
+
+    QString calculateSrcexpr(QScxmlStateMachine *parent, bool *ok) const;
+
+    QScxmlExecutableContent::InvokeInfo invokeInfo;
+    QVector<QScxmlExecutableContent::StringId> names;
+    QVector<QScxmlExecutableContent::ParameterInfo> parameters;
 };
 
-struct ForeachInfo {
-    StringId array;
-    StringId item;
-    StringId index;
-    StringId context;
-};
+class QScxmlScxmlServicePrivate : public QScxmlInvokableServicePrivate
+{
+public:
+    QScxmlScxmlServicePrivate(QScxmlStateMachine *stateMachine,
+                              QScxmlStateMachine *parentStateMachine);
+    ~QScxmlScxmlServicePrivate();
 
-struct ParameterInfo {
-    StringId name;
-    EvaluatorId expr;
-    StringId location;
+    QScxmlStateMachine *stateMachine;
 };
-
-struct InvokeInfo {
-    StringId id;
-    StringId prefix;
-    StringId location;
-    StringId context;
-    EvaluatorId expr;
-    ContainerId finalize;
-    bool autoforward;
-};
-#if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
-#pragma pack(pop)
-#endif
-
-} // QScxmlExecutableContent namespace
 
 QT_END_NAMESPACE
 
-#endif // EXECUTABLECONTENT_H
+#endif // QSCXMLINVOKABLESERVICE_P_H

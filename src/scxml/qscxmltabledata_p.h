@@ -71,15 +71,9 @@ class Q_SCXML_EXPORT GeneratedTableData: public QScxmlTableData
 {
 public:
     typedef std::function<
-        int(QScxmlExecutableContent::StringId invokeLocation,
-            QScxmlExecutableContent::EvaluatorId srcexpr,
-            QScxmlExecutableContent::StringId id,
-            QScxmlExecutableContent::StringId idPrefix,
-            QScxmlExecutableContent::StringId idlocation,
+        int(const QScxmlExecutableContent::InvokeInfo &invokeInfo,
             const QVector<QScxmlExecutableContent::StringId> &namelist,
-            bool autoforward,
             const QVector<QScxmlExecutableContent::ParameterInfo> &params,
-            QScxmlExecutableContent::ContainerId finalize,
             QSharedPointer<DocumentModel::ScxmlDocument> content)
     > CreateFactoryId;
 

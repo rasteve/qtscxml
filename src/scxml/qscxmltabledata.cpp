@@ -273,11 +273,16 @@ protected: // visitor
                 auto srcexpr = createEvaluatorString(QStringLiteral("invoke"),
                                                      QStringLiteral("srcexpr"),
                                                      invoke->srcexpr);
-                const int factoryId = createFactoryId(
-                            ctxt, srcexpr, addString(invoke->id),
-                            addString(state->id + QStringLiteral(".session-")),
-                            addString(invoke->idLocation), namelist, invoke->autoforward, params,
-                            finalize, invoke->content);
+                QScxmlExecutableContent::InvokeInfo invokeInfo;
+                invokeInfo.id = addString(invoke->id);
+                invokeInfo.prefix = addString(state->id + QStringLiteral(".session-"));
+                invokeInfo.location = addString(invoke->idLocation);
+                invokeInfo.context = ctxt;
+                invokeInfo.expr = srcexpr;
+                invokeInfo.finalize = finalize;
+                invokeInfo.autoforward = invoke->autoforward;
+                const int factoryId = createFactoryId(invokeInfo, namelist, params,
+                                                      invoke->content);
                 Q_ASSERT(factoryId >= 0);
                 factoryIds.append(factoryId);
                 m_stateTable.maxServiceId = std::max(m_stateTable.maxServiceId, factoryId);

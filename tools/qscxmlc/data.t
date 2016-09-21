@@ -55,6 +55,26 @@ struct ${classname}::Data: private QScxmlTableData {
         return p;
     }
 
+    static QScxmlExecutableContent::InvokeInfo invoke(
+            QScxmlExecutableContent::StringId id,
+            QScxmlExecutableContent::StringId prefix,
+            QScxmlExecutableContent::EvaluatorId expr,
+            QScxmlExecutableContent::StringId location,
+            QScxmlExecutableContent::StringId context,
+            QScxmlExecutableContent::ContainerId finalize,
+            bool autoforward)
+    {
+        QScxmlExecutableContent::InvokeInfo i;
+        i.id = id;
+        i.prefix = prefix;
+        i.expr = expr;
+        i.location = location;
+        i.context = context;
+        i.finalize = finalize;
+        i.autoforward = autoforward;
+        return i;
+    }
+
     static qint32 theInstructions[];
     static QScxmlExecutableContent::StringId dataIds[];
     static QScxmlExecutableContent::EvaluatorInfo evaluators[];

@@ -449,7 +449,7 @@ void QScxmlStateMachinePrivate::addService(int invokingState)
             continue; // service failed to start
         const QString serviceName = service->name();
         m_invokedServices[size_t(id)] = { invokingState, service, serviceName };
-        service->start();
+        service->start(factory->invokeInfo(), factory->parameters(), factory->names());
     }
     emitInvokedServicesChanged();
 }
@@ -526,16 +526,17 @@ void QScxmlStateMachinePrivate::postEvent(QScxmlEvent *event)
     Q_Q(QScxmlStateMachine);
 
     if (!event->name().startsWith(QStringLiteral("done.invoke."))) {
-        for (auto invokedService : m_invokedServices) {
-            auto service = invokedService.service;
+        for (int id = 0, end = static_cast<int>(m_invokedServices.size()); id != end; ++id) {
+            auto service = m_invokedServices[id].service;
             if (service == nullptr)
                 continue;
+            auto factory = serviceFactory(id);
             if (event->invokeId() == service->id()) {
                 setEvent(event);
-                service->finalize();
+                service->finalize(factory->invokeInfo().finalize);
                 resetEvent();
             }
-            if (service->autoforward()) {
+            if (factory->invokeInfo().autoforward) {
                 qCDebug(qscxmlLog) << q << "auto-forwarding event" << event->name()
                                    << "from" << q->name()
                                    << "to child" << service->id();

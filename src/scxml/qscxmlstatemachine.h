@@ -333,7 +333,7 @@ public Q_SLOTS:
 protected: // methods for friends:
     friend class QScxmlDataModel;
     friend class QScxmlEventBuilder;
-    friend class QScxmlInvokableServiceFactory;
+    friend class QScxmlInvokableServicePrivate;
     friend class QScxmlExecutionEngine;
 
 #ifndef Q_QDOC

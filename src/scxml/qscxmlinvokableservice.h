@@ -47,7 +47,6 @@ QT_BEGIN_NAMESPACE
 
 class QScxmlEvent;
 class QScxmlStateMachine;
-class QScxmlInvokableServiceFactory;
 
 class QScxmlInvokableServicePrivate;
 class Q_SCXML_EXPORT QScxmlInvokableService : public QObject
@@ -55,27 +54,25 @@ class Q_SCXML_EXPORT QScxmlInvokableService : public QObject
     Q_OBJECT
     Q_DECLARE_PRIVATE(QScxmlInvokableService)
     Q_PROPERTY(QScxmlStateMachine *parentStateMachine READ parentStateMachine CONSTANT)
-    Q_PROPERTY(bool autoforward READ autoforward CONSTANT)
     Q_PROPERTY(QString id READ id CONSTANT)
     Q_PROPERTY(QString name READ name CONSTANT)
 
 public:
-    QScxmlInvokableService(QScxmlInvokableServiceFactory *factory,
-                           QScxmlStateMachine *parentStateMachine,
+    QScxmlInvokableService(QScxmlStateMachine *parentStateMachine,
                            QObject *parent = nullptr);
 
-    bool autoforward() const;
     QScxmlStateMachine *parentStateMachine() const;
 
-    virtual bool start() = 0;
+    virtual bool start(const QScxmlExecutableContent::InvokeInfo &invokeInfo,
+                       const QVector<QScxmlExecutableContent::ParameterInfo> &parameters,
+                       const QVector<QScxmlExecutableContent::StringId> &names) = 0;
     virtual QString id() const = 0;
     virtual QString name() const = 0;
     virtual void postEvent(QScxmlEvent *event) = 0;
 
-    void finalize();
+    void finalize(QScxmlExecutableContent::ContainerId finalize);
 
 protected:
-    QScxmlInvokableServiceFactory *factory() const;
     QScxmlInvokableService(QScxmlInvokableServicePrivate &dd, QObject *parent = nullptr);
 };
 
@@ -83,27 +80,18 @@ class QScxmlInvokableServiceFactoryPrivate;
 class Q_SCXML_EXPORT QScxmlInvokableServiceFactory
 {
 public:
-    QScxmlInvokableServiceFactory(QScxmlExecutableContent::StringId invokeLocation,
-                                  QScxmlExecutableContent::EvaluatorId srcexpr,
-                                  QScxmlExecutableContent::StringId id,
-                                  QScxmlExecutableContent::StringId idPrefix,
-                                  QScxmlExecutableContent::StringId idlocation,
-                                  const QVector<QScxmlExecutableContent::StringId> &namelist,
-                                  bool autoforward,
-                                  const QVector<QScxmlExecutableContent::ParameterInfo> &params,
-                                  QScxmlExecutableContent::ContainerId finalizeContent);
+    QScxmlInvokableServiceFactory(
+            const QScxmlExecutableContent::InvokeInfo &invokeInfo,
+            const QVector<QScxmlExecutableContent::StringId> &names,
+            const QVector<QScxmlExecutableContent::ParameterInfo> &parameters);
     virtual ~QScxmlInvokableServiceFactory();
 
     virtual QScxmlInvokableService *invoke(QScxmlStateMachine *parentStateMachine) = 0;
+    QScxmlExecutableContent::InvokeInfo invokeInfo() const;
+    QVector<QScxmlExecutableContent::ParameterInfo> parameters() const;
+    QVector<QScxmlExecutableContent::StringId> names() const;
 
-public: // callbacks from the service:
-    QString calculateSrcexpr(QScxmlStateMachine *parent, bool *ok) const;
-    QString calculateId(QScxmlStateMachine *parent, bool *ok) const;
-    QVariantMap calculateData(QScxmlStateMachine *parent, bool *ok) const;
-    bool autoforward() const;
-    QScxmlExecutableContent::ContainerId finalizeContent() const;
-
-private:
+protected:
     QScxmlInvokableServiceFactoryPrivate *d;
 };
 
@@ -114,10 +102,13 @@ class Q_SCXML_EXPORT QScxmlScxmlService: public QScxmlInvokableService
     Q_DECLARE_PRIVATE(QScxmlScxmlService)
     Q_PROPERTY(QScxmlStateMachine *stateMachine READ stateMachine CONSTANT)
 public:
-    QScxmlScxmlService(QScxmlInvokableServiceFactory *factory, QScxmlStateMachine *stateMachine,
-                       QScxmlStateMachine *parentStateMachine, QObject *parent = nullptr);
+    QScxmlScxmlService(QScxmlStateMachine *stateMachine,
+                       QScxmlStateMachine *parentStateMachine,
+                       QObject *parent = nullptr);
 
-    bool start() Q_DECL_OVERRIDE;
+    bool start(const QScxmlExecutableContent::InvokeInfo &invokeInfo,
+               const QVector<QScxmlExecutableContent::ParameterInfo> &parameters,
+               const QVector<QScxmlExecutableContent::StringId> &names) Q_DECL_OVERRIDE;
     QString id() const Q_DECL_OVERRIDE;
     QString name() const Q_DECL_OVERRIDE;
     void postEvent(QScxmlEvent *event) Q_DECL_OVERRIDE;
@@ -128,15 +119,9 @@ public:
 class Q_SCXML_EXPORT QScxmlScxmlServiceFactory: public QScxmlInvokableServiceFactory
 {
 public:
-    QScxmlScxmlServiceFactory(QScxmlExecutableContent::StringId invokeLocation,
-                              QScxmlExecutableContent::EvaluatorId srcexpr,
-                              QScxmlExecutableContent::StringId id,
-                              QScxmlExecutableContent::StringId idPrefix,
-                              QScxmlExecutableContent::StringId idlocation,
-                              const QVector<QScxmlExecutableContent::StringId> &namelist,
-                              bool doAutoforward,
-                              const QVector<QScxmlExecutableContent::ParameterInfo> &params,
-                              QScxmlExecutableContent::ContainerId finalize);
+    QScxmlScxmlServiceFactory(const QScxmlExecutableContent::InvokeInfo &invokeInfo,
+                              const QVector<QScxmlExecutableContent::StringId> &names,
+                              const QVector<QScxmlExecutableContent::ParameterInfo> &parameters);
 
 protected:
     QScxmlScxmlService *invokeDynamic(QScxmlStateMachine *parentStateMachine,
@@ -149,17 +134,11 @@ template<class T>
 class QScxmlStaticScxmlServiceFactory: public QScxmlScxmlServiceFactory
 {
 public:
-    QScxmlStaticScxmlServiceFactory(QScxmlExecutableContent::StringId invokeLocation,
-                             QScxmlExecutableContent::StringId id,
-                             QScxmlExecutableContent::StringId idPrefix,
-                             QScxmlExecutableContent::StringId idlocation,
-                             const QVector<QScxmlExecutableContent::StringId> &namelist,
-                             bool doAutoforward,
-                             const QVector<QScxmlExecutableContent::ParameterInfo> &params,
-                             QScxmlExecutableContent::ContainerId finalize)
-        : QScxmlScxmlServiceFactory(invokeLocation, QScxmlExecutableContent::NoInstruction,
-                                             id, idPrefix, idlocation, namelist, doAutoforward,
-                                             params, finalize)
+    QScxmlStaticScxmlServiceFactory(
+            const QScxmlExecutableContent::InvokeInfo &newInvokeInfo,
+            const QVector<QScxmlExecutableContent::StringId> &newNameList,
+            const QVector<QScxmlExecutableContent::ParameterInfo> &newParameters)
+        : QScxmlScxmlServiceFactory(newInvokeInfo, newNameList, newParameters)
     {}
 
     QScxmlInvokableService *invoke(QScxmlStateMachine *parentStateMachine) Q_DECL_OVERRIDE
@@ -171,18 +150,10 @@ public:
 class Q_SCXML_EXPORT QScxmlDynamicScxmlServiceFactory: public QScxmlScxmlServiceFactory
 {
 public:
-    QScxmlDynamicScxmlServiceFactory(QScxmlExecutableContent::StringId invokeLocation,
-                              QScxmlExecutableContent::EvaluatorId srcexpr,
-                              QScxmlExecutableContent::StringId id,
-                              QScxmlExecutableContent::StringId idPrefix,
-                              QScxmlExecutableContent::StringId idlocation,
-                              const QVector<QScxmlExecutableContent::StringId> &namelist,
-                              bool doAutoforward,
-                              const QVector<QScxmlExecutableContent::ParameterInfo> &params,
-                              QScxmlExecutableContent::ContainerId finalize)
-        : QScxmlScxmlServiceFactory(invokeLocation, srcexpr, id, idPrefix, idlocation,
-                                             namelist, doAutoforward, params, finalize)
-    {}
+    QScxmlDynamicScxmlServiceFactory(
+            const QScxmlExecutableContent::InvokeInfo &invokeInfo,
+            const QVector<QScxmlExecutableContent::StringId> &names,
+            const QVector<QScxmlExecutableContent::ParameterInfo> &parameters);
 
     QScxmlInvokableService *invoke(QScxmlStateMachine *parentStateMachine) Q_DECL_OVERRIDE;
 };

@@ -38,41 +38,31 @@
 ****************************************************************************/
 
 #include "qscxmlglobals_p.h"
-#include "qscxmlinvokableservice.h"
+#include "qscxmlinvokableservice_p.h"
 #include "qscxmlstatemachine_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QScxmlInvokableServicePrivate : public QObjectPrivate
-{
-public:
-    QScxmlInvokableServicePrivate(QScxmlInvokableServiceFactory *factory,
-                                  QScxmlStateMachine *parentStateMachine)
-        : factory(factory), parentStateMachine(parentStateMachine)
-    {}
-
-    QScxmlInvokableServiceFactory *factory;
-    QScxmlStateMachine *parentStateMachine;
-};
-
-static void registerMetatype()
+QScxmlInvokableServicePrivate::QScxmlInvokableServicePrivate(QScxmlStateMachine *parentStateMachine)
+    : parentStateMachine(parentStateMachine)
 {
     static int metaType = qRegisterMetaType<QScxmlInvokableService *>();
     Q_UNUSED(metaType);
 }
 
-QScxmlInvokableService::QScxmlInvokableService(QScxmlInvokableServiceFactory *factory,
-                                               QScxmlStateMachine *parentStateMachine,
-                                               QObject *parent) :
-    QObject(*(new QScxmlInvokableServicePrivate(factory, parentStateMachine)), parent)
-{
-    registerMetatype();
-}
+QScxmlInvokableServiceFactoryPrivate::QScxmlInvokableServiceFactoryPrivate(
+        const QScxmlExecutableContent::InvokeInfo &invokeInfo,
+        const QVector<QScxmlExecutableContent::StringId> &namelist,
+        const QVector<QScxmlExecutableContent::ParameterInfo> &parameters)
+    : invokeInfo(invokeInfo)
+    , names(namelist)
+    , parameters(parameters)
+{}
 
-bool QScxmlInvokableService::autoforward() const
+QScxmlInvokableService::QScxmlInvokableService(QScxmlStateMachine *parentStateMachine,
+                                               QObject *parent) :
+    QObject(*(new QScxmlInvokableServicePrivate(parentStateMachine)), parent)
 {
-    Q_D(const QScxmlInvokableService);
-    return d->factory->autoforward();
 }
 
 QScxmlStateMachine *QScxmlInvokableService::parentStateMachine() const
@@ -81,11 +71,8 @@ QScxmlStateMachine *QScxmlInvokableService::parentStateMachine() const
     return d->parentStateMachine;
 }
 
-void QScxmlInvokableService::finalize()
+void QScxmlInvokableService::finalize(QScxmlExecutableContent::ContainerId finalize)
 {
-    Q_D(QScxmlInvokableService);
-    QScxmlExecutableContent::ContainerId finalize = d->factory->finalizeContent();
-
     if (finalize != QScxmlExecutableContent::NoInstruction) {
         auto psm = parentStateMachine();
         qCDebug(qscxmlLog) << psm << "running finalize on event";
@@ -94,71 +81,16 @@ void QScxmlInvokableService::finalize()
     }
 }
 
-QScxmlInvokableServiceFactory *QScxmlInvokableService::factory() const
-{
-    Q_D(const QScxmlInvokableService);
-    return d->factory;
-}
-
 QScxmlInvokableService::QScxmlInvokableService(QScxmlInvokableServicePrivate &dd, QObject *parent) :
     QObject(dd, parent)
 {
-    registerMetatype();
 }
 
-class QScxmlInvokableServiceFactoryPrivate
-{
-public:
-    QScxmlInvokableServiceFactoryPrivate(QScxmlExecutableContent::StringId invokeLocation,
-         QScxmlExecutableContent::EvaluatorId srcexpr,
-         QScxmlExecutableContent::StringId id,
-         QScxmlExecutableContent::StringId idPrefix,
-         QScxmlExecutableContent::StringId idlocation,
-         const QVector<QScxmlExecutableContent::StringId> &namelist,
-         bool autoforward,
-         const QVector<QScxmlExecutableContent::ParameterInfo> &params,
-         QScxmlExecutableContent::ContainerId finalize)
-        : invokeLocation(invokeLocation)
-        , srcexpr(srcexpr)
-        , id(id)
-        , idPrefix(idPrefix)
-        , idlocation(idlocation)
-        , namelist(namelist)
-        , params(params)
-        , finalize(finalize)
-        , autoforward(autoforward)
-    {}
-
-    QScxmlExecutableContent::StringId invokeLocation;
-    QScxmlExecutableContent::EvaluatorId srcexpr;
-    QScxmlExecutableContent::StringId id;
-    QScxmlExecutableContent::StringId idPrefix;
-    QScxmlExecutableContent::StringId idlocation;
-    QVector<QScxmlExecutableContent::StringId> namelist;
-    QVector<QScxmlExecutableContent::ParameterInfo> params;
-    QScxmlExecutableContent::ContainerId finalize;
-    bool autoforward;
-};
-
 QScxmlInvokableServiceFactory::QScxmlInvokableServiceFactory(
-        QScxmlExecutableContent::StringId invokeLocation,
-        QScxmlExecutableContent::EvaluatorId srcexpr,
-        QScxmlExecutableContent::StringId id,
-        QScxmlExecutableContent::StringId idPrefix,
-        QScxmlExecutableContent::StringId idlocation,
-        const QVector<QScxmlExecutableContent::StringId> &namelist,
-        bool autoforward,
-        const QVector<QScxmlExecutableContent::ParameterInfo> &params,
-        QScxmlExecutableContent::ContainerId finalize)
-    : d(new QScxmlInvokableServiceFactoryPrivate(invokeLocation,
-                                                 srcexpr,
-                                                 id,
-                                                 idPrefix,
-                                                 idlocation,
-                                                 namelist,
-                                                 autoforward,
-                                                 params,
-                                                 finalize))
+        const QScxmlExecutableContent::InvokeInfo &invokeInfo,
+        const QVector<QScxmlExecutableContent::StringId> &names,
+        const QVector<QScxmlExecutableContent::ParameterInfo> &parameters)
+    : d(new QScxmlInvokableServiceFactoryPrivate(invokeInfo, names, parameters))
 {}
 
 QScxmlInvokableServiceFactory::~QScxmlInvokableServiceFactory()
@@ -166,15 +98,31 @@ QScxmlInvokableServiceFactory::~QScxmlInvokableServiceFactory()
     delete d;
 }
 
-QString QScxmlInvokableServiceFactory::calculateSrcexpr(QScxmlStateMachine *parent, bool *ok) const
+QScxmlExecutableContent::InvokeInfo QScxmlInvokableServiceFactory::invokeInfo() const
+{
+    return d->invokeInfo;
+}
+
+QVector<QScxmlExecutableContent::ParameterInfo> QScxmlInvokableServiceFactory::parameters() const
+{
+    return d->parameters;
+}
+
+QVector<QScxmlExecutableContent::StringId> QScxmlInvokableServiceFactory::names() const
+{
+    return d->names;
+}
+
+QString QScxmlInvokableServiceFactoryPrivate::calculateSrcexpr(QScxmlStateMachine *parent,
+                                                               bool *ok) const
 {
     Q_ASSERT(ok);
     *ok = true;
     auto dataModel = parent->dataModel();
 
-    if (d->srcexpr != QScxmlExecutableContent::NoEvaluator) {
+    if (invokeInfo.expr != QScxmlExecutableContent::NoEvaluator) {
         *ok = false;
-        auto v = dataModel->evaluateToString(d->srcexpr, ok);
+        auto v = dataModel->evaluateToString(invokeInfo.expr, ok);
         if (!*ok)
             return QString();
         return v;
@@ -183,31 +131,37 @@ QString QScxmlInvokableServiceFactory::calculateSrcexpr(QScxmlStateMachine *pare
     return QString();
 }
 
-QString QScxmlInvokableServiceFactory::calculateId(QScxmlStateMachine *parent, bool *ok) const
+QString QScxmlInvokableServicePrivate::calculateId(
+        QScxmlStateMachine *parent, const QScxmlExecutableContent::InvokeInfo &invokeInfo,
+        bool *ok) const
 {
     Q_ASSERT(ok);
     *ok = true;
     auto stateMachine = parent->tableData();
 
-    if (d->id != QScxmlExecutableContent::NoString) {
-        return stateMachine->string(d->id);
+    if (invokeInfo.id != QScxmlExecutableContent::NoString) {
+        return stateMachine->string(invokeInfo.id);
     }
 
-    const QString id
-            = QScxmlStateMachinePrivate::generateSessionId(stateMachine->string(d->idPrefix));
+    const QString newId = QScxmlStateMachinePrivate::generateSessionId(
+                stateMachine->string(invokeInfo.prefix));
 
-    if (d->idlocation != QScxmlExecutableContent::NoString) {
-        auto idloc = stateMachine->string(d->idlocation);
-        auto ctxt = stateMachine->string(d->invokeLocation);
-        *ok = parent->dataModel()->setScxmlProperty(idloc, id, ctxt);
+    if (invokeInfo.location != QScxmlExecutableContent::NoString) {
+        auto idloc = stateMachine->string(invokeInfo.location);
+        auto ctxt = stateMachine->string(invokeInfo.context);
+        *ok = parent->dataModel()->setScxmlProperty(idloc, newId, ctxt);
         if (!*ok)
             return QString();
     }
 
-    return id;
+    return newId;
 }
 
-QVariantMap QScxmlInvokableServiceFactory::calculateData(QScxmlStateMachine *parent, bool *ok) const
+QVariantMap QScxmlInvokableServicePrivate::calculateData(
+        QScxmlStateMachine *parent,
+        const QVector<QScxmlExecutableContent::ParameterInfo> &parameters,
+        const QVector<QScxmlExecutableContent::StringId> &names,
+        bool *ok) const
 {
     Q_ASSERT(ok);
 
@@ -215,7 +169,7 @@ QVariantMap QScxmlInvokableServiceFactory::calculateData(QScxmlStateMachine *par
     auto dataModel = parent->dataModel();
     auto tableData = parent->tableData();
 
-    for (const QScxmlExecutableContent::ParameterInfo &param : qAsConst(d->params)) {
+    for (const QScxmlExecutableContent::ParameterInfo &param : parameters) {
         auto name = tableData->string(param.name);
 
         if (param.expr != QScxmlExecutableContent::NoEvaluator) {
@@ -241,7 +195,7 @@ QVariantMap QScxmlInvokableServiceFactory::calculateData(QScxmlStateMachine *par
         }
     }
 
-    for (QScxmlExecutableContent::StringId locid : qAsConst(d->namelist)) {
+    for (QScxmlExecutableContent::StringId locid : names) {
         QString loc;
         if (locid != QScxmlExecutableContent::NoString) {
             loc = tableData->string(locid);
@@ -263,31 +217,9 @@ QVariantMap QScxmlInvokableServiceFactory::calculateData(QScxmlStateMachine *par
     return result;
 }
 
-bool QScxmlInvokableServiceFactory::autoforward() const
-{
-    return d->autoforward;
-}
-
-QScxmlExecutableContent::ContainerId QScxmlInvokableServiceFactory::finalizeContent() const
-{
-    return d->finalize;
-}
-
-class QScxmlScxmlServicePrivate : public QScxmlInvokableServicePrivate
-{
-public:
-    QScxmlScxmlServicePrivate(QScxmlInvokableServiceFactory *factory,
-                                QScxmlStateMachine *stateMachine,
-                                QScxmlStateMachine *parentStateMachine);
-    ~QScxmlScxmlServicePrivate();
-
-    QScxmlStateMachine *stateMachine;
-};
-
-QScxmlScxmlServicePrivate::QScxmlScxmlServicePrivate(
-        QScxmlInvokableServiceFactory *factory, QScxmlStateMachine *stateMachine,
-        QScxmlStateMachine *parentStateMachine) :
-    QScxmlInvokableServicePrivate(factory, parentStateMachine), stateMachine(stateMachine)
+QScxmlScxmlServicePrivate::QScxmlScxmlServicePrivate(QScxmlStateMachine *stateMachine,
+                                                     QScxmlStateMachine *parentStateMachine) :
+    QScxmlInvokableServicePrivate(parentStateMachine), stateMachine(stateMachine)
 {}
 
 QScxmlScxmlServicePrivate::~QScxmlScxmlServicePrivate()
@@ -295,26 +227,27 @@ QScxmlScxmlServicePrivate::~QScxmlScxmlServicePrivate()
     delete stateMachine;
 }
 
-QScxmlScxmlService::QScxmlScxmlService(QScxmlInvokableServiceFactory *factory,
-                                       QScxmlStateMachine *stateMachine,
+QScxmlScxmlService::QScxmlScxmlService(QScxmlStateMachine *stateMachine,
                                        QScxmlStateMachine *parentStateMachine,
                                        QObject *parent)
-    : QScxmlInvokableService(*(new QScxmlScxmlServicePrivate(factory, stateMachine,
-                                                             parentStateMachine)), parent)
+    : QScxmlInvokableService(*(new QScxmlScxmlServicePrivate(stateMachine, parentStateMachine)),
+                             parent)
 {
     QScxmlStateMachinePrivate::get(stateMachine)->m_parentStateMachine = parentStateMachine;
 }
 
-bool QScxmlScxmlService::start()
+bool QScxmlScxmlService::start(const QScxmlExecutableContent::InvokeInfo &invokeInfo,
+                               const QVector<QScxmlExecutableContent::ParameterInfo> &parameters,
+                               const QVector<QScxmlExecutableContent::StringId> &names)
 {
     Q_D(QScxmlScxmlService);
     qCDebug(qscxmlLog) << parentStateMachine() << "preparing to start" << d->stateMachine;
 
     bool ok = false;
-    auto id = factory()->calculateId(parentStateMachine(), &ok);
+    auto id = d->calculateId(parentStateMachine(), invokeInfo, &ok);
     if (!ok)
         return false;
-    auto data = factory()->calculateData(parentStateMachine(), &ok);
+    auto data = d->calculateData(parentStateMachine(), parameters, names, &ok);
     if (!ok)
         return false;
 
@@ -355,31 +288,31 @@ QScxmlStateMachine *QScxmlScxmlService::stateMachine() const
 }
 
 QScxmlScxmlServiceFactory::QScxmlScxmlServiceFactory(
-        QScxmlExecutableContent::StringId invokeLocation,
-        QScxmlExecutableContent::EvaluatorId srcexpr,
-        QScxmlExecutableContent::StringId id,
-        QScxmlExecutableContent::StringId idPrefix,
-        QScxmlExecutableContent::StringId idlocation,
-        const QVector<QScxmlExecutableContent::StringId> &namelist,
-        bool doAutoforward,
-        const QVector<QScxmlExecutableContent::ParameterInfo> &params,
-        QScxmlExecutableContent::ContainerId finalize)
-    : QScxmlInvokableServiceFactory(invokeLocation, srcexpr, id, idPrefix, idlocation, namelist,
-                                    doAutoforward, params, finalize)
+        const QScxmlExecutableContent::InvokeInfo &invokeInfo,
+        const QVector<QScxmlExecutableContent::StringId> &names,
+        const QVector<QScxmlExecutableContent::ParameterInfo> &parameters)
+    : QScxmlInvokableServiceFactory(invokeInfo, names, parameters)
 {}
 
 QScxmlScxmlService *QScxmlScxmlServiceFactory::invokeStatic(QScxmlStateMachine *childStateMachine,
                                                             QScxmlStateMachine *parentStateMachine)
 {
     QScxmlStateMachinePrivate::get(childStateMachine)->setIsInvoked(true);
-    return new QScxmlScxmlService(this, childStateMachine, parentStateMachine);
+    return new QScxmlScxmlService(childStateMachine, parentStateMachine);
 }
+
+QScxmlDynamicScxmlServiceFactory::QScxmlDynamicScxmlServiceFactory(
+        const QScxmlExecutableContent::InvokeInfo &invokeInfo,
+        const QVector<QScxmlExecutableContent::StringId> &names,
+        const QVector<QScxmlExecutableContent::ParameterInfo> &parameters)
+    : QScxmlScxmlServiceFactory(invokeInfo, names, parameters)
+{}
 
 QScxmlInvokableService *QScxmlDynamicScxmlServiceFactory::invoke(
         QScxmlStateMachine *parentStateMachine)
 {
     bool ok = true;
-    auto srcexpr = calculateSrcexpr(parentStateMachine, &ok);
+    auto srcexpr = d->calculateSrcexpr(parentStateMachine, &ok);
     if (!ok)
         return Q_NULLPTR;
 

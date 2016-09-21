@@ -50,7 +50,7 @@
 
 #ifndef BUILD_QSCXMLC
 #include "qscxmlecmascriptdatamodel.h"
-#include "qscxmlinvokableservice.h"
+#include "qscxmlinvokableservice_p.h"
 #include "qscxmldatamodel_p.h"
 #include "qscxmlstatemachine_p.h"
 #include "qscxmlstatemachine.h"
@@ -476,17 +476,10 @@ private:
 class InvokeDynamicScxmlFactory: public QScxmlScxmlServiceFactory
 {
 public:
-    InvokeDynamicScxmlFactory(QScxmlExecutableContent::StringId invokeLocation,
-                              QScxmlExecutableContent::EvaluatorId srcexpr,
-                              QScxmlExecutableContent::StringId id,
-                              QScxmlExecutableContent::StringId idPrefix,
-                              QScxmlExecutableContent::StringId idlocation,
+    InvokeDynamicScxmlFactory(const QScxmlExecutableContent::InvokeInfo &invokeInfo,
                               const QVector<QScxmlExecutableContent::StringId> &namelist,
-                              bool autoforward,
-                              const QVector<QScxmlExecutableContent::ParameterInfo> &params,
-                              QScxmlExecutableContent::ContainerId finalize)
-        : QScxmlScxmlServiceFactory(invokeLocation, srcexpr, id, idPrefix, idlocation,
-                                             namelist, autoforward, params, finalize)
+                              const QVector<QScxmlExecutableContent::ParameterInfo> &params)
+        : QScxmlScxmlServiceFactory(invokeInfo, namelist, params)
     {}
 
     void setContent(const QSharedPointer<DocumentModel::ScxmlDocument> &content)
@@ -617,25 +610,12 @@ public:
         auto stateMachine = new DynamicStateMachine;
         MetaDataInfo info;
         DataModelInfo dm;
-        auto factoryIdCreator = [stateMachine](QScxmlExecutableContent::StringId invokeLocation,
-                QScxmlExecutableContent::EvaluatorId srcexpr,
-                QScxmlExecutableContent::StringId id,
-                QScxmlExecutableContent::StringId idPrefix,
-                QScxmlExecutableContent::StringId idlocation,
+        auto factoryIdCreator = [stateMachine](
+                const QScxmlExecutableContent::InvokeInfo &invokeInfo,
                 const QVector<QScxmlExecutableContent::StringId> &namelist,
-                bool autoforward,
                 const QVector<QScxmlExecutableContent::ParameterInfo> &params,
-                QScxmlExecutableContent::ContainerId finalize,
                 const QSharedPointer<DocumentModel::ScxmlDocument> &content) -> int {
-            auto factory = new InvokeDynamicScxmlFactory(invokeLocation,
-                                                         srcexpr,
-                                                         id,
-                                                         idPrefix,
-                                                         idlocation,
-                                                         namelist,
-                                                         autoforward,
-                                                         params,
-                                                         finalize);
+            auto factory = new InvokeDynamicScxmlFactory(invokeInfo, namelist, params);
             factory->setContent(content);
             stateMachine->m_allFactoriesById.append(factory);
             return stateMachine->m_allFactoriesById.size() - 1;
@@ -667,7 +647,7 @@ inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(
         QScxmlStateMachine *parentStateMachine)
 {
     bool ok = true;
-    auto srcexpr = calculateSrcexpr(parentStateMachine, &ok);
+    auto srcexpr = d->calculateSrcexpr(parentStateMachine, &ok);
     if (!ok)
         return Q_NULLPTR;
 

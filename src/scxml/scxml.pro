@@ -28,6 +28,7 @@ HEADERS += \
     qscxmlcppdatamodel_p.h \
     qscxmlcppdatamodel.h \
     qscxmlerror.h \
+    qscxmlinvokableservice_p.h \
     qscxmlinvokableservice.h \
     qscxmltabledata.h \
     qscxmltabledata_p.h \
