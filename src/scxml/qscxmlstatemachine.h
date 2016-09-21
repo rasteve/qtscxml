@@ -78,10 +78,8 @@ class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
     Q_PROPERTY(QScxmlTableData *tableData READ tableData WRITE setTableData NOTIFY tableDataChanged)
 
 protected:
-#ifndef Q_QDOC
     explicit QScxmlStateMachine(const QMetaObject *metaObject, QObject *parent = nullptr);
     QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *parent = nullptr);
-#endif // Q_QDOC
 
 public:
     static QScxmlStateMachine *fromFile(const QString &fileName);
@@ -341,10 +339,8 @@ protected: // methods for friends:
     friend class QScxmlInvokableServicePrivate;
     friend class QScxmlExecutionEngine;
 
-#ifndef Q_QDOC
     // The methods below are used by the compiled state machines.
     bool isActive(int stateIndex) const;
-#endif // Q_QDOC
 
 private:
     QMetaObject::Connection connectToStateImpl(const QString &scxmlStateName,

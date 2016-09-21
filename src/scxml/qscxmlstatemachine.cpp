@@ -589,21 +589,21 @@ void QScxmlStateMachinePrivate::submitDelayedEvent(QScxmlEvent *event)
 }
 
 /*!
- * \internal
- * \brief Submits an error event to the external event queue of this state machine.
+ * Submits an error event to the external event queue of this state machine.
  *
- * \param type The error message type, e.g. "error.execution". The type has to start with "error.".
- * \param msg A string describing the nature of the error. This is passed to the event as the
- *            errorMessage
- * \param sendid The sendid of the message causing the error, if it has one.
+ * The error is of \a type, e.g. "error.execution". The type has to start with "error.". An
+ * \a message is specified, describing the nature of the error. This is passed to the event as the
+ * \c errorMessage property. The \a sendId of the message causing the error is specified, if it has
+ * one.
  */
-void QScxmlStateMachinePrivate::submitError(const QString &type, const QString &msg, const QString &sendid)
+void QScxmlStateMachinePrivate::submitError(const QString &type, const QString &message,
+                                            const QString &sendId)
 {
     Q_Q(QScxmlStateMachine);
-    qCDebug(qscxmlLog) << q << "had error" << type << ":" << msg;
+    qCDebug(qscxmlLog) << q << "had error" << type << ":" << message;
     if (!type.startsWith(QStringLiteral("error.")))
         qCWarning(qscxmlLog) << q << "Message type of error message does not start with 'error.'!";
-    q->submitEvent(QScxmlEventBuilder::errorEvent(q, type, msg, sendid));
+    q->submitEvent(QScxmlEventBuilder::errorEvent(q, type, message, sendId));
 }
 
 void QScxmlStateMachinePrivate::start()
@@ -2067,6 +2067,13 @@ void QScxmlStateMachine::stop()
     d->pause();
 }
 
+/*!
+  Returns \c true if the state with ID \a stateIndex is active.
+
+  This method is part of the interface to the compiled representation of SCXML
+  state machines. It should only be used internally and by state machines
+  compiled from SCXML documents.
+ */
 bool QScxmlStateMachine::isActive(int stateIndex) const
 {
     Q_D(const QScxmlStateMachine);

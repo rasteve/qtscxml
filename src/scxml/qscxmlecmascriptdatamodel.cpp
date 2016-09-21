@@ -393,7 +393,11 @@ bool QScxmlEcmaScriptDataModel::setup(const QVariantMap &initialDataValues)
     return ok;
 }
 
-QString QScxmlEcmaScriptDataModel::evaluateToString(EvaluatorId id, bool *ok)
+/*!
+  \reimp
+ */
+QString QScxmlEcmaScriptDataModel::evaluateToString(QScxmlExecutableContent::EvaluatorId id,
+                                                    bool *ok)
 {
     Q_D(QScxmlEcmaScriptDataModel);
     const EvaluatorInfo &info = d->m_stateMachine->tableData()->evaluatorInfo(id);
@@ -401,7 +405,11 @@ QString QScxmlEcmaScriptDataModel::evaluateToString(EvaluatorId id, bool *ok)
     return d->evalStr(d->string(info.expr), d->string(info.context), ok);
 }
 
-bool QScxmlEcmaScriptDataModel::evaluateToBool(EvaluatorId id, bool *ok)
+/*!
+  \reimp
+ */
+bool QScxmlEcmaScriptDataModel::evaluateToBool(QScxmlExecutableContent::EvaluatorId id,
+                                               bool *ok)
 {
     Q_D(QScxmlEcmaScriptDataModel);
     const EvaluatorInfo &info = d->m_stateMachine->tableData()->evaluatorInfo(id);
@@ -409,7 +417,11 @@ bool QScxmlEcmaScriptDataModel::evaluateToBool(EvaluatorId id, bool *ok)
     return d->evalBool(d->string(info.expr), d->string(info.context), ok);
 }
 
-QVariant QScxmlEcmaScriptDataModel::evaluateToVariant(EvaluatorId id, bool *ok)
+/*!
+  \reimp
+ */
+QVariant QScxmlEcmaScriptDataModel::evaluateToVariant(QScxmlExecutableContent::EvaluatorId id,
+                                                      bool *ok)
 {
     Q_D(QScxmlEcmaScriptDataModel);
     const EvaluatorInfo &info = d->m_stateMachine->tableData()->evaluatorInfo(id);
@@ -417,7 +429,11 @@ QVariant QScxmlEcmaScriptDataModel::evaluateToVariant(EvaluatorId id, bool *ok)
     return d->evalJSValue(d->string(info.expr), d->string(info.context), ok).toVariant();
 }
 
-void QScxmlEcmaScriptDataModel::evaluateToVoid(EvaluatorId id, bool *ok)
+/*!
+  \reimp
+ */
+void QScxmlEcmaScriptDataModel::evaluateToVoid(QScxmlExecutableContent::EvaluatorId id,
+                                               bool *ok)
 {
     Q_D(QScxmlEcmaScriptDataModel);
     const EvaluatorInfo &info = d->m_stateMachine->tableData()->evaluatorInfo(id);
@@ -425,7 +441,11 @@ void QScxmlEcmaScriptDataModel::evaluateToVoid(EvaluatorId id, bool *ok)
     d->eval(d->string(info.expr), d->string(info.context), ok);
 }
 
-void QScxmlEcmaScriptDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
+/*!
+  \reimp
+ */
+void QScxmlEcmaScriptDataModel::evaluateAssignment(QScxmlExecutableContent::EvaluatorId id,
+                                                   bool *ok)
 {
     Q_D(QScxmlEcmaScriptDataModel);
     Q_ASSERT(ok);
@@ -445,7 +465,11 @@ void QScxmlEcmaScriptDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
     }
 }
 
-void QScxmlEcmaScriptDataModel::evaluateInitialization(EvaluatorId id, bool *ok)
+/*!
+  \reimp
+ */
+void QScxmlEcmaScriptDataModel::evaluateInitialization(QScxmlExecutableContent::EvaluatorId id,
+                                                       bool *ok)
 {
     Q_D(QScxmlEcmaScriptDataModel);
     const AssignmentInfo &info = d->m_stateMachine->tableData()->assignmentInfo(id);
@@ -458,7 +482,11 @@ void QScxmlEcmaScriptDataModel::evaluateInitialization(EvaluatorId id, bool *ok)
     evaluateAssignment(id, ok);
 }
 
-void QScxmlEcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body)
+/*!
+  \reimp
+ */
+void QScxmlEcmaScriptDataModel::evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok,
+                                                ForeachLoopBody *body)
 {
     Q_D(QScxmlEcmaScriptDataModel);
     Q_ASSERT(ok);

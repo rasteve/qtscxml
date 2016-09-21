@@ -122,19 +122,22 @@ private:
  * This class implements the null data model as described in the
  * \l {SCXML Specification - B.1 The Null Data Model}. Using the value \c "null"
  * for the \e datamodel attribute of the \c <scxml> element means that there is
- * no underlying data model.
+ * no underlying data model, but some executable content, like \c In(...) or
+ * \c <log> can still be used.
  *
  * \sa QScxmlStateMachine QScxmlDataModel
  */
 
 /*!
- * Creates a new Qt SCXML data model, with the parent object \a parent.
+ * Creates a new Qt SCXML null data model, with the parent object \a parent.
  */
 QScxmlNullDataModel::QScxmlNullDataModel(QObject *parent)
     : QScxmlDataModel(*(new QScxmlNullDataModelPrivate), parent)
 {}
 
-/*! \internal */
+/*!
+  Destroys the data model.
+ */
 QScxmlNullDataModel::~QScxmlNullDataModel()
 {
 }
@@ -149,6 +152,13 @@ bool QScxmlNullDataModel::setup(const QVariantMap &initialDataValues)
     return true;
 }
 
+/*!
+  \reimp
+  Evaluates the executable content pointed to by \a id, and records in \a ok
+  if there was an error. returns the result of the evaluation as a string. The
+  null data model can evaluate "<log>", so this might result in an actual
+  value, rather than an error
+ */
 QString QScxmlNullDataModel::evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
     Q_D(QScxmlNullDataModel);
@@ -160,12 +170,25 @@ QString QScxmlNullDataModel::evaluateToString(QScxmlExecutableContent::Evaluator
     return td->string(info.expr);
 }
 
+/*!
+  \reimp
+  Evaluates the executable content pointed to by \a id, and records in \a ok
+  if there was an error. returns the result of the evaluation as a bool. The
+  null data model can evaluate the instruction "In(...)", so this might result
+  in an actual value, rather than an error.
+ */
 bool QScxmlNullDataModel::evaluateToBool(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
     Q_D(QScxmlNullDataModel);
     return d->evalBool(id, ok);
 }
 
+/*!
+  \reimp
+  Evaluates the executable content pointed to by \a id, and records in \a ok
+  if there was an error. As this is the null data model, any evaluation will in
+  fact result in an error, with \a ok set to \c false. Returns an empty QVariant.
+ */
 QVariant QScxmlNullDataModel::evaluateToVariant(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
@@ -176,6 +199,12 @@ QVariant QScxmlNullDataModel::evaluateToVariant(QScxmlExecutableContent::Evaluat
     return QVariant();
 }
 
+/*!
+  \reimp
+  Evaluates the executable content pointed to by \a id, and records in \a ok
+  if there was an error. As this is the null data model, any evaluation will in
+  fact result in an error, with \a ok set to \c false.
+ */
 void QScxmlNullDataModel::evaluateToVoid(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
@@ -185,6 +214,11 @@ void QScxmlNullDataModel::evaluateToVoid(QScxmlExecutableContent::EvaluatorId id
                 QStringLiteral("Cannot evaluate expressions on a null data model"));
 }
 
+/*!
+  \reimp
+  Throws an error and sets \a ok to \c false because the null data model cannot evaluate
+  assignments.
+ */
 void QScxmlNullDataModel::evaluateAssignment(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
@@ -194,6 +228,10 @@ void QScxmlNullDataModel::evaluateAssignment(QScxmlExecutableContent::EvaluatorI
                 QStringLiteral("Cannot assign values on a null data model"));
 }
 
+/*!
+  \reimp
+  Throws an error and sets \a ok to \c false because the null data model cannot initialize data.
+ */
 void QScxmlNullDataModel::evaluateInitialization(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
@@ -203,7 +241,13 @@ void QScxmlNullDataModel::evaluateInitialization(QScxmlExecutableContent::Evalua
                 QStringLiteral("Cannot initialize values on a null data model"));
 }
 
-void QScxmlNullDataModel::evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body)
+/*!
+  \reimp
+  Throws an error and sets \a ok to \c false because the null data model cannot evaluate <foreach>
+  blocks.
+ */
+void QScxmlNullDataModel::evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok,
+                                          ForeachLoopBody *body)
 {
     Q_UNUSED(id);
     Q_UNUSED(body);
@@ -215,6 +259,7 @@ void QScxmlNullDataModel::evaluateForeach(QScxmlExecutableContent::EvaluatorId i
 
 /*!
  * \reimp
+ * Does not actually set the \a event, because the null data model does not handle events.
  */
 void QScxmlNullDataModel::setScxmlEvent(const QScxmlEvent &event)
 {

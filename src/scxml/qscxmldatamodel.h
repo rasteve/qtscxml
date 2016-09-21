@@ -75,7 +75,6 @@ public:
 
     Q_INVOKABLE virtual bool setup(const QVariantMap &initialDataValues) = 0;
 
-#ifndef Q_QDOC
     virtual QString evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
     virtual bool evaluateToBool(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
     virtual QVariant evaluateToVariant(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
@@ -83,7 +82,6 @@ public:
     virtual void evaluateAssignment(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
     virtual void evaluateInitialization(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
     virtual void evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) = 0;
-#endif // Q_QDOC
 
     virtual void setScxmlEvent(const QScxmlEvent &event) = 0;
 
