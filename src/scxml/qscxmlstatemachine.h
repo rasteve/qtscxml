@@ -50,6 +50,7 @@
 #include <QVector>
 #include <QUrl>
 #include <QVariantList>
+#include <QPointer>
 
 QT_BEGIN_NAMESPACE
 class QIODevice;
@@ -112,8 +113,8 @@ public:
     Q_INVOKABLE bool isActive(const QString &scxmlStateName) const;
 
     QMetaObject::Connection connectToState(const QString &scxmlStateName,
-                                    const QObject *receiver, const char *method,
-                                    Qt::ConnectionType type = Qt::AutoConnection);
+                                           const QObject *receiver, const char *method,
+                                           Qt::ConnectionType type = Qt::AutoConnection);
 #ifdef Q_QDOC
     template<typename PointerToMemberFunction>
     QMetaObject::Connection connectToState(const QString &scxmlStateName,
@@ -168,6 +169,83 @@ public:
                                   slotObj, type);
     }
 #endif
+
+#ifdef Q_QDOC
+    static auto onEntry(const QObject *receiver, const char *method);
+    static auto onExit(const QObject *receiver, const char *method);
+
+    template<typename Functor>
+    static auto onEntry(Functor functor);
+
+    template<typename Functor>
+    static auto onExit(Functor functor);
+
+    template<typename PointerToMemberFunction>
+    static auto onEntry(const QObject *receiver, PointerToMemberFunction method);
+
+    template<typename PointerToMemberFunction>
+    static auto onExit(const QObject *receiver, PointerToMemberFunction method);
+#elif defined(__cpp_return_type_deduction) && __cpp_return_type_deduction == 201304
+    static auto onEntry(const QObject *receiver, const char *method)
+    {
+        const QPointer<QObject> receiverPointer(const_cast<QObject *>(receiver));
+        return [receiverPointer, method](bool isEnteringState) {
+            if (isEnteringState && !receiverPointer.isNull())
+                QMetaObject::invokeMethod(const_cast<QObject *>(receiverPointer.data()), method);
+        };
+    }
+
+    static auto onExit(const QObject *receiver, const char *method)
+    {
+        const QPointer<QObject> receiverPointer(const_cast<QObject *>(receiver));
+        return [receiverPointer, method](bool isEnteringState) {
+            if (!isEnteringState && !receiverPointer.isNull())
+                QMetaObject::invokeMethod(receiverPointer.data(), method);
+        };
+    }
+
+    template<typename Functor>
+    static auto onEntry(Functor functor)
+    {
+        return [functor](bool isEnteringState) {
+            if (isEnteringState)
+                functor();
+        };
+    }
+
+    template<typename Functor>
+    static auto onExit(Functor functor)
+    {
+        return [functor](bool isEnteringState) {
+            if (!isEnteringState)
+                functor();
+        };
+    }
+
+    template<typename Func1>
+    static auto onEntry(const typename QtPrivate::FunctionPointer<Func1>::Object *receiver,
+                        Func1 slot)
+    {
+        typedef typename QtPrivate::FunctionPointer<Func1>::Object Object;
+        const QPointer<Object> receiverPointer(const_cast<Object *>(receiver));
+        return [receiverPointer, slot](bool isEnteringState) {
+            if (isEnteringState && !receiverPointer.isNull())
+                (receiverPointer->*slot)();
+        };
+    }
+
+    template<typename Func1>
+    static auto onExit(const typename QtPrivate::FunctionPointer<Func1>::Object *receiver,
+                       Func1 slot)
+    {
+        typedef typename QtPrivate::FunctionPointer<Func1>::Object Object;
+        const QPointer<Object> receiverPointer(const_cast<Object *>(receiver));
+        return [receiverPointer, slot](bool isEnteringState) {
+            if (!isEnteringState && !receiverPointer.isNull())
+                (receiverPointer->*slot)();
+        };
+    }
+#endif // defined(__cpp_return_type_deduction) && __cpp_return_type_deduction == 201304
 
     QMetaObject::Connection connectToEvent(const QString &scxmlEventSpec,
                                            const QObject *receiver, const char *method,

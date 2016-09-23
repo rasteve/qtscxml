@@ -205,15 +205,12 @@ void TestScion::dynamic()
     parser.setFileName(scxml);
     DynamicLoader loader;
     parser.setLoader(&loader);
-    parser.parse();
+    QScopedPointer<QScxmlStateMachine> stateMachine(parser.parse());
     QVERIFY(parser.errors().isEmpty());
     scxmlFile.close();
 
-    QScopedPointer<QScxmlStateMachine> stateMachine(parser.instantiateStateMachine());
     QVERIFY(stateMachine != Q_NULLPTR);
-
     stateMachine->setLoader(&loader);
-    parser.instantiateDataModel(stateMachine.data());
 
     const bool runResult = runTest(stateMachine.data(), testDescription.object());
     if (runResult == false && testStatus == TestFailsOnRun)

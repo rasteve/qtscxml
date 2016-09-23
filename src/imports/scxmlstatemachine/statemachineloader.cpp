@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "statemachineloader.h"
+#include "statemachineloader_p.h"
 
 #include <QtScxml/qscxmlstatemachine.h>
 #include <QQmlContext>
@@ -51,14 +51,14 @@
     \instantiates QScxmlStateMachineLoader
     \inqmlmodule Scxml
 
-    \brief Dynamically loads an SCXML file and instantiates the state machine.
+    \brief Dynamically loads an SCXML document and instantiates the state machine.
 
     \since QtScxml 5.7
  */
 
 /*!
-    \qmlsignal StateMachineLoader::filenameChanged()
-    This signal is emitted when the user changes the filename.
+    \qmlsignal StateMachineLoader::sourceChanged()
+    This signal is emitted when the user changes the source URL for the SCXML document.
 */
 
 /*!
@@ -87,34 +87,34 @@ QT_PREPEND_NAMESPACE(QScxmlStateMachine) *QScxmlStateMachineLoader::stateMachine
 }
 
 /*!
-    \qmlproperty string StateMachineLoader::filename
+    \qmlproperty string StateMachineLoader::source
 
-    The name of the SCXML file to load.
+    The url of the SCXML document to load. Only synchronously accessible URLs are supported.
  */
-QUrl QScxmlStateMachineLoader::filename()
+QUrl QScxmlStateMachineLoader::source()
 {
-    return m_filename;
+    return m_source;
 }
 
-void QScxmlStateMachineLoader::setFilename(const QUrl &filename)
+void QScxmlStateMachineLoader::setSource(const QUrl &source)
 {
-    if (!filename.isValid())
+    if (!source.isValid())
         return;
 
-    QUrl oldFilename = m_filename;
+    QUrl oldSource = m_source;
     if (m_stateMachine) {
         delete m_stateMachine;
         m_stateMachine = Q_NULLPTR;
         m_implicitDataModel = Q_NULLPTR;
     }
 
-    if (parse(filename)) {
-        m_filename = filename;
-        emit filenameChanged();
+    if (parse(source)) {
+        m_source = source;
+        emit sourceChanged();
     } else {
-        m_filename.clear();
-        if (!oldFilename.isEmpty()) {
-            emit filenameChanged();
+        m_source.clear();
+        if (!oldSource.isEmpty()) {
+            emit sourceChanged();
         }
     }
 }
@@ -153,16 +153,17 @@ void QScxmlStateMachineLoader::setDataModel(QScxmlDataModel *dataModel)
     }
 }
 
-bool QScxmlStateMachineLoader::parse(const QUrl &filename)
+bool QScxmlStateMachineLoader::parse(const QUrl &source)
 {
-    if (!QQmlFile::isSynchronous(filename)) {
-        qmlInfo(this) << QStringLiteral("ERROR: cannot open '%1' for reading: only synchronous file access is supported.").arg(filename.fileName());
+    if (!QQmlFile::isSynchronous(source)) {
+        qmlInfo(this) << QStringLiteral("ERROR: cannot open '%1' for reading: only synchronous access is supported.")
+                         .arg(source.url());
         return false;
     }
-    QQmlFile scxmlFile(QQmlEngine::contextForObject(this)->engine(), filename);
+    QQmlFile scxmlFile(QQmlEngine::contextForObject(this)->engine(), source);
     if (scxmlFile.isError()) {
         // the synchronous case can only fail when the file is not found (or not readable).
-        qmlInfo(this) << QStringLiteral("ERROR: cannot open '%1' for reading.").arg(filename.fileName());
+        qmlInfo(this) << QStringLiteral("ERROR: cannot open '%1' for reading.").arg(source.url());
         return false;
     }
 
@@ -173,7 +174,7 @@ bool QScxmlStateMachineLoader::parse(const QUrl &filename)
         return false;
     }
 
-    m_stateMachine = QScxmlStateMachine::fromData(&buf, filename.toString());
+    m_stateMachine = QScxmlStateMachine::fromData(&buf, source.toString());
     m_stateMachine->setParent(this);
     m_implicitDataModel = m_stateMachine->dataModel();
 
@@ -188,7 +189,9 @@ bool QScxmlStateMachineLoader::parse(const QUrl &filename)
         QMetaObject::invokeMethod(m_stateMachine, "start", Qt::QueuedConnection);
         return true;
     } else {
-        qmlInfo(this) << QStringLiteral("Something went wrong while parsing '%1':").arg(filename.fileName()) << endl;
+        qmlInfo(this) << QStringLiteral("Something went wrong while parsing '%1':")
+                         .arg(source.url())
+                      << endl;
         foreach (const QScxmlError &msg, m_stateMachine->parseErrors()) {
             qmlInfo(this) << msg.toString();
         }

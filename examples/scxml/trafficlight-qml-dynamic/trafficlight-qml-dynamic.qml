@@ -53,7 +53,7 @@ import QtScxml 5.7 as Scxml
 TrafficLight {
     Scxml.StateMachineLoader {
         id: loader
-        filename: "qrc:///statemachine.scxml"
+        source: "qrc:///statemachine.scxml"
     }
 
     stateMachine: loader.stateMachine

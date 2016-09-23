@@ -73,12 +73,8 @@ public:
     Loader *loader() const;
     void setLoader(Loader *newLoader);
 
-    void parse();
-    QScxmlStateMachine *instantiateStateMachine() const;
-    void instantiateDataModel(QScxmlStateMachine *stateMachine) const;
-
+    QScxmlStateMachine *parse();
     QVector<QScxmlError> errors() const;
-    void addError(const QString &msg);
 
 private:
     friend class QScxmlParserPrivate;

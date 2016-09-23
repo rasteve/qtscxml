@@ -47,6 +47,7 @@ private Q_SLOTS:
     void activeStateNames_data();
     void activeStateNames();
     void connections();
+    void onExit();
     void eventOccurred();
 
     void doneDotStateEvent();
@@ -141,10 +142,21 @@ public slots:
         bReached = bReached || enabled;
     }
 
+    void aEnter()
+    {
+        aEntered = true;
+    }
+
+    void aExit()
+    {
+        aExited = true;
+    }
+
 public:
     bool aReached = false;
     bool bReached = false;
-
+    bool aEntered = false;
+    bool aExited = false;
 };
 
 void tst_StateMachine::connections()
@@ -171,6 +183,44 @@ void tst_StateMachine::connections()
     });
     QVERIFY(final);
 
+#if defined(__cpp_return_type_deduction) && __cpp_return_type_deduction == 201304
+    // C++14 available, test onEntry and onExit
+    bool a1Entered = false;
+    bool a1Exited = false;
+    bool finalEntered = false;
+    bool finalExited = false;
+    typedef QScxmlStateMachine QXSM;
+
+    QMetaObject::Connection aEntry = stateMachine->connectToState(
+                "a", QXSM::onEntry(&receiver, &Receiver::aEnter));
+    QVERIFY(aEntry);
+    QMetaObject::Connection aExit = stateMachine->connectToState(
+                "a", QXSM::onExit(&receiver, &Receiver::aExit));
+    QVERIFY(aExit);
+    QMetaObject::Connection a1Entry = stateMachine->connectToState("a1", &receiver,
+                                                                   QXSM::onEntry([&a1Entered]() {
+        a1Entered = true;
+    }));
+    QVERIFY(a1Entry);
+    QMetaObject::Connection a1Exit = stateMachine->connectToState("a1", &receiver,
+                                                                   QXSM::onExit([&a1Exited]() {
+        a1Exited = true;
+    }));
+    QVERIFY(a1Exit);
+
+    QMetaObject::Connection finalEntry = stateMachine->connectToState(
+                "final", QXSM::onEntry([&finalEntered]() {
+        finalEntered = true;
+    }));
+    QVERIFY(finalEntry);
+
+    QMetaObject::Connection finalExit = stateMachine->connectToState(
+                "final", QXSM::onExit([&finalExited]() {
+        finalExited = true;
+    }));
+    QVERIFY(finalExit);
+#endif
+
     stateMachine->start();
 
     QTRY_VERIFY(a1Reached);
@@ -182,6 +232,52 @@ void tst_StateMachine::connections()
     QVERIFY(disconnect(b));
     QVERIFY(disconnect(a1));
     QVERIFY(disconnect(final));
+
+#if defined(__cpp_return_type_deduction) && __cpp_return_type_deduction == 201304
+    QVERIFY(receiver.aEntered);
+    QVERIFY(!receiver.aExited);
+    QVERIFY(a1Entered);
+    QVERIFY(!a1Exited);
+    QVERIFY(finalEntered);
+    QVERIFY(!finalExited);
+
+    QVERIFY(disconnect(aEntry));
+    QVERIFY(disconnect(aExit));
+    QVERIFY(disconnect(a1Entry));
+    QVERIFY(disconnect(a1Exit));
+    QVERIFY(disconnect(finalEntry));
+    QVERIFY(disconnect(finalExit));
+#endif
+}
+
+void tst_StateMachine::onExit()
+{
+#if defined(__cpp_return_type_deduction) && __cpp_return_type_deduction == 201304
+    // Test onExit being actually called
+
+    typedef QScxmlStateMachine QXSM;
+    QScopedPointer<QXSM> stateMachine(QXSM::fromFile(QString(":/tst_statemachine/eventoccurred.scxml")));
+
+    Receiver receiver;
+    bool aExited1 = false;
+
+    stateMachine->connectToState("a", QXSM::onExit([&aExited1]() { aExited1 = true; }));
+    stateMachine->connectToState("a", QXSM::onExit(&receiver, &Receiver::aExit));
+    stateMachine->connectToState("a", QXSM::onExit(&receiver, "aEnter"));
+    {
+        // Should not crash
+        Receiver receiver2;
+        stateMachine->connectToState("a", QXSM::onEntry(&receiver2, &Receiver::aEnter));
+        stateMachine->connectToState("a", QXSM::onEntry(&receiver2, "aExit"));
+        stateMachine->connectToState("a", QXSM::onExit(&receiver2, &Receiver::aExit));
+        stateMachine->connectToState("a", QXSM::onExit(&receiver2, "aEnter"));
+    }
+
+    stateMachine->start();
+    QTRY_VERIFY(receiver.aEntered);
+    QTRY_VERIFY(receiver.aExited);
+    QTRY_VERIFY(aExited1);
+#endif
 }
 
 bool hasChildEventRouters(QScxmlStateMachine *stateMachine)

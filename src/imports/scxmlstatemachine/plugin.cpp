@@ -37,11 +37,11 @@
 **
 ****************************************************************************/
 
-#include "statemachineloader.h"
-#include "eventconnection.h"
+#include "statemachineloader_p.h"
+#include "eventconnection_p.h"
 #include "qscxmlevent.h"
-#include "statemachineextended.h"
-#include "invokedservices.h"
+#include "statemachineextended_p.h"
+#include "invokedservices_p.h"
 
 #include <QQmlExtensionPlugin>
 #include <qqml.h>

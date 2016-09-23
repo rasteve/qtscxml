@@ -328,6 +328,9 @@ protected: // visitor
         case DocumentModel::Transition::Internal:
             newTransition.type = StateTable::Transition::Internal;
             break;
+        case DocumentModel::Transition::Synthetic:
+            newTransition.type = StateTable::Transition::Synthetic;
+            break;
         default:
             Q_UNREACHABLE();
         }

@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "statemachineextended.h"
+#include "statemachineextended_p.h"
 
 #include <QtScxml/qscxmlglobals.h>
 #include <QtScxml/qscxmlstatemachine.h>

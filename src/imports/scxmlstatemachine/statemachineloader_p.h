@@ -37,49 +37,66 @@
 **
 ****************************************************************************/
 
-#ifndef EVENTCONNECTION_H
-#define EVENTCONNECTION_H
+#ifndef STATEMACHINELOADER_P_H
+#define STATEMACHINELOADER_P_H
 
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <QUrl>
 #include <QtScxml/qscxmlstatemachine.h>
-#include <QtCore/qobject.h>
-#include <QtQml/qqmlparserstatus.h>
+#include <private/qqmlengine_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QScxmlEventConnection : public QObject, public QQmlParserStatus
+class QScxmlStateMachineLoader: public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QStringList events READ events WRITE setEvents NOTIFY eventsChanged)
-    Q_PROPERTY(QScxmlStateMachine *stateMachine READ stateMachine WRITE setStateMachine
-               NOTIFY stateMachineChanged)
-    Q_INTERFACES(QQmlParserStatus)
+    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_PROPERTY(QScxmlStateMachine* stateMachine READ stateMachine DESIGNABLE false NOTIFY stateMachineChanged)
+    Q_PROPERTY(QVariantMap initialValues READ initialValues WRITE setInitialValues NOTIFY initialValuesChanged)
+    Q_PROPERTY(QScxmlDataModel* dataModel READ dataModel WRITE setDataModel NOTIFY dataModelChanged)
+
 
 public:
-    QScxmlEventConnection(QObject *parent = nullptr);
-
-    QStringList events() const;
-    void setEvents(const QStringList &events);
+    explicit QScxmlStateMachineLoader(QObject *parent = 0);
 
     QScxmlStateMachine *stateMachine() const;
-    void setStateMachine(QScxmlStateMachine *stateMachine);
+
+    QUrl source();
+    void setSource(const QUrl &source);
+
+    QVariantMap initialValues() const;
+    void setInitialValues(const QVariantMap &initialValues);
+
+    QScxmlDataModel *dataModel() const;
+    void setDataModel(QScxmlDataModel *dataModel);
 
 Q_SIGNALS:
-    void eventsChanged();
+    void sourceChanged();
+    void initialValuesChanged();
     void stateMachineChanged();
-
-    void occurred(const QScxmlEvent &event);
+    void dataModelChanged();
 
 private:
+    bool parse(const QUrl &source);
+
+private:
+    QUrl m_source;
+    QVariantMap m_initialValues;
+    QScxmlDataModel *m_dataModel;
+    QScxmlDataModel *m_implicitDataModel;
     QScxmlStateMachine *m_stateMachine;
-    QStringList m_events;
-
-    QList<QMetaObject::Connection> m_connections;
-
-    void doConnect();
-    void classBegin() override;
-    void componentComplete() override;
 };
 
 QT_END_NAMESPACE
 
-#endif // EVENTCONNECTION_H
+#endif // STATEMACHINELOADER_P_H

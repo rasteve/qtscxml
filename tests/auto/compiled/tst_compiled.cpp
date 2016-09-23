@@ -135,8 +135,21 @@ public slots:
     {
         received = received || enabled;
     }
+
+    void enter()
+    {
+        entered = true;
+    }
+
+    void exit()
+    {
+        exited = true;
+    }
+
 public:
     bool received = false;
+    bool entered = false;
+    bool exited = false;
 };
 
 void tst_Compiled::connection()
@@ -154,6 +167,16 @@ void tst_Compiled::connection()
     QMetaObject::Connection conA2    = stateMachine.connectToState("a2",    &receiverA2,    SLOT(receive(bool)));
     QMetaObject::Connection conB     = stateMachine.connectToState("b",     &receiverB,     SLOT(receive(bool)));
     QMetaObject::Connection conFinal = stateMachine.connectToState("final", &receiverFinal, SLOT(receive(bool)));
+
+#if defined(__cpp_return_type_deduction) && __cpp_return_type_deduction == 201304
+    // C++14 available: test for onEntry and onExit
+    typedef QScxmlStateMachine QXSM;
+    QMetaObject::Connection aEntry = stateMachine.connectToState("a", QXSM::onEntry(&receiverA, "enter"));
+    QMetaObject::Connection aExit  = stateMachine.connectToState("a", QXSM::onExit(&receiverA, "exit"));
+
+    QVERIFY(aEntry);
+    QVERIFY(aExit);
+#endif
 
     QVERIFY(conA);
     QVERIFY(conA1);
@@ -174,6 +197,13 @@ void tst_Compiled::connection()
     QVERIFY(disconnect(conA2));
     QVERIFY(disconnect(conB));
     QVERIFY(disconnect(conFinal));
+
+#if defined(__cpp_return_type_deduction) && __cpp_return_type_deduction == 201304
+    QVERIFY(receiverA.entered);
+    QVERIFY(!receiverA.exited);
+    QVERIFY(disconnect(aEntry));
+    QVERIFY(disconnect(aExit));
+#endif
 }
 
 class MyConnection : public Connection

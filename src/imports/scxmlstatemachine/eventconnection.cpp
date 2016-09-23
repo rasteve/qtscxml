@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "eventconnection.h"
+#include "eventconnection_p.h"
 
 QT_BEGIN_NAMESPACE
 

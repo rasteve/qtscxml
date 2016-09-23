@@ -344,8 +344,9 @@ struct StateTable {
         int condition;
         enum: int {
             Invalid = -1,
-            External = 0,
-            Internal = 1
+            Internal = 0,
+            External = 1,
+            Synthetic = 2
         } type;
         int source;
         int targets; // offset into offsets

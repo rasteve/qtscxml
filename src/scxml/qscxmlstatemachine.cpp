@@ -78,33 +78,58 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
 /*!
     \fn QScxmlStateMachine::connectToEvent(const QString &scxmlEventSpec,
-                                          const QObject *receiver,
-                                          PointerToMemberFunction method,
-                                          Qt::ConnectionType type)
+                                           const QObject *receiver,
+                                           PointerToMemberFunction method,
+                                           Qt::ConnectionType type)
 
-    Creates an automatic connection from the event specified by
+    Creates a connection of the given \a type from the event specified by
     \a scxmlEventSpec to \a method in the \a receiver object.
 
     The receiver's \a method must take a QScxmlEvent as a parameter.
+
+    In contrast to event specifications in SCXML documents, spaces are not
+    allowed in the \a scxmlEventSpec here. In order to connect to multiple
+    events with different prefixes, connectToEvent() has to be called multiple
+    times.
+
+    Returns a handle to the connection, which can be used later to disconnect.
 */
 
 /*!
     \fn QScxmlStateMachine::connectToEvent(const QString &scxmlEventSpec,
-                                          Functor functor,
-                                          Qt::ConnectionType type)
+                                           Functor functor,
+                                           Qt::ConnectionType type)
 
-    Creates an automatic connection from the event specified by
+    Creates a connection of the given \a type from the event specified by
     \a scxmlEventSpec to \a functor.
+
+    The \a functor must take a QScxmlEvent as a parameter.
+
+    In contrast to event specifications in SCXML documents, spaces are not
+    allowed in the \a scxmlEventSpec here. In order to connect to multiple
+    events with different prefixes, connectToEvent() has to be called multiple
+    times.
+
+    Returns a handle to the connection, which can be used later to disconnect.
 */
 
 /*!
     \fn QScxmlStateMachine::connectToEvent(const QString &scxmlEventSpec,
-                                          const QObject *context,
-                                          Functor functor,
-                                          Qt::ConnectionType type)
+                                           const QObject *context,
+                                           Functor functor,
+                                           Qt::ConnectionType type)
 
-    Creates an automatic connection from the event specified by
+    Creates a connection of the given \a type from the event specified by
     \a scxmlEventSpec to \a functor using \a context as context.
+
+    The \a functor must take a QScxmlEvent as a parameter.
+
+    In contrast to event specifications in SCXML documents, spaces are not
+    allowed in the \a scxmlEventSpec here. In order to connect to multiple
+    events with different prefixes, connectToEvent() has to be called multiple
+    times.
+
+    Returns a handle to the connection, which can be used later to disconnect.
 */
 
 /*!
@@ -113,11 +138,13 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
                                            PointerToMemberFunction method,
                                            Qt::ConnectionType type)
 
-    Creates an automatic connection from the state specified by
+    Creates a connection of the given \a type from the state specified by
     \a scxmlStateName to \a method in the \a receiver object.
 
-    The receiver's \a method must contain a boolean argument that indicates
+    The receiver's \a method must take a boolean argument that indicates
     whether the state connected became active or inactive.
+
+    Returns a handle to the connection, which can be used later to disconnect.
 */
 
 
@@ -126,8 +153,13 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
                                            Functor functor,
                                            Qt::ConnectionType type)
 
-    Creates an automatic connection from the state specified by
+    Creates a connection of the given \a type from the state specified by
     \a scxmlStateName to \a functor.
+
+    The \a functor must take a boolean argument that indicates whether the
+    state connected became active or inactive.
+
+    Returns a handle to the connection, which can be used later to disconnect.
 */
 
 /*!
@@ -136,9 +168,110 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
                                            Functor functor,
                                            Qt::ConnectionType type)
 
-    Creates an automatic connection from the state specified by
+    Creates a connection of the given \a type from the state specified by
     \a scxmlStateName to \a functor using \a context as context.
+
+    The \a functor must take a boolean argument that indicates whether the
+    state connected became active or inactive.
+
+    Returns a handle to the connection, which can be used later to disconnect.
 */
+
+/*!
+    \fn auto QScxmlStateMachine::onEntry(const QObject *receiver,
+                                         const char *method)
+
+    Returns a functor that accepts a boolean argument and calls the given
+    \a method on \a receiver using QMetaObject::invokeMethod() if that argument
+    is \c true and \a receiver has not been deleted, yet.
+
+    The given \a method must not accept any arguments. \a method is the plain
+    method name, not enclosed in \c SIGNAL() or \c SLOT().
+
+    This is useful to wrap handlers for connectToState() that should only
+    be executed when the state is entered.
+
+    onEntry() is only available if the compiler supports return type
+    deduction for functions.
+*/
+
+/*!
+    \fn auto QScxmlStateMachine::onExit(const QObject *receiver,
+                                        const char *method)
+
+    Returns a functor that accepts a boolean argument and calls the given
+    \a method on \a receiver using QMetaObject::invokeMethod() if that argument
+    is \c false and \a receiver has not been deleted, yet.
+
+    The given \a method must not accept any arguments. \a method is the plain
+    method name, not enclosed in SIGNAL(...) or SLOT(...).
+
+    This is useful to wrap handlers for connectToState() that should only
+    be executed when the state is left.
+
+    onExit() is only available if the compiler supports return type
+    deduction for functions.
+*/
+
+/*!
+    \fn QScxmlStateMachine::onEntry(Functor functor)
+
+    Returns a functor that accepts a boolean argument and calls the given
+    \a functor if that argument is \c true. The given \a functor must not
+    accept any arguments.
+
+    This is useful to wrap handlers for connectToState() that should only
+    be executed when the state is entered.
+
+    onEntry() is only available if the compiler supports return type
+    deduction for functions.
+ */
+
+/*!
+    \fn QScxmlStateMachine::onExit(Functor functor)
+
+    Returns a functor that accepts a boolean argument and calls the given
+    \a functor if that argument is \c false. The given \a functor must not
+    accept any arguments.
+
+    This is useful to wrap handlers for connectToState() that should only
+    be executed when the state is left.
+
+    onExit() is only available if the compiler supports return type
+    deduction for functions.
+ */
+
+/*!
+    \fn QScxmlStateMachine::onEntry(const QObject *receiver,
+                                    PointerToMemberFunction method)
+
+    Returns a functor that accepts a boolean argument and calls the given
+    \a method on \a receiver if that argument is \c true and the \a receiver
+    has not been deleted, yet. The given \a method must not accept any
+    arguments.
+
+    This is useful to wrap handlers for connectToState() that should only
+    be executed when the state is entered.
+
+    onEntry() is only available if the compiler supports return type
+    deduction for functions.
+ */
+
+/*!
+    \fn QScxmlStateMachine::onExit(const QObject *receiver,
+                                   PointerToMemberFunction method)
+
+    Returns a functor that accepts a boolean argument and calls the given
+    \a method on \a receiver if that argument is \c false and the \a receiver
+    has not been deleted, yet. The given \a method must not accept any
+    arguments.
+
+    This is useful to wrap handlers for connectToState() that should only
+    be executed when the state is left.
+
+    onExit() is only available if the compiler supports return type
+    deduction for functions.
+ */
 
 namespace QScxmlInternal {
 
@@ -385,7 +518,7 @@ void QScxmlStateMachinePrivate::routeEvent(QScxmlEvent *event)
     } else if (origin.startsWith(QStringLiteral("#_")) && origin != QStringLiteral("#_internal")) {
         // route to children
         auto originId = origin.midRef(2);
-        for (auto invokedService : m_invokedServices) {
+        for (const auto &invokedService : m_invokedServices) {
             auto service = invokedService.service;
             if (service == nullptr)
                 continue;
@@ -1276,10 +1409,7 @@ QScxmlStateMachine *QScxmlStateMachine::fromData(QIODevice *data, const QString 
     QXmlStreamReader xmlReader(data);
     QScxmlParser parser(&xmlReader);
     parser.setFileName(fileName);
-    parser.parse();
-    auto stateMachine = parser.instantiateStateMachine();
-    parser.instantiateDataModel(stateMachine);
-    return stateMachine;
+    return parser.parse();
 }
 
 QVector<QScxmlError> QScxmlStateMachine::parseErrors() const
@@ -1580,20 +1710,21 @@ QMetaObject::Connection QScxmlStateMachine::connectToStateImpl(const QString &sc
 }
 
 /*!
- * Creates a connection of the given \a type from the state identified by \a scxmlStateName
- * to the \a method in the \a receiver object. The receiver's \a method
- * may contain a boolean argument that indicates whether the state connected
- * became active or inactive. For example:
- *
- * \code
- * void mySlot(bool active);
- * \endcode
- *
- * Returns a handle to the connection, which can be used later to disconnect.
+    Creates a connection of the given \a type from the state identified by \a scxmlStateName
+    to the \a method in the \a receiver object. The receiver's \a method
+    may take a boolean argument that indicates whether the state connected
+    became active or inactive. For example:
+
+    \code
+    void mySlot(bool active);
+    \endcode
+
+    Returns a handle to the connection, which can be used later to disconnect.
  */
 QMetaObject::Connection QScxmlStateMachine::connectToState(const QString &scxmlStateName,
-                                            const QObject *receiver, const char *method,
-                                            Qt::ConnectionType type)
+                                                           const QObject *receiver,
+                                                           const char *method,
+                                                           Qt::ConnectionType type)
 {
     QByteArray signalName = QByteArray::number(QSIGNAL_CODE) + scxmlStateName.toUtf8()
             + "Changed(bool)";
@@ -1608,6 +1739,11 @@ QMetaObject::Connection QScxmlStateMachine::connectToState(const QString &scxmlS
     \code
     void mySlot(const QScxmlEvent &event);
     \endcode
+
+    In contrast to event specifications in SCXML documents, spaces are not
+    allowed in the \a scxmlEventSpec here. In order to connect to multiple
+    events with different prefixes, connectToEvent() has to be called multiple
+    times.
 
     Returns a handle to the connection, which can be used later to disconnect.
 */

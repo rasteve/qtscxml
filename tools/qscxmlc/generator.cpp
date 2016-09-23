@@ -37,6 +37,7 @@
 #include <QtCore/qplugin.h>
 
 #include <private/qmetaobject_p.h> //for the flags.
+#include <stdio.h>
 
 QT_BEGIN_NAMESPACE
 

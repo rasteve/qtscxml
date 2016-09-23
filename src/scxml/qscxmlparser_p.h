@@ -315,7 +315,7 @@ struct State: public AbstractState, public StateOrTransition
 
 struct Transition: public StateOrTransition
 {
-    enum Type { External, Internal };
+    enum Type { Internal, External, Synthetic };
     QStringList events;
     QScopedPointer<QString> condition;
     QStringList targets;
@@ -577,6 +577,8 @@ public:
 
     void addError(const QString &msg);
     void addError(const DocumentModel::XmlLocation &location, const QString &msg);
+    QScxmlStateMachine *instantiateStateMachine() const;
+    void instantiateDataModel(QScxmlStateMachine *stateMachine) const;
 
 private:
     DocumentModel::AbstractState *currentParent() const;
