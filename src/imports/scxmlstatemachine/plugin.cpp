@@ -60,7 +60,7 @@ public:
         Q_ASSERT(uri == QStringLiteral("QtScxml"));
 
         int major = 5;
-        int minor = 7;
+        int minor = 8;
         // Do not rely on RegisterMethodArgumentMetaType meta-call to register the QScxmlEvent type.
         // This registration is required for the receiving end of the signal emission that carries
         // parameters of this type to be able to treat them correctly as a gadget. This is because the
@@ -72,7 +72,7 @@ public:
         qmlRegisterType<QScxmlEventConnection>(uri, major, minor, "EventConnection");
         qmlRegisterType<QScxmlInvokedServices>(uri, major, minor, "InvokedServices");
         qmlRegisterExtendedUncreatableType<QScxmlStateMachine, QScxmlStateMachineExtended>(
-                    uri, major, minor, "QScxmlStateMachine", "Only created through derived types");
+                    uri, major, minor, "StateMachine", "Only created through derived types");
         qmlProtectModule(uri, 1);
     }
 };

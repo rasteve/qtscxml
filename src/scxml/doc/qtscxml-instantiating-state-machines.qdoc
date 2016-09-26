@@ -43,7 +43,7 @@
     Or, in QML:
 
     \qml
-    import QtScxml 5.7
+    import QtScxml 5.8
 
     Item {
         property QtObject stateMachine: scxmlLoader.stateMachine
@@ -134,7 +134,7 @@
     And in QML:
 
     \qml
-    import QtScxml 5.7
+    import QtScxml 5.8
 
     EventConnection {
         stateMachine: stateMachine

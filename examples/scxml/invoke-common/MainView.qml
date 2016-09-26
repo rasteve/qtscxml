@@ -50,12 +50,12 @@
 
 import QtQuick 2.5
 import QtQuick.Window 2.2
-import QtScxml 5.7
+import QtScxml 5.8
 
 Window {
     id: window
     visible: true
-    property var stateMachine
+    property StateMachine stateMachine
 
     color: "black"
     width: 400

@@ -48,10 +48,10 @@
 **
 ****************************************************************************/
 
-import QtScxml 5.7 as Scxml
+import QtScxml 5.8
 
 TrafficLight {
-    Scxml.StateMachineLoader {
+    StateMachineLoader {
         id: loader
         source: "qrc:///statemachine.scxml"
     }

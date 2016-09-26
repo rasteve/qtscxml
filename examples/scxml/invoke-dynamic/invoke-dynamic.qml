@@ -48,12 +48,12 @@
 **
 ****************************************************************************/
 
-import QtScxml 5.7 as Scxml
+import QtScxml 5.8
 
 MainView {
     stateMachine: directions.stateMachine
 
-    Scxml.StateMachineLoader {
+    StateMachineLoader {
         id: directions
         source: "qrc:///statemachine.scxml"
     }
