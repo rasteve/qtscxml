@@ -91,7 +91,7 @@ public:
                                   QScxmlExecutableContent::StringId idlocation,
                                   const QVector<QScxmlExecutableContent::StringId> &namelist,
                                   bool autoforward,
-                                  const QVector<QScxmlExecutableContent::Param> &params,
+                                  const QVector<QScxmlExecutableContent::ParameterInfo> &params,
                                   QScxmlExecutableContent::ContainerId finalizeContent);
     virtual ~QScxmlInvokableServiceFactory();
 
@@ -140,7 +140,7 @@ public:
                                        QScxmlExecutableContent::StringId idlocation,
                                        const QVector<QScxmlExecutableContent::StringId> &namelist,
                                        bool doAutoforward,
-                                       const QVector<QScxmlExecutableContent::Param> &params,
+                                       const QVector<QScxmlExecutableContent::ParameterInfo> &params,
                                        QScxmlExecutableContent::ContainerId finalize);
 
 protected:
@@ -163,7 +163,7 @@ public:
                              QScxmlExecutableContent::StringId idlocation,
                              const QVector<QScxmlExecutableContent::StringId> &namelist,
                              bool doAutoforward,
-                             const QVector<QScxmlExecutableContent::Param> &params,
+                             const QVector<QScxmlExecutableContent::ParameterInfo> &params,
                              QScxmlExecutableContent::ContainerId finalize)
         : QScxmlInvokableScxmlServiceFactory(invokeLocation, QScxmlExecutableContent::NoInstruction,
                                              id, idPrefix, idlocation, namelist, doAutoforward,
@@ -186,7 +186,7 @@ public:
                               QScxmlExecutableContent::StringId idlocation,
                               const QVector<QScxmlExecutableContent::StringId> &namelist,
                               bool doAutoforward,
-                              const QVector<QScxmlExecutableContent::Param> &params,
+                              const QVector<QScxmlExecutableContent::ParameterInfo> &params,
                               QScxmlExecutableContent::ContainerId finalize)
         : QScxmlInvokableScxmlServiceFactory(invokeLocation, srcexpr, id, idPrefix, idlocation,
                                              namelist, doAutoforward, params, finalize)

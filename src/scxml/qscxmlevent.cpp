@@ -176,7 +176,7 @@ QScxmlEvent *QScxmlEventBuilder::errorEvent(QScxmlStateMachine *stateMachine, co
     return error;
 }
 
-bool QScxmlEventBuilder::evaluate(const Param &param, QScxmlStateMachine *stateMachine,
+bool QScxmlEventBuilder::evaluate(const ParameterInfo &param, QScxmlStateMachine *stateMachine,
                                   QVariantMap &keyValues)
 {
     auto dataModel = stateMachine->dataModel();
@@ -208,7 +208,8 @@ bool QScxmlEventBuilder::evaluate(const Param &param, QScxmlStateMachine *stateM
     }
 }
 
-bool QScxmlEventBuilder::evaluate(const QScxmlExecutableContent::Array<Param> *params, QScxmlStateMachine *stateMachine, QVariantMap &keyValues)
+bool QScxmlEventBuilder::evaluate(const QScxmlExecutableContent::Array<ParameterInfo> *params,
+                                  QScxmlStateMachine *stateMachine, QVariantMap &keyValues)
 {
     if (!params)
         return true;

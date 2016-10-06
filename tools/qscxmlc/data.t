@@ -44,6 +44,17 @@ struct ${classname}::Data: private QScxmlTableData {
     ${classname} &stateMachine;
     ${dataModelField}
 
+    static QScxmlExecutableContent::ParameterInfo param(QScxmlExecutableContent::StringId name,
+                                                        QScxmlExecutableContent::EvaluatorId expr,
+                                                        QScxmlExecutableContent::StringId location)
+    {
+        QScxmlExecutableContent::ParameterInfo p;
+        p.name = name;
+        p.expr = expr;
+        p.location = location;
+        return p;
+    }
+
     static qint32 theInstructions[];
     static QScxmlExecutableContent::StringId dataIds[];
     static QScxmlExecutableContent::EvaluatorInfo evaluators[];

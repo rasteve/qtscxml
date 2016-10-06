@@ -131,7 +131,7 @@ struct Q_SCXML_EXPORT DoneData: Instruction
     StringId location;
     StringId contents;
     EvaluatorId expr;
-    Array<Param> params;
+    Array<ParameterInfo> params;
 
     static InstructionType kind() { return Instruction::DoneData; }
 };
@@ -203,18 +203,19 @@ struct Q_SCXML_EXPORT Send: Instruction
         return paramsOffset() + params()->size();
     }
 
-    const Array<Param> *params() const {
-        return reinterpret_cast<const Array<Param> *>(
+    const Array<ParameterInfo> *params() const {
+        return reinterpret_cast<const Array<ParameterInfo> *>(
                     reinterpret_cast<const InstructionId *>(this) + paramsOffset());
     }
 
-    Array<Param> *params() {
-        return reinterpret_cast<Array<Param> *>(
+    Array<ParameterInfo> *params() {
+        return reinterpret_cast<Array<ParameterInfo> *>(
                     reinterpret_cast<InstructionId *>(this) + paramsOffset());
     }
 
     static int calculateExtraSize(int paramCount, int nameCount) {
-        return 1 + paramCount * sizeof(Param) / sizeof(qint32) + nameCount * sizeof(StringId) / sizeof(qint32);
+        return 1 + paramCount * sizeof(ParameterInfo) / sizeof(qint32)
+                + nameCount * sizeof(StringId) / sizeof(qint32);
     }
 };
 
@@ -488,6 +489,8 @@ struct StateTable {
 #pragma pack(pop)
 #endif
 
+} // QScxmlExecutableContent namespace
+
 class QScxmlExecutionEngine
 {
     Q_DISABLE_COPY(QScxmlExecutionEngine)
@@ -495,16 +498,15 @@ class QScxmlExecutionEngine
 public:
     QScxmlExecutionEngine(QScxmlStateMachine *stateMachine);
 
-    bool execute(ContainerId ip, const QVariant &extraData = QVariant());
+    bool execute(QScxmlExecutableContent::ContainerId ip, const QVariant &extraData = QVariant());
 
 private:
-    const InstructionId *step(const QScxmlExecutableContent::InstructionId *ip, bool *ok);
+    const QScxmlExecutableContent::InstructionId *step(
+            const QScxmlExecutableContent::InstructionId *ip, bool *ok);
 
     QScxmlStateMachine *stateMachine;
     QVariant extraData;
 };
-
-} // QScxmlExecutableContent namespace
 
 QT_END_NAMESPACE
 

@@ -71,7 +71,7 @@ class QScxmlEventBuilder
     QScxmlExecutableContent::EvaluatorId eventexpr;
     QString contents;
     QScxmlExecutableContent::EvaluatorId contentExpr;
-    const QScxmlExecutableContent::Array<QScxmlExecutableContent::Param> *params;
+    const QScxmlExecutableContent::Array<QScxmlExecutableContent::ParameterInfo> *params;
     QScxmlEvent::EventType eventType;
     QString id;
     QString idLocation;
@@ -144,11 +144,12 @@ public:
     static QScxmlEvent *errorEvent(QScxmlStateMachine *stateMachine, const QString &name,
                                    const QString &message, const QString &sendid);
 
-    bool evaluate(const QScxmlExecutableContent::Param &param, QScxmlStateMachine *stateMachine,
-                  QVariantMap &keyValues);
-
-    bool evaluate(const QScxmlExecutableContent::Array<QScxmlExecutableContent::Param> *params,
+    bool evaluate(const QScxmlExecutableContent::ParameterInfo &param,
                   QScxmlStateMachine *stateMachine, QVariantMap &keyValues);
+
+    bool evaluate(
+            const QScxmlExecutableContent::Array<QScxmlExecutableContent::ParameterInfo> *params,
+            QScxmlStateMachine *stateMachine, QVariantMap &keyValues);
 
     void submitError(const QString &type, const QString &msg, const QString &sendid = QString());
 };

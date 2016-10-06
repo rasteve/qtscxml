@@ -54,6 +54,7 @@
 #include <QtScxml/qscxmltabledata.h>
 #include <QtCore/qsharedpointer.h>
 #include <QtCore/qhash.h>
+#include <QtCore/qvector.h>
 
 #include <functional>
 
@@ -77,7 +78,7 @@ public:
             QScxmlExecutableContent::StringId idlocation,
             const QVector<QScxmlExecutableContent::StringId> &namelist,
             bool autoforward,
-            const QVector<QScxmlExecutableContent::Param> &params,
+            const QVector<QScxmlExecutableContent::ParameterInfo> &params,
             QScxmlExecutableContent::ContainerId finalize,
             QSharedPointer<DocumentModel::ScxmlDocument> content)
     > CreateFactoryId;
@@ -121,7 +122,7 @@ public:
     QVector<QScxmlExecutableContent::EvaluatorInfo> theEvaluators;
     QVector<QScxmlExecutableContent::AssignmentInfo> theAssignments;
     QVector<QScxmlExecutableContent::ForeachInfo> theForeaches;
-    QScxmlExecutableContent::StringIds theDataNameIds;
+    QVector<QScxmlExecutableContent::StringId> theDataNameIds;
     QScxmlExecutableContent::EvaluatorId theInitialSetup;
     int theName;
 };

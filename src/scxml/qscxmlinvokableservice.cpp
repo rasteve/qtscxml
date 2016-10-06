@@ -104,7 +104,7 @@ public:
          QScxmlExecutableContent::StringId idlocation,
          const QVector<QScxmlExecutableContent::StringId> &namelist,
          bool autoforward,
-         const QVector<QScxmlExecutableContent::Param> &params,
+         const QVector<QScxmlExecutableContent::ParameterInfo> &params,
          QScxmlExecutableContent::ContainerId finalize)
         : invokeLocation(invokeLocation)
         , srcexpr(srcexpr)
@@ -123,7 +123,7 @@ public:
     QScxmlExecutableContent::StringId idPrefix;
     QScxmlExecutableContent::StringId idlocation;
     QVector<QScxmlExecutableContent::StringId> namelist;
-    QVector<QScxmlExecutableContent::Param> params;
+    QVector<QScxmlExecutableContent::ParameterInfo> params;
     QScxmlExecutableContent::ContainerId finalize;
     bool autoforward;
 };
@@ -136,7 +136,7 @@ QScxmlInvokableServiceFactory::QScxmlInvokableServiceFactory(
         QScxmlExecutableContent::StringId idlocation,
         const QVector<QScxmlExecutableContent::StringId> &namelist,
         bool autoforward,
-        const QVector<QScxmlExecutableContent::Param> &params,
+        const QVector<QScxmlExecutableContent::ParameterInfo> &params,
         QScxmlExecutableContent::ContainerId finalize)
     : d(new Data(invokeLocation,
                  srcexpr,
@@ -203,7 +203,7 @@ QVariantMap QScxmlInvokableServiceFactory::calculateData(QScxmlStateMachine *par
     auto dataModel = parent->dataModel();
     auto tableData = parent->tableData();
 
-    for (const QScxmlExecutableContent::Param &param : qAsConst(d->params)) {
+    for (const QScxmlExecutableContent::ParameterInfo &param : qAsConst(d->params)) {
         auto name = tableData->string(param.name);
 
         if (param.expr != QScxmlExecutableContent::NoEvaluator) {
@@ -327,7 +327,7 @@ QScxmlInvokableScxmlServiceFactory::QScxmlInvokableScxmlServiceFactory(
         QScxmlExecutableContent::StringId idlocation,
         const QVector<QScxmlExecutableContent::StringId> &namelist,
         bool doAutoforward,
-        const QVector<QScxmlExecutableContent::Param> &params,
+        const QVector<QScxmlExecutableContent::ParameterInfo> &params,
         QScxmlExecutableContent::ContainerId finalize)
     : QScxmlInvokableServiceFactory(invokeLocation, srcexpr, id, idPrefix, idlocation, namelist,
                                     doAutoforward, params, finalize)

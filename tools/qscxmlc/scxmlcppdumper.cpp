@@ -385,7 +385,7 @@ int createFactoryId(QStringList &factories, const QString &className,
                     QScxmlExecutableContent::StringId idlocation,
                     const QVector<QScxmlExecutableContent::StringId> &namelist,
                     bool autoforward,
-                    const QVector<QScxmlExecutableContent::Param> &params,
+                    const QVector<QScxmlExecutableContent::ParameterInfo> &params,
                     QScxmlExecutableContent::ContainerId finalize,
                     bool useCxx11)
 {
@@ -415,13 +415,13 @@ int createFactoryId(QStringList &factories, const QString &className,
     {
         QStringList l;
         for (const auto &param : params) {
-            l += QStringLiteral("QScxmlExecutableContent::Param(%1, %2, %3)")
+            l += QStringLiteral("param(%1, %2, %3)")
                     .arg(QString::number(param.name),
                          QString::number(param.expr),
                          QString::number(param.location));
         }
         line += QStringLiteral("%1, ").arg(
-                    createVector(QStringLiteral("QScxmlExecutableContent::Param"), l,
+                    createVector(QStringLiteral("QScxmlExecutableContent::ParameterInfo"), l,
                                  useCxx11));
     }
     line += QStringLiteral("%1);").arg(finalize);
@@ -467,7 +467,7 @@ void CppDumper::dump(TranslationUnit *unit)
                 QScxmlExecutableContent::StringId idlocation,
                 const QVector<QScxmlExecutableContent::StringId> &namelist,
                 bool autoforward,
-                const QVector<QScxmlExecutableContent::Param> &params,
+                const QVector<QScxmlExecutableContent::ParameterInfo> &params,
                 QScxmlExecutableContent::ContainerId finalize,
                 const QSharedPointer<DocumentModel::ScxmlDocument> &content) -> int {
             QString className;

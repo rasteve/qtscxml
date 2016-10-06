@@ -483,7 +483,7 @@ public:
                               QScxmlExecutableContent::StringId idlocation,
                               const QVector<QScxmlExecutableContent::StringId> &namelist,
                               bool autoforward,
-                              const QVector<QScxmlExecutableContent::Param> &params,
+                              const QVector<QScxmlExecutableContent::ParameterInfo> &params,
                               QScxmlExecutableContent::ContainerId finalize)
         : QScxmlInvokableScxmlServiceFactory(invokeLocation, srcexpr, id, idPrefix, idlocation,
                                              namelist, autoforward, params, finalize)
@@ -624,7 +624,7 @@ public:
                 QScxmlExecutableContent::StringId idlocation,
                 const QVector<QScxmlExecutableContent::StringId> &namelist,
                 bool autoforward,
-                const QVector<QScxmlExecutableContent::Param> &params,
+                const QVector<QScxmlExecutableContent::ParameterInfo> &params,
                 QScxmlExecutableContent::ContainerId finalize,
                 const QSharedPointer<DocumentModel::ScxmlDocument> &content) -> int {
             auto factory = new InvokeDynamicScxmlFactory(invokeLocation,

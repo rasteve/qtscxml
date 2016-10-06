@@ -333,7 +333,7 @@ public: // types & data fields:
     QScxmlDataModel *m_dataModel;
     QScxmlParserPrivate::DefaultLoader m_defaultLoader;
     QScxmlParser::Loader *m_loader;
-    QScxmlExecutableContent::QScxmlExecutionEngine *m_executionEngine;
+    QScxmlExecutionEngine *m_executionEngine;
     QScxmlTableData *m_tableData;
     const StateTable *m_stateTable;
     QScxmlStateMachine *m_parentStateMachine;

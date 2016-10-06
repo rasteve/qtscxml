@@ -58,11 +58,7 @@ QT_BEGIN_NAMESPACE
 class QIODevice;
 class QXmlStreamWriter;
 class QTextStream;
-class QScxmlEventBuilder;
-class QScxmlInvokableServiceFactory;
 class QScxmlInvokableService;
-class QScxmlStateMachine;
-class QScxmlTableData;
 
 class QScxmlStateMachinePrivate;
 class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
@@ -335,10 +331,10 @@ public Q_SLOTS:
     bool init();
 
 protected: // methods for friends:
-    friend QScxmlDataModel;
-    friend QScxmlEventBuilder;
-    friend QScxmlInvokableServiceFactory;
-    friend QScxmlExecutableContent::QScxmlExecutionEngine;
+    friend class QScxmlDataModel;
+    friend class QScxmlEventBuilder;
+    friend class QScxmlInvokableServiceFactory;
+    friend class QScxmlExecutionEngine;
 
 #ifndef Q_QDOC
     // The methods below are used by the compiled state machines.

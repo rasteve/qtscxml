@@ -254,9 +254,9 @@ protected: // visitor
                 QVector<QScxmlExecutableContent::StringId> namelist;
                 for (const QString &name : qAsConst(invoke->namelist))
                     namelist += addString(name);
-                QVector<QScxmlExecutableContent::Param> params;
+                QVector<QScxmlExecutableContent::ParameterInfo> params;
                 for (DocumentModel::Param *param : qAsConst(invoke->params)) {
-                    QScxmlExecutableContent::Param p;
+                    QScxmlExecutableContent::ParameterInfo p;
                     p.name = addString(param->name);
                     p.expr = createEvaluatorVariant(QStringLiteral("param"), QStringLiteral("expr"),
                                                     param->expr);
@@ -480,12 +480,14 @@ protected: // visitor
     }
 
 protected:
+    static int paramSize() { return sizeof(ParameterInfo) / sizeof(qint32); }
+
     ContainerId generate(const DocumentModel::DoneData *node)
     {
         auto id = m_instructions.newContainerId();
         DoneData *doneData;
         if (node) {
-            doneData = m_instructions.add<DoneData>(node->params.size() * Param::calculateSize());
+            doneData = m_instructions.add<DoneData>(node->params.size() * paramSize());
             doneData->contents = addString(node->contents);
             doneData->expr = createEvaluatorString(QStringLiteral("donedata"),
                                                    QStringLiteral("expr"),
@@ -529,10 +531,10 @@ protected:
         return id;
     }
 
-    void generate(Array<Param> *out, const QVector<DocumentModel::Param *> &in)
+    void generate(Array<ParameterInfo> *out, const QVector<DocumentModel::Param *> &in)
     {
         out->count = in.size();
-        Param *it = out->data();
+        ParameterInfo *it = out->data();
         for (DocumentModel::Param *f : in) {
             it->name = addString(f->name);
             it->expr = createEvaluatorVariant(QStringLiteral("param"), QStringLiteral("expr"),
@@ -870,7 +872,7 @@ private:
     Table<QVector<EvaluatorInfo>, EvaluatorInfo, EvaluatorId> m_evaluators;
     Table<QVector<AssignmentInfo>, AssignmentInfo, EvaluatorId> m_assignments;
     Table<QVector<ForeachInfo>, ForeachInfo, EvaluatorId> m_foreaches;
-    StringIds &m_dataIds;
+    QVector<StringId> &m_dataIds;
     bool m_isCppDataModel = false;
 
     StateTable m_stateTable;

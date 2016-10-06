@@ -1434,14 +1434,14 @@ QScxmlStateMachine::QScxmlStateMachine(const QMetaObject *metaObject, QObject *p
     : QObject(*new QScxmlStateMachinePrivate(metaObject), parent)
 {
     Q_D(QScxmlStateMachine);
-    d->m_executionEngine = new QScxmlExecutableContent::QScxmlExecutionEngine(this);
+    d->m_executionEngine = new QScxmlExecutionEngine(this);
 }
 
 QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *parent)
     : QObject(dd, parent)
 {
     Q_D(QScxmlStateMachine);
-    d->m_executionEngine = new QScxmlExecutableContent::QScxmlExecutionEngine(this);
+    d->m_executionEngine = new QScxmlExecutionEngine(this);
 }
 
 /*!

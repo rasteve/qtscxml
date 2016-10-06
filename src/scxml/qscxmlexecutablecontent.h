@@ -42,19 +42,18 @@
 
 #include <QtScxml/qscxmlglobals.h>
 
-#include <QVector>
-
 QT_BEGIN_NAMESPACE
 
 namespace QScxmlExecutableContent {
 
-typedef int ContainerId;
+typedef qint32 ContainerId;
+enum { NoContainer = -1 };
 typedef qint32 StringId;
-typedef QVector<StringId> StringIds;
 enum { NoString = -1 };
 typedef qint32 InstructionId;
 enum { NoInstruction = -1 };
-class QScxmlExecutionEngine;
+typedef qint32 EvaluatorId;
+enum { NoEvaluator = -1 };
 
 #if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
 #pragma pack(push, 4) // 4 == sizeof(qint32)
@@ -76,28 +75,15 @@ struct ForeachInfo {
     StringId index;
     StringId context;
 };
-#if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
-#pragma pack(pop)
-#endif
 
-typedef qint32 EvaluatorId;
-enum { NoEvaluator = -1 };
-
-struct Q_SCXML_EXPORT Param
-{
+struct ParameterInfo {
     StringId name;
     EvaluatorId expr;
     StringId location;
-
-    Param(StringId theName, EvaluatorId theExpr, StringId theLocation)
-        : name(theName), expr(theExpr), location(theLocation)
-    {}
-
-    Param() : name(NoString), expr(NoInstruction), location(NoString)
-    {}
-
-    static int calculateSize() { return sizeof(Param) / sizeof(qint32); }
 };
+#if defined(Q_CC_MSVC) || defined(Q_CC_GNU)
+#pragma pack(pop)
+#endif
 
 } // QScxmlExecutableContent namespace
 
