@@ -34,7 +34,7 @@ qhp.QtScxml.virtualFolder       = qtscxml
 qhp.QtScxml.indexTitle          = Qt SCXML
 qhp.QtScxml.indexRoot           =
 
-depends += qtcore qtdeclarative qtdoc qmake qtwidgets
+depends += qtcore qtdoc qmake qtquick qtwidgets
 
 headerdirs = .. ../../imports/scxmlstatemachine
 sourcedirs += .. \

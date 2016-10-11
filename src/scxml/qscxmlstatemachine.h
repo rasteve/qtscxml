@@ -85,9 +85,8 @@ protected:
 #endif // Q_QDOC
 
 public:
-    Q_INVOKABLE static QScxmlStateMachine *fromFile(const QString &fileName);
-    Q_INVOKABLE static QScxmlStateMachine *fromData(QIODevice *data,
-                                                    const QString &fileName = QString());
+    static QScxmlStateMachine *fromFile(const QString &fileName);
+    static QScxmlStateMachine *fromData(QIODevice *data, const QString &fileName = QString());
     QVector<QScxmlError> parseErrors() const;
 
     QString sessionId() const;

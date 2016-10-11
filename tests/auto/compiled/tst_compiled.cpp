@@ -79,7 +79,7 @@ void tst_Compiled::stateNames()
 
     QCOMPARE(stateMachine.stateNames(false), ids1States);
 
-    foreach (const QString &state, ids1States) {
+    for (const QString &state : qAsConst(ids1States)) {
         QVariant prop = stateMachine.property(state.toUtf8().constData());
         QVERIFY(!prop.isNull());
         QVERIFY(prop.isValid());

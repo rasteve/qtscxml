@@ -203,7 +203,7 @@ QVariantMap QScxmlInvokableServiceFactory::calculateData(QScxmlStateMachine *par
     auto dataModel = parent->dataModel();
     auto tableData = parent->tableData();
 
-    foreach (const QScxmlExecutableContent::Param &param, d->params) {
+    for (const QScxmlExecutableContent::Param &param : qAsConst(d->params)) {
         auto name = tableData->string(param.name);
 
         if (param.expr != QScxmlExecutableContent::NoEvaluator) {
@@ -229,7 +229,7 @@ QVariantMap QScxmlInvokableServiceFactory::calculateData(QScxmlStateMachine *par
         }
     }
 
-    foreach (QScxmlExecutableContent::StringId locid, d->namelist) {
+    for (QScxmlExecutableContent::StringId locid : qAsConst(d->namelist)) {
         QString loc;
         if (locid != QScxmlExecutableContent::NoString) {
             loc = tableData->string(locid);

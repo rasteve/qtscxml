@@ -1,6 +1,5 @@
 TEMPLATE = subdirs
 
-!msvc{
 qtHaveModule(widgets) {
     SUBDIRS +=  trafficlight-widgets-static
     SUBDIRS +=  trafficlight-widgets-dynamic
@@ -22,4 +21,5 @@ qtHaveModule(qml) {
     SUBDIRS +=  invoke-static
     SUBDIRS +=  invoke-dynamic
 }
-}
+
+SUBDIRS += ftpclient

@@ -51,7 +51,7 @@
 import CalculatorStateMachine 1.0
 import QtQuick 2.5
 import QtQuick.Window 2.0
-import QtScxml 5.7
+import QtScxml 5.8
 
 Window {
     id: window

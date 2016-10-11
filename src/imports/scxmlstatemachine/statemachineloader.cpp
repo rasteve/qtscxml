@@ -192,8 +192,9 @@ bool QScxmlStateMachineLoader::parse(const QUrl &source)
         qmlInfo(this) << QStringLiteral("Something went wrong while parsing '%1':")
                          .arg(source.url())
                       << endl;
-        foreach (const QScxmlError &msg, m_stateMachine->parseErrors()) {
-            qmlInfo(this) << msg.toString();
+        const auto errors = m_stateMachine->parseErrors();
+        for (const QScxmlError &error : errors) {
+            qmlInfo(this) << error.toString();
         }
 
         emit stateMachineChanged();

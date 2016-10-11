@@ -41,8 +41,8 @@ example version folder.
 
 All versions of an example application have the same appearance and
 fuctionality. They demonstrate the different options for creating user
-interfaces (using Qt Widgets or Qt Quick) and for loading the SCXML dynamically
-versus first compiling it to a C++ class (the \e static versions).
+interfaces (using \l {Qt Widgets} or \l {Qt Quick}) and for loading the SCXML
+dynamically versus first compiling it to a C++ class (the \e static versions).
 
 In addition, the Media Player example versions demonstrate how to access the C++
 and ECMAScript data models.

@@ -50,11 +50,11 @@
 
 import QtQuick 2.5
 import QtQuick.Window 2.2
-import QtScxml 5.7
+import QtScxml 5.8
 
 Window {
     id: root
-    property QtObject stateMachine: scxmlLoader.stateMachine
+    property StateMachine stateMachine: scxmlLoader.stateMachine
     property alias source: scxmlLoader.source
 
     visible: true

@@ -48,13 +48,47 @@
 **
 ****************************************************************************/
 
-import QtScxml 5.8
+#ifndef FTPCONTROLCHANNEL_H
+#define FTPCONTROLCHANNEL_H
 
-MainView {
-    stateMachine: directions.stateMachine
+#include <QObject>
+#include <QTcpSocket>
+#include <QHostAddress>
 
-    StateMachineLoader {
-        id: directions
-        source: "qrc:///statemachine.scxml"
-    }
-}
+class FtpControlChannel : public QObject
+{
+    Q_OBJECT
+public:
+    explicit FtpControlChannel(QObject *parent = 0);
+
+    // Connect to an FTP server
+    void connectToServer(const QString &server);
+
+    // Send a command to the server
+    void command(const QString &command, const QString &params);
+
+signals:
+
+    // Connection established. Local address and port are known.
+    void opened(const QHostAddress &localAddress, int localPort);
+
+    // Connection closed
+    void closed();
+
+    // Informational message
+    void info(const QString &info);
+
+    // Reply to a previously sent command
+    void reply(int code, const QString &parameters);
+
+    // Something is wrong
+    void invalidReply(const QString &reply);
+
+private:
+    void onReadyRead();
+
+    QTcpSocket m_socket;
+    QByteArray m_buffer;
+};
+
+#endif // FTPCONTROLCHANNEL_H

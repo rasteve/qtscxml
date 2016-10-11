@@ -48,13 +48,46 @@
 **
 ****************************************************************************/
 
-import QtScxml 5.8
+#include "ftpdatachannel.h"
 
-MainView {
-    stateMachine: directions.stateMachine
+FtpDataChannel::FtpDataChannel(QObject *parent) : QObject(parent)
+{
+    connect(&m_server, &QTcpServer::newConnection, this, [this]() {
+        m_socket.reset(m_server.nextPendingConnection());
+        connect(m_socket.data(), &QTcpSocket::readyRead, [this]() {
+            emit dataReceived(QString::fromUtf8(m_socket->readAll()));
+        });
+    });
+}
 
-    StateMachineLoader {
-        id: directions
-        source: "qrc:///statemachine.scxml"
-    }
+void FtpDataChannel::listen(const QHostAddress &address)
+{
+    m_server.listen(address);
+}
+
+void FtpDataChannel::sendData(const QString &data)
+{
+    if (m_socket)
+        m_socket->write(data.toUtf8().replace("\n", "\r\n"));
+}
+
+void FtpDataChannel::close()
+{
+    if (m_socket)
+        m_socket->disconnectFromHost();
+}
+
+QString FtpDataChannel::portspec() const
+{
+    // Yes, this is a weird format, but say hello to FTP.
+    QString portSpec;
+    quint32 ipv4 = m_server.serverAddress().toIPv4Address();
+    quint16 port = m_server.serverPort();
+    portSpec += QString::number((ipv4 & 0xff000000) >> 24);
+    portSpec += ',' + QString::number((ipv4 & 0x00ff0000) >> 16);
+    portSpec += ',' + QString::number((ipv4 & 0x0000ff00) >> 8);
+    portSpec += ',' + QString::number(ipv4 & 0x000000ff);
+    portSpec += ',' + QString::number((port & 0xff00) >> 8);
+    portSpec += ',' + QString::number(port &0x00ff);
+    return portSpec;
 }

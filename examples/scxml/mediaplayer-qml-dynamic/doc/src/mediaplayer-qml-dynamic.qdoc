@@ -58,5 +58,5 @@
 
     \quotefromfile mediaplayer-common/Mediaplayer.qml
     \skipto import QtScxml
-    \printuntil scxmlLoader.filename
+    \printuntil scxmlLoader.source
 */

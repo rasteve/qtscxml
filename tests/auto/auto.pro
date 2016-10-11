@@ -4,4 +4,5 @@ SUBDIRS = cmake\
           dynamicmetaobject\
           parser\
           scion\
-          statemachine
+          statemachine \
+          statemachineinfo

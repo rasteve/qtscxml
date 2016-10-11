@@ -37,46 +37,73 @@
 **
 ****************************************************************************/
 
-#include "statemachineloader_p.h"
-#include "eventconnection_p.h"
-#include "qscxmlevent.h"
-#include "statemachineextended_p.h"
-#include "invokedservices_p.h"
+#ifndef QSCXMLSTATEMACHINEINFO_H
+#define QSCXMLSTATEMACHINEINFO_H
 
-#include <QQmlExtensionPlugin>
-#include <qqml.h>
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <QtScxml/qscxmlglobals.h>
+#include <QObject>
 
 QT_BEGIN_NAMESPACE
 
-class QScxmlStateMachinePlugin : public QQmlExtensionPlugin
+class QScxmlStateMachine;
+class QScxmlStateMachineInfoPrivate;
+
+class Q_SCXML_EXPORT QScxmlStateMachineInfo: public QObject
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.Scxml/1.0")
 
-public:
-    void registerTypes(const char *uri)
-    {
-        // @uri QtScxml
-        Q_ASSERT(uri == QStringLiteral("QtScxml"));
+public: // types
+    typedef int StateId;
+    typedef int TransitionId;
+    enum StateType : int {
+        InvalidState = -2,
+        StateMachineRootState = -1,
+        NormalState = 0,
+        ParallelState = 1,
+        FinalState = 2,
+        ShallowHistoryState = 3,
+        DeepHistoryState = 4
+    };
+    enum TransitionType : int {
+        InvalidTransition = -1,
+        InternalTransition = 0,
+        ExternalTransition = 1,
+        SyntheticTransition = 2
+    };
 
-        int major = 5;
-        int minor = 8;
-        // Do not rely on RegisterMethodArgumentMetaType meta-call to register the QScxmlEvent type.
-        // This registration is required for the receiving end of the signal emission that carries
-        // parameters of this type to be able to treat them correctly as a gadget. This is because the
-        // receiving end of the signal is a generic method in the QML engine, at which point it's too late
-        // to do a meta-type registration.
-        static const int qScxmlEventMetaTypeId = qMetaTypeId<QScxmlEvent>();
-        Q_UNUSED(qScxmlEventMetaTypeId)
-        qmlRegisterType<QScxmlStateMachineLoader>(uri, major, minor, "StateMachineLoader");
-        qmlRegisterType<QScxmlEventConnection>(uri, major, minor, "EventConnection");
-        qmlRegisterType<QScxmlInvokedServices>(uri, major, minor, "InvokedServices");
-        qmlRegisterExtendedUncreatableType<QScxmlStateMachine, QScxmlStateMachineExtended>(
-                    uri, major, minor, "StateMachine", "Only created through derived types");
-        qmlProtectModule(uri, 1);
-    }
+public: // methods
+    QScxmlStateMachineInfo(QScxmlStateMachine *stateMachine);
+
+    QVector<StateId> allStates() const;
+    QVector<TransitionId> allTransitions() const;
+    QString stateName(int stateId) const;
+    StateType stateType(int stateId) const;
+    QVector<StateId> stateChildren(StateId stateId) const;
+    TransitionType transitionType(TransitionId transitionId) const;
+    StateId transitionSource(TransitionId transitionId) const;
+    QVector<StateId> transitionTargets(TransitionId transitionId) const;
+    QVector<StateId> configuration() const;
+
+Q_SIGNALS:
+    void statesEntered(const QVector<QScxmlStateMachineInfo::StateId> &states);
+    void statesExited(const QVector<QScxmlStateMachineInfo::StateId> &states);
+    void transitionsTriggered(const QVector<QScxmlStateMachineInfo::TransitionId> &transitions);
+
+private:
+    Q_DECLARE_PRIVATE(QScxmlStateMachineInfo)
 };
 
 QT_END_NAMESPACE
 
-#include "plugin.moc"
+#endif // QSCXMLSTATEMACHINEINFO_H
