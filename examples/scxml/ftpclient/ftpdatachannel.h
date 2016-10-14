@@ -65,8 +65,8 @@ public:
     // Listen on a local address.
     void listen(const QHostAddress &address = QHostAddress::Any);
 
-    // Send data over the socket, as UTF-8 text.
-    void sendData(const QString &data);
+    // Send data over the socket.
+    void sendData(const QByteArray &data);
 
     // Close the connection.
     void close();
@@ -80,8 +80,8 @@ public:
 
 signals:
 
-    // The FTP server has sent some data. We assume UTF-8 text for now.
-    void dataReceived(const QString &data);
+    // The FTP server has sent some data.
+    void dataReceived(const QByteArray &data);
 
 private:
     QTcpServer m_server;

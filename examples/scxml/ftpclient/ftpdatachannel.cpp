@@ -55,7 +55,7 @@ FtpDataChannel::FtpDataChannel(QObject *parent) : QObject(parent)
     connect(&m_server, &QTcpServer::newConnection, this, [this]() {
         m_socket.reset(m_server.nextPendingConnection());
         connect(m_socket.data(), &QTcpSocket::readyRead, [this]() {
-            emit dataReceived(QString::fromUtf8(m_socket->readAll()));
+            emit dataReceived(m_socket->readAll());
         });
     });
 }
@@ -65,10 +65,10 @@ void FtpDataChannel::listen(const QHostAddress &address)
     m_server.listen(address);
 }
 
-void FtpDataChannel::sendData(const QString &data)
+void FtpDataChannel::sendData(const QByteArray &data)
 {
     if (m_socket)
-        m_socket->write(data.toUtf8().replace("\n", "\r\n"));
+        m_socket->write(QByteArray(data).replace("\n", "\r\n"));
 }
 
 void FtpDataChannel::close()

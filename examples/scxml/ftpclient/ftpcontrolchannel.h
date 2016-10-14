@@ -65,7 +65,7 @@ public:
     void connectToServer(const QString &server);
 
     // Send a command to the server
-    void command(const QString &command, const QString &params);
+    void command(const QByteArray &command, const QByteArray &params);
 
 signals:
 
@@ -76,13 +76,13 @@ signals:
     void closed();
 
     // Informational message
-    void info(const QString &info);
+    void info(const QByteArray &info);
 
     // Reply to a previously sent command
-    void reply(int code, const QString &parameters);
+    void reply(int code, const QByteArray &parameters);
 
     // Something is wrong
-    void invalidReply(const QString &reply);
+    void invalidReply(const QByteArray &reply);
 
 private:
     void onReadyRead();

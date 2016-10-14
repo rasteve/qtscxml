@@ -76,9 +76,9 @@ int main(int argc, char *argv[])
     FtpDataChannel dataChannel;
     FtpControlChannel controlChannel;
 
-    // Print all data retrieved from the server on the console as UTF-8 text.
-    QObject::connect(&dataChannel, &FtpDataChannel::dataReceived, [](const QString &data) {
-        std::cout << data.toUtf8().constData();
+    // Print all data retrieved from the server on the console.
+    QObject::connect(&dataChannel, &FtpDataChannel::dataReceived, [](const QByteArray &data) {
+        std::cout << data.constData();
     });
 
     // Translate server replies into state machine events.
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     // Translate commands from the state machine into FTP control messages.
     ftpClient.connectToEvent("submit.cmd", &controlChannel,
                              [&controlChannel](const QScxmlEvent &event) {
-        controlChannel.command(event.name().mid(11), event.data().toString());
+        controlChannel.command(event.name().mid(11).toUtf8(), event.data().toByteArray());
     });
 
     // Commands to be sent
