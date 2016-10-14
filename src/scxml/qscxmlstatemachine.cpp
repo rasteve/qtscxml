@@ -178,8 +178,8 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 */
 
 /*!
-    \fn auto QScxmlStateMachine::onEntry(const QObject *receiver,
-                                         const char *method)
+    \fn QScxmlStateMachine::onEntry(const QObject *receiver,
+                                    const char *method)
 
     Returns a functor that accepts a boolean argument and calls the given
     \a method on \a receiver using QMetaObject::invokeMethod() if that argument
@@ -190,14 +190,10 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
     This is useful to wrap handlers for connectToState() that should only
     be executed when the state is entered.
-
-    onEntry() is only available if the compiler supports return type
-    deduction for functions.
-*/
+ */
 
 /*!
-    \fn auto QScxmlStateMachine::onExit(const QObject *receiver,
-                                        const char *method)
+    \fn QScxmlStateMachine::onExit(const QObject *receiver, const char *method)
 
     Returns a functor that accepts a boolean argument and calls the given
     \a method on \a receiver using QMetaObject::invokeMethod() if that argument
@@ -208,10 +204,7 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
     This is useful to wrap handlers for connectToState() that should only
     be executed when the state is left.
-
-    onExit() is only available if the compiler supports return type
-    deduction for functions.
-*/
+ */
 
 /*!
     \fn QScxmlStateMachine::onEntry(Functor functor)
@@ -222,9 +215,6 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
     This is useful to wrap handlers for connectToState() that should only
     be executed when the state is entered.
-
-    onEntry() is only available if the compiler supports return type
-    deduction for functions.
  */
 
 /*!
@@ -236,9 +226,6 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
     This is useful to wrap handlers for connectToState() that should only
     be executed when the state is left.
-
-    onExit() is only available if the compiler supports return type
-    deduction for functions.
  */
 
 /*!
@@ -252,9 +239,6 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
     This is useful to wrap handlers for connectToState() that should only
     be executed when the state is entered.
-
-    onEntry() is only available if the compiler supports return type
-    deduction for functions.
  */
 
 /*!
@@ -268,9 +252,6 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
     This is useful to wrap handlers for connectToState() that should only
     be executed when the state is left.
-
-    onExit() is only available if the compiler supports return type
-    deduction for functions.
  */
 
 namespace QScxmlInternal {

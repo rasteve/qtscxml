@@ -168,15 +168,12 @@ void tst_Compiled::connection()
     QMetaObject::Connection conB     = stateMachine.connectToState("b",     &receiverB,     SLOT(receive(bool)));
     QMetaObject::Connection conFinal = stateMachine.connectToState("final", &receiverFinal, SLOT(receive(bool)));
 
-#if defined(__cpp_return_type_deduction) && __cpp_return_type_deduction == 201304
-    // C++14 available: test for onEntry and onExit
     typedef QScxmlStateMachine QXSM;
     QMetaObject::Connection aEntry = stateMachine.connectToState("a", QXSM::onEntry(&receiverA, "enter"));
     QMetaObject::Connection aExit  = stateMachine.connectToState("a", QXSM::onExit(&receiverA, "exit"));
 
     QVERIFY(aEntry);
     QVERIFY(aExit);
-#endif
 
     QVERIFY(conA);
     QVERIFY(conA1);

@@ -52,6 +52,8 @@
 #include <QVariantList>
 #include <QPointer>
 
+#include <functional>
+
 QT_BEGIN_NAMESPACE
 class QIODevice;
 class QXmlStreamWriter;
@@ -170,22 +172,24 @@ public:
 #endif
 
 #ifdef Q_QDOC
-    static auto onEntry(const QObject *receiver, const char *method);
-    static auto onExit(const QObject *receiver, const char *method);
+    static std::function<void(bool)> onEntry(const QObject *receiver, const char *method);
+    static std::function<void(bool)> onExit(const QObject *receiver, const char *method);
 
     template<typename Functor>
-    static auto onEntry(Functor functor);
+    static std::function<void(bool)> onEntry(Functor functor);
 
     template<typename Functor>
-    static auto onExit(Functor functor);
+    static std::function<void(bool)> onExit(Functor functor);
 
     template<typename PointerToMemberFunction>
-    static auto onEntry(const QObject *receiver, PointerToMemberFunction method);
+    static std::function<void(bool)> onEntry(const QObject *receiver,
+                                             PointerToMemberFunction method);
 
     template<typename PointerToMemberFunction>
-    static auto onExit(const QObject *receiver, PointerToMemberFunction method);
-#elif defined(__cpp_return_type_deduction) && __cpp_return_type_deduction == 201304
-    static auto onEntry(const QObject *receiver, const char *method)
+    static std::function<void(bool)> onExit(const QObject *receiver,
+                                            PointerToMemberFunction method);
+#else
+    static std::function<void(bool)> onEntry(const QObject *receiver, const char *method)
     {
         const QPointer<QObject> receiverPointer(const_cast<QObject *>(receiver));
         return [receiverPointer, method](bool isEnteringState) {
@@ -194,7 +198,7 @@ public:
         };
     }
 
-    static auto onExit(const QObject *receiver, const char *method)
+    static std::function<void(bool)> onExit(const QObject *receiver, const char *method)
     {
         const QPointer<QObject> receiverPointer(const_cast<QObject *>(receiver));
         return [receiverPointer, method](bool isEnteringState) {
@@ -204,7 +208,7 @@ public:
     }
 
     template<typename Functor>
-    static auto onEntry(Functor functor)
+    static std::function<void(bool)> onEntry(Functor functor)
     {
         return [functor](bool isEnteringState) {
             if (isEnteringState)
@@ -213,7 +217,7 @@ public:
     }
 
     template<typename Functor>
-    static auto onExit(Functor functor)
+    static std::function<void(bool)> onExit(Functor functor)
     {
         return [functor](bool isEnteringState) {
             if (!isEnteringState)
@@ -222,8 +226,8 @@ public:
     }
 
     template<typename Func1>
-    static auto onEntry(const typename QtPrivate::FunctionPointer<Func1>::Object *receiver,
-                        Func1 slot)
+    static std::function<void(bool)> onEntry(
+            const typename QtPrivate::FunctionPointer<Func1>::Object *receiver, Func1 slot)
     {
         typedef typename QtPrivate::FunctionPointer<Func1>::Object Object;
         const QPointer<Object> receiverPointer(const_cast<Object *>(receiver));
@@ -234,8 +238,8 @@ public:
     }
 
     template<typename Func1>
-    static auto onExit(const typename QtPrivate::FunctionPointer<Func1>::Object *receiver,
-                       Func1 slot)
+    static std::function<void(bool)> onExit(
+            const typename QtPrivate::FunctionPointer<Func1>::Object *receiver, Func1 slot)
     {
         typedef typename QtPrivate::FunctionPointer<Func1>::Object Object;
         const QPointer<Object> receiverPointer(const_cast<Object *>(receiver));
@@ -244,7 +248,7 @@ public:
                 (receiverPointer->*slot)();
         };
     }
-#endif // defined(__cpp_return_type_deduction) && __cpp_return_type_deduction == 201304
+#endif // !Q_QDOC
 
     QMetaObject::Connection connectToEvent(const QString &scxmlEventSpec,
                                            const QObject *receiver, const char *method,

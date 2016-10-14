@@ -62,7 +62,6 @@ struct Command {
 
 int main(int argc, char *argv[])
 {
-#if defined(__cpp_return_type_deduction) && __cpp_return_type_deduction == 201304
     if (argc != 3) {
         qDebug() << "Usage: ftpclient <server> <file>";
         return 1;
@@ -127,9 +126,4 @@ int main(int argc, char *argv[])
     });
 
     return app.exec();
-#else
-    qDebug() << "The ftpclient example uses the C++14 return type deduction feature and will only "
-                "work with compilers that support it.";
-    return 2;
-#endif
 }

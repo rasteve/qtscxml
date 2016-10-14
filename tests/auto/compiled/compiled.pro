@@ -1,5 +1,5 @@
 QT = core gui qml testlib scxml
-CONFIG += testcase c++14
+CONFIG += testcase
 
 TARGET = tst_compiled
 CONFIG += console
