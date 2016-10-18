@@ -154,7 +154,7 @@ QString createContainer(const QString &baseType, const QString &elementType,
             result += QStringLiteral("{ ") + elements.join(QStringLiteral(", ")) + QStringLiteral(" }");
         }
     } else {
-        result += QStringLiteral("%1<%2>()").arg(baseType, elementType);
+        result += QStringLiteral("%1< %2 >()").arg(baseType, elementType);
         if (!elements.isEmpty()) {
             result += QStringLiteral(" << ") + elements.join(QStringLiteral(" << "));
         }
@@ -393,7 +393,7 @@ int createFactoryId(QStringList &factories, const QString &className,
 
     QString line = QStringLiteral("case %1: return new ").arg(QString::number(idx));
     if (srcexpr == QScxmlExecutableContent::NoInstruction) {
-        line += QStringLiteral("QScxmlStaticScxmlServiceFactory<%1::%2>(%3, ")
+        line += QStringLiteral("QScxmlStaticScxmlServiceFactory< %1::%2 >(%3, ")
                 .arg(namespacePrefix, className, QString::number(invokeLocation));
     } else {
         line += QStringLiteral("QScxmlDynamicScxmlServiceFactory(%1, %2, ")
