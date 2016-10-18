@@ -74,6 +74,10 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
  * are accessible as properties of QScxmlStateMachine.
  * These properties are boolean values and indicate
  * whether the state is active or inactive.
+ *
+ * \note The QScxmlStateMachine needs a QEventLoop to work correctly. The event loop is used to
+ *       implement the \c delay attribute for events and to schedule the processing of a state
+ *       machine when events are received from nested (or parent) state machines.
  */
 
 /*!
