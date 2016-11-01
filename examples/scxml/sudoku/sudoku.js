@@ -68,7 +68,7 @@ function isValidPosition() {
 
 function calculateCurrentState() {
     if (isValidPosition() === false)
-        return
+        return;
     var x = _event.data.x;
     var y = _event.data.y;
     var currentValue = currentState[x][y];

@@ -63,9 +63,6 @@
             <raise event="restart"/>
         </onentry>
         <state id="idle">
-            <onentry>
-                <raise event="update"/>
-            </onentry>
             <transition event="start" target="playing"/>
             <transition event="setup" target="unsolved">
                 <assign location="initState" expr="_event.data.initState"/>

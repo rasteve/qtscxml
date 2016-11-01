@@ -158,6 +158,7 @@ MainWindow::MainWindow(QScxmlStateMachine *machine, QWidget *parent) :
     m_undoButton = new QToolButton(this);
     m_undoButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     m_undoButton->setText(tr("Undo"));
+    m_undoButton->setEnabled(false);
     layout->addWidget(m_undoButton, Size + 3, 8, 1, 3);
 
     connect(m_undoButton, &QAbstractButton::clicked,
