@@ -225,7 +225,7 @@
     \skipto isValidPosition
     \printuntil }
 
-    We ensure the coordinates are not negative nor bigger than our grid.
+    We ensure the coordinates are neither negative nor bigger than our grid.
     In addition, we check if the coordinates point to an
     initially empty cell, since we can not modify
     the cells initially given by the grid description.
