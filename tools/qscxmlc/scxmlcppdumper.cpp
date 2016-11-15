@@ -398,7 +398,7 @@ protected:
             QStringList lines;
             for (int i = 0, ei = node->invokes.size(); i != ei; ++i) {
                 Invoke *invoke = node->invokes.at(i);
-                QString line = QStringLiteral("new QScxmlInvokeScxmlFactory<%1>(").arg(scxmlClassName(invoke->content.data()));
+                QString line = QStringLiteral("new QScxmlInvokeScxmlFactory< %1 >(").arg(scxmlClassName(invoke->content.data()));
                 line += QStringLiteral("%1, ").arg(Builder::createContext(QStringLiteral("invoke")));
                 line += QStringLiteral("%1, ").arg(addString(invoke->id));
                 line += QStringLiteral("%1, ").arg(addString(node->id + QStringLiteral(".session-")));
@@ -646,7 +646,7 @@ private:
                 result += QStringLiteral("{ ") + elements.join(QStringLiteral(", ")) + QStringLiteral(" }");
             }
         } else {
-            result += QStringLiteral("%1<%2>()").arg(baseType, elementType);
+            result += QStringLiteral("%1< %2 >()").arg(baseType, elementType);
             if (!elements.isEmpty()) {
                 result += QStringLiteral(" << ") + elements.join(QStringLiteral(" << "));
             }
@@ -723,7 +723,7 @@ private:
             dm << QStringLiteral("bool handle(QScxmlEvent *event, QScxmlStateMachine *stateMachine) Q_DECL_OVERRIDE  {");
             if (m_qtMode) {
                 dm << QStringLiteral("    if (event->originType() != QStringLiteral(\"qt:signal\")) { return true; }")
-                   << QStringLiteral("    %1 *m = static_cast<%1 *>(stateMachine);").arg(clazz.className);
+                   << QStringLiteral("    %1 *m = static_cast< %1 * >(stateMachine);").arg(clazz.className);
                 foreach (const QString &signalName, m_signalNames) {
                     dm << QStringLiteral("    if (event->name() == %1) { emit m->%2(event->data()); return false; }")
                           .arg(qba(signalName), mangleIdentifier(signalName));
@@ -1487,7 +1487,7 @@ void CppDumper::writeImplBody(const ClassDump &clazz)
     cpp << clazz.className << l("::") << clazz.className << l("(QObject *parent)") << endl
         << QStringLiteral("    : QScxmlStateMachine(parent)") << endl
         << QStringLiteral("    , data(new Data(*this))") << endl
-        << QStringLiteral("{ qRegisterMetaType<%1 *>(); data->init(); }").arg(clazz.className) << endl
+        << QStringLiteral("{ qRegisterMetaType< %1 * >(); data->init(); }").arg(clazz.className) << endl
         << endl;
     cpp << clazz.className << l("::~") << clazz.className << l("()") << endl
         << l("{ delete data; }") << endl
