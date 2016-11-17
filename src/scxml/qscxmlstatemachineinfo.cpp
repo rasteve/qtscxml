@@ -140,12 +140,18 @@ QVector<QScxmlStateMachineInfo::StateId> QScxmlStateMachineInfo::stateChildren(S
 {
     Q_D(const QScxmlStateMachineInfo);
 
+    int childStates = QScxmlExecutableContent::StateTable::InvalidIndex;
+    if (stateId == InvalidStateId)
+        childStates = d->stateTable()->childStates;
+    if (stateId >= 0 && stateId < d->stateTable()->stateCount)
+        childStates = d->stateTable()->state(stateId).childStates;
+
     QVector<QScxmlStateMachineInfo::StateId> all;
-    auto state = d->stateTable()->state(stateId);
-    if (state.childStates == QScxmlExecutableContent::StateTable::InvalidIndex)
+    if (childStates == QScxmlExecutableContent::StateTable::InvalidIndex)
         return all;
 
-    auto kids = d->stateTable()->array(state.childStates);
+    const auto kids = d->stateTable()->array(childStates);
+    all.reserve(kids.size());
     for (auto childId : kids) {
         all.append(childId);
     }
