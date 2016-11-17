@@ -107,6 +107,17 @@ QString QScxmlStateMachineInfo::stateName(int stateId) const
         return QString();
 }
 
+QScxmlStateMachineInfo::StateId QScxmlStateMachineInfo::stateParent(StateId stateId) const
+{
+    Q_D(const QScxmlStateMachineInfo);
+
+    if (stateId < 0 || stateId >= d->stateTable()->stateCount)
+        return InvalidStateId;
+
+    auto state = d->stateTable()->state(stateId);
+    return state.parent;
+}
+
 QScxmlStateMachineInfo::StateType QScxmlStateMachineInfo::stateType(StateId stateId) const
 {
     Q_D(const QScxmlStateMachineInfo);

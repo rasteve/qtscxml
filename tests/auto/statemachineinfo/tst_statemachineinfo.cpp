@@ -108,6 +108,14 @@ void tst_StateMachineInfo::checkInfo()
     QCOMPARE(info->stateName(states.at(3)), QLatin1String("b"));
     QCOMPARE(info->stateName(states.at(4)), QLatin1String("theEnd"));
 
+    QCOMPARE(info->stateParent(QScxmlStateMachineInfo::InvalidState),
+             static_cast<int>(QScxmlStateMachineInfo::InvalidStateId));
+    QCOMPARE(info->stateParent(states.at(0)), static_cast<int>(QScxmlStateMachineInfo::InvalidStateId));
+    QCOMPARE(info->stateParent(states.at(1)), static_cast<int>(QScxmlStateMachineInfo::InvalidStateId));
+    QCOMPARE(info->stateParent(states.at(2)), 1);
+    QCOMPARE(info->stateParent(states.at(3)), 1);
+    QCOMPARE(info->stateParent(states.at(4)), static_cast<int>(QScxmlStateMachineInfo::InvalidStateId));
+
     QCOMPARE(info->stateType(states.at(0)), QScxmlStateMachineInfo::NormalState);
     QCOMPARE(info->stateType(states.at(1)), QScxmlStateMachineInfo::ParallelState);
     QCOMPARE(info->stateType(states.at(2)), QScxmlStateMachineInfo::NormalState);

@@ -94,6 +94,7 @@ public: // methods
     QVector<StateId> allStates() const;
     QVector<TransitionId> allTransitions() const;
     QString stateName(int stateId) const;
+    StateId stateParent(StateId stateId) const;
     StateType stateType(int stateId) const;
     QVector<StateId> stateChildren(StateId stateId) const;
     TransitionType transitionType(TransitionId transitionId) const;
