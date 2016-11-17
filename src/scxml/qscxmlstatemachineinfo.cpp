@@ -64,6 +64,13 @@ QScxmlStateMachineInfo::QScxmlStateMachineInfo(QScxmlStateMachine *stateMachine)
     QScxmlStateMachinePrivate::get(stateMachine)->attach(this);
 }
 
+QScxmlStateMachine *QScxmlStateMachineInfo::stateMachine() const
+{
+    Q_D(const QScxmlStateMachineInfo);
+
+    return d->stateMachine();
+}
+
 QVector<QScxmlStateMachineInfo::StateId> QScxmlStateMachineInfo::allStates() const
 {
     Q_D(const QScxmlStateMachineInfo);

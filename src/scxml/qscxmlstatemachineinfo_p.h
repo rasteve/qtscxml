@@ -85,6 +85,8 @@ public: // types
 public: // methods
     QScxmlStateMachineInfo(QScxmlStateMachine *stateMachine);
 
+    QScxmlStateMachine *stateMachine() const;
+
     QVector<StateId> allStates() const;
     QVector<TransitionId> allTransitions() const;
     QString stateName(int stateId) const;
