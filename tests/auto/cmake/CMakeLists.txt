@@ -11,3 +11,5 @@ include("${_Qt5CTestMacros}")
 test_module_includes(
   Scxml QScxmlEvent
 )
+
+expect_pass(test_qtscxml_module)
