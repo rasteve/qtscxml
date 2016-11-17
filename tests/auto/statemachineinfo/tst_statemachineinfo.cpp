@@ -122,6 +122,21 @@ void tst_StateMachineInfo::checkInfo()
     QCOMPARE(info->stateType(states.at(3)), QScxmlStateMachineInfo::NormalState);
     QCOMPARE(info->stateType(states.at(4)), QScxmlStateMachineInfo::FinalState);
 
+    QCOMPARE(info->stateChildren(QScxmlStateMachineInfo::InvalidStateId),
+             QVector<int>() << 0 << 1 << 4);
+    QCOMPARE(info->stateChildren(states.at(0)), QVector<int>());
+    QCOMPARE(info->stateChildren(states.at(1)), QVector<int>() << 2 << 3);
+    QCOMPARE(info->stateChildren(states.at(2)), QVector<int>());
+    QCOMPARE(info->stateChildren(states.at(3)), QVector<int>());
+    QCOMPARE(info->stateChildren(states.at(4)), QVector<int>());
+
+    QCOMPARE(info->initialTransition(QScxmlStateMachineInfo::InvalidStateId), 4);
+    QCOMPARE(info->initialTransition(states.at(0)), static_cast<int>(QScxmlStateMachineInfo::InvalidTransitionId));
+    QCOMPARE(info->initialTransition(states.at(1)), 5);
+    QCOMPARE(info->initialTransition(states.at(2)), static_cast<int>(QScxmlStateMachineInfo::InvalidTransitionId));
+    QCOMPARE(info->initialTransition(states.at(3)), static_cast<int>(QScxmlStateMachineInfo::InvalidTransitionId));
+    QCOMPARE(info->initialTransition(states.at(4)), static_cast<int>(QScxmlStateMachineInfo::InvalidTransitionId));
+
     auto transitions = info->allTransitions();
     QCOMPARE(transitions.size(), 6);
 

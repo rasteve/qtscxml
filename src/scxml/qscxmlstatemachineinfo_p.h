@@ -97,6 +97,7 @@ public: // methods
     StateId stateParent(StateId stateId) const;
     StateType stateType(int stateId) const;
     QVector<StateId> stateChildren(StateId stateId) const;
+    TransitionId initialTransition(StateId stateId) const;
     TransitionType transitionType(TransitionId transitionId) const;
     StateId transitionSource(TransitionId transitionId) const;
     QVector<StateId> transitionTargets(TransitionId transitionId) const;

@@ -175,6 +175,19 @@ QScxmlStateMachineInfo::TransitionType QScxmlStateMachineInfo::transitionType(QS
     }
 }
 
+QScxmlStateMachineInfo::TransitionId QScxmlStateMachineInfo::initialTransition(StateId stateId) const
+{
+    Q_D(const QScxmlStateMachineInfo);
+
+    if (stateId == InvalidStateId)
+        return d->stateTable()->initialTransition;
+
+    if (stateId < 0 || stateId >= d->stateTable()->stateCount)
+        return InvalidTransitionId;
+
+    return d->stateTable()->state(stateId).initialTransition;
+}
+
 QScxmlStateMachineInfo::StateId QScxmlStateMachineInfo::transitionSource(TransitionId transitionId) const
 {
     Q_D(const QScxmlStateMachineInfo);
