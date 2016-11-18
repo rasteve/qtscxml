@@ -1,6 +1,5 @@
 class ${classname}: public QScxmlStateMachine
 {
-public:
     /* qmake ignore Q_OBJECT */
     Q_OBJECT
 ${properties}
