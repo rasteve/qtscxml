@@ -714,11 +714,8 @@ QString CppDumper::generatePropertyDecls(const GeneratedTableData::MetaDataInfo 
     QString decls;
 
     for (const QString &stateName : info.stateNames) {
-        if (!stateName.isEmpty()) {
-            const QString decl = QString::fromLatin1(
-                                 "    Q_PROPERTY(bool %1 NOTIFY %2Changed)\n");
-            decls += decl.arg(stateName, mangleIdentifier(stateName));
-        }
+        if (!stateName.isEmpty())
+            decls += QString::fromLatin1("    Q_PROPERTY(bool %1)\n").arg(stateName);
     }
 
     return decls;
