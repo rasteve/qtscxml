@@ -587,6 +587,7 @@ void Generator::generateCode()
     for (int signalindex = 0; signalindex < cdef->signalList.size(); ++signalindex)
         generateSignal(&cdef->signalList[signalindex], signalindex);
 
+    fprintf(out, "\n");
 //
 // Generate plugin meta data
 //
@@ -1149,7 +1150,7 @@ void Generator::generateStaticMetacall()
 
             //---- Changed from the original in moc
             if (f.implementation) {
-                fprintf(out, f.implementation, methodindex);
+                fprintf(out, f.implementation, "_o", methodindex);
                 fprintf(out, " break;\n");
                 continue;
             }
@@ -1223,7 +1224,7 @@ void Generator::generateStaticMetacall()
         bool anythingUsed = false;
         for (int methodindex = 0; methodindex < cdef->signalList.size(); ++methodindex) {
             const FunctionDef &f = cdef->signalList.at(methodindex);
-            if (f.wasCloned || !f.inPrivateClass.isEmpty() || f.isStatic || f.implementation)
+            if (f.wasCloned || !f.inPrivateClass.isEmpty() || f.isStatic || f.mangledName.isEmpty())
                 continue;
             anythingUsed = true;
             fprintf(out, "        {\n");
@@ -1246,8 +1247,9 @@ void Generator::generateStaticMetacall()
             else
                 fprintf(out, ");\n");
             fprintf(out, "            if (*reinterpret_cast<_t *>(func) == static_cast<_t>(&%s::%s)) {\n",
-                    cdef->classname.constData(), f.name.constData());
+                    cdef->classname.constData(), f.mangledName.constData());
             fprintf(out, "                *result = %d;\n", methodindex);
+            fprintf(out, "                return;\n");
             fprintf(out, "            }\n        }\n");
         }
         if (!anythingUsed)
@@ -1519,6 +1521,34 @@ void Generator::generateSignal(FunctionDef *def,int index)
     if (def->normalizedType != "void")
         fprintf(out, "    return _t0;\n");
     fprintf(out, "}\n");
+}
+
+void Generator::generateAccessorDefs()
+{
+    for (int propindex = 0; propindex < cdef->propertyList.size(); ++propindex) {
+        const PropertyDef &p = cdef->propertyList.at(propindex);
+        if (p.read.isEmpty() || p.mangledName.isEmpty())
+            continue;
+
+        fprintf(out, "bool %s::%s() const\n{\n    return %s;\n}\n\n", cdef->classname.constData(),
+                p.mangledName.constData(), p.read.constData());
+    }
+}
+
+void Generator::generateSignalDefs()
+{
+    for (int methodindex = 0; methodindex < cdef->signalList.size(); ++methodindex) {
+        const FunctionDef &f = cdef->signalList.at(methodindex);
+        if (!f.implementation || f.mangledName.isEmpty())
+            continue;
+
+        fprintf(out, "void %s::%s(bool _t1)\n{\n", cdef->classname.constData(),
+                f.mangledName.constData());
+        fprintf(out, "    void *_a[] = { Q_NULLPTR, "
+                     "const_cast<void*>(reinterpret_cast<const void*>(&_t1)) };\n    ");
+        fprintf(out, f.implementation, "this", methodindex);
+        fprintf(out, "\n}\n\n");
+    }
 }
 
 #if 0

@@ -83,6 +83,7 @@ struct FunctionDef
     QByteArray normalizedType;
     QByteArray tag;
     QByteArray name;
+    QByteArray mangledName;
     bool returnTypeIsVolatile;
 
     QList<ArgumentDef> arguments;
@@ -114,7 +115,8 @@ struct FunctionDef
 struct PropertyDef
 {
     PropertyDef():notifyId(-1), constant(false), final(false), gspec(ValueSpec), revision(0){}
-    QByteArray name, type, member, read, write, reset, designable, scriptable, editable, stored, user, notify, inPrivateClass;
+    QByteArray name, mangledName, type, member, read, write, reset, designable, scriptable,
+               editable, stored, user, notify, inPrivateClass;
     int notifyId;
     bool constant;
     bool final;

@@ -122,6 +122,8 @@ int run(const QStringList &arguments)
     QCommandLineOption optionClassName(QLatin1String("classname"),
                        QCoreApplication::translate("main", "Generate <name> for state machine class name."),
                        QCoreApplication::translate("main", "name"));
+    QCommandLineOption optionStateMethods(QLatin1String("statemethods"),
+                       QCoreApplication::translate("main", "Generate read and notify methods for states"));
 
     cmdParser.addPositionalArgument(QLatin1String("input"),
                        QCoreApplication::translate("main", "Input SCXML file."));
@@ -130,6 +132,7 @@ int run(const QStringList &arguments)
     cmdParser.addOption(optionOutputHeaderName);
     cmdParser.addOption(optionOutputSourceName);
     cmdParser.addOption(optionClassName);
+    cmdParser.addOption(optionStateMethods);
 
     cmdParser.process(arguments);
 
@@ -149,6 +152,7 @@ int run(const QStringList &arguments)
     const QString scxmlFileName = inputFiles.at(0);
 
     TranslationUnit options;
+    options.stateMethods = cmdParser.isSet(optionStateMethods);
     if (cmdParser.isSet(optionNamespace))
         options.namespaceName = cmdParser.value(optionNamespace);
     QString outFileName = cmdParser.value(optionOutputBaseName);

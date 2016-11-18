@@ -58,7 +58,8 @@
 
     \section1 Command-Line Options
 
-    The \c qscxmlc tool supports the following command-line options:
+    The \c qscxmlc tool supports the following command-line options, which can be specified using
+    the \c QSCXMLC_ARGUMENTS variable in the project file:
 
     \table
       \header
@@ -83,5 +84,10 @@
         \li The class name of the generated state machine. If none is specified, the value of the
             name attribute of the <scxml> tag is taken. If that attribute is not specified either,
             the basename (excluding path) is taken from the input file name.
+      \row
+        \li \c --statemethods
+        \li Generate extra accessor and signal methods for states. This way you can connect to
+            state changes with plain QObject::connect() and directly call a method to find out if
+            a state is currently active.
     \endtable
 */

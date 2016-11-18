@@ -506,6 +506,13 @@ void CppDumper::writeClass(const QString &className, const GeneratedTableData::M
     Replacements r;
     r[QStringLiteral("classname")] = className;
     r[QStringLiteral("properties")] = generatePropertyDecls(info);
+    if (m_translationUnit->stateMethods) {
+        r[QStringLiteral("accessors")] = generateAccessorDecls(info);
+        r[QStringLiteral("signals")] = generateSignalDecls(info);
+    } else {
+        r[QStringLiteral("accessors")] = QString();
+        r[QStringLiteral("signals")] = QString();
+    }
     genTemplate(h, QStringLiteral(":/decl.t"), r);
 }
 
@@ -699,8 +706,42 @@ QString CppDumper::generatePropertyDecls(const GeneratedTableData::MetaDataInfo 
     QString decls;
 
     for (const QString &stateName : info.stateNames) {
-        if (!stateName.isEmpty())
+        if (stateName.isEmpty())
+            continue;
+
+        if (m_translationUnit->stateMethods) {
+            decls += QString::fromLatin1("    Q_PROPERTY(bool %1 READ %2 NOTIFY %3)\n")
+                    .arg(stateName, mangleIdentifier(stateName),
+                         mangleIdentifier(stateName + QStringLiteral("Changed")));
+        } else {
             decls += QString::fromLatin1("    Q_PROPERTY(bool %1)\n").arg(stateName);
+        }
+    }
+
+    return decls;
+}
+
+QString CppDumper::generateAccessorDecls(const GeneratedTableData::MetaDataInfo &info)
+{
+    QString decls;
+
+    for (const QString &stateName : info.stateNames) {
+        if (!stateName.isEmpty())
+            decls += QString::fromLatin1("    bool %1() const;\n").arg(mangleIdentifier(stateName));
+    }
+
+    return decls;
+}
+
+QString CppDumper::generateSignalDecls(const GeneratedTableData::MetaDataInfo &info)
+{
+    QString decls;
+
+    for (const QString &stateName : info.stateNames) {
+        if (!stateName.isEmpty()) {
+            decls += QString::fromLatin1("    void %1(bool);\n")
+                    .arg(mangleIdentifier(stateName + QStringLiteral("Changed")));
+        }
     }
 
     return decls;
@@ -721,16 +762,18 @@ QString CppDumper::generateMetaObject(const QString &className,
         if (stateName.isEmpty())
             continue;
 
-        QByteArray mangledStateName = stateName.toUtf8();
+        QByteArray utf8StateName = stateName.toUtf8();
 
         FunctionDef signal;
         signal.type.name = "void";
         signal.type.rawName = signal.type.name;
         signal.normalizedType = signal.type.name;
-        signal.name = mangledStateName + "Changed";
+        signal.name = utf8StateName + "Changed";
+        if (m_translationUnit->stateMethods)
+            signal.mangledName = mangleIdentifier(stateName + QStringLiteral("Changed")).toUtf8();
         signal.access = FunctionDef::Public;
         signal.isSignal = true;
-        signal.implementation = "QMetaObject::activate(_o, &staticMetaObject, %d, _a);";
+        signal.implementation = "QMetaObject::activate(%s, &staticMetaObject, %d, _a);";
 
         ArgumentDef arg;
         arg.type.name = "bool";
@@ -744,9 +787,11 @@ QString CppDumper::generateMetaObject(const QString &className,
         ++classDef.notifyableProperties;
         PropertyDef prop;
         prop.name = stateName.toUtf8();
+        if (m_translationUnit->stateMethods)
+            prop.mangledName = mangleIdentifier(stateName).toUtf8();
         prop.type = "bool";
         prop.read = "isActive(" + QByteArray::number(stateIdx++) + ")";
-        prop.notify = mangledStateName + "Changed";
+        prop.notify = utf8StateName + "Changed";
         prop.notifyId = classDef.signalList.size() - 1;
         prop.gspec = PropertyDef::ValueSpec;
         prop.scriptable = "true";
@@ -759,8 +804,13 @@ QString CppDumper::generateMetaObject(const QString &className,
 
     QBuffer buf;
     buf.open(QIODevice::WriteOnly);
-    Generator(&classDef, QList<QByteArray>(), knownQObjectClasses,
-              QHash<QByteArray, QByteArray>(), buf).generateCode();
+    Generator generator(&classDef, QList<QByteArray>(), knownQObjectClasses,
+                        QHash<QByteArray, QByteArray>(), buf);
+    generator.generateCode();
+    if (m_translationUnit->stateMethods) {
+        generator.generateAccessorDefs();
+        generator.generateSignalDefs();
+    }
     buf.close();
     return QString::fromUtf8(buf.buffer());
 }

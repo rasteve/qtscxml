@@ -41,12 +41,14 @@ QT_BEGIN_NAMESPACE
 struct TranslationUnit
 {
     TranslationUnit()
-        : mainDocument(Q_NULLPTR)
+        : stateMethods(false)
+        , mainDocument(Q_NULLPTR)
     {}
 
     QString scxmlFileName;
     QString outHFileName, outCppFileName;
     QString namespaceName;
+    bool stateMethods;
     DocumentModel::ScxmlDocument *mainDocument;
     QList<DocumentModel::ScxmlDocument *> allDocuments;
     QHash<DocumentModel::ScxmlDocument *, QString> classnameForDocument;
@@ -79,6 +81,8 @@ private:
 
 private:
     QString generatePropertyDecls(const QScxmlInternal::GeneratedTableData::MetaDataInfo &info);
+    QString generateAccessorDecls(const QScxmlInternal::GeneratedTableData::MetaDataInfo &info);
+    QString generateSignalDecls(const QScxmlInternal::GeneratedTableData::MetaDataInfo &info);
     QString generateMetaObject(const QString &className,
                                const QScxmlInternal::GeneratedTableData::MetaDataInfo &info);
 

@@ -46,6 +46,9 @@ public:
               QByteArray> &knownQObjectClasses, const QHash<QByteArray, QByteArray> &knownGadgets,
               QIODevice &outfile);
     void generateCode();
+    void generateAccessorDefs();
+    void generateSignalDefs();
+
 private:
     bool registerableMetaType(const QByteArray &propertyType);
     void registerClassInfoStrings();
