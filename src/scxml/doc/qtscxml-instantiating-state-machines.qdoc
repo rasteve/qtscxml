@@ -105,9 +105,8 @@
     convenient id "red" in the scxml file), you can write:
 
     \code
-    QObject::connect(stateMachine, &TrafficLightStateMachine::redChanged,
-        [](bool active) {
-       qDebug() << (active ? "entered" : "exited") << "the red state";
+    stateMachine->connectToState("red", [](bool active) {
+        qDebug() << (active ? "entered" : "exited") << "the red state";
     \endcode
 
     And in QML:
