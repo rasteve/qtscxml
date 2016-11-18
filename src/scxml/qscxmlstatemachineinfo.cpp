@@ -97,15 +97,8 @@ QString QScxmlStateMachineInfo::stateName(int stateId) const
 {
     Q_D(const QScxmlStateMachineInfo);
 
-    if (stateId < StateMachineRootState && stateId >= d->stateTable()->stateCount)
+    if (stateId < 0 || stateId >= d->stateTable()->stateCount)
         return QString();
-
-    if (stateId == StateMachineRootState) {
-        if (d->stateTable()->name < 0)
-            return QString();
-        else
-            return d->stateMachinePrivate()->m_tableData->string(d->stateTable()->name);
-    }
 
     auto state = d->stateTable()->state(stateId);
     if (state.name >= 0)
@@ -118,11 +111,8 @@ QScxmlStateMachineInfo::StateType QScxmlStateMachineInfo::stateType(StateId stat
 {
     Q_D(const QScxmlStateMachineInfo);
 
-    if (stateId < StateMachineRootState || stateId >= d->stateTable()->stateCount)
+    if (stateId < 0 || stateId >= d->stateTable()->stateCount)
         return InvalidState;
-
-    if (stateId == -1)
-        return StateMachineRootState;
 
     auto state = d->stateTable()->state(stateId);
     switch (state.type) {
@@ -173,7 +163,7 @@ QScxmlStateMachineInfo::StateId QScxmlStateMachineInfo::transitionSource(Transit
     Q_D(const QScxmlStateMachineInfo);
 
     if (transitionId < 0 || transitionId >= d->stateTable()->transitionCount)
-        return InvalidState;
+        return InvalidStateId;
 
     auto transition = d->stateTable()->transition(transitionId);
     return transition.source;

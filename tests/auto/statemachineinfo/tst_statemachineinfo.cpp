@@ -98,7 +98,7 @@ void tst_StateMachineInfo::checkInfo()
     auto info = new QScxmlStateMachineInfo(stateMachine.data());
 
     const QString machineName = QLatin1String("InfoTest");
-    QCOMPARE(info->stateName(QScxmlStateMachineInfo::StateMachineRootState), machineName);
+    QCOMPARE(stateMachine->name(), machineName);
 
     auto states = info->allStates();
     QCOMPARE(states.size(), 5);
@@ -120,7 +120,7 @@ void tst_StateMachineInfo::checkInfo()
     // targetless transition on top level
     QCOMPARE(info->transitionType(transitions.at(0)), QScxmlStateMachineInfo::ExternalTransition);
     QCOMPARE(info->stateType(info->transitionSource(transitions.at(0))),
-             QScxmlStateMachineInfo::StateMachineRootState);
+             QScxmlStateMachineInfo::InvalidState);
     QCOMPARE(info->transitionTargets(transitions.at(0)).size(), 0);
     QCOMPARE(info->transitionEvents(transitions.at(0)).size(), 0);
 
@@ -151,7 +151,7 @@ void tst_StateMachineInfo::checkInfo()
     // initial transition that activates the first (anonymous) state
     QCOMPARE(info->transitionType(transitions.at(4)), QScxmlStateMachineInfo::SyntheticTransition);
     QCOMPARE(info->stateType(info->transitionSource(transitions.at(4))),
-             QScxmlStateMachineInfo::StateMachineRootState);
+             QScxmlStateMachineInfo::InvalidState);
     QCOMPARE(info->transitionTargets(transitions.at(4)).size(), 1);
     QCOMPARE(info->transitionTargets(transitions.at(4)).at(0), states.at(0));
     QCOMPARE(info->transitionEvents(transitions.at(4)).size(), 0);
