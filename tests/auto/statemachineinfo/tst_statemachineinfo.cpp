@@ -122,24 +122,31 @@ void tst_StateMachineInfo::checkInfo()
     QCOMPARE(info->stateType(info->transitionSource(transitions.at(0))),
              QScxmlStateMachineInfo::StateMachineRootState);
     QCOMPARE(info->transitionTargets(transitions.at(0)).size(), 0);
+    QCOMPARE(info->transitionEvents(transitions.at(0)).size(), 0);
 
     // <anon>->next
     QCOMPARE(info->transitionType(transitions.at(1)), QScxmlStateMachineInfo::ExternalTransition);
     QCOMPARE(info->transitionSource(transitions.at(1)), states.at(0));
     QCOMPARE(info->transitionTargets(transitions.at(1)).size(), 1);
     QCOMPARE(info->transitionTargets(transitions.at(1)).at(0), states.at(1));
+    QCOMPARE(info->transitionEvents(transitions.at(1)).size(), 1);
+    QCOMPARE(info->transitionEvents(transitions.at(1)).at(0), QStringLiteral("step"));
 
     // a->theEnd
     QCOMPARE(info->transitionType(transitions.at(2)), QScxmlStateMachineInfo::ExternalTransition);
     QCOMPARE(info->transitionSource(transitions.at(2)), states.at(2));
     QCOMPARE(info->transitionTargets(transitions.at(2)).size(), 1);
     QCOMPARE(info->transitionTargets(transitions.at(2)).at(0), states.at(4));
+    QCOMPARE(info->transitionEvents(transitions.at(2)).size(), 1);
+    QCOMPARE(info->transitionEvents(transitions.at(2)).at(0), QStringLiteral("step"));
 
     // b->theEnd
     QCOMPARE(info->transitionType(transitions.at(3)), QScxmlStateMachineInfo::InternalTransition);
     QCOMPARE(info->transitionSource(transitions.at(3)), states.at(3));
     QCOMPARE(info->transitionTargets(transitions.at(3)).size(), 1);
     QCOMPARE(info->transitionTargets(transitions.at(3)).at(0), states.at(4));
+    QCOMPARE(info->transitionEvents(transitions.at(3)).size(), 1);
+    QCOMPARE(info->transitionEvents(transitions.at(3)).at(0), QStringLiteral("step"));
 
     // initial transition that activates the first (anonymous) state
     QCOMPARE(info->transitionType(transitions.at(4)), QScxmlStateMachineInfo::SyntheticTransition);
@@ -147,6 +154,7 @@ void tst_StateMachineInfo::checkInfo()
              QScxmlStateMachineInfo::StateMachineRootState);
     QCOMPARE(info->transitionTargets(transitions.at(4)).size(), 1);
     QCOMPARE(info->transitionTargets(transitions.at(4)).at(0), states.at(0));
+    QCOMPARE(info->transitionEvents(transitions.at(4)).size(), 0);
 
     // "initial" transition in the next state that activates all sub-states
     QCOMPARE(info->transitionType(transitions.at(5)), QScxmlStateMachineInfo::SyntheticTransition);
@@ -154,6 +162,7 @@ void tst_StateMachineInfo::checkInfo()
     QCOMPARE(info->transitionTargets(transitions.at(5)).size(), 2);
     QCOMPARE(info->transitionTargets(transitions.at(5)).at(0), states.at(2));
     QCOMPARE(info->transitionTargets(transitions.at(5)).at(1), states.at(3));
+    QCOMPARE(info->transitionEvents(transitions.at(5)).size(), 0);
 
     Recorder recorder;
     QObject::connect(info, &QScxmlStateMachineInfo::statesEntered,

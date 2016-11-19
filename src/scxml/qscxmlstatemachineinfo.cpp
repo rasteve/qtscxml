@@ -198,6 +198,27 @@ QVector<QScxmlStateMachineInfo::StateId> QScxmlStateMachineInfo::transitionTarge
     return targets;
 }
 
+QVector<QString> QScxmlStateMachineInfo::transitionEvents(TransitionId transitionId) const
+{
+    Q_D(const QScxmlStateMachineInfo);
+
+    QVector<QString> events;
+    if (transitionId < 0 || transitionId >= d->stateTable()->transitionCount)
+        return events;
+
+    auto transition = d->stateTable()->transition(transitionId);
+    if (transition.events == QScxmlExecutableContent::StateTable::InvalidIndex)
+        return events;
+
+    auto eventIds = d->stateTable()->array(transition.events);
+    events.reserve(eventIds.size());
+    for (auto eventId : eventIds) {
+        events.append(d->stateMachinePrivate()->m_tableData->string(eventId));
+    }
+
+    return events;
+}
+
 QVector<QScxmlStateMachineInfo::StateId> QScxmlStateMachineInfo::configuration() const
 {
     Q_D(const QScxmlStateMachineInfo);

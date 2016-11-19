@@ -95,6 +95,7 @@ public: // methods
     TransitionType transitionType(TransitionId transitionId) const;
     StateId transitionSource(TransitionId transitionId) const;
     QVector<StateId> transitionTargets(TransitionId transitionId) const;
+    QVector<QString> transitionEvents(TransitionId transitionId) const;
     QVector<StateId> configuration() const;
 
 Q_SIGNALS:
