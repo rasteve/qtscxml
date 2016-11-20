@@ -35,8 +35,7 @@
     \e {FTP Client} uses Qt SCXML to implement a FTP client that can communicate
     with a FTP service by sending FTP control messages translated from state
     machine events and by translating server replies into state machine
-    events. The data received from the FTP server is printed on the console as
-    UTF-8 text.
+    events. The data received from the FTP server is printed on the console.
 
     \l{RFC 959} specifies state charts for the command handling of the FTP
     client. They can be easily translated into SCXML to benefit from SCXML
@@ -100,7 +99,7 @@
 
     \section1 Communicating with an FTP Server
 
-    We print all data retrieved from the server on the console as UTF-8 text:
+    We print all data retrieved from the server on the console:
 
     \skipto QObject::connect(&dataChannel
     \printuntil }

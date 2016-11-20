@@ -48,44 +48,83 @@
 **
 ****************************************************************************/
 
-#ifndef FTPDATACHANNEL_H
-#define FTPDATACHANNEL_H
+function restart() {
+    for (var i = 0; i < initState.length; i++)
+        currentState[i] = initState[i].slice();
+    undoStack = [];
+}
 
-#include <QObject>
-#include <QTcpServer>
-#include <QTcpSocket>
-#include <QScopedPointer>
+function isValidPosition() {
+    var x = _event.data.x;
+    var y = _event.data.y;
+    if (x < 0 || x >= initState.length)
+        return false;
+    if (y < 0 || y >= initState.length)
+        return false;
+    if (initState[x][y] !== 0)
+        return false;
+    return true;
+}
 
-class FtpDataChannel : public QObject
-{
-    Q_OBJECT
-public:
-    explicit FtpDataChannel(QObject *parent = 0);
+function calculateCurrentState() {
+    if (isValidPosition() === false)
+        return;
+    var x = _event.data.x;
+    var y = _event.data.y;
+    var currentValue = currentState[x][y];
+    if (currentValue === initState.length)
+        currentValue = 0;
+    else
+        currentValue += 1;
+    currentState[x][y] = currentValue;
+    undoStack.push([x, y]);
+}
 
-    // Listen on a local address.
-    void listen(const QHostAddress &address = QHostAddress::Any);
+function isOK(numbers) {
+    var temp = [];
+    for (var i = 0; i < numbers.length; i++) {
+        var currentValue = numbers[i];
+        if (currentValue === 0)
+            return false;
+        if (temp.indexOf(currentValue) >= 0)
+            return false;
+        temp.push(currentValue);
+    }
+    return true;
+}
 
-    // Send data over the socket.
-    void sendData(const QByteArray &data);
+function isSolved() {
+    for (var i = 0; i < currentState.length; i++) {
+        if (!isOK(currentState[i]))
+            return false;
 
-    // Close the connection.
-    void close();
+        var column = [];
+        var square = [];
+        for (var j = 0; j < currentState[i].length; j++) {
+            column.push(currentState[j][i]);
+            square.push(currentState[Math.floor(i / 3) * 3 + Math.floor(j / 3)]
+                                    [i % 3 * 3 + j % 3]);
+        }
 
-    // Retrieve the port specification to be announced on the control channel.
-    // Something like "a,b,c,d,xxx,yyy" where
-    // - a.b.c.d would be the IP address in decimal/dot notation and
-    // - xxx,yyy are the upper and lower 8 bits of the TCP port in decimal
-    // (This will only work if the local address we're listening on is actually meaningful)
-    QString portspec() const;
+        if (!isOK(column))
+            return false;
+        if (!isOK(square))
+            return false;
+    }
+    return true;
+}
 
-signals:
+function undo() {
+    if (!undoStack.length)
+        return;
 
-    // The FTP server has sent some data.
-    void dataReceived(const QByteArray &data);
-
-private:
-    QTcpServer m_server;
-    QScopedPointer<QTcpSocket> m_socket;
-};
-
-#endif // FTPDATACHANNEL_H
+    var lastMove = undoStack.pop();
+    var x = lastMove[0];
+    var y = lastMove[1];
+    var currentValue = currentState[x][y];
+    if (currentValue === 0)
+        currentValue = initState.length;
+    else
+        currentValue -= 1;
+    currentState[x][y] = currentValue;
+}

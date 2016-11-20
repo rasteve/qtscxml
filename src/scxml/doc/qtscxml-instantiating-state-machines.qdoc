@@ -105,9 +105,8 @@
     convenient id "red" in the scxml file), you can write:
 
     \code
-    QObject::connect(stateMachine, &TrafficLightStateMachine::redChanged,
-        [](bool active) {
-       qDebug() << (active ? "entered" : "exited") << "the red state";
+    stateMachine->connectToState("red", [](bool active) {
+        qDebug() << (active ? "entered" : "exited") << "the red state";
     \endcode
 
     And in QML:
@@ -161,4 +160,10 @@
         "title": "The Rockafeller Skank"
     })
     \endcode
+
+    \note A state machine needs a \c QEventLoop to work correctly. The event loop is used
+    to implement the \c delay attribute for events and to schedule the processing of a state machine
+    when events are received from nested (or parent) state machines. A QML application or a widget
+    application will always have an event loop running, so nothing extra is needed. For other
+    applications, \c QApplication::run will have to be called to start the event loop processing.
 */

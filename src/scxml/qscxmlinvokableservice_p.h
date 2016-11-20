@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef QSCXMLDATAMODEL_P_H
-#define QSCXMLDATAMODEL_P_H
+#ifndef QSCXMLINVOKABLESERVICE_P_H
+#define QSCXMLINVOKABLESERVICE_P_H
 
 //
 //  W A R N I N G
@@ -51,23 +51,51 @@
 // We mean it.
 //
 
-#include "qscxmldatamodel.h"
-#include "qscxmlcompiler_p.h"
-#include <private/qobject_p.h>
+#include "qscxmlinvokableservice.h"
+#include <QtCore/private/qobject_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QScxmlDataModelPrivate : public QObjectPrivate
+class QScxmlInvokableServicePrivate : public QObjectPrivate
 {
 public:
-    QScxmlDataModelPrivate() : m_stateMachine(Q_NULLPTR) {}
+    QScxmlInvokableServicePrivate(QScxmlStateMachine *parentStateMachine);
 
-    static QScxmlDataModel *instantiateDataModel(DocumentModel::Scxml::DataModelType type);
+    QString calculateId(QScxmlStateMachine *parent,
+                        const QScxmlExecutableContent::InvokeInfo &invokeInfo, bool *ok) const;
+    QVariantMap calculateData(QScxmlStateMachine *parent,
+                              const QVector<QScxmlExecutableContent::ParameterInfo> &parameters,
+                              const QVector<QScxmlExecutableContent::StringId> &names,
+                              bool *ok) const;
 
+    QScxmlStateMachine *parentStateMachine;
+};
+
+class QScxmlInvokableServiceFactoryPrivate
+{
 public:
-    QScxmlStateMachine *m_stateMachine;
+    QScxmlInvokableServiceFactoryPrivate(
+            const QScxmlExecutableContent::InvokeInfo &invokeInfo,
+            const QVector<QScxmlExecutableContent::StringId> &names,
+            const QVector<QScxmlExecutableContent::ParameterInfo> &parameters);
+
+    QString calculateSrcexpr(QScxmlStateMachine *parent, bool *ok) const;
+
+    QScxmlExecutableContent::InvokeInfo invokeInfo;
+    QVector<QScxmlExecutableContent::StringId> names;
+    QVector<QScxmlExecutableContent::ParameterInfo> parameters;
+};
+
+class QScxmlScxmlServicePrivate : public QScxmlInvokableServicePrivate
+{
+public:
+    QScxmlScxmlServicePrivate(QScxmlStateMachine *stateMachine,
+                              QScxmlStateMachine *parentStateMachine);
+    ~QScxmlScxmlServicePrivate();
+
+    QScxmlStateMachine *stateMachine;
 };
 
 QT_END_NAMESPACE
 
-#endif // QSCXMLDATAMODEL_P_H
+#endif // QSCXMLINVOKABLESERVICE_P_H

@@ -29,7 +29,7 @@
 #include <QtTest>
 #include <QObject>
 #include <QXmlStreamReader>
-#include <QtScxml/qscxmlparser.h>
+#include <QtScxml/qscxmlcompiler.h>
 #include <QtScxml/qscxmlstatemachine.h>
 
 Q_DECLARE_METATYPE(QScxmlError);

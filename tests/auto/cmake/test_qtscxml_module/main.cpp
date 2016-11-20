@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2016 Klaralvdalens Datakonsult AB (KDAB).
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the QtScxml module of the Qt Toolkit.
@@ -37,50 +37,14 @@
 **
 ****************************************************************************/
 
-#ifndef SCXMLPARSER_H
-#define SCXMLPARSER_H
+#include "connection.h"
 
-#include <QtScxml/qscxmlerror.h>
-
-#include <QStringList>
-#include <QString>
-
-QT_BEGIN_NAMESPACE
-class QXmlStreamReader;
-class QScxmlStateMachine;
-
-class QScxmlParserPrivate;
-class Q_SCXML_EXPORT QScxmlParser
+int main(int argc, char **argv)
 {
-public:
-    class Q_SCXML_EXPORT Loader
-    {
-    public:
-        Loader();
-        virtual ~Loader();
-        virtual QByteArray load(const QString &name,
-                                const QString &baseDir,
-                                QStringList *errors) = 0;
-    };
+  Q_UNUSED(argc);
+  Q_UNUSED(argv);
 
-public:
-    QScxmlParser(QXmlStreamReader *xmlReader);
-    ~QScxmlParser();
-
-    QString fileName() const;
-    void setFileName(const QString &fileName);
-
-    Loader *loader() const;
-    void setLoader(Loader *newLoader);
-
-    QScxmlStateMachine *parse();
-    QVector<QScxmlError> errors() const;
-
-private:
-    friend class QScxmlParserPrivate;
-    QScxmlParserPrivate *d;
-};
-
-QT_END_NAMESPACE
-
-#endif // SCXMLPARSER_H
+  Connection connection;
+  Q_UNUSED(connection);
+  return 0;
+}

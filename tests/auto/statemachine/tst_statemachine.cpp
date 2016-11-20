@@ -29,7 +29,7 @@
 #include <QtTest>
 #include <QObject>
 #include <QXmlStreamReader>
-#include <QtScxml/qscxmlparser.h>
+#include <QtScxml/qscxmlcompiler.h>
 #include <QtScxml/qscxmlstatemachine.h>
 #include <QtScxml/private/qscxmlstatemachine_p.h>
 
@@ -183,8 +183,6 @@ void tst_StateMachine::connections()
     });
     QVERIFY(final);
 
-#if defined(__cpp_return_type_deduction) && __cpp_return_type_deduction == 201304
-    // C++14 available, test onEntry and onExit
     bool a1Entered = false;
     bool a1Exited = false;
     bool finalEntered = false;
@@ -219,7 +217,6 @@ void tst_StateMachine::connections()
         finalExited = true;
     }));
     QVERIFY(finalExit);
-#endif
 
     stateMachine->start();
 

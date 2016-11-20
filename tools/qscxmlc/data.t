@@ -14,7 +14,7 @@ struct ${classname}::Data: private QScxmlTableData {
     QScxmlExecutableContent::ContainerId initialSetup() const Q_DECL_OVERRIDE Q_DECL_FINAL
     { return ${initialSetup}; }
 
-    QScxmlExecutableContent::Instructions instructions() const Q_DECL_OVERRIDE Q_DECL_FINAL
+    QScxmlExecutableContent::InstructionId *instructions() const Q_DECL_OVERRIDE Q_DECL_FINAL
     { return theInstructions; }
 
     QScxmlExecutableContent::StringId *dataNames(int *count) const Q_DECL_OVERRIDE Q_DECL_FINAL
@@ -43,6 +43,37 @@ struct ${classname}::Data: private QScxmlTableData {
 
     ${classname} &stateMachine;
     ${dataModelField}
+
+    static QScxmlExecutableContent::ParameterInfo param(QScxmlExecutableContent::StringId name,
+                                                        QScxmlExecutableContent::EvaluatorId expr,
+                                                        QScxmlExecutableContent::StringId location)
+    {
+        QScxmlExecutableContent::ParameterInfo p;
+        p.name = name;
+        p.expr = expr;
+        p.location = location;
+        return p;
+    }
+
+    static QScxmlExecutableContent::InvokeInfo invoke(
+            QScxmlExecutableContent::StringId id,
+            QScxmlExecutableContent::StringId prefix,
+            QScxmlExecutableContent::EvaluatorId expr,
+            QScxmlExecutableContent::StringId location,
+            QScxmlExecutableContent::StringId context,
+            QScxmlExecutableContent::ContainerId finalize,
+            bool autoforward)
+    {
+        QScxmlExecutableContent::InvokeInfo i;
+        i.id = id;
+        i.prefix = prefix;
+        i.expr = expr;
+        i.location = location;
+        i.context = context;
+        i.finalize = finalize;
+        i.autoforward = autoforward;
+        return i;
+    }
 
     static qint32 theInstructions[];
     static QScxmlExecutableContent::StringId dataIds[];

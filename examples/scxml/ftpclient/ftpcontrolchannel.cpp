@@ -64,11 +64,11 @@ void FtpControlChannel::connectToServer(const QString &server)
     m_socket.connectToHost(server, 21);
 }
 
-void FtpControlChannel::command(const QString &command, const QString &params)
+void FtpControlChannel::command(const QByteArray &command, const QByteArray &params)
 {
-    QByteArray sendData = command.toUtf8();
+    QByteArray sendData = command;
     if (!params.isEmpty())
-        sendData += " " + params.toUtf8();
+        sendData += " " + params;
     m_socket.write(sendData + "\r\n");
 }
 
@@ -83,11 +83,11 @@ void FtpControlChannel::onReadyRead()
         if (space != -1) {
             int code = received.mid(0, space).toInt();
             if (code == 0)
-                emit info(QString::fromUtf8(received.mid(space + 1)));
+                emit info(received.mid(space + 1));
             else
-                emit reply(code, QString::fromUtf8(received.mid(space + 1)));
+                emit reply(code, received.mid(space + 1));
         } else {
-            emit invalidReply(QString::fromUtf8(received));
+            emit invalidReply(received);
         }
     }
 }

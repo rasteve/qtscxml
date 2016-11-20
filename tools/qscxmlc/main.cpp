@@ -30,6 +30,7 @@
 #include "qscxmlc.h"
 
 #include <QCoreApplication>
+#include <QStringList>
 
 int main(int argc, char *argv[])
 {

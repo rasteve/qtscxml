@@ -62,7 +62,6 @@ struct Command {
 
 int main(int argc, char *argv[])
 {
-#if defined(__cpp_return_type_deduction) && __cpp_return_type_deduction == 201304
     if (argc != 3) {
         qDebug() << "Usage: ftpclient <server> <file>";
         return 1;
@@ -76,9 +75,9 @@ int main(int argc, char *argv[])
     FtpDataChannel dataChannel;
     FtpControlChannel controlChannel;
 
-    // Print all data retrieved from the server on the console as UTF-8 text.
-    QObject::connect(&dataChannel, &FtpDataChannel::dataReceived, [](const QString &data) {
-        std::cout << data.toUtf8().constData();
+    // Print all data retrieved from the server on the console.
+    QObject::connect(&dataChannel, &FtpDataChannel::dataReceived, [](const QByteArray &data) {
+        std::cout << data.constData();
     });
 
     // Translate server replies into state machine events.
@@ -90,7 +89,7 @@ int main(int argc, char *argv[])
     // Translate commands from the state machine into FTP control messages.
     ftpClient.connectToEvent("submit.cmd", &controlChannel,
                              [&controlChannel](const QScxmlEvent &event) {
-        controlChannel.command(event.name().mid(11), event.data().toString());
+        controlChannel.command(event.name().mid(11).toUtf8(), event.data().toByteArray());
     });
 
     // Commands to be sent
@@ -127,9 +126,4 @@ int main(int argc, char *argv[])
     });
 
     return app.exec();
-#else
-    qDebug() << "The ftpclient example uses the C++14 return type deduction feature and will only "
-                "work with compilers that support it.";
-    return 2;
-#endif
 }

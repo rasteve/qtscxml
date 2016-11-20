@@ -48,44 +48,34 @@
 **
 ****************************************************************************/
 
-#ifndef FTPDATACHANNEL_H
-#define FTPDATACHANNEL_H
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
 
-#include <QObject>
-#include <QTcpServer>
-#include <QTcpSocket>
-#include <QScopedPointer>
+#include <QWidget>
 
-class FtpDataChannel : public QObject
+QT_BEGIN_NAMESPACE
+class QToolButton;
+class QScxmlStateMachine;
+class QLabel;
+class QComboBox;
+QT_END_NAMESPACE
+
+
+class MainWindow : public QWidget
 {
     Q_OBJECT
+
 public:
-    explicit FtpDataChannel(QObject *parent = 0);
-
-    // Listen on a local address.
-    void listen(const QHostAddress &address = QHostAddress::Any);
-
-    // Send data over the socket.
-    void sendData(const QByteArray &data);
-
-    // Close the connection.
-    void close();
-
-    // Retrieve the port specification to be announced on the control channel.
-    // Something like "a,b,c,d,xxx,yyy" where
-    // - a.b.c.d would be the IP address in decimal/dot notation and
-    // - xxx,yyy are the upper and lower 8 bits of the TCP port in decimal
-    // (This will only work if the local address we're listening on is actually meaningful)
-    QString portspec() const;
-
-signals:
-
-    // The FTP server has sent some data.
-    void dataReceived(const QByteArray &data);
+    explicit MainWindow(QScxmlStateMachine *machine, QWidget *parent = 0);
+    ~MainWindow();
 
 private:
-    QTcpServer m_server;
-    QScopedPointer<QTcpSocket> m_socket;
+    QScxmlStateMachine *m_machine;
+    QVector<QVector<QToolButton *> > m_buttons;
+    QToolButton *m_startButton;
+    QToolButton *m_undoButton;
+    QLabel *m_label;
+    QComboBox *m_chooser;
 };
 
-#endif // FTPDATACHANNEL_H
+#endif // MAINWINDOW_H

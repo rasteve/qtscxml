@@ -37,37 +37,48 @@
 **
 ****************************************************************************/
 
-#ifndef QSCXMLDATAMODEL_P_H
-#define QSCXMLDATAMODEL_P_H
+#ifndef QSCXMLCOMPILER_H
+#define QSCXMLCOMPILER_H
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include "qscxmldatamodel.h"
-#include "qscxmlcompiler_p.h"
-#include <private/qobject_p.h>
+#include <QtScxml/qscxmlerror.h>
+#include <QtCore/qstring.h>
 
 QT_BEGIN_NAMESPACE
+class QXmlStreamReader;
+class QScxmlStateMachine;
 
-class QScxmlDataModelPrivate : public QObjectPrivate
+class QScxmlCompilerPrivate;
+class Q_SCXML_EXPORT QScxmlCompiler
 {
 public:
-    QScxmlDataModelPrivate() : m_stateMachine(Q_NULLPTR) {}
-
-    static QScxmlDataModel *instantiateDataModel(DocumentModel::Scxml::DataModelType type);
+    class Q_SCXML_EXPORT Loader
+    {
+    public:
+        Loader();
+        virtual ~Loader();
+        virtual QByteArray load(const QString &name,
+                                const QString &baseDir,
+                                QStringList *errors) = 0;
+    };
 
 public:
-    QScxmlStateMachine *m_stateMachine;
+    QScxmlCompiler(QXmlStreamReader *xmlReader);
+    ~QScxmlCompiler();
+
+    QString fileName() const;
+    void setFileName(const QString &fileName);
+
+    Loader *loader() const;
+    void setLoader(Loader *newLoader);
+
+    QScxmlStateMachine *compile();
+    QVector<QScxmlError> errors() const;
+
+private:
+    friend class QScxmlCompilerPrivate;
+    QScxmlCompilerPrivate *d;
 };
 
 QT_END_NAMESPACE
 
-#endif // QSCXMLDATAMODEL_P_H
+#endif // QSCXMLCOMPILER_H

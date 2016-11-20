@@ -48,44 +48,19 @@
 **
 ****************************************************************************/
 
-#ifndef FTPDATACHANNEL_H
-#define FTPDATACHANNEL_H
+#include "sudoku.h"
+#include "mainwindow.h"
 
-#include <QObject>
-#include <QTcpServer>
-#include <QTcpSocket>
-#include <QScopedPointer>
+#include <QApplication>
 
-class FtpDataChannel : public QObject
+int main(int argc, char **argv)
 {
-    Q_OBJECT
-public:
-    explicit FtpDataChannel(QObject *parent = 0);
+    QApplication app(argc, argv);
 
-    // Listen on a local address.
-    void listen(const QHostAddress &address = QHostAddress::Any);
+    Sudoku machine;
+    MainWindow mainWindow(&machine);
 
-    // Send data over the socket.
-    void sendData(const QByteArray &data);
-
-    // Close the connection.
-    void close();
-
-    // Retrieve the port specification to be announced on the control channel.
-    // Something like "a,b,c,d,xxx,yyy" where
-    // - a.b.c.d would be the IP address in decimal/dot notation and
-    // - xxx,yyy are the upper and lower 8 bits of the TCP port in decimal
-    // (This will only work if the local address we're listening on is actually meaningful)
-    QString portspec() const;
-
-signals:
-
-    // The FTP server has sent some data.
-    void dataReceived(const QByteArray &data);
-
-private:
-    QTcpServer m_server;
-    QScopedPointer<QTcpSocket> m_socket;
-};
-
-#endif // FTPDATACHANNEL_H
+    machine.start();
+    mainWindow.show();
+    return app.exec();
+}

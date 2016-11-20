@@ -54,6 +54,7 @@
 #include <QtScxml/qscxmltabledata.h>
 #include <QtCore/qsharedpointer.h>
 #include <QtCore/qhash.h>
+#include <QtCore/qvector.h>
 
 #include <functional>
 
@@ -70,15 +71,9 @@ class Q_SCXML_EXPORT GeneratedTableData: public QScxmlTableData
 {
 public:
     typedef std::function<
-        int(QScxmlExecutableContent::StringId invokeLocation,
-            QScxmlExecutableContent::EvaluatorId srcexpr,
-            QScxmlExecutableContent::StringId id,
-            QScxmlExecutableContent::StringId idPrefix,
-            QScxmlExecutableContent::StringId idlocation,
+        int(const QScxmlExecutableContent::InvokeInfo &invokeInfo,
             const QVector<QScxmlExecutableContent::StringId> &namelist,
-            bool autoforward,
-            const QVector<QScxmlExecutableContent::Param> &params,
-            QScxmlExecutableContent::ContainerId finalize,
+            const QVector<QScxmlExecutableContent::ParameterInfo> &params,
             QSharedPointer<DocumentModel::ScxmlDocument> content)
     > CreateFactoryId;
 
@@ -101,7 +96,7 @@ public:
 
 public:
     QString string(QScxmlExecutableContent::StringId id) const Q_DECL_OVERRIDE Q_DECL_FINAL;
-    QScxmlExecutableContent::Instructions instructions() const Q_DECL_OVERRIDE Q_DECL_FINAL;
+    QScxmlExecutableContent::InstructionId *instructions() const Q_DECL_OVERRIDE Q_DECL_FINAL;
     QScxmlExecutableContent::EvaluatorInfo evaluatorInfo(
             QScxmlExecutableContent::EvaluatorId evaluatorId) const Q_DECL_OVERRIDE Q_DECL_FINAL;
     QScxmlExecutableContent::AssignmentInfo assignmentInfo(
@@ -121,7 +116,7 @@ public:
     QVector<QScxmlExecutableContent::EvaluatorInfo> theEvaluators;
     QVector<QScxmlExecutableContent::AssignmentInfo> theAssignments;
     QVector<QScxmlExecutableContent::ForeachInfo> theForeaches;
-    QScxmlExecutableContent::StringIds theDataNameIds;
+    QVector<QScxmlExecutableContent::StringId> theDataNameIds;
     QScxmlExecutableContent::EvaluatorId theInitialSetup;
     int theName;
 };

@@ -154,7 +154,7 @@ QString createContainer(const QString &baseType, const QString &elementType,
             result += QStringLiteral("{ ") + elements.join(QStringLiteral(", ")) + QStringLiteral(" }");
         }
     } else {
-        result += QStringLiteral("%1<%2>()").arg(baseType, elementType);
+        result += QStringLiteral("%1< %2 >()").arg(baseType, elementType);
         if (!elements.isEmpty()) {
             result += QStringLiteral(" << ") + elements.join(QStringLiteral(" << "));
         }
@@ -378,30 +378,28 @@ void generateCppDataModelEvaluators(const GeneratedTableData::DataModelInfo &inf
 
 int createFactoryId(QStringList &factories, const QString &className,
                     const QString &namespacePrefix,
-                    QScxmlExecutableContent::StringId invokeLocation,
-                    QScxmlExecutableContent::EvaluatorId srcexpr,
-                    QScxmlExecutableContent::StringId id,
-                    QScxmlExecutableContent::StringId idPrefix,
-                    QScxmlExecutableContent::StringId idlocation,
+                    const QScxmlExecutableContent::InvokeInfo &invokeInfo,
                     const QVector<QScxmlExecutableContent::StringId> &namelist,
-                    bool autoforward,
-                    const QVector<QScxmlExecutableContent::Param> &params,
-                    QScxmlExecutableContent::ContainerId finalize,
+                    const QVector<QScxmlExecutableContent::ParameterInfo> &parameters,
                     bool useCxx11)
 {
     const int idx = factories.size();
 
     QString line = QStringLiteral("case %1: return new ").arg(QString::number(idx));
-    if (srcexpr == QScxmlExecutableContent::NoInstruction) {
-        line += QStringLiteral("QScxmlInvokeScxmlFactory<%1::%2>(%3, ")
-                .arg(namespacePrefix, className, QString::number(invokeLocation));
+    if (invokeInfo.expr == QScxmlExecutableContent::NoInstruction) {
+        line += QStringLiteral("QScxmlStaticScxmlServiceFactory< %1::%2 >(")
+                .arg(namespacePrefix, className);
     } else {
-        line += QStringLiteral("QScxmlDynamicScxmlFactory(%1, %2, ")
-                .arg(invokeLocation).arg(srcexpr);
+        line += QStringLiteral("QScxmlDynamicScxmlServiceFactory(");
     }
-    line += QStringLiteral("%1, ").arg(QString::number(id));
-    line += QStringLiteral("%1, ").arg(QString::number(idPrefix));
-    line += QStringLiteral("%1, ").arg(QString::number(idlocation));
+    line += QStringLiteral("invoke(%1, %2, %3, %4, %5, %6, %7), ")
+            .arg(QString::number(invokeInfo.id),
+                 QString::number(invokeInfo.prefix),
+                 QString::number(invokeInfo.expr),
+                 QString::number(invokeInfo.location),
+                 QString::number(invokeInfo.context),
+                 QString::number(invokeInfo.finalize))
+            .arg(invokeInfo.autoforward ? QStringLiteral("true") : QStringLiteral("false"));
     {
         QStringList l;
         for (auto name : namelist) {
@@ -410,21 +408,18 @@ int createFactoryId(QStringList &factories, const QString &className,
         line += QStringLiteral("%1, ").arg(
                     createVector(QStringLiteral("QScxmlExecutableContent::StringId"), l, useCxx11));
     }
-    line += QStringLiteral("%1, ").arg(autoforward ? QStringLiteral("true")
-                                                   : QStringLiteral("false"));
     {
         QStringList l;
-        for (const auto &param : params) {
-            l += QStringLiteral("QScxmlExecutableContent::Param(%1, %2, %3)")
-                    .arg(QString::number(param.name),
-                         QString::number(param.expr),
-                         QString::number(param.location));
+        for (const auto &parameter : parameters) {
+            l += QStringLiteral("param(%1, %2, %3)")
+                    .arg(QString::number(parameter.name),
+                         QString::number(parameter.expr),
+                         QString::number(parameter.location));
         }
-        line += QStringLiteral("%1, ").arg(
-                    createVector(QStringLiteral("QScxmlExecutableContent::Param"), l,
+        line += QStringLiteral("%1);").arg(
+                    createVector(QStringLiteral("QScxmlExecutableContent::ParameterInfo"), l,
                                  useCxx11));
     }
-    line += QStringLiteral("%1);").arg(finalize);
 
     factories.append(line);
     return idx;
@@ -460,23 +455,16 @@ void CppDumper::dump(TranslationUnit *unit)
         auto metaDataInfo = &metaDataInfos[i];
         GeneratedTableData::build(doc, &tables[i], metaDataInfo, &dataModelInfos[i],
                                   [this, &factories, i, &classnameForDocument, &namespacePrefix](
-                QScxmlExecutableContent::StringId invokeLocation,
-                QScxmlExecutableContent::EvaluatorId srcexpr,
-                QScxmlExecutableContent::StringId id,
-                QScxmlExecutableContent::StringId idPrefix,
-                QScxmlExecutableContent::StringId idlocation,
-                const QVector<QScxmlExecutableContent::StringId> &namelist,
-                bool autoforward,
-                const QVector<QScxmlExecutableContent::Param> &params,
-                QScxmlExecutableContent::ContainerId finalize,
+                const QScxmlExecutableContent::InvokeInfo &invokeInfo,
+                const QVector<QScxmlExecutableContent::StringId> &names,
+                const QVector<QScxmlExecutableContent::ParameterInfo> &parameters,
                 const QSharedPointer<DocumentModel::ScxmlDocument> &content) -> int {
             QString className;
-            if (srcexpr == QScxmlExecutableContent::NoInstruction) {
+            if (invokeInfo.expr == QScxmlExecutableContent::NoInstruction) {
                 className = mangleIdentifier(classnameForDocument.value(content.data()));
             }
-            return createFactoryId(factories[i], className, namespacePrefix, invokeLocation,
-                                   srcexpr, id, idPrefix, idlocation, namelist, autoforward, params,
-                                   finalize, m_translationUnit->useCxx11);
+            return createFactoryId(factories[i], className, namespacePrefix,
+                                   invokeInfo, names, parameters, m_translationUnit->useCxx11);
         });
         classNames.append(mangleIdentifier(classnameForDocument.value(doc)));
     }
@@ -726,11 +714,8 @@ QString CppDumper::generatePropertyDecls(const GeneratedTableData::MetaDataInfo 
     QString decls;
 
     for (const QString &stateName : info.stateNames) {
-        if (!stateName.isEmpty()) {
-            const QString decl = QString::fromLatin1(
-                                 "    Q_PROPERTY(bool %1 NOTIFY %2Changed)\n");
-            decls += decl.arg(stateName, mangleIdentifier(stateName));
-        }
+        if (!stateName.isEmpty())
+            decls += QString::fromLatin1("    Q_PROPERTY(bool %1)\n").arg(stateName);
     }
 
     return decls;

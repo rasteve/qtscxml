@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include "qscxmltabledata_p.h"
-#include "qscxmlparser_p.h"
+#include "qscxmlcompiler_p.h"
 #include "qscxmlexecutablecontent_p.h"
 
 QT_USE_NAMESPACE
@@ -254,9 +254,9 @@ protected: // visitor
                 QVector<QScxmlExecutableContent::StringId> namelist;
                 for (const QString &name : qAsConst(invoke->namelist))
                     namelist += addString(name);
-                QVector<QScxmlExecutableContent::Param> params;
+                QVector<QScxmlExecutableContent::ParameterInfo> params;
                 for (DocumentModel::Param *param : qAsConst(invoke->params)) {
-                    QScxmlExecutableContent::Param p;
+                    QScxmlExecutableContent::ParameterInfo p;
                     p.name = addString(param->name);
                     p.expr = createEvaluatorVariant(QStringLiteral("param"), QStringLiteral("expr"),
                                                     param->expr);
@@ -273,11 +273,16 @@ protected: // visitor
                 auto srcexpr = createEvaluatorString(QStringLiteral("invoke"),
                                                      QStringLiteral("srcexpr"),
                                                      invoke->srcexpr);
-                const int factoryId = createFactoryId(
-                            ctxt, srcexpr, addString(invoke->id),
-                            addString(state->id + QStringLiteral(".session-")),
-                            addString(invoke->idLocation), namelist, invoke->autoforward, params,
-                            finalize, invoke->content);
+                QScxmlExecutableContent::InvokeInfo invokeInfo;
+                invokeInfo.id = addString(invoke->id);
+                invokeInfo.prefix = addString(state->id + QStringLiteral(".session-"));
+                invokeInfo.location = addString(invoke->idLocation);
+                invokeInfo.context = ctxt;
+                invokeInfo.expr = srcexpr;
+                invokeInfo.finalize = finalize;
+                invokeInfo.autoforward = invoke->autoforward;
+                const int factoryId = createFactoryId(invokeInfo, namelist, params,
+                                                      invoke->content);
                 Q_ASSERT(factoryId >= 0);
                 factoryIds.append(factoryId);
                 m_stateTable.maxServiceId = std::max(m_stateTable.maxServiceId, factoryId);
@@ -480,12 +485,14 @@ protected: // visitor
     }
 
 protected:
+    static int paramSize() { return sizeof(ParameterInfo) / sizeof(qint32); }
+
     ContainerId generate(const DocumentModel::DoneData *node)
     {
         auto id = m_instructions.newContainerId();
         DoneData *doneData;
         if (node) {
-            doneData = m_instructions.add<DoneData>(node->params.size() * Param::calculateSize());
+            doneData = m_instructions.add<DoneData>(node->params.size() * paramSize());
             doneData->contents = addString(node->contents);
             doneData->expr = createEvaluatorString(QStringLiteral("donedata"),
                                                    QStringLiteral("expr"),
@@ -529,10 +536,10 @@ protected:
         return id;
     }
 
-    void generate(Array<Param> *out, const QVector<DocumentModel::Param *> &in)
+    void generate(Array<ParameterInfo> *out, const QVector<DocumentModel::Param *> &in)
     {
         out->count = in.size();
-        Param *it = out->data();
+        ParameterInfo *it = out->data();
         for (DocumentModel::Param *f : in) {
             it->name = addString(f->name);
             it->expr = createEvaluatorVariant(QStringLiteral("param"), QStringLiteral("expr"),
@@ -870,7 +877,7 @@ private:
     Table<QVector<EvaluatorInfo>, EvaluatorInfo, EvaluatorId> m_evaluators;
     Table<QVector<AssignmentInfo>, AssignmentInfo, EvaluatorId> m_assignments;
     Table<QVector<ForeachInfo>, ForeachInfo, EvaluatorId> m_foreaches;
-    StringIds &m_dataIds;
+    QVector<StringId> &m_dataIds;
     bool m_isCppDataModel = false;
 
     StateTable m_stateTable;
@@ -985,9 +992,9 @@ QString GeneratedTableData::string(StringId id) const
     return id == NoString ? QString() : theStrings.at(id);
 }
 
-Instructions GeneratedTableData::instructions() const
+InstructionId *GeneratedTableData::instructions() const
 {
-    return const_cast<Instructions>(theInstructions.data());
+    return const_cast<InstructionId *>(theInstructions.data());
 }
 
 EvaluatorInfo GeneratedTableData::evaluatorInfo(EvaluatorId evaluatorId) const

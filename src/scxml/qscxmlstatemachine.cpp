@@ -74,6 +74,10 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
  * are accessible as properties of QScxmlStateMachine.
  * These properties are boolean values and indicate
  * whether the state is active or inactive.
+ *
+ * \note The QScxmlStateMachine needs a QEventLoop to work correctly. The event loop is used to
+ *       implement the \c delay attribute for events and to schedule the processing of a state
+ *       machine when events are received from nested (or parent) state machines.
  */
 
 /*!
@@ -178,8 +182,8 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 */
 
 /*!
-    \fn auto QScxmlStateMachine::onEntry(const QObject *receiver,
-                                         const char *method)
+    \fn QScxmlStateMachine::onEntry(const QObject *receiver,
+                                    const char *method)
 
     Returns a functor that accepts a boolean argument and calls the given
     \a method on \a receiver using QMetaObject::invokeMethod() if that argument
@@ -190,14 +194,10 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
     This is useful to wrap handlers for connectToState() that should only
     be executed when the state is entered.
-
-    onEntry() is only available if the compiler supports return type
-    deduction for functions.
-*/
+ */
 
 /*!
-    \fn auto QScxmlStateMachine::onExit(const QObject *receiver,
-                                        const char *method)
+    \fn QScxmlStateMachine::onExit(const QObject *receiver, const char *method)
 
     Returns a functor that accepts a boolean argument and calls the given
     \a method on \a receiver using QMetaObject::invokeMethod() if that argument
@@ -208,10 +208,7 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
     This is useful to wrap handlers for connectToState() that should only
     be executed when the state is left.
-
-    onExit() is only available if the compiler supports return type
-    deduction for functions.
-*/
+ */
 
 /*!
     \fn QScxmlStateMachine::onEntry(Functor functor)
@@ -222,9 +219,6 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
     This is useful to wrap handlers for connectToState() that should only
     be executed when the state is entered.
-
-    onEntry() is only available if the compiler supports return type
-    deduction for functions.
  */
 
 /*!
@@ -236,9 +230,6 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
     This is useful to wrap handlers for connectToState() that should only
     be executed when the state is left.
-
-    onExit() is only available if the compiler supports return type
-    deduction for functions.
  */
 
 /*!
@@ -252,9 +243,6 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
     This is useful to wrap handlers for connectToState() that should only
     be executed when the state is entered.
-
-    onEntry() is only available if the compiler supports return type
-    deduction for functions.
  */
 
 /*!
@@ -268,9 +256,6 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
     This is useful to wrap handlers for connectToState() that should only
     be executed when the state is left.
-
-    onExit() is only available if the compiler supports return type
-    deduction for functions.
  */
 
 namespace QScxmlInternal {
@@ -464,7 +449,7 @@ void QScxmlStateMachinePrivate::addService(int invokingState)
             continue; // service failed to start
         const QString serviceName = service->name();
         m_invokedServices[size_t(id)] = { invokingState, service, serviceName };
-        service->start();
+        service->start(factory->invokeInfo(), factory->parameters(), factory->names());
     }
     emitInvokedServicesChanged();
 }
@@ -541,16 +526,17 @@ void QScxmlStateMachinePrivate::postEvent(QScxmlEvent *event)
     Q_Q(QScxmlStateMachine);
 
     if (!event->name().startsWith(QStringLiteral("done.invoke."))) {
-        for (auto invokedService : m_invokedServices) {
-            auto service = invokedService.service;
+        for (int id = 0, end = static_cast<int>(m_invokedServices.size()); id != end; ++id) {
+            auto service = m_invokedServices[id].service;
             if (service == nullptr)
                 continue;
+            auto factory = serviceFactory(id);
             if (event->invokeId() == service->id()) {
                 setEvent(event);
-                service->finalize();
+                service->finalize(factory->invokeInfo().finalize);
                 resetEvent();
             }
-            if (service->autoforward()) {
+            if (factory->invokeInfo().autoforward) {
                 qCDebug(qscxmlLog) << q << "auto-forwarding event" << event->name()
                                    << "from" << q->name()
                                    << "to child" << service->id();
@@ -1438,9 +1424,9 @@ QScxmlStateMachine *QScxmlStateMachine::fromFile(const QString &fileName)
 QScxmlStateMachine *QScxmlStateMachine::fromData(QIODevice *data, const QString &fileName)
 {
     QXmlStreamReader xmlReader(data);
-    QScxmlParser parser(&xmlReader);
-    parser.setFileName(fileName);
-    return parser.parse();
+    QScxmlCompiler compiler(&xmlReader);
+    compiler.setFileName(fileName);
+    return compiler.compile();
 }
 
 QVector<QScxmlError> QScxmlStateMachine::parseErrors() const
@@ -1453,14 +1439,14 @@ QScxmlStateMachine::QScxmlStateMachine(const QMetaObject *metaObject, QObject *p
     : QObject(*new QScxmlStateMachinePrivate(metaObject), parent)
 {
     Q_D(QScxmlStateMachine);
-    d->m_executionEngine = new QScxmlExecutableContent::QScxmlExecutionEngine(this);
+    d->m_executionEngine = new QScxmlExecutionEngine(this);
 }
 
 QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *parent)
     : QObject(dd, parent)
 {
     Q_D(QScxmlStateMachine);
-    d->m_executionEngine = new QScxmlExecutableContent::QScxmlExecutionEngine(this);
+    d->m_executionEngine = new QScxmlExecutionEngine(this);
 }
 
 /*!
@@ -1599,7 +1585,7 @@ QScxmlDataModel *QScxmlStateMachine::dataModel() const
     return d->m_dataModel;
 }
 
-void QScxmlStateMachine::setLoader(QScxmlParser::Loader *loader)
+void QScxmlStateMachine::setLoader(QScxmlCompiler::Loader *loader)
 {
     Q_D(QScxmlStateMachine);
 
@@ -1609,7 +1595,7 @@ void QScxmlStateMachine::setLoader(QScxmlParser::Loader *loader)
     }
 }
 
-QScxmlParser::Loader *QScxmlStateMachine::loader() const
+QScxmlCompiler::Loader *QScxmlStateMachine::loader() const
 {
     Q_D(const QScxmlStateMachine);
 

@@ -1,6 +1,5 @@
 QT = core scxml
 
-CONFIG += c++14
 TARGET = ftpclient
 
 TEMPLATE = app

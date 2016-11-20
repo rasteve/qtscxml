@@ -1,3 +1,5 @@
+<?xml version="1.0" ?>
+<!--
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
@@ -47,45 +49,63 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
-#ifndef FTPDATACHANNEL_H
-#define FTPDATACHANNEL_H
-
-#include <QObject>
-#include <QTcpServer>
-#include <QTcpSocket>
-#include <QScopedPointer>
-
-class FtpDataChannel : public QObject
-{
-    Q_OBJECT
-public:
-    explicit FtpDataChannel(QObject *parent = 0);
-
-    // Listen on a local address.
-    void listen(const QHostAddress &address = QHostAddress::Any);
-
-    // Send data over the socket.
-    void sendData(const QByteArray &data);
-
-    // Close the connection.
-    void close();
-
-    // Retrieve the port specification to be announced on the control channel.
-    // Something like "a,b,c,d,xxx,yyy" where
-    // - a.b.c.d would be the IP address in decimal/dot notation and
-    // - xxx,yyy are the upper and lower 8 bits of the TCP port in decimal
-    // (This will only work if the local address we're listening on is actually meaningful)
-    QString portspec() const;
-
-signals:
-
-    // The FTP server has sent some data.
-    void dataReceived(const QByteArray &data);
-
-private:
-    QTcpServer m_server;
-    QScopedPointer<QTcpSocket> m_socket;
-};
-
-#endif // FTPDATACHANNEL_H
+-->
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0"
+       name="Sudoku" datamodel="ecmascript">
+    <datamodel>
+        <data id="initState"/>
+        <data id="currentState" expr="[[]]"/>
+        <data id="undoStack"/>
+    </datamodel>
+    <script src="sudoku.js"/>
+    <state id="game">
+        <onentry>
+            <raise event="restart"/>
+        </onentry>
+        <state id="idle">
+            <transition event="start" target="playing"/>
+            <transition event="setup" target="unsolved">
+                <assign location="initState" expr="_event.data.initState"/>
+                <raise event="restart"/>
+            </transition>
+            <state id="unsolved"/>
+            <state id="solved"/>
+        </state>
+        <state id="playing">
+            <onentry>
+                <raise event="restart"/>
+            </onentry>
+            <transition event="tap">
+                <if cond="isValidPosition()">
+                    <script>
+                        calculateCurrentState();
+                    </script>
+                    <if cond="isSolved()">
+                        <raise event="solved"/>
+                    </if>
+                    <raise event="update"/>
+                </if>
+            </transition>
+            <transition event="undo">
+                <script>
+                    undo();
+                </script>
+                <raise event="update"/>
+            </transition>
+            <transition event="stop" target="idle"/>
+            <transition event="solved" target="solved"/>
+        </state>
+        <transition event="restart">
+            <script>
+                restart();
+            </script>
+            <raise event="update"/>
+        </transition>
+        <transition event="update">
+            <send event="updateGUI">
+                <param name="currentState" expr="currentState"/>
+                <param name="initState" expr="initState"/>
+            </send>
+        </transition>
+    </state>
+</scxml>
