@@ -65,9 +65,6 @@
         \li Option
         \li Description
       \row
-        \li \c --no-c++11
-        \li Use no C++11 features in the generated code.
-      \row
         \li \c {--namespace <namespace>}
         \li Put the generated class(es) in the specified namespace. You can use the
             \c QSCXMLC_NAMESPACE variable to specify this in your project file.
