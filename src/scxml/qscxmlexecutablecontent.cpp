@@ -216,11 +216,9 @@ const InstructionId *QScxmlExecutionEngine::step(const InstructionId *ip, bool *
                 , loopStart(loopStart)
             {}
 
-            bool run() Q_DECL_OVERRIDE
+            void run(bool *ok) Q_DECL_OVERRIDE
             {
-                bool ok = true;
-                engine->step(loopStart, &ok);
-                return ok;
+                engine->step(loopStart, ok);
             }
         };
 
@@ -229,7 +227,7 @@ const InstructionId *QScxmlExecutionEngine::step(const InstructionId *ip, bool *
         const InstructionId *loopStart = _foreach->blockstart();
         ip += _foreach->size();
         LoopBody body(this, loopStart);
-        *ok = dataModel->evaluateForeach(_foreach->doIt, ok, &body) && *ok;
+        dataModel->evaluateForeach(_foreach->doIt, ok, &body);
         return ip;
     }
 

@@ -64,7 +64,7 @@ public:
     {
     public:
         virtual ~ForeachLoopBody();
-        virtual bool run() = 0;
+        virtual void run(bool *ok) = 0;
     };
 
 public:
@@ -83,7 +83,7 @@ public:
     virtual void evaluateToVoid(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
     virtual void evaluateAssignment(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
     virtual void evaluateInitialization(QScxmlExecutableContent::EvaluatorId id, bool *ok) = 0;
-    virtual bool evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) = 0;
+    virtual void evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) = 0;
 #endif // Q_QDOC
 
     virtual void setScxmlEvent(const QScxmlEvent &event) = 0;

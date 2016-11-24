@@ -469,7 +469,7 @@ void QScxmlEcmaScriptDataModel::evaluateInitialization(EvaluatorId id, bool *ok)
     evaluateAssignment(id, ok);
 }
 
-bool QScxmlEcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body)
+void QScxmlEcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body)
 {
     Q_D(QScxmlEcmaScriptDataModel);
     Q_ASSERT(ok);
@@ -480,7 +480,7 @@ bool QScxmlEcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, Foreac
     if (!jsArray.isArray()) {
         d->submitError(QStringLiteral("error.execution"), QStringLiteral("invalid array '%1' in %2").arg(d->string(info.array), d->string(info.context)));
         *ok = false;
-        return false;
+        return;
     }
 
     QString item = d->string(info.item);
@@ -490,7 +490,7 @@ bool QScxmlEcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, Foreac
         d->submitError(QStringLiteral("error.execution"), QStringLiteral("invalid item '%1' in %2")
                       .arg(d->string(info.item), d->string(info.context)));
         *ok = false;
-        return false;
+        return;
     }
 
     const int length = jsArray.property(QStringLiteral("length")).toInt();
@@ -502,17 +502,17 @@ bool QScxmlEcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, Foreac
         QJSValue currentItem = jsArray.property(static_cast<quint32>(currentIndex));
         *ok = d->setProperty(item, currentItem, context);
         if (!*ok)
-            return false;
+            return;
         if (hasIndex) {
             *ok = d->setProperty(idx, currentIndex, context);
             if (!*ok)
-                return false;
+                return;
         }
-        if (!body->run())
-            return false;
+        body->run(ok);
+        if (!*ok)
+            return;
     }
-
-    return true;
+    *ok = true;
 }
 
 /*!

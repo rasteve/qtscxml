@@ -203,7 +203,7 @@ void QScxmlNullDataModel::evaluateInitialization(QScxmlExecutableContent::Evalua
                 QStringLiteral("Cannot initialize values on a null data model"));
 }
 
-bool QScxmlNullDataModel::evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body)
+void QScxmlNullDataModel::evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body)
 {
     Q_UNUSED(id);
     Q_UNUSED(body);
@@ -211,7 +211,6 @@ bool QScxmlNullDataModel::evaluateForeach(QScxmlExecutableContent::EvaluatorId i
     QScxmlStateMachinePrivate::get(stateMachine())->submitError(
                 QStringLiteral("error.execution"),
                 QStringLiteral("Cannot run foreach on a null data model"));
-    return false;
 }
 
 /*!

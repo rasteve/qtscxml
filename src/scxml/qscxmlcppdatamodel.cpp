@@ -167,13 +167,12 @@ void QScxmlCppDataModel::evaluateInitialization(EvaluatorId id, bool *ok)
     Q_UNREACHABLE();
 }
 
-bool QScxmlCppDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body)
+void QScxmlCppDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body)
 {
     Q_UNUSED(id);
     Q_UNUSED(ok);
     Q_UNUSED(body);
     Q_UNREACHABLE();
-    return false;
 }
 
 /*!
