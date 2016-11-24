@@ -73,7 +73,7 @@ QScxmlStateMachine *QScxmlInvokableService::parentStateMachine() const
 
 void QScxmlInvokableService::finalize(QScxmlExecutableContent::ContainerId finalize)
 {
-    if (finalize != QScxmlExecutableContent::NoInstruction) {
+    if (finalize != QScxmlExecutableContent::NoContainer) {
         auto psm = parentStateMachine();
         qCDebug(qscxmlLog) << psm << "running finalize on event";
         auto smp = QScxmlStateMachinePrivate::get(psm);

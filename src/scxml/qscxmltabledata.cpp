@@ -68,7 +68,7 @@ public:
 
     {
         m_activeSequences.reserve(4);
-        tableData.theInitialSetup = QScxmlExecutableContent::NoInstruction;
+        tableData.theInitialSetup = QScxmlExecutableContent::NoContainer;
     }
 
     void buildTableData(DocumentModel::ScxmlDocument *doc)
@@ -264,7 +264,7 @@ protected: // visitor
                     params.append(p);
                 }
                 QScxmlExecutableContent::ContainerId finalize =
-                        QScxmlExecutableContent::NoInstruction;
+                        QScxmlExecutableContent::NoContainer;
                 if (!invoke->finalize.isEmpty()) {
                     finalize = startNewSequence();
                     visit(&invoke->finalize);
@@ -528,7 +528,7 @@ protected:
     ContainerId generate(const DocumentModel::InstructionSequences &inSequences)
     {
         if (inSequences.isEmpty())
-            return NoInstruction;
+            return NoContainer;
 
         auto id = m_instructions.newContainerId();
         auto outSequences = m_instructions.add<InstructionSequences>();

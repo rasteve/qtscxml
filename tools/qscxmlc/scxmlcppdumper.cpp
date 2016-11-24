@@ -374,7 +374,7 @@ int createFactoryId(QStringList &factories, const QString &className,
     const int idx = factories.size();
 
     QString line = QStringLiteral("case %1: return new ").arg(QString::number(idx));
-    if (invokeInfo.expr == QScxmlExecutableContent::NoInstruction) {
+    if (invokeInfo.expr == QScxmlExecutableContent::NoEvaluator) {
         line += QStringLiteral("QScxmlStaticScxmlServiceFactory< %1::%2 >(")
                 .arg(namespacePrefix, className);
     } else {
@@ -445,7 +445,7 @@ void CppDumper::dump(TranslationUnit *unit)
                 const QVector<QScxmlExecutableContent::ParameterInfo> &parameters,
                 const QSharedPointer<DocumentModel::ScxmlDocument> &content) -> int {
             QString className;
-            if (invokeInfo.expr == QScxmlExecutableContent::NoInstruction) {
+            if (invokeInfo.expr == QScxmlExecutableContent::NoEvaluator) {
                 className = mangleIdentifier(classnameForDocument.value(content.data()));
             }
             return createFactoryId(factories[i], className, namespacePrefix,
