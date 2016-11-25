@@ -156,22 +156,22 @@ bool QScxmlCppDataModel::setup(const QVariantMap &initialDataValues)
 void QScxmlCppDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
-    Q_UNUSED(ok);
+    *ok = false;
     Q_UNREACHABLE();
 }
 
 void QScxmlCppDataModel::evaluateInitialization(EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
-    Q_UNUSED(ok);
+    *ok = false;
     Q_UNREACHABLE();
 }
 
 void QScxmlCppDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body)
 {
     Q_UNUSED(id);
-    Q_UNUSED(ok);
     Q_UNUSED(body);
+    *ok = false;
     Q_UNREACHABLE();
 }
 
