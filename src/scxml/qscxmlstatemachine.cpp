@@ -449,7 +449,7 @@ void QScxmlStateMachinePrivate::addService(int invokingState)
             continue; // service failed to start
         const QString serviceName = service->name();
         m_invokedServices[size_t(id)] = { invokingState, service, serviceName };
-        service->start(factory);
+        service->start();
     }
     emitInvokedServicesChanged();
 }
@@ -533,7 +533,16 @@ void QScxmlStateMachinePrivate::postEvent(QScxmlEvent *event)
             auto factory = serviceFactory(id);
             if (event->invokeId() == service->id()) {
                 setEvent(event);
-                service->finalize(factory->invokeInfo().finalize);
+
+                const QScxmlExecutableContent::ContainerId finalize
+                        = factory->invokeInfo().finalize;
+                if (finalize != QScxmlExecutableContent::NoContainer) {
+                    auto psm = service->parentStateMachine();
+                    qCDebug(qscxmlLog) << psm << "running finalize on event";
+                    auto smp = QScxmlStateMachinePrivate::get(psm);
+                    smp->m_executionEngine->execute(finalize);
+                }
+
                 resetEvent();
             }
             if (factory->invokeInfo().autoforward) {

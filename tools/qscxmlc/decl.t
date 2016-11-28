@@ -6,7 +6,7 @@ public:
 ${properties}
 
 public:
-    ${classname}(QObject *parent = 0);
+    Q_INVOKABLE ${classname}(QObject *parent = 0);
     ~${classname}();
 
 private:
