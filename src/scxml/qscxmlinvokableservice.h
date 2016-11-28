@@ -48,6 +48,7 @@ QT_BEGIN_NAMESPACE
 class QScxmlEvent;
 class QScxmlStateMachine;
 
+class QScxmlInvokableServiceFactory;
 class QScxmlInvokableServicePrivate;
 class Q_SCXML_EXPORT QScxmlInvokableService : public QObject
 {
@@ -63,9 +64,7 @@ public:
 
     QScxmlStateMachine *parentStateMachine() const;
 
-    virtual bool start(const QScxmlExecutableContent::InvokeInfo &invokeInfo,
-                       const QVector<QScxmlExecutableContent::ParameterInfo> &parameters,
-                       const QVector<QScxmlExecutableContent::StringId> &names) = 0;
+    virtual bool start(const QScxmlInvokableServiceFactory *factory) = 0;
     virtual QString id() const = 0;
     virtual QString name() const = 0;
     virtual void postEvent(QScxmlEvent *event) = 0;
@@ -106,9 +105,7 @@ public:
                        QScxmlStateMachine *parentStateMachine,
                        QObject *parent = nullptr);
 
-    bool start(const QScxmlExecutableContent::InvokeInfo &invokeInfo,
-               const QVector<QScxmlExecutableContent::ParameterInfo> &parameters,
-               const QVector<QScxmlExecutableContent::StringId> &names) Q_DECL_OVERRIDE;
+    bool start(const QScxmlInvokableServiceFactory *factory) Q_DECL_OVERRIDE;
     QString id() const Q_DECL_OVERRIDE;
     QString name() const Q_DECL_OVERRIDE;
     void postEvent(QScxmlEvent *event) Q_DECL_OVERRIDE;

@@ -449,7 +449,7 @@ void QScxmlStateMachinePrivate::addService(int invokingState)
             continue; // service failed to start
         const QString serviceName = service->name();
         m_invokedServices[size_t(id)] = { invokingState, service, serviceName };
-        service->start(factory->invokeInfo(), factory->parameters(), factory->names());
+        service->start(factory);
     }
     emitInvokedServicesChanged();
 }

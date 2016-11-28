@@ -236,18 +236,17 @@ QScxmlScxmlService::QScxmlScxmlService(QScxmlStateMachine *stateMachine,
     QScxmlStateMachinePrivate::get(stateMachine)->m_parentStateMachine = parentStateMachine;
 }
 
-bool QScxmlScxmlService::start(const QScxmlExecutableContent::InvokeInfo &invokeInfo,
-                               const QVector<QScxmlExecutableContent::ParameterInfo> &parameters,
-                               const QVector<QScxmlExecutableContent::StringId> &names)
+bool QScxmlScxmlService::start(const QScxmlInvokableServiceFactory *factory)
 {
     Q_D(QScxmlScxmlService);
     qCDebug(qscxmlLog) << parentStateMachine() << "preparing to start" << d->stateMachine;
 
     bool ok = false;
-    auto id = d->calculateId(parentStateMachine(), invokeInfo, &ok);
+    auto id = d->calculateId(parentStateMachine(), factory->invokeInfo(), &ok);
     if (!ok)
         return false;
-    auto data = d->calculateData(parentStateMachine(), parameters, names, &ok);
+    auto data = d->calculateData(parentStateMachine(), factory->parameters(), factory->names(),
+                                 &ok);
     if (!ok)
         return false;
 
