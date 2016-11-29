@@ -370,11 +370,6 @@ QScxmlEcmaScriptDataModel::QScxmlEcmaScriptDataModel(QObject *parent)
     : QScxmlDataModel(*(new QScxmlEcmaScriptDataModelPrivate), parent)
 {}
 
-/*! \internal */
-QScxmlEcmaScriptDataModel::~QScxmlEcmaScriptDataModel()
-{
-}
-
 /*!
   \reimp
  */
