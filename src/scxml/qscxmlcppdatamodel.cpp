@@ -152,14 +152,12 @@ void QScxmlCppDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
     *ok = false;
-    Q_UNREACHABLE();
 }
 
 void QScxmlCppDataModel::evaluateInitialization(EvaluatorId id, bool *ok)
 {
     Q_UNUSED(id);
     *ok = false;
-    Q_UNREACHABLE();
 }
 
 void QScxmlCppDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body)
@@ -167,7 +165,6 @@ void QScxmlCppDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBo
     Q_UNUSED(id);
     Q_UNUSED(body);
     *ok = false;
-    Q_UNREACHABLE();
 }
 
 /*!
@@ -225,7 +222,6 @@ bool QScxmlCppDataModel::setScxmlProperty(const QString &name, const QVariant &v
     Q_UNUSED(name);
     Q_UNUSED(value);
     Q_UNUSED(context);
-    Q_UNREACHABLE();
     return false;
 }
 
