@@ -1541,6 +1541,14 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
     \brief The loader that is currently used to resolve and load URIs for the state machine.
  */
 
+/*!
+    \property QScxmlStateMachine::tableData
+
+    This is used when generating C++ from an SCXML file. The class implementing
+    the state machine will use this property to assign the generated table
+    data. The state machine does not assume ownership of the table data.
+ */
+
 QString QScxmlStateMachine::sessionId() const
 {
     Q_D(const QScxmlStateMachine);
@@ -1611,13 +1619,6 @@ QScxmlCompiler::Loader *QScxmlStateMachine::loader() const
     return d->m_loader;
 }
 
-/*!
- * \internal
- *
- * This is used internally in order to execute the executable content.
- *
- * \return the data tables used by the state machine.
- */
 QScxmlTableData *QScxmlStateMachine::tableData() const
 {
     Q_D(const QScxmlStateMachine);
@@ -1625,36 +1626,36 @@ QScxmlTableData *QScxmlStateMachine::tableData() const
     return d->m_tableData;
 }
 
-/*!
- * \internal
- * This is used when generating C++ from an SCXML file. The class implementing the
- * state machine will use this method to pass in the table data (which is also generated).
- *
- * \return the data tables used by the state machine.
- */
 void QScxmlStateMachine::setTableData(QScxmlTableData *tableData)
 {
     Q_D(QScxmlStateMachine);
-    Q_ASSERT(tableData);
+
+    if (d->m_tableData == tableData)
+        return;
 
     d->m_tableData = tableData;
-    d->m_stateTable = reinterpret_cast<const QScxmlExecutableContent::StateTable *>(
-                tableData->stateMachineTable());
-    if (objectName().isEmpty()) {
-        setObjectName(tableData->name());
-    }
-    if (d->m_stateTable->maxServiceId != QScxmlExecutableContent::StateTable::InvalidIndex) {
-        const size_t serviceCount = size_t(d->m_stateTable->maxServiceId + 1);
-        d->m_invokedServices.resize(serviceCount, { -1, nullptr, QString() });
-        d->m_cachedFactories.resize(serviceCount, nullptr);
+    if (tableData) {
+        d->m_stateTable = reinterpret_cast<const QScxmlExecutableContent::StateTable *>(
+                    tableData->stateMachineTable());
+        if (objectName().isEmpty()) {
+            setObjectName(tableData->name());
+        }
+        if (d->m_stateTable->maxServiceId != QScxmlExecutableContent::StateTable::InvalidIndex) {
+            const size_t serviceCount = size_t(d->m_stateTable->maxServiceId + 1);
+            d->m_invokedServices.resize(serviceCount, { -1, nullptr, QString() });
+            d->m_cachedFactories.resize(serviceCount, nullptr);
+        }
+
+        if (d->m_stateTable->version != Q_QSCXMLC_OUTPUT_REVISION) {
+           qFatal("Cannot mix incompatible state table (version 0x%x) with this library "
+                  "(version 0x%x)", d->m_stateTable->version, Q_QSCXMLC_OUTPUT_REVISION);
+        }
+        Q_ASSERT(tableData->stateMachineTable()[d->m_stateTable->arrayOffset +
+                                                d->m_stateTable->arraySize]
+                == QScxmlExecutableContent::StateTable::terminator);
     }
 
-    if (d->m_stateTable->version != Q_QSCXMLC_OUTPUT_REVISION)
-       qFatal("Cannot mix incompatible state table (version 0x%x) with this library (version 0x%x)",
-              d->m_stateTable->version, Q_QSCXMLC_OUTPUT_REVISION);
-    Q_ASSERT(tableData->stateMachineTable()[d->m_stateTable->arrayOffset +
-                                            d->m_stateTable->arraySize]
-            == QScxmlExecutableContent::StateTable::terminator);
+    emit tableDataChanged(tableData);
 }
 
 /*!

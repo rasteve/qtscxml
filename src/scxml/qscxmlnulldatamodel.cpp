@@ -84,8 +84,7 @@ public:
 
     ResolvedEvaluatorInfo prepare(QScxmlExecutableContent::EvaluatorId id)
     {
-        Q_Q(QScxmlNullDataModel);
-        auto td = q->tableData();
+        auto td = m_stateMachine->tableData();
         const QScxmlExecutableContent::EvaluatorInfo &info = td->evaluatorInfo(id);
         QString expr = td->string(info.expr);
         for (int i = 0; i < expr.size(); ) {
@@ -152,10 +151,11 @@ bool QScxmlNullDataModel::setup(const QVariantMap &initialDataValues)
 
 QString QScxmlNullDataModel::evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
+    Q_D(QScxmlNullDataModel);
     // We do implement this, because <log> is allowed in the Null data model,
     // and <log> has an expr attribute that needs "evaluation" for it to generate the log message.
     *ok = true;
-    auto td = tableData();
+    auto td = d->m_stateMachine->tableData();
     const QScxmlExecutableContent::EvaluatorInfo &info = td->evaluatorInfo(id);
     return td->string(info.expr);
 }

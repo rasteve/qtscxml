@@ -123,11 +123,6 @@ QScxmlStateMachine *QScxmlDataModel::stateMachine() const
     return d->m_stateMachine;
 }
 
-QScxmlTableData *QScxmlDataModel::tableData() const
-{
-    return stateMachine()->tableData();
-}
-
 QScxmlDataModel *QScxmlDataModelPrivate::instantiateDataModel(DocumentModel::Scxml::DataModelType type)
 {
     QScxmlDataModel *dataModel = Q_NULLPTR;

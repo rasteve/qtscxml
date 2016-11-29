@@ -96,9 +96,6 @@ Q_SIGNALS:
 
 protected:
     explicit QScxmlDataModel(QScxmlDataModelPrivate &dd, QObject *parent = nullptr);
-#ifndef Q_QDOC
-    QScxmlTableData *tableData() const;
-#endif // Q_QDOC
 };
 
 QT_END_NAMESPACE

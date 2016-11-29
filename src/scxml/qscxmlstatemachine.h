@@ -75,6 +75,7 @@ class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
     Q_PROPERTY(bool invoked READ isInvoked CONSTANT)
     Q_PROPERTY(QVector<QScxmlError> parseErrors READ parseErrors CONSTANT)
     Q_PROPERTY(QScxmlCompiler::Loader *loader READ loader WRITE setLoader NOTIFY loaderChanged)
+    Q_PROPERTY(QScxmlTableData *tableData READ tableData WRITE setTableData NOTIFY tableDataChanged)
 
 protected:
 #ifndef Q_QDOC
@@ -314,6 +315,9 @@ public:
 
     QVector<QScxmlInvokableService *> invokedServices() const;
 
+    QScxmlTableData *tableData() const;
+    void setTableData(QScxmlTableData *tableData);
+
 Q_SIGNALS:
     void runningChanged(bool running);
     void invokedServicesChanged(const QVector<QScxmlInvokableService *> &invokedServices);
@@ -324,6 +328,7 @@ Q_SIGNALS:
     void initialValuesChanged(const QVariantMap &initialValues);
     void initializedChanged(bool initialized);
     void loaderChanged(QScxmlCompiler::Loader *loader);
+    void tableDataChanged(QScxmlTableData *tableData);
 
 public Q_SLOTS:
     void start();
@@ -339,8 +344,6 @@ protected: // methods for friends:
 #ifndef Q_QDOC
     // The methods below are used by the compiled state machines.
     bool isActive(int stateIndex) const;
-    QScxmlTableData *tableData() const;
-    void setTableData(QScxmlTableData *tableData);
 #endif // Q_QDOC
 
 private:
