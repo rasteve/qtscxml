@@ -26,8 +26,8 @@
 **
 ****************************************************************************/
 
-#ifndef CPPDUMPER_H
-#define CPPDUMPER_H
+#ifndef SCXMLCPPDUMPER_H
+#define SCXMLCPPDUMPER_H
 
 #include "qscxmlglobals.h"
 
@@ -95,4 +95,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // CPPDUMPER_H
+#endif // SCXMLCPPDUMPER_H

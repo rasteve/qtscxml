@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef EXECUTABLECONTENT_P_H
-#define EXECUTABLECONTENT_P_H
+#ifndef QSCXMLEXECUTABLECONTENT_P_H
+#define QSCXMLEXECUTABLECONTENT_P_H
 
 //
 //  W A R N I N G
@@ -510,4 +510,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // EXECUTABLECONTENT_P_H
+#endif // QSCXMLEXECUTABLECONTENT_P_H

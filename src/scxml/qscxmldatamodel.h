@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef DATAMODEL_H
-#define DATAMODEL_H
+#ifndef QSCXMLDATAMODEL_H
+#define QSCXMLDATAMODEL_H
 
 #include <QtScxml/qscxmlexecutablecontent.h>
 
@@ -103,4 +103,4 @@ protected:
 
 QT_END_NAMESPACE
 
-#endif // DATAMODEL_H
+#endif // QSCXMLDATAMODEL_H

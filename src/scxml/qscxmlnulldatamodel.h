@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef NULLDATAMODEL_H
-#define NULLDATAMODEL_H
+#ifndef QSCXMLNULLDATAMODEL_H
+#define QSCXMLNULLDATAMODEL_H
 
 #include <QtScxml/qscxmldatamodel.h>
 
@@ -74,4 +74,4 @@ public:
 
 QT_END_NAMESPACE
 
-#endif // NULLDATAMODEL_H
+#endif // QSCXMLNULLDATAMODEL_H

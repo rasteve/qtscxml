@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef EXECUTABLECONTENT_H
-#define EXECUTABLECONTENT_H
+#ifndef QSCXMLEXECUTABLECONTENT_H
+#define QSCXMLEXECUTABLECONTENT_H
 
 #include <QtScxml/qscxmlglobals.h>
 
@@ -99,4 +99,4 @@ struct InvokeInfo {
 
 QT_END_NAMESPACE
 
-#endif // EXECUTABLECONTENT_H
+#endif // QSCXMLEXECUTABLECONTENT_H

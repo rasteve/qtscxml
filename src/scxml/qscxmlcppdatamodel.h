@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef CPPDATAMODEL_H
-#define CPPDATAMODEL_H
+#ifndef QSCXMLCPPDATAMODEL_H
+#define QSCXMLCPPDATAMODEL_H
 
 #include <QtScxml/qscxmldatamodel.h>
 
@@ -80,4 +80,4 @@ public:
 
 QT_END_NAMESPACE
 
-#endif // CPPDATAMODEL_H
+#endif // QSCXMLCPPDATAMODEL_H

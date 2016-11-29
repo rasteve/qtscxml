@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef ECMASCRIPTDATAMODEL_H
-#define ECMASCRIPTDATAMODEL_H
+#ifndef QSCXMLECMASCRIPTDATAMODEL_H
+#define QSCXMLECMASCRIPTDATAMODEL_H
 
 #include <QtScxml/qscxmldatamodel.h>
 
@@ -75,4 +75,4 @@ public:
 
 QT_END_NAMESPACE
 
-#endif // ECMASCRIPTDATAMODEL_H
+#endif // QSCXMLECMASCRIPTDATAMODEL_H

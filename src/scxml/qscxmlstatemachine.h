@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef SCXMLSTATEMACHINE_H
-#define SCXMLSTATEMACHINE_H
+#ifndef QSCXMLSTATEMACHINE_H
+#define QSCXMLSTATEMACHINE_H
 
 #include <QtScxml/qscxmldatamodel.h>
 #include <QtScxml/qscxmlexecutablecontent.h>
@@ -356,4 +356,4 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // SCXMLSTATEMACHINE_H
+#endif // QSCXMLSTATEMACHINE_H
