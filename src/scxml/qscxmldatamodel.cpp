@@ -96,11 +96,6 @@ QScxmlDataModel::QScxmlDataModel(QScxmlDataModelPrivate &dd, QObject *parent) :
 {
 }
 
-/*! \internal */
-QScxmlDataModel::~QScxmlDataModel()
-{
-}
-
 /*!
  * Sets the state machine this model belongs to to \a stateMachine. There is a
  * 1:1 relation between state machines and models. After setting the state
