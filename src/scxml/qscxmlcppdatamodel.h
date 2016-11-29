@@ -63,11 +63,10 @@ public:
     Q_INVOKABLE bool setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;
 
 #ifndef Q_QDOC
-    void evaluateAssignment(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE Q_DECL_FINAL;
-    void evaluateInitialization(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE Q_DECL_FINAL;
-    void evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) Q_DECL_OVERRIDE Q_DECL_FINAL;
+    void evaluateAssignment(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
+    void evaluateInitialization(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
+    void evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) Q_DECL_OVERRIDE;
 #endif // Q_QDOC
-
     void setScxmlEvent(const QScxmlEvent &scxmlEvent) Q_DECL_OVERRIDE Q_DECL_FINAL;
     const QScxmlEvent &scxmlEvent() const;
 
