@@ -65,23 +65,21 @@
         \li Option
         \li Description
       \row
-        \li \c -no-c++11
-        \li Use no C++11 features in the generated code.
-      \row
-        \li \c {-namespace <namespace>}
-        \li Put the generated class(es) in the specified namespace.
+        \li \c {--namespace <namespace>}
+        \li Put the generated class(es) in the specified namespace. You can use the
+            \c QSCXMLC_NAMESPACE variable to specify this in your project file.
       \row
         \li \c {-o <base/out/name>}
         \li The base name of the output files. This can include a path. If none is specified, the
             basename of the input file is used.
       \row
-        \li \c {-oh <header/out>}
+        \li \c {--header <header/out>}
         \li The name of the output header file. If none is specified, .h is added to the base name.
       \row
-        \li \c {-ocpp <cpp/out>}
+        \li \c {--impl <cpp/out>}
         \li The name of the output header file. If none is specified, .cpp is added to the base name.
       \row
-        \li \c {-classname <StateMachineClassName>}
+        \li \c {--classname <StateMachineClassName>}
         \li The class name of the generated state machine. If none is specified, the value of the
             name attribute of the <scxml> tag is taken. If that attribute is not specified either,
             the basename (excluding path) is taken from the input file name.

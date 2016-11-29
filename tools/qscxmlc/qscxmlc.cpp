@@ -107,8 +107,6 @@ int run(const QStringList &arguments)
     cmdParser.setApplicationDescription(QCoreApplication::translate("main",
                        "Compiles the given input.scxml file to a header and a cpp file."));
 
-    QCommandLineOption optionNoCxx11(QLatin1String("no-c++11"),
-                       QCoreApplication::translate("main", "Don't use C++11 in generated code."));
     QCommandLineOption optionNamespace(QLatin1String("namespace"),
                        QCoreApplication::translate("main", "Put generated code into <namespace>."),
                        QCoreApplication::translate("main", "namespace"));
@@ -127,7 +125,6 @@ int run(const QStringList &arguments)
 
     cmdParser.addPositionalArgument(QLatin1String("input"),
                        QCoreApplication::translate("main", "Input SCXML file."));
-    cmdParser.addOption(optionNoCxx11);
     cmdParser.addOption(optionNamespace);
     cmdParser.addOption(optionOutputBaseName);
     cmdParser.addOption(optionOutputHeaderName);
@@ -152,7 +149,6 @@ int run(const QStringList &arguments)
     const QString scxmlFileName = inputFiles.at(0);
 
     TranslationUnit options;
-    options.useCxx11 = !cmdParser.isSet(optionNoCxx11);
     if (cmdParser.isSet(optionNamespace))
         options.namespaceName = cmdParser.value(optionNamespace);
     QString outFileName = cmdParser.value(optionOutputBaseName);

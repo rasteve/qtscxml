@@ -98,7 +98,7 @@ void tst_StateMachineInfo::checkInfo()
     auto info = new QScxmlStateMachineInfo(stateMachine.data());
 
     const QString machineName = QLatin1String("InfoTest");
-    QCOMPARE(info->stateName(QScxmlStateMachineInfo::StateMachineRootState), machineName);
+    QCOMPARE(stateMachine->name(), machineName);
 
     auto states = info->allStates();
     QCOMPARE(states.size(), 5);
@@ -108,11 +108,34 @@ void tst_StateMachineInfo::checkInfo()
     QCOMPARE(info->stateName(states.at(3)), QLatin1String("b"));
     QCOMPARE(info->stateName(states.at(4)), QLatin1String("theEnd"));
 
+    QCOMPARE(info->stateParent(QScxmlStateMachineInfo::InvalidState),
+             static_cast<int>(QScxmlStateMachineInfo::InvalidStateId));
+    QCOMPARE(info->stateParent(states.at(0)), static_cast<int>(QScxmlStateMachineInfo::InvalidStateId));
+    QCOMPARE(info->stateParent(states.at(1)), static_cast<int>(QScxmlStateMachineInfo::InvalidStateId));
+    QCOMPARE(info->stateParent(states.at(2)), 1);
+    QCOMPARE(info->stateParent(states.at(3)), 1);
+    QCOMPARE(info->stateParent(states.at(4)), static_cast<int>(QScxmlStateMachineInfo::InvalidStateId));
+
     QCOMPARE(info->stateType(states.at(0)), QScxmlStateMachineInfo::NormalState);
     QCOMPARE(info->stateType(states.at(1)), QScxmlStateMachineInfo::ParallelState);
     QCOMPARE(info->stateType(states.at(2)), QScxmlStateMachineInfo::NormalState);
     QCOMPARE(info->stateType(states.at(3)), QScxmlStateMachineInfo::NormalState);
     QCOMPARE(info->stateType(states.at(4)), QScxmlStateMachineInfo::FinalState);
+
+    QCOMPARE(info->stateChildren(QScxmlStateMachineInfo::InvalidStateId),
+             QVector<int>() << 0 << 1 << 4);
+    QCOMPARE(info->stateChildren(states.at(0)), QVector<int>());
+    QCOMPARE(info->stateChildren(states.at(1)), QVector<int>() << 2 << 3);
+    QCOMPARE(info->stateChildren(states.at(2)), QVector<int>());
+    QCOMPARE(info->stateChildren(states.at(3)), QVector<int>());
+    QCOMPARE(info->stateChildren(states.at(4)), QVector<int>());
+
+    QCOMPARE(info->initialTransition(QScxmlStateMachineInfo::InvalidStateId), 4);
+    QCOMPARE(info->initialTransition(states.at(0)), static_cast<int>(QScxmlStateMachineInfo::InvalidTransitionId));
+    QCOMPARE(info->initialTransition(states.at(1)), 5);
+    QCOMPARE(info->initialTransition(states.at(2)), static_cast<int>(QScxmlStateMachineInfo::InvalidTransitionId));
+    QCOMPARE(info->initialTransition(states.at(3)), static_cast<int>(QScxmlStateMachineInfo::InvalidTransitionId));
+    QCOMPARE(info->initialTransition(states.at(4)), static_cast<int>(QScxmlStateMachineInfo::InvalidTransitionId));
 
     auto transitions = info->allTransitions();
     QCOMPARE(transitions.size(), 6);
@@ -120,33 +143,41 @@ void tst_StateMachineInfo::checkInfo()
     // targetless transition on top level
     QCOMPARE(info->transitionType(transitions.at(0)), QScxmlStateMachineInfo::ExternalTransition);
     QCOMPARE(info->stateType(info->transitionSource(transitions.at(0))),
-             QScxmlStateMachineInfo::StateMachineRootState);
+             QScxmlStateMachineInfo::InvalidState);
     QCOMPARE(info->transitionTargets(transitions.at(0)).size(), 0);
+    QCOMPARE(info->transitionEvents(transitions.at(0)).size(), 0);
 
     // <anon>->next
     QCOMPARE(info->transitionType(transitions.at(1)), QScxmlStateMachineInfo::ExternalTransition);
     QCOMPARE(info->transitionSource(transitions.at(1)), states.at(0));
     QCOMPARE(info->transitionTargets(transitions.at(1)).size(), 1);
     QCOMPARE(info->transitionTargets(transitions.at(1)).at(0), states.at(1));
+    QCOMPARE(info->transitionEvents(transitions.at(1)).size(), 1);
+    QCOMPARE(info->transitionEvents(transitions.at(1)).at(0), QStringLiteral("step"));
 
     // a->theEnd
     QCOMPARE(info->transitionType(transitions.at(2)), QScxmlStateMachineInfo::ExternalTransition);
     QCOMPARE(info->transitionSource(transitions.at(2)), states.at(2));
     QCOMPARE(info->transitionTargets(transitions.at(2)).size(), 1);
     QCOMPARE(info->transitionTargets(transitions.at(2)).at(0), states.at(4));
+    QCOMPARE(info->transitionEvents(transitions.at(2)).size(), 1);
+    QCOMPARE(info->transitionEvents(transitions.at(2)).at(0), QStringLiteral("step"));
 
     // b->theEnd
     QCOMPARE(info->transitionType(transitions.at(3)), QScxmlStateMachineInfo::InternalTransition);
     QCOMPARE(info->transitionSource(transitions.at(3)), states.at(3));
     QCOMPARE(info->transitionTargets(transitions.at(3)).size(), 1);
     QCOMPARE(info->transitionTargets(transitions.at(3)).at(0), states.at(4));
+    QCOMPARE(info->transitionEvents(transitions.at(3)).size(), 1);
+    QCOMPARE(info->transitionEvents(transitions.at(3)).at(0), QStringLiteral("step"));
 
     // initial transition that activates the first (anonymous) state
     QCOMPARE(info->transitionType(transitions.at(4)), QScxmlStateMachineInfo::SyntheticTransition);
     QCOMPARE(info->stateType(info->transitionSource(transitions.at(4))),
-             QScxmlStateMachineInfo::StateMachineRootState);
+             QScxmlStateMachineInfo::InvalidState);
     QCOMPARE(info->transitionTargets(transitions.at(4)).size(), 1);
     QCOMPARE(info->transitionTargets(transitions.at(4)).at(0), states.at(0));
+    QCOMPARE(info->transitionEvents(transitions.at(4)).size(), 0);
 
     // "initial" transition in the next state that activates all sub-states
     QCOMPARE(info->transitionType(transitions.at(5)), QScxmlStateMachineInfo::SyntheticTransition);
@@ -154,6 +185,7 @@ void tst_StateMachineInfo::checkInfo()
     QCOMPARE(info->transitionTargets(transitions.at(5)).size(), 2);
     QCOMPARE(info->transitionTargets(transitions.at(5)).at(0), states.at(2));
     QCOMPARE(info->transitionTargets(transitions.at(5)).at(1), states.at(3));
+    QCOMPARE(info->transitionEvents(transitions.at(5)).size(), 0);
 
     Recorder recorder;
     QObject::connect(info, &QScxmlStateMachineInfo::statesEntered,

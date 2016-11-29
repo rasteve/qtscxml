@@ -143,27 +143,16 @@ static const char *headerStart =
 
 using namespace DocumentModel;
 
-QString createContainer(const QString &baseType, const QString &elementType,
-                        const QStringList &elements, bool useCxx11)
+QString createContainer(const QStringList &elements)
 {
     QString result;
-    if (useCxx11) {
-        if (elements.isEmpty()) {
-            result += QStringLiteral("{}");
-        } else {
-            result += QStringLiteral("{ ") + elements.join(QStringLiteral(", ")) + QStringLiteral(" }");
-        }
+    if (elements.isEmpty()) {
+        result += QStringLiteral("{}");
     } else {
-        result += QStringLiteral("%1< %2 >()").arg(baseType, elementType);
-        if (!elements.isEmpty()) {
-            result += QStringLiteral(" << ") + elements.join(QStringLiteral(" << "));
-        }
+        result += QStringLiteral("{ ") + elements.join(QStringLiteral(", ")) + QStringLiteral(" }");
     }
     return result;
 }
-
-QString createVector(const QString &elementType, const QStringList &elements, bool useCxx11)
-{ return createContainer(QStringLiteral("QVector"), elementType, elements, useCxx11); }
 
 static void generateList(QString &out, std::function<QString(int)> next)
 {
@@ -380,8 +369,7 @@ int createFactoryId(QStringList &factories, const QString &className,
                     const QString &namespacePrefix,
                     const QScxmlExecutableContent::InvokeInfo &invokeInfo,
                     const QVector<QScxmlExecutableContent::StringId> &namelist,
-                    const QVector<QScxmlExecutableContent::ParameterInfo> &parameters,
-                    bool useCxx11)
+                    const QVector<QScxmlExecutableContent::ParameterInfo> &parameters)
 {
     const int idx = factories.size();
 
@@ -405,8 +393,7 @@ int createFactoryId(QStringList &factories, const QString &className,
         for (auto name : namelist) {
             l.append(QString::number(name));
         }
-        line += QStringLiteral("%1, ").arg(
-                    createVector(QStringLiteral("QScxmlExecutableContent::StringId"), l, useCxx11));
+        line += QStringLiteral("%1, ").arg(createContainer(l));
     }
     {
         QStringList l;
@@ -416,9 +403,7 @@ int createFactoryId(QStringList &factories, const QString &className,
                          QString::number(parameter.expr),
                          QString::number(parameter.location));
         }
-        line += QStringLiteral("%1);").arg(
-                    createVector(QStringLiteral("QScxmlExecutableContent::ParameterInfo"), l,
-                                 useCxx11));
+        line += QStringLiteral("%1);").arg(createContainer(l));
     }
 
     factories.append(line);
@@ -464,7 +449,7 @@ void CppDumper::dump(TranslationUnit *unit)
                 className = mangleIdentifier(classnameForDocument.value(content.data()));
             }
             return createFactoryId(factories[i], className, namespacePrefix,
-                                   invokeInfo, names, parameters, m_translationUnit->useCxx11);
+                                   invokeInfo, names, parameters);
         });
         classNames.append(mangleIdentifier(classnameForDocument.value(doc)));
     }
