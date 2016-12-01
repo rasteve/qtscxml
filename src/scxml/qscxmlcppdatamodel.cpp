@@ -150,7 +150,7 @@ bool QScxmlCppDataModel::setup(const QVariantMap &initialDataValues)
 /*!
   \reimp
 
-  This method doesn't perform any action, ignores \a id, and sets \a ok to
+  This method does not perform any action, ignores \a id, and sets \a ok to
   \c false. Override it in your specific data model in order to implement
   \c <assign>.
  */
@@ -163,7 +163,7 @@ void QScxmlCppDataModel::evaluateAssignment(QScxmlExecutableContent::EvaluatorId
 /*!
   \reimp
 
-  This method doesn't perform any action, ignores \a id, and sets \a ok to
+  This method does not perform any action, ignores \a id, and sets \a ok to
   \c false. Override it in your specific data model in order to implement
   \c <data>.
  */
@@ -176,7 +176,7 @@ void QScxmlCppDataModel::evaluateInitialization(QScxmlExecutableContent::Evaluat
 /*!
   \reimp
 
-  This method doesn't perform any action, ignores \a id and \a body, and sets
+  This method does not perform any action, ignores \a id and \a body, and sets
   \a ok to \c false. Override it in your specific data model in order to
   implement \c <foreach>.
  */
@@ -223,7 +223,7 @@ const QScxmlEvent &QScxmlCppDataModel::scxmlEvent() const
   \reimp
 
   This method always returns an empty QVariant and ignores \a name.
-  Override it to implement lookup of data model properties via the
+  Override it to implement the lookup of data model properties via the
   \c location attribute of various elements.
  */
 QVariant QScxmlCppDataModel::scxmlProperty(const QString &name) const
@@ -235,8 +235,8 @@ QVariant QScxmlCppDataModel::scxmlProperty(const QString &name) const
 /*!
   \reimp
 
-  This method always returns false and ignores \a name.
-  Override it to implement lookup of data model properties via the
+  This method always returns \c false and ignores \a name.
+  Override it to implement the lookup of data model properties via the
   \c location attribute of various elements.
  */
 bool QScxmlCppDataModel::hasScxmlProperty(const QString &name) const
@@ -248,9 +248,9 @@ bool QScxmlCppDataModel::hasScxmlProperty(const QString &name) const
 /*!
   \reimp
 
-  This method always returns false and ignores \a name, \a value, and
+  This method always returns \c false and ignores \a name, \a value, and
   \a context.
-  Override it to implement lookup of data model properties via the
+  Override it to implement the lookup of data model properties via the
   \c location attribute of various elements.
  */
 bool QScxmlCppDataModel::setScxmlProperty(const QString &name, const QVariant &value,

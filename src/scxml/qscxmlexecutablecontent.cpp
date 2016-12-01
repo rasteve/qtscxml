@@ -58,139 +58,140 @@ using namespace QScxmlExecutableContent;
     \typedef QScxmlExecutableContent::ContainerId
     \inmodule QtScxml
     \since 5.8
-    \brief ID for a container holding executable content
+    \brief ID for a container holding executable content.
  */
 
 /*!
     \typedef QScxmlExecutableContent::EvaluatorId
     \inmodule QtScxml
     \since 5.8
-    \brief ID for a unit of executable content
+    \brief ID for a unit of executable content.
  */
 
 /*!
     \typedef QScxmlExecutableContent::InstructionId
     \inmodule QtScxml
     \since 5.8
-    \brief ID for an instruction of executable content
+    \brief ID for an instruction of executable content.
  */
 
 /*!
     \typedef QScxmlExecutableContent::StringId
     \inmodule QtScxml
     \since 5.8
-    \brief ID for a string contained in executable content
+    \brief ID for a string contained in executable content.
  */
 
 /*!
     \class QScxmlExecutableContent::EvaluatorInfo
-    \brief Representation of a unit of executable content
+    \brief The EvaluatorInfo class represents a unit of executable content.
     \since 5.8
     \inmodule QtScxml
  */
 
 /*!
     \variable QScxmlExecutableContent::EvaluatorInfo::expr
-    \brief Expression to be evaluated
+    \brief The expression to be evaluated
  */
 
 /*!
     \variable QScxmlExecutableContent::EvaluatorInfo::context
-    \brief Context for evaluating the expression
+    \brief The context for evaluating the expression
  */
 
 /*!
     \class QScxmlExecutableContent::AssignmentInfo
-    \brief Representation of a data assignment
+    \brief The AssingmentInfo class represents a data assignment.
     \since 5.8
     \inmodule QtScxml
  */
 
 /*!
     \variable QScxmlExecutableContent::AssignmentInfo::expr
-    \brief Expression to be evaluated
+    \brief The expression to be evaluated
  */
 
 /*!
     \variable QScxmlExecutableContent::AssignmentInfo::context
-    \brief Context for evaluating the expression
+    \brief The context for evaluating the expression
  */
 
 /*!
     \variable QScxmlExecutableContent::AssignmentInfo::dest
-    \brief Name of the data item to assign to
+    \brief The name of the data item to assign to
  */
 
 /*!
     \class QScxmlExecutableContent::ForeachInfo
-    \brief Representation of a foreach construct
+    \brief The ForeachInfo class represents a foreach construct.
     \since 5.8
     \inmodule QtScxml
  */
 
 /*!
     \variable QScxmlExecutableContent::ForeachInfo::array
-    \brief Name of the array we are iterating over
+    \brief The name of the array that is iterated over
  */
 
 /*!
     \variable QScxmlExecutableContent::ForeachInfo::item
-    \brief Name of the iteration variable
+    \brief The name of the iteration variable
  */
 
 /*!
     \variable QScxmlExecutableContent::ForeachInfo::index
-    \brief Name of the index variable
+    \brief The name of the index variable
  */
 
 /*!
     \variable QScxmlExecutableContent::ForeachInfo::context
-    \brief Context for evaluating the expression
+    \brief The context for evaluating the expression
  */
 
 /*!
     \class QScxmlExecutableContent::ParameterInfo
-    \brief Representation of a parameter to a service invocation
+    \brief The ParameterInfo class represents a parameter to a service
+    invocation.
     \since 5.8
     \inmodule QtScxml
  */
 
 /*!
     \variable QScxmlExecutableContent::ParameterInfo::name
-    \brief Name of the parameter
+    \brief The name of the parameter
  */
 
 /*!
     \variable QScxmlExecutableContent::ParameterInfo::expr
-    \brief Expression to be evaluated
+    \brief The expression to be evaluated
  */
 
 /*!
     \variable QScxmlExecutableContent::ParameterInfo::location
-    \brief Data model name of the item to be passed as parameter
+    \brief The data model name of the item to be passed as a parameter
  */
 
 /*!
     \class QScxmlExecutableContent::InvokeInfo
-    \brief Representation of a service invocation
+    \brief The InvokeInfo class represents a service invocation.
     \since 5.8
     \inmodule QtScxml
  */
 
 /*!
     \variable QScxmlExecutableContent::InvokeInfo::id
-    \brief the ID specified by the id attribute in the invoke element
+    \brief The ID specified by the \c id attribute in the \c <invoke> element.
  */
 
 /*!
     \variable QScxmlExecutableContent::InvokeInfo::prefix
-    \brief Unique prefix for this invocation in the context of the state from
-    which it is called
+    \brief The unique prefix for this invocation in the context of the state
+    from which it is called
  */
 
 /*!
     \variable QScxmlExecutableContent::InvokeInfo::location
-    \brief Data model location to write the invocation ID to
+    \brief The data model location to write the invocation ID to
  */
 
 /*!
@@ -205,7 +206,8 @@ using namespace QScxmlExecutableContent;
 
 /*!
     \variable QScxmlExecutableContent::InvokeInfo::finalize
-    \brief An ID of a container of executable content to be run on finalizing the invocation
+    \brief The ID of the container of executable content to be run on finalizing
+    the invocation
  */
 
 /*!

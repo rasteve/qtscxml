@@ -82,7 +82,7 @@ QT_USE_NAMESPACE
 
 /*!
     \fn QScxmlTableData::dataNames(int *count) const
-    Retrieves the string IDs for names of data items in the data model. The
+    Retrieves the string IDs for the names of data items in the data model. The
     number of strings is saved into \a count and a pointer to an array of
     string IDs is returned.
 
@@ -969,7 +969,7 @@ private:
 
 /*!
     \fn QScxmlTableData::~QScxmlTableData()
-    Destroys a QScxmlTableData.
+    Destroys the SXCML table data.
  */
 QScxmlTableData::~QScxmlTableData()
 {}

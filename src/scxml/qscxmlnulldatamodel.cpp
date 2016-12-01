@@ -154,10 +154,10 @@ bool QScxmlNullDataModel::setup(const QVariantMap &initialDataValues)
 
 /*!
   \reimp
-  Evaluates the executable content pointed to by \a id, and records in \a ok
-  if there was an error. returns the result of the evaluation as a string. The
-  null data model can evaluate "<log>", so this might result in an actual
-  value, rather than an error
+  Evaluates the executable content pointed to by \a id and records in \a ok
+  whether there was an error. Returns the result of the evaluation as a string.
+  The null data model can evaluate the \c <log> element, so this might result in
+  an actual value, rather than an error
  */
 QString QScxmlNullDataModel::evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
@@ -172,10 +172,10 @@ QString QScxmlNullDataModel::evaluateToString(QScxmlExecutableContent::Evaluator
 
 /*!
   \reimp
-  Evaluates the executable content pointed to by \a id, and records in \a ok
-  if there was an error. returns the result of the evaluation as a bool. The
-  null data model can evaluate the instruction "In(...)", so this might result
-  in an actual value, rather than an error.
+  Evaluates the executable content pointed to by \a id and records in \a ok
+  whether there was an error. Returns the result of the evaluation as a boolean
+  value. The null data model can evaluate the instruction \c In(...), so this
+  might result in an actual value, rather than an error.
  */
 bool QScxmlNullDataModel::evaluateToBool(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
@@ -185,8 +185,8 @@ bool QScxmlNullDataModel::evaluateToBool(QScxmlExecutableContent::EvaluatorId id
 
 /*!
   \reimp
-  Evaluates the executable content pointed to by \a id, and records in \a ok
-  if there was an error. As this is the null data model, any evaluation will in
+  Evaluates the executable content pointed to by \a id and records in \a ok
+  whether there was an error. As this is the null data model, any evaluation will in
   fact result in an error, with \a ok set to \c false. Returns an empty QVariant.
  */
 QVariant QScxmlNullDataModel::evaluateToVariant(QScxmlExecutableContent::EvaluatorId id, bool *ok)
@@ -201,8 +201,8 @@ QVariant QScxmlNullDataModel::evaluateToVariant(QScxmlExecutableContent::Evaluat
 
 /*!
   \reimp
-  Evaluates the executable content pointed to by \a id, and records in \a ok
-  if there was an error. As this is the null data model, any evaluation will in
+  Evaluates the executable content pointed to by \a id and records in \a ok
+  whether there was an error. As this is the null data model, any evaluation will in
   fact result in an error, with \a ok set to \c false.
  */
 void QScxmlNullDataModel::evaluateToVoid(QScxmlExecutableContent::EvaluatorId id, bool *ok)
@@ -216,7 +216,7 @@ void QScxmlNullDataModel::evaluateToVoid(QScxmlExecutableContent::EvaluatorId id
 
 /*!
   \reimp
-  Throws an error and sets \a ok to \c false because the null data model cannot evaluate
+  Throws an error and sets \a ok to \c false, because the null data model cannot evaluate
   assignments.
  */
 void QScxmlNullDataModel::evaluateAssignment(QScxmlExecutableContent::EvaluatorId id, bool *ok)
@@ -230,7 +230,8 @@ void QScxmlNullDataModel::evaluateAssignment(QScxmlExecutableContent::EvaluatorI
 
 /*!
   \reimp
-  Throws an error and sets \a ok to \c false because the null data model cannot initialize data.
+  Throws an error and sets \a ok to \c false, because the null data model cannot
+  initialize data.
  */
 void QScxmlNullDataModel::evaluateInitialization(QScxmlExecutableContent::EvaluatorId id, bool *ok)
 {
@@ -243,8 +244,8 @@ void QScxmlNullDataModel::evaluateInitialization(QScxmlExecutableContent::Evalua
 
 /*!
   \reimp
-  Throws an error and sets \a ok to \c false because the null data model cannot evaluate <foreach>
-  blocks.
+  Throws an error and sets \a ok to \c false, because the null data model cannot
+  evaluate \c <foreach> blocks.
  */
 void QScxmlNullDataModel::evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok,
                                           ForeachLoopBody *body)

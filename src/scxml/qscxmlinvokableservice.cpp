@@ -45,87 +45,88 @@ QT_BEGIN_NAMESPACE
 
 /*!
  * \class QScxmlInvokableService
- * \brief Service invoked from \l{SCXML Specification}{SCXML}
+ * \brief The QScxmlInvokableService class is the base class for services called
+ * from state machines.
  * \since 5.8
  * \inmodule QtScxml
  *
- * QScxmlInvokableService is the base class for services called from state
- * machines via the mechanism described in
- * \l {SCXML Specification - 6.4 <invoke>}. This represents an actual instance
- * of an invoked service.
+ * The services are called from state machines via the mechanism described in
+ * \l {SCXML Specification - 6.4 <invoke>}. This class represents an actual
+ * instance of an invoked service.
  */
 
 /*!
  * \class QScxmlInvokableServiceFactory
- * \brief Factory for creating instances of QScxmlInvokableService
+ * \brief The QScxmlInvokableServiceFactory class creates invokable service
+ * instances.
  * \since 5.8
  * \inmodule QtScxml
  *
- * A factory for creating instances of QScxmlInvokableService. This reperesents
+ * Each service instance represents
  * an \c <invoke> element in the SCXML document. Each time the service is
- * actually invoked a new instance of QScxmlInvokableService is created.
+ * actually invoked, a new instance of QScxmlInvokableService is created.
  */
 
 /*!
   \property QScxmlInvokableServiceFactory::invokeInfo
 
-  The QScxmlExecutableContent::InvokeInfo passed to the constructor.
+  \brief The QScxmlExecutableContent::InvokeInfo passed to the constructor.
  */
 
 /*!
   \property QScxmlInvokableServiceFactory::names
 
-  The QVector<QScxmlExecutableContent::StringId> of names passed to the
-  constructor.
+  \brief The names passed to the constructor.
  */
 
 /*!
   \property QScxmlInvokableServiceFactory::parameters
 
-  The QVector<QScxmlExecutableContent::ParameterInfo> passed to the
-  constructor.
+  \brief The parameters passed to the constructor.
  */
 
 /*!
  * \class QScxmlStaticScxmlServiceFactory
- * \brief Factory for creating QScxmlScxmlService instances from precompiled
- *        documents
+ * \brief The QScxmlStaticScxmlServiceFactory class creates SCXML service
+ * instances from precompiled documents.
  * \since 5.8
  * \inmodule QtScxml
  *
- * A factory for instantiating QScxmlStateMachines from files known at compile
- * time, that is files specified via the \c src attribute in \c <invoke>
+ * A factory for instantiating SCXML state machines from files known at compile
+ * time, that is, files specified via the \c src attribute in \c <invoke>.
  */
 
 /*!
  * \class QScxmlDynamicScxmlServiceFactory
- * \brief Factory for QScxmlScxmlService instances created from documents
- *        loaded at run time
+ * \brief The QScxmlDynamicScxmlServiceFactory class creates SCXML service
+ * instances from documents loaded at runtime.
  * \since 5.8
  * \inmodule QtScxml
  *
- * A QScxmlScxmlServiceFactory for creating dynamically resolved services. This
- * is used when loading \l{SCXML Specification}{SCXML} content from files a
+ * Dynamically resolved services are used when loading \l{SCXML Specification}
+ * {SCXML} content from files that a
  * parent state machine requests at runtime, via the \c srcexpr attribute in
- * \c <invoke>.
+ * the \c <invoke> element.
  */
 
 /*!
  * \property QScxmlInvokableService::parentStateMachine
  *
- * The QScxmlStateMachine that invoked the service.
+ * \brief The SCXML state machine that invoked the service.
  */
 
 /*!
  * \property QScxmlInvokableService::id
  *
- * The id specified in the \c id attribute of the \c <invoke> element.
+ * \brief The ID of the invokable service.
+ *
+ * The ID is specified by the \c id attribute of the \c <invoke> element.
  */
 
 /*!
  * \property QScxmlInvokableService::name
  *
- * The name of the service being invoked.
+ * \brief The name of the service being invoked.
  */
 
 /*!
@@ -144,8 +145,8 @@ QT_BEGIN_NAMESPACE
 /*!
  * \fn QScxmlInvokableServiceFactory::invoke(QScxmlStateMachine *parentStateMachine)
  *
- * Invoke the service with the parameters given in the contructor, passing
- * \a parentStateMachine as parent. Returns the new QScxmlInvokableService.
+ * Invokes the service with the parameters given in the constructor, passing
+ * \a parentStateMachine as the parent. Returns the new invokable service.
  */
 
 QScxmlInvokableServicePrivate::QScxmlInvokableServicePrivate(QScxmlStateMachine *parentStateMachine)
@@ -322,8 +323,8 @@ QScxmlScxmlService::~QScxmlScxmlService()
 }
 
 /*!
-  Create a QScxmlScxmlService wrapping \a stateMachine, invoked from
-  \a parentStateMachine, as child of \a parent.
+  Creates a SCXML service wrapping \a stateMachine, invoked from
+  \a parentStateMachine, as a child of \a factory.
  */
 QScxmlScxmlService::QScxmlScxmlService(QScxmlStateMachine *stateMachine,
                                        QScxmlStateMachine *parentStateMachine,
@@ -391,8 +392,8 @@ void QScxmlScxmlService::postEvent(QScxmlEvent *event)
 }
 
 /*!
-  Create a QScxmlDynamicScxmlServiceFactory, passing the attributes of the
-  \c <invoke> element as \a invokeInfo, any \c <param> child elements as
+  Creates a factory for dynamically resolved services, passing the attributes of
+  the \c <invoke> element as \a invokeInfo, any \c <param> child elements as
   \a parameters, the content of the \c names attribute as \a names, and the
   QObject parent \a parent.
  */

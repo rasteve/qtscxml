@@ -591,8 +591,9 @@ void QScxmlStateMachinePrivate::submitDelayedEvent(QScxmlEvent *event)
 /*!
  * Submits an error event to the external event queue of this state machine.
  *
- * The error is of \a type, e.g. "error.execution". The type has to start with "error.". An
- * \a message is specified, describing the nature of the error. This is passed to the event as the
+ * The type of the error is specified by \a type. The value of type has to begin
+ * with the string \e error. For example \c {error.execution}. The message,
+ * \a message, decribes the error and is passed to the event as the
  * \c errorMessage property. The \a sendId of the message causing the error is specified, if it has
  * one.
  */
@@ -1544,7 +1545,9 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
 /*!
     \property QScxmlStateMachine::tableData
 
-    This is used when generating C++ from an SCXML file. The class implementing
+    \brief The table data that is used when generating C++ from an SCXML file.
+
+    The class implementing
     the state machine will use this property to assign the generated table
     data. The state machine does not assume ownership of the table data.
  */
@@ -2068,7 +2071,7 @@ void QScxmlStateMachine::stop()
 }
 
 /*!
-  Returns \c true if the state with ID \a stateIndex is active.
+  Returns \c true if the state with the ID \a stateIndex is active.
 
   This method is part of the interface to the compiled representation of SCXML
   state machines. It should only be used internally and by state machines
