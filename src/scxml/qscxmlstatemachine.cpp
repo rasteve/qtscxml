@@ -609,17 +609,27 @@ void QScxmlStateMachinePrivate::submitError(const QString &type, const QString &
 
 void QScxmlStateMachinePrivate::start()
 {
+    Q_Q(QScxmlStateMachine);
+
     if (m_stateTable->binding == StateTable::LateBinding)
         m_isFirstStateEntry.resize(m_stateTable->stateCount, true);
 
+    bool running = isRunnable() && !isPaused();
     m_runningState = Starting;
     Q_ASSERT(m_stateTable->initialTransition != StateTable::InvalidIndex);
+
+    if (!running)
+        emit q->runningChanged(true);
 }
 
 void QScxmlStateMachinePrivate::pause()
 {
-    if (isRunnable() && !isPaused())
+    Q_Q(QScxmlStateMachine);
+
+    if (isRunnable() && !isPaused()) {
         m_runningState = Paused;
+        emit q->runningChanged(false);
+    }
 }
 
 void QScxmlStateMachinePrivate::processEvents()
@@ -1106,7 +1116,10 @@ void QScxmlStateMachinePrivate::enterStates(const OrderedSet &enabledTransitions
             m_executionEngine->execute(dhc);
         if (state.type == StateTable::State::Final) {
             if (state.parentIsScxmlElement()) {
+                bool running = isRunnable() && !isPaused();
                 m_runningState = Finished;
+                if (running)
+                    emit q->runningChanged(false);
             } else {
                 const auto &parent = m_stateTable->state(state.parent);
                 m_executionEngine->execute(state.doneData, m_tableData->string(parent.name));
