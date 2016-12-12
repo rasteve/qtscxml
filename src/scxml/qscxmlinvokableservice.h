@@ -40,7 +40,7 @@
 #ifndef QSCXMLINVOKABLESERVICE_H
 #define QSCXMLINVOKABLESERVICE_H
 
-#include "qscxmldatamodel.h"
+#include <QtScxml/qscxmldatamodel.h>
 #include <QtCore/qstring.h>
 
 QT_BEGIN_NAMESPACE

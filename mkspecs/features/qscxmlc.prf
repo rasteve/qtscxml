@@ -9,8 +9,6 @@ debug_and_release {
 
 QSCXMLC_DIR = $$QSCXMLC_DIR$$SUFFIX
 
-msvc:lessThan(MSC_VER,1800):QMAKE_QSCXMLC=$$QMAKE_QSCXMLC --no-c++11 # VS2012 cannot handle initializer lists.
-
 {
 qscxmlc.name = QSCXMLC ${QMAKE_FILE_IN}.h
 qscxmlc.input = STATECHARTS

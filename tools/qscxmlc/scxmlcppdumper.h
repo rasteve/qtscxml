@@ -41,14 +41,12 @@ QT_BEGIN_NAMESPACE
 struct TranslationUnit
 {
     TranslationUnit()
-        : useCxx11(true)
-        , mainDocument(Q_NULLPTR)
+        : mainDocument(Q_NULLPTR)
     {}
 
     QString scxmlFileName;
     QString outHFileName, outCppFileName;
     QString namespaceName;
-    bool useCxx11;
     DocumentModel::ScxmlDocument *mainDocument;
     QList<DocumentModel::ScxmlDocument *> allDocuments;
     QHash<DocumentModel::ScxmlDocument *, QString> classnameForDocument;

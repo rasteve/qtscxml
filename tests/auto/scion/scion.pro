@@ -28,7 +28,6 @@ defineReplace(nameTheClass) {
 qtPrepareTool(QMAKE_QSCXMLC, qscxmlc)
 
 win32 {
-    QMAKE_QSCXMLC += --no-c++11
     msvc: QMAKE_CXXFLAGS += /bigobj
 }
 

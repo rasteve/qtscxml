@@ -66,15 +66,19 @@ class Q_SCXML_EXPORT QScxmlStateMachineInfo: public QObject
 public: // types
     typedef int StateId;
     typedef int TransitionId;
+
+    static const StateId InvalidStateId = -1;
+    static const TransitionId InvalidTransitionId = -1;
+
     enum StateType : int {
-        InvalidState = -2,
-        StateMachineRootState = -1,
+        InvalidState = -1,
         NormalState = 0,
         ParallelState = 1,
         FinalState = 2,
         ShallowHistoryState = 3,
         DeepHistoryState = 4
     };
+
     enum TransitionType : int {
         InvalidTransition = -1,
         InternalTransition = 0,
@@ -85,14 +89,19 @@ public: // types
 public: // methods
     QScxmlStateMachineInfo(QScxmlStateMachine *stateMachine);
 
+    QScxmlStateMachine *stateMachine() const;
+
     QVector<StateId> allStates() const;
     QVector<TransitionId> allTransitions() const;
     QString stateName(int stateId) const;
+    StateId stateParent(StateId stateId) const;
     StateType stateType(int stateId) const;
     QVector<StateId> stateChildren(StateId stateId) const;
+    TransitionId initialTransition(StateId stateId) const;
     TransitionType transitionType(TransitionId transitionId) const;
     StateId transitionSource(TransitionId transitionId) const;
     QVector<StateId> transitionTargets(TransitionId transitionId) const;
+    QVector<QString> transitionEvents(TransitionId transitionId) const;
     QVector<StateId> configuration() const;
 
 Q_SIGNALS:
