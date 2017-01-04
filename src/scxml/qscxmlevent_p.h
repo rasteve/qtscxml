@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef SCXMLEVENT_P_H
-#define SCXMLEVENT_P_H
+#ifndef QSCXMLEVENT_P_H
+#define QSCXMLEVENT_P_H
 
 //
 //  W A R N I N G
@@ -177,5 +177,5 @@ public:
 
 QT_END_NAMESPACE
 
-#endif // SCXMLEVENT_P_H
+#endif // QSCXMLEVENT_P_H
 

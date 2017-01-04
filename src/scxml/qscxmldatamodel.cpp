@@ -45,12 +45,25 @@
 QT_BEGIN_NAMESPACE
 
 /*!
- * \class QScxmlDataModel::ForeachLoopBody
- * \internal
+  \class QScxmlDataModel::ForeachLoopBody
+  \brief The ForeachLoopBody class represents a function to be executed on
+  each iteration of an SCXML foreach loop.
+  \since 5.8
+  \inmodule QtScxml
  */
 
+/*!
+  Destroys a foreach loop body.
+ */
 QScxmlDataModel::ForeachLoopBody::~ForeachLoopBody()
 {}
+
+/*!
+  \fn QScxmlDataModel::ForeachLoopBody::run(bool *ok)
+
+  This function is executed on each iteration. If the execution fails, \a ok is
+  set to \c false, otherwise it is set to \c true.
+ */
 
 /*!
  * \class QScxmlDataModel
@@ -89,15 +102,11 @@ QScxmlDataModel::QScxmlDataModel(QObject *parent)
 }
 
 /*!
- * \internal
+  Creates a new data model from the private object \a dd, with the parent
+  object \a parent.
  */
 QScxmlDataModel::QScxmlDataModel(QScxmlDataModelPrivate &dd, QObject *parent) :
     QObject(dd, parent)
-{
-}
-
-/*! \internal */
-QScxmlDataModel::~QScxmlDataModel()
 {
 }
 
@@ -126,11 +135,6 @@ QScxmlStateMachine *QScxmlDataModel::stateMachine() const
 {
     Q_D(const QScxmlDataModel);
     return d->m_stateMachine;
-}
-
-QScxmlTableData *QScxmlDataModel::tableData() const
-{
-    return stateMachine()->tableData();
 }
 
 QScxmlDataModel *QScxmlDataModelPrivate::instantiateDataModel(DocumentModel::Scxml::DataModelType type)
@@ -192,6 +196,61 @@ QScxmlDataModel *QScxmlDataModelPrivate::instantiateDataModel(DocumentModel::Scx
  * location in the SCXML file where the error occurred.
  *
  * Returns \c true if successful or \c false if an error occurred.
+ */
+
+/*!
+ * \fn QScxmlDataModel::evaluateToString(
+ *           QScxmlExecutableContent::EvaluatorId id, bool *ok)
+ * Evaluates the executable content pointed to by \a id and sets \a ok to
+ * \c false if there was an error or to \c true if there was not.
+ * Returns the result of the evaluation as a QString.
+ */
+
+/*!
+ * \fn QScxmlDataModel::evaluateToBool(QScxmlExecutableContent::EvaluatorId id,
+ *                                     bool *ok)
+ * Evaluates the executable content pointed to by \a id and sets \a ok to
+ * \c false if there was an error or to \c true if there was not.
+ * Returns the result of the evaluation as a boolean value.
+ */
+
+/*!
+ * \fn QScxmlDataModel::evaluateToVariant(
+ *           QScxmlExecutableContent::EvaluatorId id, bool *ok)
+ * Evaluates the executable content pointed to by \a id and sets \a ok to
+ * \c false if there was an error or to \c true if there was not.
+ * Returns the result of the evaluation as a QVariant.
+ */
+
+/*!
+ * \fn QScxmlDataModel::evaluateToVoid(QScxmlExecutableContent::EvaluatorId id,
+ *                                     bool *ok)
+ * Evaluates the executable content pointed to by \a id and sets \a ok to
+ * \c false if there was an error or to \c true if there was not.
+ * The execution is expected to return no result.
+ */
+
+/*!
+ * \fn QScxmlDataModel::evaluateAssignment(
+ *           QScxmlExecutableContent::EvaluatorId id, bool *ok)
+ * Evaluates the assignment pointed to by \a id and sets \a ok to
+ * \c false if there was an error or to \c true if there was not.
+ */
+
+/*!
+ * \fn QScxmlDataModel::evaluateInitialization(
+ *           QScxmlExecutableContent::EvaluatorId id, bool *ok)
+ * Evaluates the initialization pointed to by \a id and sets \a ok to
+ * \c false if there was an error or to \c true if there was not.
+ */
+
+/*!
+ * \fn QScxmlDataModel::evaluateForeach(
+ *           QScxmlExecutableContent::EvaluatorId id, bool *ok,
+ *           ForeachLoopBody *body)
+ * Evaluates the foreach loop pointed to by \a id and sets \a ok to
+ * \c false if there was an error or to \c true if there was not. The
+ * \a body is executed on each iteration.
  */
 
 QT_END_NAMESPACE

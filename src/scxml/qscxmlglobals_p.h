@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef SCXMLGLOBALS_P_H
-#define SCXMLGLOBALS_P_H
+#ifndef QSCXMLGLOBALS_P_H
+#define QSCXMLGLOBALS_P_H
 
 //
 //  W A R N I N G
@@ -62,4 +62,4 @@ Q_DECLARE_LOGGING_CATEGORY(scxmlLog)
 
 QT_END_NAMESPACE
 
-#endif // SCXMLGLOBALS_P_H
+#endif // QSCXMLGLOBALS_P_H

@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef SCXMLEVENT_H
-#define SCXMLEVENT_H
+#ifndef QSCXMLEVENT_H
+#define QSCXMLEVENT_H
 
 #include <QtScxml/qscxmlglobals.h>
 
@@ -119,4 +119,4 @@ QT_END_NAMESPACE
 
 Q_DECLARE_METATYPE(QScxmlEvent)
 
-#endif // SCXMLEVENT_H
+#endif // QSCXMLEVENT_H

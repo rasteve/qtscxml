@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef CPPDATAMODEL_P_H
-#define CPPDATAMODEL_P_H
+#ifndef QSCXMLCPPDATAMODEL_P_H
+#define QSCXMLCPPDATAMODEL_P_H
 
 //
 //  W A R N I N G
@@ -65,4 +65,4 @@ public:
 
 QT_END_NAMESPACE
 
-#endif // CPPDATAMODEL_P_H
+#endif // QSCXMLCPPDATAMODEL_P_H

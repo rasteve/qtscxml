@@ -43,6 +43,75 @@
 
 QT_USE_NAMESPACE
 
+/*!
+    \class QScxmlTableData
+    \since 5.8
+    \inmodule QtScxml
+    \brief The QScxmlTableData class is used by compiled state machines.
+
+    QScxmlTableData is the interface to the compiled representation of SCXML
+    state machines. It should only be used internally and by state machines
+    compiled from SCXML documents.
+ */
+
+/*!
+    \fn QScxmlTableData::string(QScxmlExecutableContent::StringId id) const
+    Returns a QString for the given \a id.
+ */
+
+/*!
+    \fn QScxmlTableData::instructions() const
+    Returns a pointer to the instructions of executable content contained in
+    the state machine.
+ */
+
+/*!
+    \fn QScxmlTableData::evaluatorInfo(QScxmlExecutableContent::EvaluatorId evaluatorId) const
+    Returns the QScxmlExecutableContent::EvaluatorInfo object for the given \a evaluatorId.
+ */
+
+/*!
+    \fn QScxmlTableData::assignmentInfo(QScxmlExecutableContent::EvaluatorId assignmentId) const
+    Returns the QScxmlExecutableContent::AssignmentInfo object for the given \a assignmentId.
+ */
+
+/*!
+    \fn QScxmlTableData::foreachInfo(QScxmlExecutableContent::EvaluatorId foreachId) const
+    Returns the QScxmlExecutableContent::ForeachInfo object for the given \a foreachId.
+ */
+
+/*!
+    \fn QScxmlTableData::dataNames(int *count) const
+    Retrieves the string IDs for the names of data items in the data model. The
+    number of strings is saved into \a count and a pointer to an array of
+    string IDs is returned.
+
+    Returns a pointer to an array of string IDs.
+ */
+
+/*!
+    \fn QScxmlTableData::initialSetup() const
+    Initializes the table data. Returns the ID of the container with
+    instructions to be executed when initializing the state machine.
+ */
+
+/*!
+    \fn QScxmlTableData::name() const
+    Returns the name of the state machine.
+ */
+
+/*!
+    \fn QScxmlTableData::stateMachineTable() const
+    Returns a pointer to the complete state table, expressed as an opaque
+    sequence of integers.
+ */
+
+/*!
+    \fn QScxmlTableData::serviceFactory(int id) const
+    Returns the service factory that creates invokable services for the state
+    with the ID \a id.
+ */
+
 using namespace QScxmlInternal;
 
 namespace {
@@ -898,6 +967,10 @@ private:
 
 } // anonymous namespace
 
+/*!
+    \fn QScxmlTableData::~QScxmlTableData()
+    Destroys the SXCML table data.
+ */
 QScxmlTableData::~QScxmlTableData()
 {}
 

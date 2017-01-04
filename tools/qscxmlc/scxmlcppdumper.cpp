@@ -375,7 +375,7 @@ int createFactoryId(QStringList &factories, const QString &className,
 
     QString line = QStringLiteral("case %1: return new ").arg(QString::number(idx));
     if (invokeInfo.expr == QScxmlExecutableContent::NoEvaluator) {
-        line += QStringLiteral("QScxmlStaticScxmlServiceFactory< %1::%2 >(")
+        line += QStringLiteral("QScxmlStaticScxmlServiceFactory(&%1::%2::staticMetaObject,")
                 .arg(namespacePrefix, className);
     } else {
         line += QStringLiteral("QScxmlDynamicScxmlServiceFactory(");
@@ -714,6 +714,20 @@ QString CppDumper::generateMetaObject(const QString &className,
     classDef.qualified = classDef.classname;
     classDef.superclassList << qMakePair(QByteArray("QScxmlStateMachine"), FunctionDef::Public);
     classDef.hasQObject = true;
+    FunctionDef constructor;
+    constructor.name = className.toUtf8();
+    constructor.access = FunctionDef::Public;
+    constructor.isInvokable = true;
+    constructor.isConstructor = true;
+
+    ArgumentDef arg;
+    arg.type.name = "QObject *";
+    arg.type.rawName = arg.type.name;
+    arg.normalizedType = arg.type.name;
+    arg.name = "parent";
+    arg.typeNameForCast = arg.type.name + "*";
+    constructor.arguments.append(arg);
+    classDef.constructorList.append(constructor);
 
     // stateNames:
     int stateIdx = 0;

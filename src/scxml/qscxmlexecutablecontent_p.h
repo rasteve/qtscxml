@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef EXECUTABLECONTENT_P_H
-#define EXECUTABLECONTENT_P_H
+#ifndef QSCXMLEXECUTABLECONTENT_P_H
+#define QSCXMLEXECUTABLECONTENT_P_H
 
 //
 //  W A R N I N G
@@ -61,6 +61,7 @@
 #include <QtScxml/qscxmlstatemachine.h>
 #endif // BUILD_QSCXMLC
 
+#ifndef Q_QDOC
 QT_BEGIN_NAMESPACE
 
 namespace QScxmlExecutableContent {
@@ -509,5 +510,6 @@ private:
 };
 
 QT_END_NAMESPACE
+#endif // Q_QDOC
 
-#endif // EXECUTABLECONTENT_P_H
+#endif // QSCXMLEXECUTABLECONTENT_P_H

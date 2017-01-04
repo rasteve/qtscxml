@@ -121,25 +121,26 @@ public:
         QJSEngine *engine = assertEngine();
         dataModel = engine->globalObject();
 
-        qCDebug(qscxmlLog) << stateMachine() << "initializing the datamodel";
+        qCDebug(qscxmlLog) << m_stateMachine << "initializing the datamodel";
         setupSystemVariables();
     }
 
     void setupSystemVariables()
     {
         setReadonlyProperty(&dataModel, QStringLiteral("_sessionid"),
-                            stateMachine()->sessionId());
+                            m_stateMachine->sessionId());
 
-        setReadonlyProperty(&dataModel, QStringLiteral("_name"), stateMachine()->name());
+        setReadonlyProperty(&dataModel, QStringLiteral("_name"), m_stateMachine->name());
 
         QJSEngine *engine = assertEngine();
         auto scxml = engine->newObject();
-        scxml.setProperty(QStringLiteral("location"), QStringLiteral("#_scxml_%1").arg(stateMachine()->sessionId()));
+        scxml.setProperty(QStringLiteral("location"), QStringLiteral("#_scxml_%1")
+                          .arg(m_stateMachine->sessionId()));
         auto ioProcs = engine->newObject();
         setReadonlyProperty(&ioProcs, QStringLiteral("scxml"), scxml);
         setReadonlyProperty(&dataModel, QStringLiteral("_ioprocessors"), ioProcs);
 
-        auto platformVars = QScxmlPlatformProperties::create(engine, stateMachine());
+        auto platformVars = QScxmlPlatformProperties::create(engine, m_stateMachine);
         dataModel.setProperty(QStringLiteral("_x"), platformVars->jsValue());
 
         dataModel.setProperty(QStringLiteral("In"), engine->evaluate(
@@ -204,12 +205,6 @@ public:
             return engine->toScriptValue(data);
     }
 
-    QScxmlStateMachine *stateMachine() const
-    {
-        Q_Q(const QScxmlEcmaScriptDataModel);
-        return q->stateMachine();
-    }
-
     QJSEngine *assertEngine()
     {
         if (!jsEngine) {
@@ -230,8 +225,7 @@ public:
 
     QString string(StringId id) const
     {
-        Q_Q(const QScxmlEcmaScriptDataModel);
-        return q->tableData()->string(id);
+        return m_stateMachine->tableData()->string(id);
     }
 
     bool hasProperty(const QString &name) const
@@ -265,7 +259,7 @@ public:
 
     void submitError(const QString &type, const QString &msg, const QString &sendid = QString())
     {
-        QScxmlStateMachinePrivate::get(stateMachine())->submitError(type, msg, sendid);
+        QScxmlStateMachinePrivate::get(m_stateMachine)->submitError(type, msg, sendid);
     }
 
 public:
@@ -370,11 +364,6 @@ QScxmlEcmaScriptDataModel::QScxmlEcmaScriptDataModel(QObject *parent)
     : QScxmlDataModel(*(new QScxmlEcmaScriptDataModelPrivate), parent)
 {}
 
-/*! \internal */
-QScxmlEcmaScriptDataModel::~QScxmlEcmaScriptDataModel()
-{
-}
-
 /*!
   \reimp
  */
@@ -386,7 +375,7 @@ bool QScxmlEcmaScriptDataModel::setup(const QVariantMap &initialDataValues)
     bool ok = true;
     QJSValue undefined(QJSValue::UndefinedValue); // See B.2.1, and test456.
     int count;
-    StringId *names = tableData()->dataNames(&count);
+    StringId *names = d->m_stateMachine->tableData()->dataNames(&count);
     for (int i = 0; i < count; ++i) {
         auto name = d->string(names[i]);
         QJSValue v = undefined;
@@ -404,44 +393,64 @@ bool QScxmlEcmaScriptDataModel::setup(const QVariantMap &initialDataValues)
     return ok;
 }
 
-QString QScxmlEcmaScriptDataModel::evaluateToString(EvaluatorId id, bool *ok)
+/*!
+  \reimp
+ */
+QString QScxmlEcmaScriptDataModel::evaluateToString(QScxmlExecutableContent::EvaluatorId id,
+                                                    bool *ok)
 {
     Q_D(QScxmlEcmaScriptDataModel);
-    const EvaluatorInfo &info = tableData()->evaluatorInfo(id);
+    const EvaluatorInfo &info = d->m_stateMachine->tableData()->evaluatorInfo(id);
 
     return d->evalStr(d->string(info.expr), d->string(info.context), ok);
 }
 
-bool QScxmlEcmaScriptDataModel::evaluateToBool(EvaluatorId id, bool *ok)
+/*!
+  \reimp
+ */
+bool QScxmlEcmaScriptDataModel::evaluateToBool(QScxmlExecutableContent::EvaluatorId id,
+                                               bool *ok)
 {
     Q_D(QScxmlEcmaScriptDataModel);
-    const EvaluatorInfo &info = tableData()->evaluatorInfo(id);
+    const EvaluatorInfo &info = d->m_stateMachine->tableData()->evaluatorInfo(id);
 
     return d->evalBool(d->string(info.expr), d->string(info.context), ok);
 }
 
-QVariant QScxmlEcmaScriptDataModel::evaluateToVariant(EvaluatorId id, bool *ok)
+/*!
+  \reimp
+ */
+QVariant QScxmlEcmaScriptDataModel::evaluateToVariant(QScxmlExecutableContent::EvaluatorId id,
+                                                      bool *ok)
 {
     Q_D(QScxmlEcmaScriptDataModel);
-    const EvaluatorInfo &info = tableData()->evaluatorInfo(id);
+    const EvaluatorInfo &info = d->m_stateMachine->tableData()->evaluatorInfo(id);
 
     return d->evalJSValue(d->string(info.expr), d->string(info.context), ok).toVariant();
 }
 
-void QScxmlEcmaScriptDataModel::evaluateToVoid(EvaluatorId id, bool *ok)
+/*!
+  \reimp
+ */
+void QScxmlEcmaScriptDataModel::evaluateToVoid(QScxmlExecutableContent::EvaluatorId id,
+                                               bool *ok)
 {
     Q_D(QScxmlEcmaScriptDataModel);
-    const EvaluatorInfo &info = tableData()->evaluatorInfo(id);
+    const EvaluatorInfo &info = d->m_stateMachine->tableData()->evaluatorInfo(id);
 
     d->eval(d->string(info.expr), d->string(info.context), ok);
 }
 
-void QScxmlEcmaScriptDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
+/*!
+  \reimp
+ */
+void QScxmlEcmaScriptDataModel::evaluateAssignment(QScxmlExecutableContent::EvaluatorId id,
+                                                   bool *ok)
 {
     Q_D(QScxmlEcmaScriptDataModel);
     Q_ASSERT(ok);
 
-    const AssignmentInfo &info = tableData()->assignmentInfo(id);
+    const AssignmentInfo &info = d->m_stateMachine->tableData()->assignmentInfo(id);
 
     QString dest = d->string(info.dest);
 
@@ -456,10 +465,14 @@ void QScxmlEcmaScriptDataModel::evaluateAssignment(EvaluatorId id, bool *ok)
     }
 }
 
-void QScxmlEcmaScriptDataModel::evaluateInitialization(EvaluatorId id, bool *ok)
+/*!
+  \reimp
+ */
+void QScxmlEcmaScriptDataModel::evaluateInitialization(QScxmlExecutableContent::EvaluatorId id,
+                                                       bool *ok)
 {
     Q_D(QScxmlEcmaScriptDataModel);
-    const AssignmentInfo &info = tableData()->assignmentInfo(id);
+    const AssignmentInfo &info = d->m_stateMachine->tableData()->assignmentInfo(id);
     QString dest = d->string(info.dest);
     if (d->initialDataNames.contains(dest)) {
         *ok = true; // silently ignore the <data> tag
@@ -469,18 +482,22 @@ void QScxmlEcmaScriptDataModel::evaluateInitialization(EvaluatorId id, bool *ok)
     evaluateAssignment(id, ok);
 }
 
-bool QScxmlEcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, ForeachLoopBody *body)
+/*!
+  \reimp
+ */
+void QScxmlEcmaScriptDataModel::evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok,
+                                                ForeachLoopBody *body)
 {
     Q_D(QScxmlEcmaScriptDataModel);
     Q_ASSERT(ok);
     Q_ASSERT(body);
-    const ForeachInfo &info = tableData()->foreachInfo(id);
+    const ForeachInfo &info = d->m_stateMachine->tableData()->foreachInfo(id);
 
     QJSValue jsArray = d->property(d->string(info.array));
     if (!jsArray.isArray()) {
         d->submitError(QStringLiteral("error.execution"), QStringLiteral("invalid array '%1' in %2").arg(d->string(info.array), d->string(info.context)));
         *ok = false;
-        return false;
+        return;
     }
 
     QString item = d->string(info.item);
@@ -490,7 +507,7 @@ bool QScxmlEcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, Foreac
         d->submitError(QStringLiteral("error.execution"), QStringLiteral("invalid item '%1' in %2")
                       .arg(d->string(info.item), d->string(info.context)));
         *ok = false;
-        return false;
+        return;
     }
 
     const int length = jsArray.property(QStringLiteral("length")).toInt();
@@ -502,17 +519,17 @@ bool QScxmlEcmaScriptDataModel::evaluateForeach(EvaluatorId id, bool *ok, Foreac
         QJSValue currentItem = jsArray.property(static_cast<quint32>(currentIndex));
         *ok = d->setProperty(item, currentItem, context);
         if (!*ok)
-            return false;
+            return;
         if (hasIndex) {
             *ok = d->setProperty(idx, currentIndex, context);
             if (!*ok)
-                return false;
+                return;
         }
-        if (!body->run())
-            return false;
+        body->run(ok);
+        if (!*ok)
+            return;
     }
-
-    return true;
+    *ok = true;
 }
 
 /*!

@@ -46,6 +46,177 @@ QT_BEGIN_NAMESPACE
 
 using namespace QScxmlExecutableContent;
 
+/*!
+    \namespace QScxmlExecutableContent
+    \inmodule QtScxml
+    \since 5.8
+    \brief The QScxmlExecutableContent namespace contains various types used
+    to interpret executable content in state machines.
+ */
+
+/*!
+    \typedef QScxmlExecutableContent::ContainerId
+    \inmodule QtScxml
+    \since 5.8
+    \brief ID for a container holding executable content.
+ */
+
+/*!
+    \typedef QScxmlExecutableContent::EvaluatorId
+    \inmodule QtScxml
+    \since 5.8
+    \brief ID for a unit of executable content.
+ */
+
+/*!
+    \typedef QScxmlExecutableContent::InstructionId
+    \inmodule QtScxml
+    \since 5.8
+    \brief ID for an instruction of executable content.
+ */
+
+/*!
+    \typedef QScxmlExecutableContent::StringId
+    \inmodule QtScxml
+    \since 5.8
+    \brief ID for a string contained in executable content.
+ */
+
+/*!
+    \class QScxmlExecutableContent::EvaluatorInfo
+    \brief The EvaluatorInfo class represents a unit of executable content.
+    \since 5.8
+    \inmodule QtScxml
+ */
+
+/*!
+    \variable QScxmlExecutableContent::EvaluatorInfo::expr
+    \brief The expression to be evaluated
+ */
+
+/*!
+    \variable QScxmlExecutableContent::EvaluatorInfo::context
+    \brief The context for evaluating the expression
+ */
+
+/*!
+    \class QScxmlExecutableContent::AssignmentInfo
+    \brief The AssingmentInfo class represents a data assignment.
+    \since 5.8
+    \inmodule QtScxml
+ */
+
+/*!
+    \variable QScxmlExecutableContent::AssignmentInfo::expr
+    \brief The expression to be evaluated
+ */
+
+/*!
+    \variable QScxmlExecutableContent::AssignmentInfo::context
+    \brief The context for evaluating the expression
+ */
+
+/*!
+    \variable QScxmlExecutableContent::AssignmentInfo::dest
+    \brief The name of the data item to assign to
+ */
+
+/*!
+    \class QScxmlExecutableContent::ForeachInfo
+    \brief The ForeachInfo class represents a foreach construct.
+    \since 5.8
+    \inmodule QtScxml
+ */
+
+/*!
+    \variable QScxmlExecutableContent::ForeachInfo::array
+    \brief The name of the array that is iterated over
+ */
+
+/*!
+    \variable QScxmlExecutableContent::ForeachInfo::item
+    \brief The name of the iteration variable
+ */
+
+/*!
+    \variable QScxmlExecutableContent::ForeachInfo::index
+    \brief The name of the index variable
+ */
+
+/*!
+    \variable QScxmlExecutableContent::ForeachInfo::context
+    \brief The context for evaluating the expression
+ */
+
+/*!
+    \class QScxmlExecutableContent::ParameterInfo
+    \brief The ParameterInfo class represents a parameter to a service
+    invocation.
+    \since 5.8
+    \inmodule QtScxml
+ */
+
+/*!
+    \variable QScxmlExecutableContent::ParameterInfo::name
+    \brief The name of the parameter
+ */
+
+/*!
+    \variable QScxmlExecutableContent::ParameterInfo::expr
+    \brief The expression to be evaluated
+ */
+
+/*!
+    \variable QScxmlExecutableContent::ParameterInfo::location
+    \brief The data model name of the item to be passed as a parameter
+ */
+
+/*!
+    \class QScxmlExecutableContent::InvokeInfo
+    \brief The InvokeInfo class represents a service invocation.
+    \since 5.8
+    \inmodule QtScxml
+ */
+
+/*!
+    \variable QScxmlExecutableContent::InvokeInfo::id
+    \brief The ID specified by the \c id attribute in the \c <invoke> element.
+ */
+
+/*!
+    \variable QScxmlExecutableContent::InvokeInfo::prefix
+    \brief The unique prefix for this invocation in the context of the state
+    from which it is called
+ */
+
+/*!
+    \variable QScxmlExecutableContent::InvokeInfo::location
+    \brief The data model location to write the invocation ID to
+ */
+
+/*!
+    \variable QScxmlExecutableContent::InvokeInfo::context
+    \brief The context to interpret the location in
+ */
+
+/*!
+    \variable QScxmlExecutableContent::InvokeInfo::expr
+    \brief The expression representing the srcexpr of the invoke element
+ */
+
+/*!
+    \variable QScxmlExecutableContent::InvokeInfo::finalize
+    \brief The ID of the container of executable content to be run on finalizing
+    the invocation
+ */
+
+/*!
+    \variable QScxmlExecutableContent::InvokeInfo::autoforward
+    \brief Whether events should automatically be forwarded to the invoked
+    service
+ */
+
+
 #ifndef BUILD_QSCXMLC
 static int parseTime(const QString &t, bool *ok = 0)
 {
@@ -216,11 +387,9 @@ const InstructionId *QScxmlExecutionEngine::step(const InstructionId *ip, bool *
                 , loopStart(loopStart)
             {}
 
-            bool run() Q_DECL_OVERRIDE
+            void run(bool *ok) Q_DECL_OVERRIDE
             {
-                bool ok = true;
-                engine->step(loopStart, &ok);
-                return ok;
+                engine->step(loopStart, ok);
             }
         };
 
@@ -229,7 +398,7 @@ const InstructionId *QScxmlExecutionEngine::step(const InstructionId *ip, bool *
         const InstructionId *loopStart = _foreach->blockstart();
         ip += _foreach->size();
         LoopBody body(this, loopStart);
-        *ok = dataModel->evaluateForeach(_foreach->doIt, ok, &body) && *ok;
+        dataModel->evaluateForeach(_foreach->doIt, ok, &body);
         return ip;
     }
 

@@ -449,7 +449,7 @@ void QScxmlStateMachinePrivate::addService(int invokingState)
             continue; // service failed to start
         const QString serviceName = service->name();
         m_invokedServices[size_t(id)] = { invokingState, service, serviceName };
-        service->start(factory->invokeInfo(), factory->parameters(), factory->names());
+        service->start();
     }
     emitInvokedServicesChanged();
 }
@@ -533,7 +533,16 @@ void QScxmlStateMachinePrivate::postEvent(QScxmlEvent *event)
             auto factory = serviceFactory(id);
             if (event->invokeId() == service->id()) {
                 setEvent(event);
-                service->finalize(factory->invokeInfo().finalize);
+
+                const QScxmlExecutableContent::ContainerId finalize
+                        = factory->invokeInfo().finalize;
+                if (finalize != QScxmlExecutableContent::NoContainer) {
+                    auto psm = service->parentStateMachine();
+                    qCDebug(qscxmlLog) << psm << "running finalize on event";
+                    auto smp = QScxmlStateMachinePrivate::get(psm);
+                    smp->m_executionEngine->execute(finalize);
+                }
+
                 resetEvent();
             }
             if (factory->invokeInfo().autoforward) {
@@ -580,36 +589,47 @@ void QScxmlStateMachinePrivate::submitDelayedEvent(QScxmlEvent *event)
 }
 
 /*!
- * \internal
- * \brief Submits an error event to the external event queue of this state machine.
+ * Submits an error event to the external event queue of this state machine.
  *
- * \param type The error message type, e.g. "error.execution". The type has to start with "error.".
- * \param msg A string describing the nature of the error. This is passed to the event as the
- *            errorMessage
- * \param sendid The sendid of the message causing the error, if it has one.
+ * The type of the error is specified by \a type. The value of type has to begin
+ * with the string \e error. For example \c {error.execution}. The message,
+ * \a message, decribes the error and is passed to the event as the
+ * \c errorMessage property. The \a sendId of the message causing the error is specified, if it has
+ * one.
  */
-void QScxmlStateMachinePrivate::submitError(const QString &type, const QString &msg, const QString &sendid)
+void QScxmlStateMachinePrivate::submitError(const QString &type, const QString &message,
+                                            const QString &sendId)
 {
     Q_Q(QScxmlStateMachine);
-    qCDebug(qscxmlLog) << q << "had error" << type << ":" << msg;
+    qCDebug(qscxmlLog) << q << "had error" << type << ":" << message;
     if (!type.startsWith(QStringLiteral("error.")))
         qCWarning(qscxmlLog) << q << "Message type of error message does not start with 'error.'!";
-    q->submitEvent(QScxmlEventBuilder::errorEvent(q, type, msg, sendid));
+    q->submitEvent(QScxmlEventBuilder::errorEvent(q, type, message, sendId));
 }
 
 void QScxmlStateMachinePrivate::start()
 {
+    Q_Q(QScxmlStateMachine);
+
     if (m_stateTable->binding == StateTable::LateBinding)
         m_isFirstStateEntry.resize(m_stateTable->stateCount, true);
 
+    bool running = isRunnable() && !isPaused();
     m_runningState = Starting;
     Q_ASSERT(m_stateTable->initialTransition != StateTable::InvalidIndex);
+
+    if (!running)
+        emit q->runningChanged(true);
 }
 
 void QScxmlStateMachinePrivate::pause()
 {
-    if (isRunnable() && !isPaused())
+    Q_Q(QScxmlStateMachine);
+
+    if (isRunnable() && !isPaused()) {
         m_runningState = Paused;
+        emit q->runningChanged(false);
+    }
 }
 
 void QScxmlStateMachinePrivate::processEvents()
@@ -1096,7 +1116,10 @@ void QScxmlStateMachinePrivate::enterStates(const OrderedSet &enabledTransitions
             m_executionEngine->execute(dhc);
         if (state.type == StateTable::State::Final) {
             if (state.parentIsScxmlElement()) {
+                bool running = isRunnable() && !isPaused();
                 m_runningState = Finished;
+                if (running)
+                    emit q->runningChanged(false);
             } else {
                 const auto &parent = m_stateTable->state(state.parent);
                 m_executionEngine->execute(state.doneData, m_tableData->string(parent.name));
@@ -1532,6 +1555,16 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
     \brief The loader that is currently used to resolve and load URIs for the state machine.
  */
 
+/*!
+    \property QScxmlStateMachine::tableData
+
+    \brief The table data that is used when generating C++ from an SCXML file.
+
+    The class implementing
+    the state machine will use this property to assign the generated table
+    data. The state machine does not assume ownership of the table data.
+ */
+
 QString QScxmlStateMachine::sessionId() const
 {
     Q_D(const QScxmlStateMachine);
@@ -1602,13 +1635,6 @@ QScxmlCompiler::Loader *QScxmlStateMachine::loader() const
     return d->m_loader;
 }
 
-/*!
- * \internal
- *
- * This is used internally in order to execute the executable content.
- *
- * \return the data tables used by the state machine.
- */
 QScxmlTableData *QScxmlStateMachine::tableData() const
 {
     Q_D(const QScxmlStateMachine);
@@ -1616,36 +1642,36 @@ QScxmlTableData *QScxmlStateMachine::tableData() const
     return d->m_tableData;
 }
 
-/*!
- * \internal
- * This is used when generating C++ from an SCXML file. The class implementing the
- * state machine will use this method to pass in the table data (which is also generated).
- *
- * \return the data tables used by the state machine.
- */
 void QScxmlStateMachine::setTableData(QScxmlTableData *tableData)
 {
     Q_D(QScxmlStateMachine);
-    Q_ASSERT(tableData);
+
+    if (d->m_tableData == tableData)
+        return;
 
     d->m_tableData = tableData;
-    d->m_stateTable = reinterpret_cast<const QScxmlExecutableContent::StateTable *>(
-                tableData->stateMachineTable());
-    if (objectName().isEmpty()) {
-        setObjectName(tableData->name());
-    }
-    if (d->m_stateTable->maxServiceId != QScxmlExecutableContent::StateTable::InvalidIndex) {
-        const size_t serviceCount = size_t(d->m_stateTable->maxServiceId + 1);
-        d->m_invokedServices.resize(serviceCount, { -1, nullptr, QString() });
-        d->m_cachedFactories.resize(serviceCount, nullptr);
+    if (tableData) {
+        d->m_stateTable = reinterpret_cast<const QScxmlExecutableContent::StateTable *>(
+                    tableData->stateMachineTable());
+        if (objectName().isEmpty()) {
+            setObjectName(tableData->name());
+        }
+        if (d->m_stateTable->maxServiceId != QScxmlExecutableContent::StateTable::InvalidIndex) {
+            const size_t serviceCount = size_t(d->m_stateTable->maxServiceId + 1);
+            d->m_invokedServices.resize(serviceCount, { -1, nullptr, QString() });
+            d->m_cachedFactories.resize(serviceCount, nullptr);
+        }
+
+        if (d->m_stateTable->version != Q_QSCXMLC_OUTPUT_REVISION) {
+           qFatal("Cannot mix incompatible state table (version 0x%x) with this library "
+                  "(version 0x%x)", d->m_stateTable->version, Q_QSCXMLC_OUTPUT_REVISION);
+        }
+        Q_ASSERT(tableData->stateMachineTable()[d->m_stateTable->arrayOffset +
+                                                d->m_stateTable->arraySize]
+                == QScxmlExecutableContent::StateTable::terminator);
     }
 
-    if (d->m_stateTable->version != Q_QSCXMLC_OUTPUT_REVISION)
-       qFatal("Cannot mix incompatible state table (version 0x%x) with this library (version 0x%x)",
-              d->m_stateTable->version, Q_QSCXMLC_OUTPUT_REVISION);
-    Q_ASSERT(tableData->stateMachineTable()[d->m_stateTable->arrayOffset +
-                                            d->m_stateTable->arraySize]
-            == QScxmlExecutableContent::StateTable::terminator);
+    emit tableDataChanged(tableData);
 }
 
 /*!
@@ -2057,6 +2083,13 @@ void QScxmlStateMachine::stop()
     d->pause();
 }
 
+/*!
+  Returns \c true if the state with the ID \a stateIndex is active.
+
+  This method is part of the interface to the compiled representation of SCXML
+  state machines. It should only be used internally and by state machines
+  compiled from SCXML documents.
+ */
 bool QScxmlStateMachine::isActive(int stateIndex) const
 {
     Q_D(const QScxmlStateMachine);
