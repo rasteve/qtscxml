@@ -156,21 +156,21 @@ void QScxmlStateMachineLoader::setDataModel(QScxmlDataModel *dataModel)
 bool QScxmlStateMachineLoader::parse(const QUrl &source)
 {
     if (!QQmlFile::isSynchronous(source)) {
-        qmlInfo(this) << QStringLiteral("ERROR: cannot open '%1' for reading: only synchronous access is supported.")
+        qmlWarning(this) << QStringLiteral("Cannot open '%1' for reading: only synchronous access is supported.")
                          .arg(source.url());
         return false;
     }
     QQmlFile scxmlFile(QQmlEngine::contextForObject(this)->engine(), source);
     if (scxmlFile.isError()) {
         // the synchronous case can only fail when the file is not found (or not readable).
-        qmlInfo(this) << QStringLiteral("ERROR: cannot open '%1' for reading.").arg(source.url());
+        qmlWarning(this) << QStringLiteral("Cannot open '%1' for reading.").arg(source.url());
         return false;
     }
 
     QByteArray data(scxmlFile.dataByteArray());
     QBuffer buf(&data);
     if (!buf.open(QIODevice::ReadOnly)) {
-        qmlInfo(this) << QStringLiteral("ERROR: cannot open input buffer for reading");
+        qmlWarning(this) << QStringLiteral("Cannot open input buffer for reading");
         return false;
     }
 
@@ -189,12 +189,12 @@ bool QScxmlStateMachineLoader::parse(const QUrl &source)
         QMetaObject::invokeMethod(m_stateMachine, "start", Qt::QueuedConnection);
         return true;
     } else {
-        qmlInfo(this) << QStringLiteral("Something went wrong while parsing '%1':")
+        qmlWarning(this) << QStringLiteral("Something went wrong while parsing '%1':")
                          .arg(source.url())
                       << endl;
         const auto errors = m_stateMachine->parseErrors();
         for (const QScxmlError &error : errors) {
-            qmlInfo(this) << error.toString();
+            qmlWarning(this) << error.toString();
         }
 
         emit stateMachineChanged();
