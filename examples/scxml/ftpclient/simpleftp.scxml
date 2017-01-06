@@ -75,7 +75,7 @@
         <state id="W">
             <onentry>
                 <send eventexpr="&quot;submit.&quot; + _event.name">
-                    <content expr="_event.data"/>
+                    <param name="params" expr="_event.data"/>
                 </send>
             </onentry>
 
