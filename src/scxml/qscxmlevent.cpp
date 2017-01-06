@@ -67,7 +67,7 @@ QScxmlEvent *QScxmlEventBuilder::buildEvent()
         if (contentExpr == NoEvaluator) {
             data = contents;
         } else {
-            data = dataModel->evaluateToString(contentExpr, &ok);
+            data = dataModel->evaluateToVariant(contentExpr, &ok);
         }
         if (!ok) {
             // expr evaluation failure results in the data property of the event being set to null. See e.g. test528.
