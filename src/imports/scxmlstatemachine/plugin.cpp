@@ -51,7 +51,7 @@ QT_BEGIN_NAMESPACE
 class QScxmlStateMachinePlugin : public QQmlExtensionPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.Scxml/1.0")
+    Q_PLUGIN_METADATA(IID QQmlExtensionInterface_iid)
 
 public:
     void registerTypes(const char *uri)
