@@ -387,6 +387,7 @@ struct Scxml: public StateContainer, public Node
         : Node(xmlLocation)
         , dataModel(NullDataModel)
         , binding(EarlyBinding)
+        , initialTransition(nullptr)
     {}
 
     void add(StateOrTransition *s) Q_DECL_OVERRIDE

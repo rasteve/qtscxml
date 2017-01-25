@@ -374,8 +374,8 @@ int createFactoryId(QStringList &factories, const QString &className,
     const int idx = factories.size();
 
     QString line = QStringLiteral("case %1: return new ").arg(QString::number(idx));
-    if (invokeInfo.expr == QScxmlExecutableContent::NoInstruction) {
-        line += QStringLiteral("QScxmlStaticScxmlServiceFactory< %1::%2 >(")
+    if (invokeInfo.expr == QScxmlExecutableContent::NoEvaluator) {
+        line += QStringLiteral("QScxmlStaticScxmlServiceFactory(&%1::%2::staticMetaObject,")
                 .arg(namespacePrefix, className);
     } else {
         line += QStringLiteral("QScxmlDynamicScxmlServiceFactory(");
@@ -445,7 +445,7 @@ void CppDumper::dump(TranslationUnit *unit)
                 const QVector<QScxmlExecutableContent::ParameterInfo> &parameters,
                 const QSharedPointer<DocumentModel::ScxmlDocument> &content) -> int {
             QString className;
-            if (invokeInfo.expr == QScxmlExecutableContent::NoInstruction) {
+            if (invokeInfo.expr == QScxmlExecutableContent::NoEvaluator) {
                 className = mangleIdentifier(classnameForDocument.value(content.data()));
             }
             return createFactoryId(factories[i], className, namespacePrefix,
@@ -755,6 +755,20 @@ QString CppDumper::generateMetaObject(const QString &className,
     classDef.qualified = classDef.classname;
     classDef.superclassList << qMakePair(QByteArray("QScxmlStateMachine"), FunctionDef::Public);
     classDef.hasQObject = true;
+    FunctionDef constructor;
+    constructor.name = className.toUtf8();
+    constructor.access = FunctionDef::Public;
+    constructor.isInvokable = true;
+    constructor.isConstructor = true;
+
+    ArgumentDef arg;
+    arg.type.name = "QObject *";
+    arg.type.rawName = arg.type.name;
+    arg.normalizedType = arg.type.name;
+    arg.name = "parent";
+    arg.typeNameForCast = arg.type.name + "*";
+    constructor.arguments.append(arg);
+    classDef.constructorList.append(constructor);
 
     // stateNames:
     int stateIdx = 0;

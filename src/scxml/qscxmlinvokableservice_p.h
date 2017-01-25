@@ -71,7 +71,7 @@ public:
     QScxmlStateMachine *parentStateMachine;
 };
 
-class QScxmlInvokableServiceFactoryPrivate
+class QScxmlInvokableServiceFactoryPrivate : public QObjectPrivate
 {
 public:
     QScxmlInvokableServiceFactoryPrivate(
@@ -79,22 +79,49 @@ public:
             const QVector<QScxmlExecutableContent::StringId> &names,
             const QVector<QScxmlExecutableContent::ParameterInfo> &parameters);
 
-    QString calculateSrcexpr(QScxmlStateMachine *parent, bool *ok) const;
-
     QScxmlExecutableContent::InvokeInfo invokeInfo;
     QVector<QScxmlExecutableContent::StringId> names;
     QVector<QScxmlExecutableContent::ParameterInfo> parameters;
 };
 
-class QScxmlScxmlServicePrivate : public QScxmlInvokableServicePrivate
+class Q_SCXML_EXPORT QScxmlScxmlService: public QScxmlInvokableService
 {
+    Q_OBJECT
+    Q_DECLARE_PRIVATE(QScxmlInvokableService)
 public:
-    QScxmlScxmlServicePrivate(QScxmlStateMachine *stateMachine,
-                              QScxmlStateMachine *parentStateMachine);
-    ~QScxmlScxmlServicePrivate();
+    QScxmlScxmlService(QScxmlStateMachine *stateMachine,
+                       QScxmlStateMachine *parentStateMachine,
+                       QScxmlInvokableServiceFactory *parent);
+    ~QScxmlScxmlService();
+
+    bool start() Q_DECL_OVERRIDE;
+    QString id() const Q_DECL_OVERRIDE;
+    QString name() const Q_DECL_OVERRIDE;
+    void postEvent(QScxmlEvent *event) Q_DECL_OVERRIDE;
 
     QScxmlStateMachine *stateMachine;
 };
+
+class QScxmlStaticScxmlServiceFactoryPrivate : public QScxmlInvokableServiceFactoryPrivate
+{
+public:
+    QScxmlStaticScxmlServiceFactoryPrivate(
+            const QMetaObject *metaObject,
+            const QScxmlExecutableContent::InvokeInfo &invokeInfo,
+            const QVector<QScxmlExecutableContent::StringId> &names,
+            const QVector<QScxmlExecutableContent::ParameterInfo> &parameters);
+
+    const QMetaObject *metaObject;
+};
+
+QScxmlScxmlService *invokeDynamicScxmlService(const QString &sourceUrl,
+                                              QScxmlStateMachine *parentStateMachine,
+                                              QScxmlInvokableServiceFactory *factory);
+QScxmlScxmlService *invokeStaticScxmlService(QScxmlStateMachine *childStateMachine,
+                                             QScxmlStateMachine *parentStateMachine,
+                                             QScxmlInvokableServiceFactory *factory);
+QString calculateSrcexpr(QScxmlStateMachine *parent, QScxmlExecutableContent::EvaluatorId srcexpr,
+                         bool *ok);
 
 QT_END_NAMESPACE
 

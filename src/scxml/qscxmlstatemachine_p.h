@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef SCXMLSTATEMACHINE_P_H
-#define SCXMLSTATEMACHINE_P_H
+#ifndef QSCXMLSTATEMACHINE_P_H
+#define QSCXMLSTATEMACHINE_P_H
 
 //
 //  W A R N I N G
@@ -383,5 +383,5 @@ private:
 
 QT_END_NAMESPACE
 
-#endif // SCXMLSTATEMACHINE_P_H
+#endif // QSCXMLSTATEMACHINE_P_H
 

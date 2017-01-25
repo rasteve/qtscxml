@@ -473,13 +473,14 @@ private:
 };
 
 #ifndef BUILD_QSCXMLC
-class InvokeDynamicScxmlFactory: public QScxmlScxmlServiceFactory
+class InvokeDynamicScxmlFactory: public QScxmlInvokableServiceFactory
 {
+    Q_OBJECT
 public:
     InvokeDynamicScxmlFactory(const QScxmlExecutableContent::InvokeInfo &invokeInfo,
                               const QVector<QScxmlExecutableContent::StringId> &namelist,
                               const QVector<QScxmlExecutableContent::ParameterInfo> &params)
-        : QScxmlScxmlServiceFactory(invokeInfo, namelist, params)
+        : QScxmlInvokableServiceFactory(invokeInfo, namelist, params)
     {}
 
     void setContent(const QSharedPointer<DocumentModel::ScxmlDocument> &content)
@@ -647,12 +648,12 @@ inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(
         QScxmlStateMachine *parentStateMachine)
 {
     bool ok = true;
-    auto srcexpr = d->calculateSrcexpr(parentStateMachine, &ok);
+    auto srcexpr = calculateSrcexpr(parentStateMachine, invokeInfo().expr, &ok);
     if (!ok)
         return Q_NULLPTR;
 
     if (!srcexpr.isEmpty())
-        return invokeDynamic(parentStateMachine, srcexpr);
+        return invokeDynamicScxmlService(srcexpr, parentStateMachine, this);
 
     auto childStateMachine = DynamicStateMachine::build(m_content.data());
 
@@ -660,15 +661,16 @@ inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(
     dm->setParent(childStateMachine);
     childStateMachine->setDataModel(dm);
 
-    return invokeStatic(childStateMachine, parentStateMachine);
+    return invokeStaticScxmlService(childStateMachine, parentStateMachine, this);
 }
 #endif // BUILD_QSCXMLC
 
 } // anonymous namespace
 
 #ifndef BUILD_QSCXMLC
-QScxmlScxmlService *QScxmlScxmlServiceFactory::invokeDynamic(
-        QScxmlStateMachine *parentStateMachine, const QString &sourceUrl)
+QScxmlScxmlService *invokeDynamicScxmlService(const QString &sourceUrl,
+                                              QScxmlStateMachine *parentStateMachine,
+                                              QScxmlInvokableServiceFactory *factory)
 {
     QScxmlCompiler::Loader *loader = parentStateMachine->loader();
 
@@ -708,7 +710,7 @@ QScxmlScxmlService *QScxmlScxmlServiceFactory::invokeDynamic(
     dm->setParent(childStateMachine);
     childStateMachine->setDataModel(dm);
 
-    return invokeStatic(childStateMachine, parentStateMachine);
+    return invokeStaticScxmlService(childStateMachine, parentStateMachine, factory);
 }
 #endif // BUILD_QSCXMLC
 
@@ -2483,3 +2485,7 @@ QScxmlCompilerPrivate::ParserState::ParserState(QScxmlCompilerPrivate::ParserSta
 {}
 
 QT_END_NAMESPACE
+
+#ifndef BUILD_QSCXMLC
+#include "qscxmlcompiler.moc"
+#endif

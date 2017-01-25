@@ -117,7 +117,7 @@ public:
     QVector<QScxmlExecutableContent::AssignmentInfo> theAssignments;
     QVector<QScxmlExecutableContent::ForeachInfo> theForeaches;
     QVector<QScxmlExecutableContent::StringId> theDataNameIds;
-    QScxmlExecutableContent::EvaluatorId theInitialSetup;
+    QScxmlExecutableContent::ContainerId theInitialSetup;
     int theName;
 };
 } // QScxmlInternal namespace

@@ -45,6 +45,11 @@
 */
 
 /*!
+    \externalpage https://www.w3.org/TR/scxml/#invoke
+    \title SCXML Specification - 6.4 <invoke>
+*/
+
+/*!
     \externalpage https://www.w3.org/TR/scxml/#minimal-profile
     \title SCXML Specification - B.1 The Null Data Model
 */

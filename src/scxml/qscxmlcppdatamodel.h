@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef CPPDATAMODEL_H
-#define CPPDATAMODEL_H
+#ifndef QSCXMLCPPDATAMODEL_H
+#define QSCXMLCPPDATAMODEL_H
 
 #include <QtScxml/qscxmldatamodel.h>
 
@@ -59,15 +59,12 @@ class Q_SCXML_EXPORT QScxmlCppDataModel: public QScxmlDataModel
     Q_DECLARE_PRIVATE(QScxmlCppDataModel)
 public:
     explicit QScxmlCppDataModel(QObject *parent = nullptr);
-    ~QScxmlCppDataModel();
 
     Q_INVOKABLE bool setup(const QVariantMap &initialDataValues) Q_DECL_OVERRIDE;
 
-#ifndef Q_QDOC
-    void evaluateAssignment(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE Q_DECL_FINAL;
-    void evaluateInitialization(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE Q_DECL_FINAL;
-    bool evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) Q_DECL_OVERRIDE Q_DECL_FINAL;
-#endif // Q_QDOC
+    void evaluateAssignment(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
+    void evaluateInitialization(QScxmlExecutableContent::EvaluatorId id, bool *ok) Q_DECL_OVERRIDE;
+    void evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) Q_DECL_OVERRIDE;
 
     void setScxmlEvent(const QScxmlEvent &scxmlEvent) Q_DECL_OVERRIDE Q_DECL_FINAL;
     const QScxmlEvent &scxmlEvent() const;
@@ -81,4 +78,4 @@ public:
 
 QT_END_NAMESPACE
 
-#endif // CPPDATAMODEL_H
+#endif // QSCXMLCPPDATAMODEL_H

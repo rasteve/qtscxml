@@ -60,6 +60,8 @@ Window {
     visible: true
     width: lights.width
     height: lights.height
+    maximumWidth: lights.implicitWidth
+    maximumHeight: lights.implicitHeight
 
     Lights {
         id: lights
