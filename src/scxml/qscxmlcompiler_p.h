@@ -53,13 +53,13 @@
 
 #include "qscxmlcompiler.h"
 
-#include <QDir>
-#include <QFileInfo>
-#include <QSet>
-#include <QSharedPointer>
-#include <QStringList>
-#include <QString>
-#include <QXmlStreamAttributes>
+#include <QtCore/qdir.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qset.h>
+#include <QtCore/qsharedpointer.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qxmlstream.h>
 
 QT_BEGIN_NAMESPACE
 

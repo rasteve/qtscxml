@@ -43,7 +43,7 @@
 #include "statemachineextended_p.h"
 #include "invokedservices_p.h"
 
-#include <QQmlExtensionPlugin>
+#include <qqmlextensionplugin.h>
 #include <qqml.h>
 
 QT_BEGIN_NAMESPACE

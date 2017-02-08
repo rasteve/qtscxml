@@ -40,13 +40,13 @@
 #include "qscxmlcompiler_p.h"
 #include "qscxmlexecutablecontent_p.h"
 
-#include <QXmlStreamReader>
-#include <QLoggingCategory>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QFile>
-#include <QVector>
-#include <QString>
+#include <qxmlstream.h>
+#include <qloggingcategory.h>
+#include <qjsondocument.h>
+#include <qjsonobject.h>
+#include <qfile.h>
+#include <qvector.h>
+#include <qstring.h>
 
 #ifndef BUILD_QSCXMLC
 #include "qscxmlecmascriptdatamodel.h"
@@ -56,12 +56,6 @@
 #include "qscxmlstatemachine.h"
 #include "qscxmltabledata_p.h"
 
-#include <QState>
-#include <QHistoryState>
-#include <QEventTransition>
-#include <QSignalTransition>
-#include <QJSValue>
-#include <private/qabstracttransition_p.h>
 #include <private/qmetaobjectbuilder_p.h>
 #endif // BUILD_QSCXMLC
 

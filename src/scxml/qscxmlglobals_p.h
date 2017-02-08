@@ -53,7 +53,7 @@
 
 #include "qscxmlglobals.h"
 
-#include <QLoggingCategory>
+#include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
 

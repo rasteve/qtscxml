@@ -41,7 +41,7 @@
 #define QSCXMLTABLEDATA_H
 
 #include <QtScxml/qscxmlexecutablecontent.h>
-#include <QString>
+#include <QtCore/qstring.h>
 
 #ifndef Q_QSCXMLC_OUTPUT_REVISION
 #define Q_QSCXMLC_OUTPUT_REVISION 1

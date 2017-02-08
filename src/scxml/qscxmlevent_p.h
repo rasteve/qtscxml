@@ -58,7 +58,7 @@
 #include <QtScxml/qscxmlstatemachine.h>
 #endif
 
-#include <QAtomicInt>
+#include <QtCore/qatomic.h>
 
 QT_BEGIN_NAMESPACE
 

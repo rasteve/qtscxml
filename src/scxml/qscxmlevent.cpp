@@ -41,8 +41,8 @@
 #include "qscxmlevent_p.h"
 #include "qscxmlstatemachine_p.h"
 
-#include <QJsonDocument>
-#include <QJsonObject>
+#include <qjsondocument.h>
+#include <qjsonobject.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -43,15 +43,13 @@
 #include "qscxmlinvokableservice.h"
 #include "qscxmldatamodel_p.h"
 
-#include <QAbstractState>
-#include <QAbstractTransition>
-#include <QFile>
-#include <QHash>
-#include <QJSEngine>
-#include <QLoggingCategory>
-#include <QString>
-#include <QTimer>
-#include <QThread>
+#include <qfile.h>
+#include <qhash.h>
+#include <qjsengine.h>
+#include <qloggingcategory.h>
+#include <qstring.h>
+#include <qtimer.h>
+#include <qthread.h>
 
 #include <functional>
 

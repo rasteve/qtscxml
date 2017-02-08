@@ -51,7 +51,7 @@
 // We mean it.
 //
 
-#include <QUrl>
+#include <QtCore/qurl.h>
 #include <QtScxml/qscxmlstatemachine.h>
 #include <private/qqmlengine_p.h>
 

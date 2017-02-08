@@ -53,8 +53,8 @@
 
 #include "qscxmlglobals.h"
 
-#include <QJSValue>
-#include <QObject>
+#include <QtQml/qjsvalue.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 
