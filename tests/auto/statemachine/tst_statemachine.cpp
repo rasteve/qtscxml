@@ -31,6 +31,7 @@
 #include <QXmlStreamReader>
 #include <QtScxml/qscxmlcompiler.h>
 #include <QtScxml/qscxmlstatemachine.h>
+#include <QtScxml/qscxmlinvokableservice.h>
 #include <QtScxml/private/qscxmlstatemachine_p.h>
 
 Q_DECLARE_METATYPE(QScxmlError);
@@ -52,6 +53,8 @@ private Q_SLOTS:
 
     void doneDotStateEvent();
     void running();
+
+    void invokeStateMachine();
 };
 
 void tst_StateMachine::stateNames_data()
@@ -385,6 +388,25 @@ void tst_StateMachine::running()
 
     QCOMPARE(runningChangedSpy.count(), 2);
     QCOMPARE(stateMachine->isRunning(), false);
+}
+
+void tst_StateMachine::invokeStateMachine()
+{
+    QScopedPointer<QScxmlStateMachine> stateMachine(
+                QScxmlStateMachine::fromFile(QString(":/tst_statemachine/invoke.scxml")));
+    QVERIFY(!stateMachine.isNull());
+
+    stateMachine->start();
+    QCOMPARE(stateMachine->isRunning(), true);
+    QTRY_VERIFY(stateMachine->activeStateNames().contains(QString("anyplace")));
+
+    QVector<QScxmlInvokableService *> services = stateMachine->invokedServices();
+    QCOMPARE(services.length(), 1);
+    QVariant subMachineVariant = services[0]->property("stateMachine");
+    QVERIFY(subMachineVariant.isValid());
+    QScxmlStateMachine *subMachine = qvariant_cast<QScxmlStateMachine *>(subMachineVariant);
+    QVERIFY(subMachine);
+    QTRY_VERIFY(subMachine->activeStateNames().contains("here"));
 }
 
 QTEST_MAIN(tst_StateMachine)

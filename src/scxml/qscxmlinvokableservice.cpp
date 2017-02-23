@@ -319,7 +319,7 @@ QVariantMap QScxmlInvokableServicePrivate::calculateData(
 
 QScxmlScxmlService::~QScxmlScxmlService()
 {
-    delete stateMachine;
+    delete m_stateMachine;
 }
 
 /*!
@@ -329,7 +329,7 @@ QScxmlScxmlService::~QScxmlScxmlService()
 QScxmlScxmlService::QScxmlScxmlService(QScxmlStateMachine *stateMachine,
                                        QScxmlStateMachine *parentStateMachine,
                                        QScxmlInvokableServiceFactory *factory)
-    : QScxmlInvokableService(parentStateMachine, factory), stateMachine(stateMachine)
+    : QScxmlInvokableService(parentStateMachine, factory), m_stateMachine(stateMachine)
 {
     QScxmlStateMachinePrivate::get(stateMachine)->m_parentStateMachine = parentStateMachine;
 }
@@ -340,7 +340,7 @@ QScxmlScxmlService::QScxmlScxmlService(QScxmlStateMachine *stateMachine,
 bool QScxmlScxmlService::start()
 {
     Q_D(QScxmlInvokableService);
-    qCDebug(qscxmlLog) << parentStateMachine() << "preparing to start" << stateMachine;
+    qCDebug(qscxmlLog) << parentStateMachine() << "preparing to start" << m_stateMachine;
 
     const QScxmlInvokableServiceFactory *factory
             = qobject_cast<QScxmlInvokableServiceFactory *>(parent());
@@ -355,15 +355,15 @@ bool QScxmlScxmlService::start()
     if (!ok)
         return false;
 
-    QScxmlStateMachinePrivate::get(stateMachine)->m_sessionId = id;
-    stateMachine->setInitialValues(data);
-    if (stateMachine->init()) {
-        qCDebug(qscxmlLog) << parentStateMachine() << "starting" << stateMachine;
-        stateMachine->start();
+    QScxmlStateMachinePrivate::get(m_stateMachine)->m_sessionId = id;
+    m_stateMachine->setInitialValues(data);
+    if (m_stateMachine->init()) {
+        qCDebug(qscxmlLog) << parentStateMachine() << "starting" << m_stateMachine;
+        m_stateMachine->start();
         return true;
     }
 
-    qCDebug(qscxmlLog) << parentStateMachine() << "failed to start" << stateMachine;
+    qCDebug(qscxmlLog) << parentStateMachine() << "failed to start" << m_stateMachine;
     return false;
 }
 
@@ -372,7 +372,7 @@ bool QScxmlScxmlService::start()
  */
 QString QScxmlScxmlService::id() const
 {
-    return stateMachine->sessionId();
+    return m_stateMachine->sessionId();
 }
 
 /*!
@@ -380,7 +380,7 @@ QString QScxmlScxmlService::id() const
  */
 QString QScxmlScxmlService::name() const
 {
-    return stateMachine->name();
+    return m_stateMachine->name();
 }
 
 /*!
@@ -388,7 +388,12 @@ QString QScxmlScxmlService::name() const
  */
 void QScxmlScxmlService::postEvent(QScxmlEvent *event)
 {
-    QScxmlStateMachinePrivate::get(stateMachine)->postEvent(event);
+    QScxmlStateMachinePrivate::get(m_stateMachine)->postEvent(event);
+}
+
+QScxmlStateMachine *QScxmlScxmlService::stateMachine() const
+{
+    return m_stateMachine;
 }
 
 /*!
