@@ -416,7 +416,10 @@ QScxmlStateMachinePrivate::QScxmlStateMachinePrivate(const QMetaObject *metaObje
     , m_eventLoopHook(this)
     , m_metaObject(metaObject)
     , m_infoSignalProxy(nullptr)
-{}
+{
+    static int metaType = qRegisterMetaType<QScxmlStateMachine *>();
+    Q_UNUSED(metaType);
+}
 
 QScxmlStateMachinePrivate::~QScxmlStateMachinePrivate()
 {
