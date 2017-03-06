@@ -1894,6 +1894,7 @@ QString QScxmlStateMachine::name() const
  * priority of the event.
  *
  * When a delay is set, the event will be queued for delivery after the timeout has passed.
+ * The state machine takes ownership of \a event and deletes it after processing.
  */
 void QScxmlStateMachine::submitEvent(QScxmlEvent *event)
 {
