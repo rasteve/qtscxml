@@ -305,6 +305,7 @@ void EventLoopHook::timerEvent(QTimerEvent *timerEvent)
             QScxmlEvent *scxmlEvent = it->second;
             smp->m_delayedEvents.erase(it);
             smp->routeEvent(scxmlEvent);
+            killTimer(timerId);
             return;
         }
     }
