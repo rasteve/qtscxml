@@ -54,7 +54,7 @@
 #include <QtScxml/qscxmlexecutablecontent.h>
 #include <QtScxml/private/qscxmltabledata_p.h>
 #include <QtScxml/private/qscxmlcompiler_p.h>
-#include <QTextStream>
+#include <QtCore/qtextstream.h>
 
 #ifndef BUILD_QSCXMLC
 #include <QtScxml/qscxmldatamodel.h>

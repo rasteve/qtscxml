@@ -50,7 +50,7 @@
 
         StateMachineLoader {
             id: scxmlLoader
-            filename: "statemachine.scxml"
+            source: "statemachine.scxml"
         }
     }
     \endqml

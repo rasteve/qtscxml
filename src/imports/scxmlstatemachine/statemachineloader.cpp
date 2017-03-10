@@ -40,11 +40,11 @@
 #include "statemachineloader_p.h"
 
 #include <QtScxml/qscxmlstatemachine.h>
-#include <QQmlContext>
-#include <QQmlEngine>
-#include <QQmlInfo>
-#include <QQmlFile>
-#include <QBuffer>
+#include <qqmlcontext.h>
+#include <qqmlengine.h>
+#include <qqmlinfo.h>
+#include <qqmlfile.h>
+#include <qbuffer.h>
 
 /*!
     \qmltype StateMachineLoader

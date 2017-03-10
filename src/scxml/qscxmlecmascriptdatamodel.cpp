@@ -44,8 +44,8 @@
 #include "qscxmlstatemachine_p.h"
 #include "qscxmldatamodel_p.h"
 
-#include <QJSEngine>
-#include <QJsonDocument>
+#include <qjsengine.h>
+#include <qjsondocument.h>
 #include <QtQml/private/qjsvalue_p.h>
 #include <QtQml/private/qv4scopedvalue_p.h>
 
