@@ -56,18 +56,6 @@
     \since QtScxml 5.7
  */
 
-/*!
-    \qmlsignal StateMachineLoader::sourceChanged()
-    This signal is emitted when the user changes the source URL for the SCXML document.
-*/
-
-/*!
-    \qmlsignal StateMachineLoader::stateMachineChanged()
-
-    This signal is emitted when the stateMachine property changes. That is, when
-    a new state machine is loaded or when the old one becomes invalid.
-*/
-
 QScxmlStateMachineLoader::QScxmlStateMachineLoader(QObject *parent)
     : QObject(parent)
     , m_dataModel(Q_NULLPTR)
@@ -89,7 +77,8 @@ QT_PREPEND_NAMESPACE(QScxmlStateMachine) *QScxmlStateMachineLoader::stateMachine
 /*!
     \qmlproperty string StateMachineLoader::source
 
-    The url of the SCXML document to load. Only synchronously accessible URLs are supported.
+    The URL of the SCXML document to load. Only synchronously accessible URLs
+    are supported.
  */
 QUrl QScxmlStateMachineLoader::source()
 {
