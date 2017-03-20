@@ -41,6 +41,43 @@
 
 QT_BEGIN_NAMESPACE
 
+/*!
+    \qmltype EventConnection
+    \instantiates QScxmlEventConnection
+    \inqmlmodule QtScxml
+    \since QtScxml 5.8
+
+    \brief Connects to events sent out by state machines.
+
+    To receive a notification when a state machine sends out an event, a
+    connection can be created to the corresponding signal.
+*/
+
+/*!
+    \qmlproperty QStringList EventConnection::events
+
+    The list of SCXML event specifiers that describe the events to listen for.
+
+    Even though spaces are allowed in event specifications in SCXML documents,
+    they are not allowed in this list. However, the list can contain multiple
+    specifiers, to the same effect.
+*/
+
+/*!
+    \qmlproperty QScxmlStateMachine EventConnection::stateMachine
+
+    The state machine that sends out the event.
+*/
+
+/*!
+    \qmlsignal EventConnection::occurred(QScxmlEvent event)
+
+    This signal is emitted when the event \a event occurrs.
+
+    The corresponding signal handler is \c onOccurred.
+*/
+
+
 QScxmlEventConnection::QScxmlEventConnection(QObject *parent) :
     QObject(parent), m_stateMachine(nullptr)
 {
