@@ -54,7 +54,7 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty QStringList EventConnection::events
+    \qmlproperty stringlist EventConnection::events
 
     The list of SCXML event specifiers that describe the events to listen for.
 
@@ -64,17 +64,19 @@ QT_BEGIN_NAMESPACE
 */
 
 /*!
-    \qmlproperty QScxmlStateMachine EventConnection::stateMachine
+    \qmlproperty ScxmlStateMachine EventConnection::stateMachine
 
     The state machine that sends out the event.
 */
 
 /*!
-    \qmlsignal EventConnection::occurred(QScxmlEvent event)
+    \qmlsignal EventConnection::occurred(event)
 
     This signal is emitted when the event \a event occurrs.
 
     The corresponding signal handler is \c onOccurred.
+
+    \sa QScxmlEvent
 */
 
 

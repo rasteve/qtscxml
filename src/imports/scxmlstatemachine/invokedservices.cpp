@@ -83,7 +83,7 @@ void QScxmlInvokedServices::classBegin()
 }
 
 /*!
-    \qmlproperty QtObject InvokedServices::stateMachine
+    \qmlproperty ScxmlStateMachine InvokedServices::stateMachine
 
     The state machine that invoked the services.
 */

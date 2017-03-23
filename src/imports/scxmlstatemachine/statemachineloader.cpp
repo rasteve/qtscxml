@@ -65,7 +65,7 @@ QScxmlStateMachineLoader::QScxmlStateMachineLoader(QObject *parent)
 }
 
 /*!
-    \qmlproperty QObject StateMachineLoader::stateMachine
+    \qmlproperty ScxmlStateMachine StateMachineLoader::stateMachine
 
     The state machine instance.
  */
@@ -75,7 +75,7 @@ QT_PREPEND_NAMESPACE(QScxmlStateMachine) *QScxmlStateMachineLoader::stateMachine
 }
 
 /*!
-    \qmlproperty string StateMachineLoader::source
+    \qmlproperty url StateMachineLoader::source
 
     The URL of the SCXML document to load. Only synchronously accessible URLs
     are supported.

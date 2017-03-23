@@ -1520,7 +1520,7 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
 */
 
 /*!
-    \qmlproperty QScxmlStateMachine ScxmlStateMachine::dataModel
+    \qmlproperty ScxmlDataModel ScxmlStateMachine::dataModel
 
     The data model to be used for this state machine.
 
@@ -1530,6 +1530,9 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
 
     Changing the data model when the state machine has been \l initialized is
     not specified in the SCXML standard and leads to undefined behavior.
+
+    \sa QScxmlDataModel, QScxmlNullDataModel, QScxmlEcmaScriptDataModel,
+        QScxmlCppDataModel
 */
 
 /*!
@@ -1628,7 +1631,7 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
  */
 
 /*!
-    \qmlproperty list ScxmlStateMachine::parseErrors
+    \qmlproperty var ScxmlStateMachine::parseErrors
 
     The list of parse errors that occurred while creating a state machine from
     an SCXML file.
@@ -2024,7 +2027,7 @@ QString QScxmlStateMachine::name() const
 }
 
 /*!
-    \qmlmethod ScxmlStateMachine::submitEvent(QScxmlEvent event)
+    \qmlmethod ScxmlStateMachine::submitEvent(event)
 
     Submits the SCXML event \a event to the internal or external event queue
     depending on the priority of the event.
@@ -2032,6 +2035,8 @@ QString QScxmlStateMachine::name() const
     When a delay is set, the event will be queued for delivery after the timeout
     has passed. The state machine takes ownership of the event and deletes it
     after processing.
+
+    \sa QScxmlEvent
  */
 
 /*!
