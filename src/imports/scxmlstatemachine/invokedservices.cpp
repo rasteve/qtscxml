@@ -42,9 +42,30 @@
 
 QT_BEGIN_NAMESPACE
 
+/*!
+    \qmltype InvokedServices
+    \instantiates QScxmlInvokedServices
+    \inqmlmodule QtScxml
+    \since QtScxml 5.8
+
+    \brief Provices access to the services invoked by state machines.
+
+    Makes the invoked services easily accessible by their names, without
+    constantly iterating through QScxmlStateMachine::invokedServices.
+
+    The services are called from state machines via the mechanism described in
+    \l{SCXML Specification - 6.4 <invoke>}.
+*/
+
 QScxmlInvokedServices::QScxmlInvokedServices(QObject *parent) : QObject(parent)
 {
 }
+
+/*!
+    \qmlproperty var InvokedServices::children
+
+    The services invoked by the state machine.
+*/
 
 QVariantMap QScxmlInvokedServices::children()
 {
@@ -60,6 +81,12 @@ QVariantMap QScxmlInvokedServices::children()
 void QScxmlInvokedServices::classBegin()
 {
 }
+
+/*!
+    \qmlproperty ScxmlStateMachine InvokedServices::stateMachine
+
+    The state machine that invoked the services.
+*/
 
 QScxmlStateMachine *QScxmlInvokedServices::stateMachine() const
 {
@@ -80,6 +107,12 @@ void QScxmlInvokedServices::setStateMachine(QScxmlStateMachine *stateMachine)
         emit childrenChanged();
     }
 }
+
+/*!
+    \qmlproperty list<QtObject> InvokedServices::qmlChildren
+
+    A list of additional QtObject types nested in this type.
+*/
 
 QQmlListProperty<QObject> QScxmlInvokedServices::qmlChildren()
 {

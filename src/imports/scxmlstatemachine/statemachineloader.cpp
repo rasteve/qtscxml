@@ -40,11 +40,11 @@
 #include "statemachineloader_p.h"
 
 #include <QtScxml/qscxmlstatemachine.h>
-#include <QQmlContext>
-#include <QQmlEngine>
-#include <QQmlInfo>
-#include <QQmlFile>
-#include <QBuffer>
+#include <qqmlcontext.h>
+#include <qqmlengine.h>
+#include <qqmlinfo.h>
+#include <qqmlfile.h>
+#include <qbuffer.h>
 
 /*!
     \qmltype StateMachineLoader
@@ -56,18 +56,6 @@
     \since QtScxml 5.7
  */
 
-/*!
-    \qmlsignal StateMachineLoader::sourceChanged()
-    This signal is emitted when the user changes the source URL for the SCXML document.
-*/
-
-/*!
-    \qmlsignal StateMachineLoader::stateMachineChanged()
-
-    This signal is emitted when the stateMachine property changes. That is, when
-    a new state machine is loaded or when the old one becomes invalid.
-*/
-
 QScxmlStateMachineLoader::QScxmlStateMachineLoader(QObject *parent)
     : QObject(parent)
     , m_dataModel(Q_NULLPTR)
@@ -77,7 +65,7 @@ QScxmlStateMachineLoader::QScxmlStateMachineLoader(QObject *parent)
 }
 
 /*!
-    \qmlproperty QObject StateMachineLoader::stateMachine
+    \qmlproperty ScxmlStateMachine StateMachineLoader::stateMachine
 
     The state machine instance.
  */
@@ -87,9 +75,10 @@ QT_PREPEND_NAMESPACE(QScxmlStateMachine) *QScxmlStateMachineLoader::stateMachine
 }
 
 /*!
-    \qmlproperty string StateMachineLoader::source
+    \qmlproperty url StateMachineLoader::source
 
-    The url of the SCXML document to load. Only synchronously accessible URLs are supported.
+    The URL of the SCXML document to load. Only synchronously accessible URLs
+    are supported.
  */
 QUrl QScxmlStateMachineLoader::source()
 {

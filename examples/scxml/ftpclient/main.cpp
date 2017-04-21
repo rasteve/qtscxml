@@ -89,7 +89,8 @@ int main(int argc, char *argv[])
     // Translate commands from the state machine into FTP control messages.
     ftpClient.connectToEvent("submit.cmd", &controlChannel,
                              [&controlChannel](const QScxmlEvent &event) {
-        controlChannel.command(event.name().mid(11).toUtf8(), event.data().toByteArray());
+        controlChannel.command(event.name().mid(11).toUtf8(),
+                               event.data().toMap()["params"].toByteArray());
     });
 
     // Commands to be sent

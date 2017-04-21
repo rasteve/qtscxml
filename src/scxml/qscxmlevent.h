@@ -42,8 +42,8 @@
 
 #include <QtScxml/qscxmlglobals.h>
 
-#include <QStringList>
-#include <QVariantList>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qvariant.h>
 
 QT_BEGIN_NAMESPACE
 

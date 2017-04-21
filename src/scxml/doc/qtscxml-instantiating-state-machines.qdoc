@@ -46,11 +46,11 @@
     import QtScxml 5.8
 
     Item {
-        property QtObject stateMachine: scxmlLoader.stateMachine
+        property StateMachine stateMachine: scxmlLoader.stateMachine
 
         StateMachineLoader {
             id: scxmlLoader
-            filename: "statemachine.scxml"
+            source: "statemachine.scxml"
         }
     }
     \endqml

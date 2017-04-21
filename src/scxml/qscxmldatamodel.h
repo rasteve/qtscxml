@@ -42,8 +42,8 @@
 
 #include <QtScxml/qscxmlexecutablecontent.h>
 
-#include <QVariant>
-#include <QVector>
+#include <QtCore/qvariant.h>
+#include <QtCore/qvector.h>
 
 QT_BEGIN_NAMESPACE
 

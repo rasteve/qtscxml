@@ -1,2 +1,2 @@
 TEMPLATE = subdirs
-SUBDIRS = qscxmlc
+qtConfig(commandlineparser): SUBDIRS = qscxmlc

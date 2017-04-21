@@ -3,24 +3,28 @@
        name="content-expr-in-send" datamodel="ecmascript">
     <state id="top">
         <onentry>
-            <send event="timeout" delay="2s"/>
-            <send event="to_second">
+            <send>
                 <content>blah</content>
             </send>
+            <send event="timeout">
+                <param name="p" expr="'v'"/>
+            </send>
+
         </onentry>
+
         <state id="first">
-            <transition event="to_second" target="second"/>
+            <transition event="timeout" target="second"/>
         </state>
 
         <state id="second">
             <onentry>
-                <send event="to_pass">
+                <send>
                     <content expr="_event.data"/>
                 </send>
+                <send event="timeout"/>
             </onentry>
+            <transition event="timeout" target="pass"/>
         </state>
-        <transition event="to_pass" cond="_event.data=='blah'" target="pass"/>
-        <transition event="timeout" target="fail"/>
     </state>
 
     <final id="pass"><onentry><log label="Outcome" expr="'pass'"/></onentry></final>

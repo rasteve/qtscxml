@@ -43,7 +43,7 @@
 #include <QtScxml/qscxmlglobals.h>
 #include <QtCore/qobjectdefs.h>
 
-#include <QString>
+#include <QtCore/qstring.h>
 
 QT_BEGIN_NAMESPACE
 

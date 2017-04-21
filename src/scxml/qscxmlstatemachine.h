@@ -46,11 +46,11 @@
 #include <QtScxml/qscxmlevent.h>
 #include <QtScxml/qscxmlcompiler.h>
 
-#include <QString>
-#include <QVector>
-#include <QUrl>
-#include <QVariantList>
-#include <QPointer>
+#include <QtCore/qstring.h>
+#include <QtCore/qvector.h>
+#include <QtCore/qurl.h>
+#include <QtCore/qvariant.h>
+#include <QtCore/qpointer.h>
 
 #include <functional>
 

@@ -52,7 +52,7 @@
 //
 
 #include <QtScxml/qscxmlglobals.h>
-#include <QObject>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 

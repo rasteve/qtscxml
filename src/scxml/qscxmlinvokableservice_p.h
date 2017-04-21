@@ -88,6 +88,7 @@ class Q_SCXML_EXPORT QScxmlScxmlService: public QScxmlInvokableService
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(QScxmlInvokableService)
+    Q_PROPERTY(QScxmlStateMachine *stateMachine READ stateMachine CONSTANT)
 public:
     QScxmlScxmlService(QScxmlStateMachine *stateMachine,
                        QScxmlStateMachine *parentStateMachine,
@@ -98,8 +99,10 @@ public:
     QString id() const Q_DECL_OVERRIDE;
     QString name() const Q_DECL_OVERRIDE;
     void postEvent(QScxmlEvent *event) Q_DECL_OVERRIDE;
+    QScxmlStateMachine *stateMachine() const;
 
-    QScxmlStateMachine *stateMachine;
+private:
+    QScxmlStateMachine *m_stateMachine;
 };
 
 class QScxmlStaticScxmlServiceFactoryPrivate : public QScxmlInvokableServiceFactoryPrivate

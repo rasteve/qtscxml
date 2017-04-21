@@ -356,10 +356,111 @@ static bool playEvents(QScxmlStateMachine *stateMachine, const QJsonObject &test
     return true;
 }
 
+QT_BEGIN_NAMESPACE
+QDebug operator<<(QDebug debug, const QScxmlEvent &event)
+{
+    QJsonObject obj;
+    obj.insert(QLatin1String("name"), event.name());
+    obj.insert(QLatin1String("type"), event.eventType());
+    obj.insert(QLatin1String("data"), QJsonValue::fromVariant(event.data()));
+    obj.insert(QLatin1String("sendid"), event.sendId());
+    obj.insert(QLatin1String("origin"), event.origin());
+    obj.insert(QLatin1String("originType"), event.originType());
+    obj.insert(QLatin1String("invokeid"), event.invokeId());
+    return debug << obj;
+}
+QT_END_NAMESPACE
+
+static int verifyEvent(const QList<QScxmlEvent> &receivedEvents, const QJsonObject &event,
+                       int position) {
+    QScxmlEvent::EventType eventType = QScxmlEvent::ExternalEvent;
+    const bool verifyEventType = event.contains(QLatin1String("type"));
+    if (verifyEventType) {
+        QString typeStr = event.value(QLatin1String("type")).toString();
+        if (typeStr.compare(QLatin1String("external"), Qt::CaseInsensitive) == 0)
+            eventType = QScxmlEvent::InternalEvent;
+        else if (typeStr.compare(QLatin1String("platform"), Qt::CaseInsensitive) == 0)
+            eventType = QScxmlEvent::PlatformEvent;
+        else {
+            qWarning() << "unexpected event type in " << event;
+            return -1;
+        }
+    }
+
+    const bool verifyName = event.contains(QLatin1String("name"));
+    const QString name = verifyName ? event.value(QLatin1String("name")).toString() : QString();
+
+    const bool verifyData = event.contains(QLatin1String("data"));
+    const QVariant data = verifyData ? event.value(QLatin1String("data")).toVariant() : QVariant();
+    const bool verifySendId = event.contains(QLatin1String("sendid"));
+    const QString sendId = verifySendId ? event.value(QLatin1String("sendid")).toString()
+                                        : QString();
+    const bool verifyOrigin = event.contains(QLatin1String("origin"));
+    const QString origin = verifyOrigin ? event.value(QLatin1String("origin")).toString()
+                                        : QString();
+    const bool verifyOriginType = event.contains(QLatin1String("originType"));
+    const QString originType = verifyOriginType
+            ? event.value(QLatin1String("origintype")).toString()
+            : QString();
+    const bool verifyInvokeId = event.contains(QLatin1String("invokeid"));
+    const QString invokeId = verifyInvokeId ? event.value(QLatin1String("invokeid")).toString()
+                                            : QString();
+
+    while (position < receivedEvents.length()) {
+        const QScxmlEvent &receivedEvent = receivedEvents[position];
+        if ((verifyName && receivedEvent.name() != name)
+                || (verifyEventType && receivedEvent.eventType() != eventType)
+                || (verifyData && receivedEvent.data() != data)
+                || (verifySendId && receivedEvent.sendId() != sendId)
+                || (verifyOrigin && receivedEvent.origin() != origin)
+                || (verifyOriginType && receivedEvent.originType() != originType)
+                || (verifyInvokeId && receivedEvent.invokeId() != invokeId)) {
+            ++position;
+        } else {
+            return position;
+        }
+    }
+
+    qWarning("Did not receive expected event:");
+    qWarning() << event;
+
+    return -1; // nothing found
+}
+
+static bool verifyEvents(const QList<QScxmlEvent> &receivedEvents,
+                         const QJsonObject &testDescription)
+{
+    auto jsonEvents = testDescription.value(QLatin1String("expectedEvents"));
+    if (jsonEvents.isNull())
+        return true;
+
+    auto eventsArray = jsonEvents.toArray();
+
+    int position = 0;
+    for (int i = 0, ei = eventsArray.size(); i != ei; ++i) {
+        position = verifyEvent(receivedEvents, eventsArray.at(i).toObject(), position);
+        if (position < 0) {
+            qWarning("received events:");
+            qWarning() << receivedEvents;
+            qWarning("expected events");
+            qWarning() << eventsArray;
+            return false;
+        } else {
+            ++position; // Don't use the same event twice.
+        }
+    }
+    return true;
+}
+
 bool TestScion::runTest(QScxmlStateMachine *stateMachine, const QJsonObject &testDescription)
 {
     MySignalSpy stableStateSpy(stateMachine, SIGNAL(reachedStableState()));
     MySignalSpy finishedSpy(stateMachine, SIGNAL(finished()));
+
+    QList<QScxmlEvent> receivedEvents;
+    stateMachine->connectToEvent(QLatin1String("*"), this, [&](const QScxmlEvent &event) {
+        receivedEvents.append(event);
+    });
 
     if (!stateMachine->init() && stateMachine->name() != QStringLiteral("test487")) {
         // test487 relies on a failing init to see if an error event gets posted.
@@ -385,6 +486,8 @@ bool TestScion::runTest(QScxmlStateMachine *stateMachine, const QJsonObject &tes
             finishedSpy.fastWait(); // Some tests don't have a final state, so don't check for the
                                     // result
         }
+        if (!verifyEvents(receivedEvents, testDescription))
+            return false;
         return verifyStates(stateMachine, testDescription, QLatin1String("initialConfiguration"), 0);
     }
 }

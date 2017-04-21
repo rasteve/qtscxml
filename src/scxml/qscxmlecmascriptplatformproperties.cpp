@@ -40,7 +40,7 @@
 #include "qscxmlecmascriptplatformproperties_p.h"
 #include "qscxmlstatemachine.h"
 
-#include <QJSEngine>
+#include <qjsengine.h>
 
 QT_BEGIN_NAMESPACE
 class QScxmlPlatformProperties::Data
