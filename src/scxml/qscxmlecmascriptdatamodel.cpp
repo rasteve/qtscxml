@@ -289,7 +289,7 @@ private: // Uses private API
             return;
         }
 
-        s->makeIdentifier(scope.engine);
+        s->makeIdentifier();
         QV4::ScopedValue v(scope, QJSValuePrivate::convertedToValue(engine, value));
         o->defineReadonlyProperty(s, v);
         if (engine->hasException)
