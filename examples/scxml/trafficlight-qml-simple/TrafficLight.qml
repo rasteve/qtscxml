@@ -70,6 +70,7 @@ Window {
 
         Light {
             anchors.top: parent.top
+            anchors.horizontalCenter: parent.horizontalCenter
             color: "red"
             visible: stateMachine.red || stateMachine.redGoingGreen
         }
@@ -82,6 +83,7 @@ Window {
 
         Light {
             anchors.bottom: parent.bottom
+            anchors.horizontalCenter: parent.horizontalCenter
             color: "green"
             visible: stateMachine.green
         }
