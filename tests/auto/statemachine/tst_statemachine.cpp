@@ -48,6 +48,7 @@ private Q_SLOTS:
     void activeStateNames_data();
     void activeStateNames();
     void connections();
+    void historyState();
     void onExit();
     void eventOccurred();
 
@@ -249,6 +250,24 @@ void tst_StateMachine::connections()
     QVERIFY(disconnect(finalEntry));
     QVERIFY(disconnect(finalExit));
 #endif
+}
+
+void tst_StateMachine::historyState()
+{
+    QScopedPointer<QScxmlStateMachine> stateMachine(
+                QScxmlStateMachine::fromFile(QString(":/tst_statemachine/historystate.scxml")));
+    QVERIFY(!stateMachine.isNull());
+
+    bool state2Reached = false;
+    QMetaObject::Connection state2Connection = stateMachine->connectToState("State2",
+                            [&state2Reached](bool enabled) {
+        state2Reached = state2Reached || enabled;
+    });
+    QVERIFY(state2Connection);
+
+    stateMachine->start();
+
+    QTRY_VERIFY(state2Reached);
 }
 
 void tst_StateMachine::onExit()
