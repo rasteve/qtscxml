@@ -278,7 +278,6 @@ public:
 
     void emitStateActive(int stateIndex, bool active);
     void emitInvokedServicesChanged();
-    void emitSignalForEvent(int signalIndex, const QVariant &data);
 
     void attach(QScxmlStateMachineInfo *info);
     const OrderedSet &configuration() const { return m_configuration; }
