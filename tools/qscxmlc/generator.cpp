@@ -1505,10 +1505,7 @@ void Generator::generateSignal(FunctionDef *def,int index)
     if (def->normalizedType == "void") {
         fprintf(out, "Q_NULLPTR");
     } else {
-        if (def->returnTypeIsVolatile)
-             fprintf(out, "const_cast<void*>(reinterpret_cast<const volatile void*>(&_t0))");
-        else
-             fprintf(out, "const_cast<void*>(reinterpret_cast<const void*>(&_t0))");
+        fprintf(out, "const_cast<void*>(reinterpret_cast<const void*>(&_t0))");
     }
     int i;
     for (i = 1; i < offset; ++i)
