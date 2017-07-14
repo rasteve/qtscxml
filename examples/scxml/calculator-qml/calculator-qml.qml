@@ -79,8 +79,8 @@ Window {
         color: "#46a2da"
         Text {
             id: resultText
-            anchors.leftMargin: operations.implicitMargin
-            anchors.rightMargin: operations.implicitMargin
+            anchors.leftMargin: buttons.implicitMargin
+            anchors.rightMargin: buttons.implicitMargin
             anchors.fill: parent
             horizontalAlignment: Text.AlignRight
             verticalAlignment: Text.AlignVCenter
@@ -93,7 +93,7 @@ Window {
     }
 
     Item {
-        id: operations
+        id: buttons
         anchors.top: resultArea.bottom
         anchors.left: parent.left
         anchors.right: parent.right
@@ -102,12 +102,13 @@ Window {
             var ret = 0;
             for (var i = 0; i < visibleChildren.length; ++i) {
                 var child = visibleChildren[i];
-                ret += (child.implicitMargin || 0) / visibleChildren.length;
+                ret += (child.implicitMargin || 0);
             }
-            return ret;
+            return ret / visibleChildren.length;
         }
 
         Repeater {
+            id: operations
             model: ["÷", "×", "+", "-"]
             Button {
                 y: 0
@@ -130,6 +131,7 @@ Window {
         }
 
         Repeater {
+            id: digits
             model: ["7", "8", "9", "4", "5", "6", "1", "2", "3", "0", ".", "C"]
             Button {
                 x: (index % 3) * width
@@ -150,6 +152,7 @@ Window {
         }
 
         Button {
+            id: resultButton
             x: 3 * width
             y: parent.height / 5
             textHeight: y - 2
