@@ -61,7 +61,7 @@ class TrafficLight : public QWidget
     Q_OBJECT
 
 public:
-    TrafficLight(QScxmlStateMachine *machine, QWidget *parent = 0);
+    TrafficLight(QScxmlStateMachine *machine, QWidget *parent = nullptr);
 
 private slots:
     void toggleWorking(bool pause);
@@ -76,7 +76,7 @@ class LightWidget: public QWidget
     Q_PROPERTY(bool on READ isOn WRITE setOn)
 
 public:
-    LightWidget(const QString &image, QWidget *parent = 0);
+    LightWidget(const QString &image, QWidget *parent = nullptr);
 
     bool isOn() const;
     void setOn(bool on);
@@ -85,23 +85,23 @@ public slots:
     void switchLight(bool onoff);
 
 protected:
-    virtual void paintEvent(QPaintEvent *) Q_DECL_OVERRIDE;
-    virtual QSize sizeHint() const Q_DECL_OVERRIDE;
+    virtual void paintEvent(QPaintEvent *) override;
+    virtual QSize sizeHint() const override;
 
 private:
     QImage m_image;
-    bool m_on;
+    bool m_on = false;
 };
 
 class ButtonWidget : public QAbstractButton
 {
     Q_OBJECT
 public:
-    ButtonWidget(QWidget *parent = 0);
+    ButtonWidget(QWidget *parent = nullptr);
 
 protected:
-    virtual void paintEvent(QPaintEvent *) Q_DECL_OVERRIDE;
-    virtual QSize sizeHint() const Q_DECL_OVERRIDE;
+    virtual void paintEvent(QPaintEvent *) override;
+    virtual QSize sizeHint() const override;
 
 private:
     QImage m_playIcon;

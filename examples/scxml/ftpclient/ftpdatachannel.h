@@ -60,7 +60,7 @@ class FtpDataChannel : public QObject
 {
     Q_OBJECT
 public:
-    explicit FtpDataChannel(QObject *parent = 0);
+    explicit FtpDataChannel(QObject *parent = nullptr);
 
     // Listen on a local address.
     void listen(const QHostAddress &address = QHostAddress::Any);

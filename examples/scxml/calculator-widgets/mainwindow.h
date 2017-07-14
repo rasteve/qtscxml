@@ -66,7 +66,7 @@ class MainWindow : public QWidget
     Q_OBJECT
 
 public:
-    explicit MainWindow(QScxmlStateMachine *machine, QWidget *parent = 0);
+    explicit MainWindow(QScxmlStateMachine *machine, QWidget *parent = nullptr);
     ~MainWindow();
 
 private:
