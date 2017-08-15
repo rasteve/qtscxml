@@ -2198,7 +2198,7 @@ bool QScxmlStateMachine::isDispatchableTarget(const QString &target) const
     if (target.startsWith(QStringLiteral("#_"))) {
         QStringRef targetId = target.midRef(2);
         for (auto invokedService : d->m_invokedServices) {
-            if (invokedService.service->id() == targetId)
+            if (invokedService.service && invokedService.service->id() == targetId)
                 return true;
         }
     }

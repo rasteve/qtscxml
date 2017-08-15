@@ -7,5 +7,6 @@
         <file>stateDotDoneEvent.scxml</file>
         <file>invoke.scxml</file>
         <file>historystate.scxml</file>
+        <file>multipleinvokableservices.scxml</file>
     </qresource>
 </RCC>

@@ -56,6 +56,8 @@ private Q_SLOTS:
     void running();
 
     void invokeStateMachine();
+
+    void multipleInvokableServices(); // QTBUG-61484
 };
 
 void tst_StateMachine::stateNames_data()
@@ -384,7 +386,6 @@ void tst_StateMachine::doneDotStateEvent()
     finishedSpy.wait(5000);
     QCOMPARE(finishedSpy.count(), 1);
     QCOMPARE(stateMachine->activeStateNames(true).size(), 1);
-    qDebug() << stateMachine->activeStateNames(true);
     QVERIFY(stateMachine->activeStateNames(true).contains(QLatin1String("success")));
 }
 
@@ -426,6 +427,22 @@ void tst_StateMachine::invokeStateMachine()
     QScxmlStateMachine *subMachine = qvariant_cast<QScxmlStateMachine *>(subMachineVariant);
     QVERIFY(subMachine);
     QTRY_VERIFY(subMachine->activeStateNames().contains("here"));
+}
+
+void tst_StateMachine::multipleInvokableServices()
+{
+    QScopedPointer<QScxmlStateMachine> stateMachine(
+                QScxmlStateMachine::fromFile(QString(":/tst_statemachine/multipleinvokableservices.scxml")));
+    QVERIFY(!stateMachine.isNull());
+
+    QSignalSpy finishedSpy(stateMachine.data(), SIGNAL(finished()));
+    stateMachine->start();
+    QCOMPARE(stateMachine->isRunning(), true);
+
+    finishedSpy.wait(5000);
+    QCOMPARE(finishedSpy.count(), 1);
+    QCOMPARE(stateMachine->activeStateNames(true).size(), 1);
+    QVERIFY(stateMachine->activeStateNames(true).contains(QLatin1String("success")));
 }
 
 QTEST_MAIN(tst_StateMachine)
