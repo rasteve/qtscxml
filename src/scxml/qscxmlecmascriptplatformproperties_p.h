@@ -53,8 +53,10 @@
 
 #include "qscxmlglobals.h"
 
-#include <QtQml/qjsvalue.h>
 #include <QtCore/qobject.h>
+
+QT_FORWARD_DECLARE_CLASS(QJSEngine)
+QT_FORWARD_DECLARE_CLASS(QJSValue)
 
 QT_BEGIN_NAMESPACE
 

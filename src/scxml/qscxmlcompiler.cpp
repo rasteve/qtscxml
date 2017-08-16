@@ -42,8 +42,6 @@
 
 #include <qxmlstream.h>
 #include <qloggingcategory.h>
-#include <qjsondocument.h>
-#include <qjsonobject.h>
 #include <qfile.h>
 #include <qvector.h>
 #include <qstring.h>

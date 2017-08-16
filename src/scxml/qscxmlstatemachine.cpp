@@ -45,7 +45,6 @@
 
 #include <qfile.h>
 #include <qhash.h>
-#include <qjsengine.h>
 #include <qloggingcategory.h>
 #include <qstring.h>
 #include <qtimer.h>
@@ -2117,14 +2116,10 @@ void QScxmlStateMachine::submitEvent(const QString &eventName)
  */
 void QScxmlStateMachine::submitEvent(const QString &eventName, const QVariant &data)
 {
-    QVariant incomingData = data;
-    if (incomingData.canConvert<QJSValue>())
-        incomingData = incomingData.value<QJSValue>().toVariant();
-
     QScxmlEvent *e = new QScxmlEvent;
     e->setName(eventName);
     e->setEventType(QScxmlEvent::ExternalEvent);
-    e->setData(incomingData);
+    e->setData(data);
     submitEvent(e);
 }
 
