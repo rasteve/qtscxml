@@ -42,7 +42,7 @@
 
 #include <QtScxml/qscxmlglobals.h>
 #include <QtCore/qobjectdefs.h>
-
+#include <QtCore/qmetatype.h>
 #include <QtCore/qstring.h>
 
 QT_BEGIN_NAMESPACE
@@ -80,5 +80,7 @@ private:
 };
 
 QT_END_NAMESPACE
+
+Q_DECLARE_METATYPE(QScxmlError)
 
 #endif // QSCXMLERROR_H

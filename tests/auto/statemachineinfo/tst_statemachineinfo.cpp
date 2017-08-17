@@ -30,8 +30,6 @@
 #include <QtScxml/qscxmlstatemachine.h>
 #include <QtScxml/private/qscxmlstatemachineinfo_p.h>
 
-Q_DECLARE_METATYPE(QScxmlError);
-
 class tst_StateMachineInfo: public QObject
 {
     Q_OBJECT

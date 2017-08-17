@@ -98,4 +98,6 @@ protected:
 
 QT_END_NAMESPACE
 
+Q_DECLARE_METATYPE(QScxmlDataModel *)
+
 #endif // QSCXMLDATAMODEL_H

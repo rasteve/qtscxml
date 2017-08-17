@@ -32,8 +32,6 @@
 #include <QtScxml/qscxmlcompiler.h>
 #include <QtScxml/qscxmlstatemachine.h>
 
-Q_DECLARE_METATYPE(QScxmlError);
-
 class tst_Parser: public QObject
 {
     Q_OBJECT

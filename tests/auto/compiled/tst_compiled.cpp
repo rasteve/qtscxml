@@ -40,8 +40,6 @@
 #include "connection.h"
 #include "topmachine.h"
 
-Q_DECLARE_METATYPE(QScxmlError);
-
 enum { SpyWaitTime = 8000 };
 
 class tst_Compiled: public QObject

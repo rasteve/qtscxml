@@ -34,8 +34,6 @@
 #include <QtScxml/qscxmlinvokableservice.h>
 #include <QtScxml/private/qscxmlstatemachine_p.h>
 
-Q_DECLARE_METATYPE(QScxmlError);
-
 enum { SpyWaitTime = 8000 };
 
 class tst_StateMachine: public QObject

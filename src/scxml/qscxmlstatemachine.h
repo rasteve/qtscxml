@@ -45,6 +45,7 @@
 #include <QtScxml/qscxmlerror.h>
 #include <QtScxml/qscxmlevent.h>
 #include <QtScxml/qscxmlcompiler.h>
+#include <QtScxml/qscxmlinvokableservice.h>
 
 #include <QtCore/qstring.h>
 #include <QtCore/qvector.h>
@@ -58,7 +59,6 @@ QT_BEGIN_NAMESPACE
 class QIODevice;
 class QXmlStreamWriter;
 class QTextStream;
-class QScxmlInvokableService;
 
 class QScxmlStateMachinePrivate;
 class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
@@ -354,5 +354,8 @@ private:
 };
 
 QT_END_NAMESPACE
+
+Q_DECLARE_METATYPE(QScxmlStateMachine *)
+Q_DECLARE_METATYPE(QVector<QScxmlInvokableService *>)
 
 #endif // QSCXMLSTATEMACHINE_H
