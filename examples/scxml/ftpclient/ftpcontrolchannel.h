@@ -59,7 +59,7 @@ class FtpControlChannel : public QObject
 {
     Q_OBJECT
 public:
-    explicit FtpControlChannel(QObject *parent = 0);
+    explicit FtpControlChannel(QObject *parent = nullptr);
 
     // Connect to an FTP server
     void connectToServer(const QString &server);

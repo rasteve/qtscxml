@@ -282,6 +282,8 @@ public:
     void attach(QScxmlStateMachineInfo *info);
     const OrderedSet &configuration() const { return m_configuration; }
 
+    void updateMetaCache();
+
 private:
     QStringList stateNames(const std::vector<int> &stateIndexes) const;
     std::vector<int> historyStates(int stateIdx) const;
@@ -378,6 +380,8 @@ private:
     bool isPaused() const { return m_runningState == Paused; }
 
     QScxmlInternal::StateMachineInfoProxy *m_infoSignalProxy;
+
+    QHash<int, int> m_stateIndexToSignalIndex;
 };
 
 QT_END_NAMESPACE

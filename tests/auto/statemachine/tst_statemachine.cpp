@@ -48,6 +48,7 @@ private Q_SLOTS:
     void activeStateNames_data();
     void activeStateNames();
     void connections();
+    void historyState();
     void onExit();
     void eventOccurred();
 
@@ -55,6 +56,8 @@ private Q_SLOTS:
     void running();
 
     void invokeStateMachine();
+
+    void multipleInvokableServices(); // QTBUG-61484
 };
 
 void tst_StateMachine::stateNames_data()
@@ -251,6 +254,24 @@ void tst_StateMachine::connections()
 #endif
 }
 
+void tst_StateMachine::historyState()
+{
+    QScopedPointer<QScxmlStateMachine> stateMachine(
+                QScxmlStateMachine::fromFile(QString(":/tst_statemachine/historystate.scxml")));
+    QVERIFY(!stateMachine.isNull());
+
+    bool state2Reached = false;
+    QMetaObject::Connection state2Connection = stateMachine->connectToState("State2",
+                            [&state2Reached](bool enabled) {
+        state2Reached = state2Reached || enabled;
+    });
+    QVERIFY(state2Connection);
+
+    stateMachine->start();
+
+    QTRY_VERIFY(state2Reached);
+}
+
 void tst_StateMachine::onExit()
 {
 #if defined(__cpp_return_type_deduction) && __cpp_return_type_deduction == 201304
@@ -365,7 +386,6 @@ void tst_StateMachine::doneDotStateEvent()
     finishedSpy.wait(5000);
     QCOMPARE(finishedSpy.count(), 1);
     QCOMPARE(stateMachine->activeStateNames(true).size(), 1);
-    qDebug() << stateMachine->activeStateNames(true);
     QVERIFY(stateMachine->activeStateNames(true).contains(QLatin1String("success")));
 }
 
@@ -407,6 +427,22 @@ void tst_StateMachine::invokeStateMachine()
     QScxmlStateMachine *subMachine = qvariant_cast<QScxmlStateMachine *>(subMachineVariant);
     QVERIFY(subMachine);
     QTRY_VERIFY(subMachine->activeStateNames().contains("here"));
+}
+
+void tst_StateMachine::multipleInvokableServices()
+{
+    QScopedPointer<QScxmlStateMachine> stateMachine(
+                QScxmlStateMachine::fromFile(QString(":/tst_statemachine/multipleinvokableservices.scxml")));
+    QVERIFY(!stateMachine.isNull());
+
+    QSignalSpy finishedSpy(stateMachine.data(), SIGNAL(finished()));
+    stateMachine->start();
+    QCOMPARE(stateMachine->isRunning(), true);
+
+    finishedSpy.wait(5000);
+    QCOMPARE(finishedSpy.count(), 1);
+    QCOMPARE(stateMachine->activeStateNames(true).size(), 1);
+    QVERIFY(stateMachine->activeStateNames(true).contains(QLatin1String("success")));
 }
 
 QTEST_MAIN(tst_StateMachine)

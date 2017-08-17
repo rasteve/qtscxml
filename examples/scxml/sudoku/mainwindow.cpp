@@ -174,7 +174,7 @@ MainWindow::MainWindow(QScxmlStateMachine *machine, QWidget *parent) :
     foreach (const QFileInfo &sudokuFile, sudokuFiles)
         m_chooser->addItem(sudokuFile.completeBaseName(), sudokuFile.absoluteFilePath());
 
-    connect(m_chooser, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+    connect(m_chooser, QOverload<int>::of(&QComboBox::currentIndexChanged),
             [this] (int index) {
         const QString sudokuFile = m_chooser->itemData(index).toString();
         const QVariantMap initValues = readSudoku(sudokuFile);

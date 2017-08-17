@@ -731,7 +731,9 @@ void QScxmlStateMachinePrivate::emitStateActive(int stateIndex, bool active)
 {
     Q_Q(QScxmlStateMachine);
     void *args[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&active)) };
-    QMetaObject::activate(q, m_metaObject, stateIndex, args);
+    const int signalIndex = m_stateIndexToSignalIndex.value(stateIndex, -1);
+    if (signalIndex >= 0)
+        QMetaObject::activate(q, m_metaObject, signalIndex, args);
 }
 
 void QScxmlStateMachinePrivate::emitInvokedServicesChanged()
@@ -753,6 +755,26 @@ void QScxmlStateMachinePrivate::attach(QScxmlStateMachineInfo *info)
                      info, &QScxmlStateMachineInfo::statesExited);
     QObject::connect(m_infoSignalProxy,&QScxmlInternal::StateMachineInfoProxy::transitionsTriggered,
                      info, &QScxmlStateMachineInfo::transitionsTriggered);
+}
+
+void QScxmlStateMachinePrivate::updateMetaCache()
+{
+    m_stateIndexToSignalIndex.clear();
+
+    if (!m_tableData)
+        return;
+
+    if (!m_stateTable)
+        return;
+
+    int signalIndex = 0;
+    for (int i = 0; i < m_stateTable->stateCount; ++i) {
+        const auto &s = m_stateTable->state(i);
+        if (!s.isHistoryState() && s.type != StateTable::State::Invalid) {
+            m_stateIndexToSignalIndex.insert(i, signalIndex);
+            ++signalIndex;
+        }
+    }
 }
 
 QStringList QScxmlStateMachinePrivate::stateNames(const std::vector<int> &stateIndexes) const
@@ -1767,6 +1789,8 @@ void QScxmlStateMachine::setTableData(QScxmlTableData *tableData)
                 == QScxmlExecutableContent::StateTable::terminator);
     }
 
+    d->updateMetaCache();
+
     emit tableDataChanged(tableData);
 }
 
@@ -2174,7 +2198,7 @@ bool QScxmlStateMachine::isDispatchableTarget(const QString &target) const
     if (target.startsWith(QStringLiteral("#_"))) {
         QStringRef targetId = target.midRef(2);
         for (auto invokedService : d->m_invokedServices) {
-            if (invokedService.service->id() == targetId)
+            if (invokedService.service && invokedService.service->id() == targetId)
                 return true;
         }
     }

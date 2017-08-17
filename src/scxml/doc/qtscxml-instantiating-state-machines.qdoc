@@ -146,8 +146,8 @@
 
     \code
     stateMachine->submitEvent("tap", QVariantMap({
-        std::make_pair("artist", "Fatboy Slim"),
-        std::make_pair("title", "The Rockafeller Skank")
+        { "artist", "Fatboy Slim" },
+        { "title", "The Rockafeller Skank" }
     });
     \endcode
 

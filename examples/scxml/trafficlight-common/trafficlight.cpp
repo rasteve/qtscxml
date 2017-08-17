@@ -55,7 +55,7 @@
 class TrafficLightWidget : public QWidget
 {
 public:
-    TrafficLightWidget(QWidget *parent = 0)
+    TrafficLightWidget(QWidget *parent = nullptr)
         : QWidget(parent), m_background(QLatin1String(":/background.png"))
     {
         QVBoxLayout *vbox = new QVBoxLayout(this);
@@ -76,14 +76,14 @@ public:
     LightWidget *greenLight() const
     { return m_green; }
 
-    virtual void paintEvent(QPaintEvent *) Q_DECL_OVERRIDE
+    virtual void paintEvent(QPaintEvent *) override
     {
         QPainter painter(this);
         painter.setRenderHint(QPainter::Antialiasing);
         painter.drawImage(0, 0, m_background);
     }
 
-    virtual QSize sizeHint() const Q_DECL_OVERRIDE
+    virtual QSize sizeHint() const override
     {
         return m_background.size();
     }
@@ -133,7 +133,6 @@ void TrafficLight::toggleWorking(bool pause)
 LightWidget::LightWidget(const QString &image, QWidget *parent)
     : QWidget(parent)
     , m_image(image)
-    , m_on(false)
 {}
 
 bool LightWidget::isOn() const
