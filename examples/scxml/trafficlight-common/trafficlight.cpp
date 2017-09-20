@@ -76,14 +76,14 @@ public:
     LightWidget *greenLight() const
     { return m_green; }
 
-    virtual void paintEvent(QPaintEvent *) override
+    void paintEvent(QPaintEvent *) override
     {
         QPainter painter(this);
         painter.setRenderHint(QPainter::Antialiasing);
         painter.drawImage(0, 0, m_background);
     }
 
-    virtual QSize sizeHint() const override
+    QSize sizeHint() const override
     {
         return m_background.size();
     }

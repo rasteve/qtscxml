@@ -387,7 +387,7 @@ const InstructionId *QScxmlExecutionEngine::step(const InstructionId *ip, bool *
                 , loopStart(loopStart)
             {}
 
-            void run(bool *ok) Q_DECL_OVERRIDE
+            void run(bool *ok) override
             {
                 engine->step(loopStart, ok);
             }

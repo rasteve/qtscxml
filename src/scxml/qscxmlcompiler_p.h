@@ -112,7 +112,7 @@ struct DataElement: public Node
     QString content;
 
     DataElement(const XmlLocation &xmlLocation): Node(xmlLocation) {}
-    void accept(NodeVisitor *visitor) Q_DECL_OVERRIDE;
+    void accept(NodeVisitor *visitor) override;
 };
 
 struct Param: public Node
@@ -122,7 +122,7 @@ struct Param: public Node
     QString location;
 
     Param(const XmlLocation &xmlLocation): Node(xmlLocation) {}
-    void accept(NodeVisitor *visitor) Q_DECL_OVERRIDE;
+    void accept(NodeVisitor *visitor) override;
 };
 
 struct DoneData: public Node
@@ -132,7 +132,7 @@ struct DoneData: public Node
     QVector<Param *> params;
 
     DoneData(const XmlLocation &xmlLocation): Node(xmlLocation) {}
-    void accept(NodeVisitor *visitor) Q_DECL_OVERRIDE;
+    void accept(NodeVisitor *visitor) override;
 };
 
 struct Instruction: public Node
@@ -162,8 +162,8 @@ struct Send: public Instruction
     QString contentexpr;
 
     Send(const XmlLocation &xmlLocation): Instruction(xmlLocation) {}
-    Send *asSend() Q_DECL_OVERRIDE { return this; }
-    void accept(NodeVisitor *visitor) Q_DECL_OVERRIDE;
+    Send *asSend() override { return this; }
+    void accept(NodeVisitor *visitor) override;
 };
 
 struct ScxmlDocument;
@@ -183,8 +183,8 @@ struct Invoke: public Instruction
     QSharedPointer<ScxmlDocument> content;
 
     Invoke(const XmlLocation &xmlLocation): Instruction(xmlLocation) {}
-    Invoke *asInvoke() Q_DECL_OVERRIDE { return this; }
-    void accept(NodeVisitor *visitor) Q_DECL_OVERRIDE;
+    Invoke *asInvoke() override { return this; }
+    void accept(NodeVisitor *visitor) override;
 };
 
 struct Raise: public Instruction
@@ -192,7 +192,7 @@ struct Raise: public Instruction
     QString event;
 
     Raise(const XmlLocation &xmlLocation): Instruction(xmlLocation) {}
-    void accept(NodeVisitor *visitor) Q_DECL_OVERRIDE;
+    void accept(NodeVisitor *visitor) override;
 };
 
 struct Log: public Instruction
@@ -200,7 +200,7 @@ struct Log: public Instruction
     QString label, expr;
 
     Log(const XmlLocation &xmlLocation): Instruction(xmlLocation) {}
-    void accept(NodeVisitor *visitor) Q_DECL_OVERRIDE;
+    void accept(NodeVisitor *visitor) override;
 };
 
 struct Script: public Instruction
@@ -209,8 +209,8 @@ struct Script: public Instruction
     QString content;
 
     Script(const XmlLocation &xmlLocation): Instruction(xmlLocation) {}
-    Script *asScript() Q_DECL_OVERRIDE { return this; }
-    void accept(NodeVisitor *visitor) Q_DECL_OVERRIDE;
+    Script *asScript() override { return this; }
+    void accept(NodeVisitor *visitor) override;
 };
 
 struct Assign: public Instruction
@@ -220,7 +220,7 @@ struct Assign: public Instruction
     QString content;
 
     Assign(const XmlLocation &xmlLocation): Instruction(xmlLocation) {}
-    void accept(NodeVisitor *visitor) Q_DECL_OVERRIDE;
+    void accept(NodeVisitor *visitor) override;
 };
 
 struct If: public Instruction
@@ -229,8 +229,8 @@ struct If: public Instruction
     InstructionSequences blocks;
 
     If(const XmlLocation &xmlLocation): Instruction(xmlLocation) {}
-    If *asIf() Q_DECL_OVERRIDE { return this; }
-    void accept(NodeVisitor *visitor) Q_DECL_OVERRIDE;
+    If *asIf() override { return this; }
+    void accept(NodeVisitor *visitor) override;
 };
 
 struct Foreach: public Instruction
@@ -241,7 +241,7 @@ struct Foreach: public Instruction
     InstructionSequence block;
 
     Foreach(const XmlLocation &xmlLocation): Instruction(xmlLocation) {}
-    void accept(NodeVisitor *visitor) Q_DECL_OVERRIDE;
+    void accept(NodeVisitor *visitor) override;
 };
 
 struct Cancel: public Instruction
@@ -250,7 +250,7 @@ struct Cancel: public Instruction
     QString sendidexpr;
 
     Cancel(const XmlLocation &xmlLocation): Instruction(xmlLocation) {}
-    void accept(NodeVisitor *visitor) Q_DECL_OVERRIDE;
+    void accept(NodeVisitor *visitor) override;
 };
 
 struct StateOrTransition: public Node
@@ -277,7 +277,7 @@ struct AbstractState: public StateContainer
 {
     QString id;
 
-    AbstractState *asAbstractState() Q_DECL_OVERRIDE { return this; }
+    AbstractState *asAbstractState() override { return this; }
 };
 
 struct State: public AbstractState, public StateOrTransition
@@ -302,15 +302,15 @@ struct State: public AbstractState, public StateOrTransition
         , initialTransition(Q_NULLPTR)
     {}
 
-    void add(StateOrTransition *s) Q_DECL_OVERRIDE
+    void add(StateOrTransition *s) override
     {
         Q_ASSERT(s);
         children.append(s);
     }
 
-    State *asState() Q_DECL_OVERRIDE { return this; }
+    State *asState() override { return this; }
 
-    void accept(NodeVisitor *visitor) Q_DECL_OVERRIDE;
+    void accept(NodeVisitor *visitor) override;
 };
 
 struct Transition: public StateOrTransition
@@ -329,9 +329,9 @@ struct Transition: public StateOrTransition
         , type(External)
     {}
 
-    Transition *asTransition() Q_DECL_OVERRIDE { return this; }
+    Transition *asTransition() override { return this; }
 
-    void accept(NodeVisitor *visitor) Q_DECL_OVERRIDE;
+    void accept(NodeVisitor *visitor) override;
 };
 
 struct HistoryState: public AbstractState, public StateOrTransition
@@ -345,7 +345,7 @@ struct HistoryState: public AbstractState, public StateOrTransition
         , type(Shallow)
     {}
 
-    void add(StateOrTransition *s) Q_DECL_OVERRIDE
+    void add(StateOrTransition *s) override
     {
         Q_ASSERT(s);
         children.append(s);
@@ -354,8 +354,8 @@ struct HistoryState: public AbstractState, public StateOrTransition
     Transition *defaultConfiguration()
     { return children.isEmpty() ? Q_NULLPTR : children.first()->asTransition(); }
 
-    HistoryState *asHistoryState() Q_DECL_OVERRIDE { return this; }
-    void accept(NodeVisitor *visitor) Q_DECL_OVERRIDE;
+    HistoryState *asHistoryState() override { return this; }
+    void accept(NodeVisitor *visitor) override;
 };
 
 struct Scxml: public StateContainer, public Node
@@ -390,15 +390,15 @@ struct Scxml: public StateContainer, public Node
         , initialTransition(nullptr)
     {}
 
-    void add(StateOrTransition *s) Q_DECL_OVERRIDE
+    void add(StateOrTransition *s) override
     {
         Q_ASSERT(s);
         children.append(s);
     }
 
-    Scxml *asScxml() Q_DECL_OVERRIDE { return this; }
+    Scxml *asScxml() override { return this; }
 
-    void accept(NodeVisitor *visitor) Q_DECL_OVERRIDE;
+    void accept(NodeVisitor *visitor) override;
 };
 
 struct ScxmlDocument
@@ -706,7 +706,7 @@ public:
         DefaultLoader();
         QByteArray load(const QString &name,
                         const QString &baseDir,
-                        QStringList *errors) Q_DECL_OVERRIDE Q_DECL_FINAL;
+                        QStringList *errors) override Q_DECL_FINAL;
     };
 
 private:

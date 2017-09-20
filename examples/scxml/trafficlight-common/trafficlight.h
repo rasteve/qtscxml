@@ -85,8 +85,8 @@ public slots:
     void switchLight(bool onoff);
 
 protected:
-    virtual void paintEvent(QPaintEvent *) override;
-    virtual QSize sizeHint() const override;
+    void paintEvent(QPaintEvent *) override;
+    QSize sizeHint() const override;
 
 private:
     QImage m_image;
@@ -100,8 +100,8 @@ public:
     ButtonWidget(QWidget *parent = nullptr);
 
 protected:
-    virtual void paintEvent(QPaintEvent *) override;
-    virtual QSize sizeHint() const override;
+    void paintEvent(QPaintEvent *) override;
+    QSize sizeHint() const override;
 
 private:
     QImage m_playIcon;

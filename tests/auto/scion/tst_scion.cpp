@@ -92,7 +92,7 @@ public:
     DynamicLoader();
     QByteArray load(const QString &name,
                     const QString &baseDir,
-                    QStringList *errors) Q_DECL_OVERRIDE Q_DECL_FINAL;
+                    QStringList *errors) override Q_DECL_FINAL;
 
 };
 

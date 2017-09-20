@@ -106,7 +106,7 @@ public:
     }
 
 private:
-    bool visit(DocumentModel::Scxml *scxml) Q_DECL_OVERRIDE
+    bool visit(DocumentModel::Scxml *scxml) override
     {
         if (!scxml->name.isEmpty() && !isValidToken(scxml->name, XmlNmtoken)) {
             error(scxml->xmlLocation,
@@ -133,12 +133,12 @@ private:
         return true;
     }
 
-    void endVisit(DocumentModel::Scxml *) Q_DECL_OVERRIDE
+    void endVisit(DocumentModel::Scxml *) override
     {
         m_parentNodes.removeLast();
     }
 
-    bool visit(DocumentModel::State *state) Q_DECL_OVERRIDE
+    bool visit(DocumentModel::State *state) override
     {
         if (!state->id.isEmpty() && !isValidToken(state->id, XmlNCName)) {
             error(state->xmlLocation, QStringLiteral("'%1' is not a valid XML ID").arg(state->id));
@@ -197,12 +197,12 @@ private:
         return true;
     }
 
-    void endVisit(DocumentModel::State *) Q_DECL_OVERRIDE
+    void endVisit(DocumentModel::State *) override
     {
         m_parentNodes.removeLast();
     }
 
-    bool visit(DocumentModel::Transition *transition) Q_DECL_OVERRIDE
+    bool visit(DocumentModel::Transition *transition) override
     {
         Q_ASSERT(transition->targetStates.isEmpty());
 
@@ -226,12 +226,12 @@ private:
         return true;
     }
 
-    void endVisit(DocumentModel::Transition *) Q_DECL_OVERRIDE
+    void endVisit(DocumentModel::Transition *) override
     {
         m_parentNodes.removeLast();
     }
 
-    bool visit(DocumentModel::HistoryState *state) Q_DECL_OVERRIDE
+    bool visit(DocumentModel::HistoryState *state) override
     {
         bool seenTransition = false;
         for (DocumentModel::StateOrTransition *sot : qAsConst(state->children)) {
@@ -252,25 +252,25 @@ private:
         return false;
     }
 
-    bool visit(DocumentModel::Send *node) Q_DECL_OVERRIDE
+    bool visit(DocumentModel::Send *node) override
     {
         checkEvent(node->event, node->xmlLocation, ForbidWildCards);
         checkExpr(node->xmlLocation, QStringLiteral("send"), QStringLiteral("eventexpr"), node->eventexpr);
         return true;
     }
 
-    void visit(DocumentModel::Cancel *node) Q_DECL_OVERRIDE
+    void visit(DocumentModel::Cancel *node) override
     {
         checkExpr(node->xmlLocation, QStringLiteral("cancel"), QStringLiteral("sendidexpr"), node->sendidexpr);
     }
 
-    bool visit(DocumentModel::DoneData *node) Q_DECL_OVERRIDE
+    bool visit(DocumentModel::DoneData *node) override
     {
         checkExpr(node->xmlLocation, QStringLiteral("donedata"), QStringLiteral("expr"), node->expr);
         return false;
     }
 
-    bool visit(DocumentModel::Invoke *node) Q_DECL_OVERRIDE
+    bool visit(DocumentModel::Invoke *node) override
     {
         if (!node->srcexpr.isEmpty())
             return false;
@@ -478,7 +478,7 @@ public:
     void setContent(const QSharedPointer<DocumentModel::ScxmlDocument> &content)
     { m_content = content; }
 
-    QScxmlInvokableService *invoke(QScxmlStateMachine *child) Q_DECL_OVERRIDE;
+    QScxmlInvokableService *invoke(QScxmlStateMachine *child) override;
 
 private:
     QSharedPointer<DocumentModel::ScxmlDocument> m_content;
@@ -498,10 +498,10 @@ class DynamicStateMachine: public QScxmlStateMachine, public QScxmlInternal::Gen
 public:
     Q_OBJECT_CHECK
 
-    const QMetaObject *metaObject() const Q_DECL_OVERRIDE
+    const QMetaObject *metaObject() const override
     { return d_func()->m_metaObject; }
 
-    int qt_metacall(QMetaObject::Call _c, int _id, void **_a) Q_DECL_OVERRIDE
+    int qt_metacall(QMetaObject::Call _c, int _id, void **_a) override
     {
         Q_D(DynamicStateMachine);
         _id = QScxmlStateMachine::qt_metacall(_c, _id, _a);
@@ -595,7 +595,7 @@ public:
         }
     }
 
-    QScxmlInvokableServiceFactory *serviceFactory(int id) const Q_DECL_OVERRIDE Q_DECL_FINAL
+    QScxmlInvokableServiceFactory *serviceFactory(int id) const override Q_DECL_FINAL
     { return m_allFactoriesById.at(id); }
 
     static DynamicStateMachine *build(DocumentModel::ScxmlDocument *doc)
