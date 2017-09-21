@@ -213,7 +213,7 @@ public:
 protected: // visitor
     using NodeVisitor::visit;
 
-    bool visit(DocumentModel::Scxml *node) override Q_DECL_FINAL
+    bool visit(DocumentModel::Scxml *node) override final
     {
         setName(node->name);
 
@@ -278,7 +278,7 @@ protected: // visitor
         return false;
     }
 
-    bool visit(DocumentModel::State *state) override Q_DECL_FINAL
+    bool visit(DocumentModel::State *state) override final
     {
         m_stateNames.add(state->id);
         const int stateIndex = m_docStatesIndices.value(state, -1);
@@ -378,7 +378,7 @@ protected: // visitor
         return false;
     }
 
-    bool visit(DocumentModel::Transition *transition) override Q_DECL_FINAL
+    bool visit(DocumentModel::Transition *transition) override final
     {
         const int transitionIndex = m_docTransitionIndices.value(transition, -1);
         Q_ASSERT(transitionIndex != -1);
@@ -428,7 +428,7 @@ protected: // visitor
         return false;
     }
 
-    bool visit(DocumentModel::HistoryState *historyState) override Q_DECL_FINAL
+    bool visit(DocumentModel::HistoryState *historyState) override final
     {
         const int stateIndex = m_docStatesIndices.value(historyState, -1);
         Q_ASSERT(stateIndex != -1);
@@ -454,7 +454,7 @@ protected: // visitor
         return false;
     }
 
-    bool visit(DocumentModel::Send *node) override Q_DECL_FINAL
+    bool visit(DocumentModel::Send *node) override final
     {
         auto instr = m_instructions.add<Send>(Send::calculateExtraSize(node->params.size(),
                                                                        node->namelist.size()));
@@ -486,13 +486,13 @@ protected: // visitor
         return false;
     }
 
-    void visit(DocumentModel::Raise *node) override Q_DECL_FINAL
+    void visit(DocumentModel::Raise *node) override final
     {
         auto instr = m_instructions.add<Raise>();
         instr->event = addString(node->event);
     }
 
-    void visit(DocumentModel::Log *node) override Q_DECL_FINAL
+    void visit(DocumentModel::Log *node) override final
     {
         auto instr = m_instructions.add<Log>();
         instr->label = addString(node->label);
@@ -501,7 +501,7 @@ protected: // visitor
                                             node->expr);
     }
 
-    void visit(DocumentModel::Script *node) override Q_DECL_FINAL
+    void visit(DocumentModel::Script *node) override final
     {
         auto instr = m_instructions.add<JavaScript>();
         instr->go = createEvaluatorVoid(QStringLiteral("script"),
@@ -509,14 +509,14 @@ protected: // visitor
                                         node->content);
     }
 
-    void visit(DocumentModel::Assign *node) override Q_DECL_FINAL
+    void visit(DocumentModel::Assign *node) override final
     {
         auto instr = m_instructions.add<Assign>();
         auto ctxt = createContext(QStringLiteral("assign"), QStringLiteral("expr"), node->expr);
         instr->expression = addAssignment(node->location, node->expr, ctxt);
     }
 
-    bool visit(DocumentModel::If *node) override Q_DECL_FINAL
+    bool visit(DocumentModel::If *node) override final
     {
         auto instr = m_instructions.add<If>(node->conditions.size());
         instr->conditions.count = node->conditions.size();
@@ -533,7 +533,7 @@ protected: // visitor
         return false;
     }
 
-    bool visit(DocumentModel::Foreach *node) override Q_DECL_FINAL
+    bool visit(DocumentModel::Foreach *node) override final
     {
         auto instr = m_instructions.add<Foreach>();
         auto ctxt = createContextString(QStringLiteral("foreach"));
@@ -544,7 +544,7 @@ protected: // visitor
         return false;
     }
 
-    void visit(DocumentModel::Cancel *node) override Q_DECL_FINAL
+    void visit(DocumentModel::Cancel *node) override final
     {
         auto instr = m_instructions.add<Cancel>();
         instr->sendid = addString(node->sendid);

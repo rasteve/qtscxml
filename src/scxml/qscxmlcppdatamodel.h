@@ -44,10 +44,10 @@
 
 #define Q_SCXML_DATAMODEL \
     public: \
-        QString evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok) override Q_DECL_FINAL; \
-        bool evaluateToBool(QScxmlExecutableContent::EvaluatorId id, bool *ok) override Q_DECL_FINAL; \
-        QVariant evaluateToVariant(QScxmlExecutableContent::EvaluatorId id, bool *ok) override Q_DECL_FINAL; \
-        void evaluateToVoid(QScxmlExecutableContent::EvaluatorId id, bool *ok) override Q_DECL_FINAL; \
+        QString evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok) override final; \
+        bool evaluateToBool(QScxmlExecutableContent::EvaluatorId id, bool *ok) override final; \
+        QVariant evaluateToVariant(QScxmlExecutableContent::EvaluatorId id, bool *ok) override final; \
+        void evaluateToVoid(QScxmlExecutableContent::EvaluatorId id, bool *ok) override final; \
     private:
 
 QT_BEGIN_NAMESPACE
@@ -66,7 +66,7 @@ public:
     void evaluateInitialization(QScxmlExecutableContent::EvaluatorId id, bool *ok) override;
     void evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) override;
 
-    void setScxmlEvent(const QScxmlEvent &scxmlEvent) override Q_DECL_FINAL;
+    void setScxmlEvent(const QScxmlEvent &scxmlEvent) override final;
     const QScxmlEvent &scxmlEvent() const;
 
     QVariant scxmlProperty(const QString &name) const override;

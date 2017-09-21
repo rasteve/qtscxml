@@ -95,18 +95,18 @@ public:
     static QString toString(const int *stateMachineTable);
 
 public:
-    QString string(QScxmlExecutableContent::StringId id) const override Q_DECL_FINAL;
-    QScxmlExecutableContent::InstructionId *instructions() const override Q_DECL_FINAL;
+    QString string(QScxmlExecutableContent::StringId id) const override final;
+    QScxmlExecutableContent::InstructionId *instructions() const override final;
     QScxmlExecutableContent::EvaluatorInfo evaluatorInfo(
-            QScxmlExecutableContent::EvaluatorId evaluatorId) const override Q_DECL_FINAL;
+            QScxmlExecutableContent::EvaluatorId evaluatorId) const override final;
     QScxmlExecutableContent::AssignmentInfo assignmentInfo(
-            QScxmlExecutableContent::EvaluatorId assignmentId) const override Q_DECL_FINAL;
+            QScxmlExecutableContent::EvaluatorId assignmentId) const override final;
     QScxmlExecutableContent::ForeachInfo foreachInfo(
-            QScxmlExecutableContent::EvaluatorId foreachId) const override Q_DECL_FINAL;
-    QScxmlExecutableContent::StringId *dataNames(int *count) const override Q_DECL_FINAL;
-    QScxmlExecutableContent::ContainerId initialSetup() const override Q_DECL_FINAL;
-    QString name() const override Q_DECL_FINAL;
-    const qint32 *stateMachineTable() const override Q_DECL_FINAL;
+            QScxmlExecutableContent::EvaluatorId foreachId) const override final;
+    QScxmlExecutableContent::StringId *dataNames(int *count) const override final;
+    QScxmlExecutableContent::ContainerId initialSetup() const override final;
+    QString name() const override final;
+    const qint32 *stateMachineTable() const override final;
     QScxmlInvokableServiceFactory *serviceFactory(int id) const override;
 
 public:

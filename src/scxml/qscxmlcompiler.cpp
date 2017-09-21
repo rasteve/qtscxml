@@ -595,7 +595,7 @@ public:
         }
     }
 
-    QScxmlInvokableServiceFactory *serviceFactory(int id) const override Q_DECL_FINAL
+    QScxmlInvokableServiceFactory *serviceFactory(int id) const override final
     { return m_allFactoriesById.at(id); }
 
     static DynamicStateMachine *build(DocumentModel::ScxmlDocument *doc)

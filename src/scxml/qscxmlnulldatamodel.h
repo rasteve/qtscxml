@@ -55,13 +55,13 @@ public:
 
     Q_INVOKABLE bool setup(const QVariantMap &initialDataValues) override;
 
-    QString evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok) override Q_DECL_FINAL;
-    bool evaluateToBool(QScxmlExecutableContent::EvaluatorId id, bool *ok) override Q_DECL_FINAL;
-    QVariant evaluateToVariant(QScxmlExecutableContent::EvaluatorId id, bool *ok) override Q_DECL_FINAL;
-    void evaluateToVoid(QScxmlExecutableContent::EvaluatorId id, bool *ok) override Q_DECL_FINAL;
-    void evaluateAssignment(QScxmlExecutableContent::EvaluatorId id, bool *ok) override Q_DECL_FINAL;
-    void evaluateInitialization(QScxmlExecutableContent::EvaluatorId id, bool *ok) override Q_DECL_FINAL;
-    void evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) override Q_DECL_FINAL;
+    QString evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok) override final;
+    bool evaluateToBool(QScxmlExecutableContent::EvaluatorId id, bool *ok) override final;
+    QVariant evaluateToVariant(QScxmlExecutableContent::EvaluatorId id, bool *ok) override final;
+    void evaluateToVoid(QScxmlExecutableContent::EvaluatorId id, bool *ok) override final;
+    void evaluateAssignment(QScxmlExecutableContent::EvaluatorId id, bool *ok) override final;
+    void evaluateInitialization(QScxmlExecutableContent::EvaluatorId id, bool *ok) override final;
+    void evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) override final;
 
     void setScxmlEvent(const QScxmlEvent &event) override;
 
