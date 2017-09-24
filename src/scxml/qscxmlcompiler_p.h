@@ -90,14 +90,14 @@ struct Node {
     virtual ~Node();
     virtual void accept(NodeVisitor *visitor) = 0;
 
-    virtual If *asIf() { return Q_NULLPTR; }
-    virtual Send *asSend() { return Q_NULLPTR; }
-    virtual Invoke *asInvoke() { return Q_NULLPTR; }
-    virtual Script *asScript() { return Q_NULLPTR; }
-    virtual State *asState() { return Q_NULLPTR; }
-    virtual Transition *asTransition() { return Q_NULLPTR; }
-    virtual HistoryState *asHistoryState() { return Q_NULLPTR; }
-    virtual Scxml *asScxml() { return Q_NULLPTR; }
+    virtual If *asIf() { return nullptr; }
+    virtual Send *asSend() { return nullptr; }
+    virtual Invoke *asInvoke() { return nullptr; }
+    virtual Script *asScript() { return nullptr; }
+    virtual State *asState() { return nullptr; }
+    virtual Transition *asTransition() { return nullptr; }
+    virtual HistoryState *asHistoryState() { return nullptr; }
+    virtual Scxml *asScxml() { return nullptr; }
     AbstractState *asAbstractState();
 
 private:
@@ -261,16 +261,16 @@ struct StateOrTransition: public Node
 struct StateContainer
 {
     StateContainer()
-        : parent(Q_NULLPTR)
+        : parent(nullptr)
     {}
 
     StateContainer *parent;
 
     virtual ~StateContainer() {}
     virtual void add(StateOrTransition *s) = 0;
-    virtual AbstractState *asAbstractState() { return Q_NULLPTR; }
-    virtual State *asState() { return Q_NULLPTR; }
-    virtual Scxml *asScxml() { return Q_NULLPTR; }
+    virtual AbstractState *asAbstractState() { return nullptr; }
+    virtual State *asState() { return nullptr; }
+    virtual Scxml *asScxml() { return nullptr; }
 };
 
 struct AbstractState: public StateContainer
@@ -297,9 +297,9 @@ struct State: public AbstractState, public StateOrTransition
 
     State(const XmlLocation &xmlLocation)
         : StateOrTransition(xmlLocation)
-        , doneData(Q_NULLPTR)
+        , doneData(nullptr)
         , type(Normal)
-        , initialTransition(Q_NULLPTR)
+        , initialTransition(nullptr)
     {}
 
     void add(StateOrTransition *s) override
@@ -352,7 +352,7 @@ struct HistoryState: public AbstractState, public StateOrTransition
     }
 
     Transition *defaultConfiguration()
-    { return children.isEmpty() ? Q_NULLPTR : children.first()->asTransition(); }
+    { return children.isEmpty() ? nullptr : children.first()->asTransition(); }
 
     HistoryState *asHistoryState() override { return this; }
     void accept(NodeVisitor *visitor) override;
@@ -414,7 +414,7 @@ struct ScxmlDocument
 
     ScxmlDocument(const QString &fileName)
         : fileName(fileName)
-        , root(Q_NULLPTR)
+        , root(nullptr)
         , isVerified(false)
     {}
 

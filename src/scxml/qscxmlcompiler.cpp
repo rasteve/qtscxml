@@ -77,7 +77,7 @@ class ScxmlVerifier: public DocumentModel::NodeVisitor
 public:
     ScxmlVerifier(std::function<void (const DocumentModel::XmlLocation &, const QString &)> errorHandler)
         : m_errorHandler(errorHandler)
-        , m_doc(Q_NULLPTR)
+        , m_doc(nullptr)
         , m_hasErrors(false)
     {}
 
@@ -642,7 +642,7 @@ inline QScxmlInvokableService *InvokeDynamicScxmlFactory::invoke(
     bool ok = true;
     auto srcexpr = calculateSrcexpr(parentStateMachine, invokeInfo().expr, &ok);
     if (!ok)
-        return Q_NULLPTR;
+        return nullptr;
 
     if (!srcexpr.isEmpty())
         return invokeDynamicScxmlService(srcexpr, parentStateMachine, this);
@@ -672,7 +672,7 @@ QScxmlScxmlService *invokeDynamicScxmlService(const QString &sourceUrl,
 
     if (!errs.isEmpty()) {
         qWarning() << errs;
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     QXmlStreamReader reader(data);
@@ -684,7 +684,7 @@ QScxmlScxmlService *invokeDynamicScxmlService(const QString &sourceUrl,
         const auto errors = compiler.errors();
         for (const QScxmlError &error : errors)
             qWarning() << error.toString();
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     auto mainDoc = QScxmlCompilerPrivate::get(&compiler)->scxmlDocument();
@@ -693,7 +693,7 @@ QScxmlScxmlService *invokeDynamicScxmlService(const QString &sourceUrl,
         const auto errors = compiler.errors();
         for (const QScxmlError &error : errors)
             qWarning() << error.toString();
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     auto childStateMachine = DynamicStateMachine::build(mainDoc);
@@ -812,7 +812,7 @@ QScxmlStateMachine *QScxmlCompiler::compile()
 QScxmlStateMachine *QScxmlCompilerPrivate::instantiateStateMachine() const
 {
 #ifdef BUILD_QSCXMLC
-    return Q_NULLPTR;
+    return nullptr;
 #else // BUILD_QSCXMLC
     DocumentModel::ScxmlDocument *doc = scxmlDocument();
     if (doc && doc->root) {
@@ -846,14 +846,14 @@ void QScxmlCompilerPrivate::instantiateDataModel(QScxmlStateMachine *stateMachin
     Q_UNUSED(stateMachine)
 #else
     auto doc = scxmlDocument();
-    auto root = doc ? doc->root : Q_NULLPTR;
-    if (root == Q_NULLPTR) {
+    auto root = doc ? doc->root : nullptr;
+    if (root == nullptr) {
         qWarning() << "SCXML document has no root element";
     } else {
         QScxmlDataModel *dm = QScxmlDataModelPrivate::instantiateDataModel(root->dataModel);
         QScxmlStateMachinePrivate::get(stateMachine)->parserData()->m_ownedDataModel.reset(dm);
         stateMachine->setDataModel(dm);
-        if (dm == Q_NULLPTR)
+        if (dm == nullptr)
             qWarning() << "No data-model instantiated";
     }
 #endif // BUILD_QSCXMLC
@@ -1155,7 +1155,7 @@ DocumentModel::AbstractState *DocumentModel::Node::asAbstractState()
         return state;
     if (HistoryState *history = asHistoryState())
         return history;
-    return Q_NULLPTR;
+    return nullptr;
 }
 
 void DocumentModel::DataElement::accept(DocumentModel::NodeVisitor *visitor)
@@ -1317,7 +1317,7 @@ QScxmlCompilerPrivate *QScxmlCompilerPrivate::get(QScxmlCompiler *compiler)
 }
 
 QScxmlCompilerPrivate::QScxmlCompilerPrivate(QXmlStreamReader *reader)
-    : m_currentState(Q_NULLPTR)
+    : m_currentState(nullptr)
     , m_loader(&m_defaultLoader)
     , m_reader(reader)
 {}
@@ -1339,7 +1339,7 @@ bool QScxmlCompilerPrivate::verifyDocument()
 
 DocumentModel::ScxmlDocument *QScxmlCompilerPrivate::scxmlDocument() const
 {
-    return m_doc && m_errors.isEmpty() ? m_doc.data() : Q_NULLPTR;
+    return m_doc && m_errors.isEmpty() ? m_doc.data() : nullptr;
 }
 
 QString QScxmlCompilerPrivate::fileName() const
@@ -1960,7 +1960,7 @@ bool QScxmlCompilerPrivate::postReadElementDataModel()
 bool QScxmlCompilerPrivate::postReadElementData()
 {
     const ParserState parserState = current();
-    DocumentModel::DataElement *data = Q_NULLPTR;
+    DocumentModel::DataElement *data = nullptr;
     if (auto state = m_currentState->asState()) {
         data = state->dataElements.last();
     } else if (auto scxml = m_currentState->asScxml()) {
@@ -2342,7 +2342,7 @@ void QScxmlCompilerPrivate::addError(const DocumentModel::XmlLocation &location,
 
 DocumentModel::AbstractState *QScxmlCompilerPrivate::currentParent() const
 {
-    return m_currentState ? m_currentState->asAbstractState() : Q_NULLPTR;
+    return m_currentState ? m_currentState->asAbstractState() : nullptr;
 }
 
 DocumentModel::XmlLocation QScxmlCompilerPrivate::xmlLocation() const
@@ -2369,18 +2369,18 @@ DocumentModel::If *QScxmlCompilerPrivate::lastIf()
 {
     if (!hasPrevious()) {
         addError(QStringLiteral("No previous instruction found for else block"));
-        return Q_NULLPTR;
+        return nullptr;
     }
 
     DocumentModel::Instruction *lastI = previous().instruction;
     if (!lastI) {
         addError(QStringLiteral("No previous instruction found for else block"));
-        return Q_NULLPTR;
+        return nullptr;
     }
     DocumentModel::If *ifI = lastI->asIf();
     if (!ifI) {
         addError(QStringLiteral("Previous instruction for else block is not an 'if'"));
-        return Q_NULLPTR;
+        return nullptr;
     }
     return ifI;
 }

@@ -667,7 +667,7 @@ protected:
     {
         SequenceInfo info = m_activeSequences.back();
         m_activeSequences.pop_back();
-        m_instructions.setSequenceInfo(m_activeSequences.isEmpty() ? Q_NULLPTR :
+        m_instructions.setSequenceInfo(m_activeSequences.isEmpty() ? nullptr :
                                                                      &m_activeSequences.last());
 
         auto sequence = m_instructions.at<InstructionSequence>(info.location);
@@ -896,7 +896,7 @@ private:
     public:
         InstructionStorage(QVector<qint32> &storage)
             : m_instr(storage)
-            , m_info(Q_NULLPTR)
+            , m_info(nullptr)
         {}
 
         ContainerId newContainerId() const { return m_instr.size(); }

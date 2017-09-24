@@ -399,7 +399,7 @@ QMetaObject::Connection ScxmlEventRouter::connectToEvent(const QStringList &segm
 {
     QString segment = nextSegment(segments);
     if (segment.isEmpty()) {
-        const int *types = Q_NULLPTR;
+        const int *types = nullptr;
         if (type == Qt::QueuedConnection || type == Qt::BlockingQueuedConnection)
             types = QtPrivate::ConnectionTypes<QtPrivate::List<QScxmlEvent> >::types();
 
@@ -422,11 +422,11 @@ QScxmlStateMachinePrivate::QScxmlStateMachinePrivate(const QMetaObject *metaObje
     , m_isInvoked(false)
     , m_isInitialized(false)
     , m_isProcessingEvents(false)
-    , m_dataModel(Q_NULLPTR)
+    , m_dataModel(nullptr)
     , m_loader(&m_defaultLoader)
-    , m_executionEngine(Q_NULLPTR)
-    , m_tableData(Q_NULLPTR)
-    , m_parentStateMachine(Q_NULLPTR)
+    , m_executionEngine(nullptr)
+    , m_tableData(nullptr)
+    , m_parentStateMachine(nullptr)
     , m_eventLoopHook(this)
     , m_metaObject(metaObject)
     , m_infoSignalProxy(nullptr)
@@ -729,7 +729,7 @@ void QScxmlStateMachinePrivate::resetEvent()
 void QScxmlStateMachinePrivate::emitStateActive(int stateIndex, bool active)
 {
     Q_Q(QScxmlStateMachine);
-    void *args[] = { Q_NULLPTR, const_cast<void*>(reinterpret_cast<const void*>(&active)) };
+    void *args[] = { nullptr, const_cast<void*>(reinterpret_cast<const void*>(&active)) };
     const int signalIndex = m_stateIndexToSignalIndex.value(stateIndex, -1);
     if (signalIndex >= 0)
         QMetaObject::activate(q, m_metaObject, signalIndex, args);
@@ -1717,7 +1717,7 @@ void QScxmlStateMachine::setDataModel(QScxmlDataModel *model)
 {
     Q_D(QScxmlStateMachine);
 
-    if (d->m_dataModel == Q_NULLPTR && model != Q_NULLPTR) {
+    if (d->m_dataModel == nullptr && model != nullptr) {
         d->m_dataModel = model;
         if (model)
             model->setStateMachine(this);
@@ -1893,7 +1893,7 @@ QMetaObject::Connection QScxmlStateMachine::connectToStateImpl(const QString &sc
                                                                QtPrivate::QSlotObjectBase *slotObj,
                                                                Qt::ConnectionType type)
 {
-    const int *types = Q_NULLPTR;
+    const int *types = nullptr;
     if (type == Qt::QueuedConnection || type == Qt::BlockingQueuedConnection)
         types = QtPrivate::ConnectionTypes<QtPrivate::List<bool> >::types();
 

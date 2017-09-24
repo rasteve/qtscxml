@@ -120,7 +120,7 @@ void QScxmlDataModel::setStateMachine(QScxmlStateMachine *stateMachine)
 {
     Q_D(QScxmlDataModel);
 
-    if (d->m_stateMachine == Q_NULLPTR && stateMachine != Q_NULLPTR) {
+    if (d->m_stateMachine == nullptr && stateMachine != nullptr) {
         d->m_stateMachine = stateMachine;
         if (stateMachine)
             stateMachine->setDataModel(this);
@@ -139,7 +139,7 @@ QScxmlStateMachine *QScxmlDataModel::stateMachine() const
 
 QScxmlDataModel *QScxmlDataModelPrivate::instantiateDataModel(DocumentModel::Scxml::DataModelType type)
 {
-    QScxmlDataModel *dataModel = Q_NULLPTR;
+    QScxmlDataModel *dataModel = nullptr;
     switch (type) {
     case DocumentModel::Scxml::NullDataModel:
         dataModel = new QScxmlNullDataModel;

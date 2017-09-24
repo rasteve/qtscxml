@@ -66,7 +66,7 @@ class QScxmlEcmaScriptDataModelPrivate : public QScxmlDataModelPrivate
     Q_DECLARE_PUBLIC(QScxmlEcmaScriptDataModel)
 public:
     QScxmlEcmaScriptDataModelPrivate()
-        : jsEngine(Q_NULLPTR)
+        : jsEngine(nullptr)
     {}
 
     QString evalStr(const QString &expr, const QString &context, bool *ok)
@@ -312,7 +312,7 @@ private: // Uses private API
 
         QV4::Scope scope(engine);
         QV4::ScopedObject o(scope, QJSValuePrivate::getValue(object));
-        if (o == Q_NULLPTR) {
+        if (o == nullptr) {
             return SetPropertyFailedForAnotherReason;
         }
 
