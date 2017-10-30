@@ -119,22 +119,24 @@ Window {
         stateMachine: root.stateMachine
         events: ["playbackStarted", "playbackStopped"]
         onOccurred: {
-            var media = event.data.media
+            var media = event.data.media;
             if (event.name === "playbackStarted") {
-                theText.text = "Playing '" + media + "'"
+                theText.text = "Playing '" + media + "'";
                 theLog.text = theLog.text + "\nplaybackStarted with data: "
-                                          + JSON.stringify(event.data)
+                                          + JSON.stringify(event.data);
             } else if (event.name === "playbackStopped") {
-                theText.text = "Stopped '" + media + "'"
+                theText.text = "Stopped '" + media + "'";
                 theLog.text = theLog.text + "\nplaybackStopped with data: "
-                                          + JSON.stringify(event.data)
+                                          + JSON.stringify(event.data);
             }
         }
     }
 
+    // Submit tap event to state machine.
+    // "tap" toggles playing state of the current media.
     function tap(idx) {
-        var media = theModel.get(idx).media
-        var data = { "media": media }
-        stateMachine.submitEvent("tap", data)
+        var media = theModel.get(idx).media;
+        var data = { "media": media };
+        stateMachine.submitEvent("tap", data);
     }
 }
