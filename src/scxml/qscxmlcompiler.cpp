@@ -683,7 +683,7 @@ QScxmlScxmlService *invokeDynamicScxmlService(const QString &sourceUrl,
     if (!compiler.errors().isEmpty()) {
         const auto errors = compiler.errors();
         for (const QScxmlError &error : errors)
-            qWarning() << error.toString();
+            qWarning().noquote() << error.toString();
         return Q_NULLPTR;
     }
 
@@ -692,7 +692,7 @@ QScxmlScxmlService *invokeDynamicScxmlService(const QString &sourceUrl,
         Q_ASSERT(!compiler.errors().isEmpty());
         const auto errors = compiler.errors();
         for (const QScxmlError &error : errors)
-            qWarning() << error.toString();
+            qWarning().noquote() << error.toString();
         return Q_NULLPTR;
     }
 
@@ -845,7 +845,12 @@ void QScxmlCompilerPrivate::instantiateDataModel(QScxmlStateMachine *stateMachin
 #ifdef BUILD_QSCXMLC
     Q_UNUSED(stateMachine)
 #else
-    auto doc = scxmlDocument();
+    if (!m_errors.isEmpty()) {
+        qWarning() << "SCXML document has errors";
+        return;
+    }
+
+    auto doc = m_doc.data();
     auto root = doc ? doc->root : Q_NULLPTR;
     if (root == Q_NULLPTR) {
         qWarning() << "SCXML document has no root element";
