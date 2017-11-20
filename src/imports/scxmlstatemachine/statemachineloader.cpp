@@ -163,7 +163,18 @@ bool QScxmlStateMachineLoader::parse(const QUrl &source)
         return false;
     }
 
-    m_stateMachine = QScxmlStateMachine::fromData(&buf, source.toString());
+    QString fileName;
+    if (source.isLocalFile()) {
+        fileName = source.toLocalFile();
+    } else if (source.scheme() == QStringLiteral("qrc")) {
+        fileName = ":" + source.path();
+    } else {
+        qmlWarning(this) << QStringLiteral("%1 is neither a local nor a resource URL.")
+                            .arg(source.url())
+                         << QStringLiteral("Invoking services by relative path will not work.");
+    }
+
+    m_stateMachine = QScxmlStateMachine::fromData(&buf, fileName);
     m_stateMachine->setParent(this);
     m_implicitDataModel = m_stateMachine->dataModel();
 
