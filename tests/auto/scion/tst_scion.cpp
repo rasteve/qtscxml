@@ -31,7 +31,7 @@
 #include <QJsonDocument>
 
 #include <QtScxml/qscxmlcompiler.h>
-#include <QtScxml/qscxmlecmascriptdatamodel.h>
+#include <QtScxml/qscxmlstatemachine.h>
 
 #include <functional>
 
