@@ -1,4 +1,5 @@
 QT += widgets scxml
+requires(qtConfig(listview))
 
 CONFIG += c++11
 
