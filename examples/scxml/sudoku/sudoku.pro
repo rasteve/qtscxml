@@ -1,4 +1,5 @@
 QT += widgets scxml
+requires(qtConfig(combobox))
 
 CONFIG += c++11
 
