@@ -69,7 +69,7 @@ class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
     Q_PROPERTY(bool initialized READ isInitialized NOTIFY initializedChanged)
     Q_PROPERTY(QScxmlDataModel *dataModel READ dataModel WRITE setDataModel NOTIFY dataModelChanged)
     Q_PROPERTY(QVariantMap initialValues READ initialValues WRITE setInitialValues NOTIFY initialValuesChanged)
-    Q_PROPERTY(QVector<QScxmlInvokableService *> invokedServices READ invokedServices NOTIFY invokedServicesChanged)
+    Q_PROPERTY(QVector<QScxmlInvokableService*> invokedServices READ invokedServices NOTIFY invokedServicesChanged)
     Q_PROPERTY(QString sessionId READ sessionId CONSTANT)
     Q_PROPERTY(QString name READ name CONSTANT)
     Q_PROPERTY(bool invoked READ isInvoked CONSTANT)
