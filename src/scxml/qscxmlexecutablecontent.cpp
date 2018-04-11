@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the QtScxml module of the Qt Toolkit.
@@ -81,6 +81,22 @@ using namespace QScxmlExecutableContent;
     \since 5.8
     \brief ID for a string contained in executable content.
  */
+
+/*!
+    \enum QScxmlExecutableContent::anonymous
+    \since 5.8
+
+    This enum type holds the invalid values for type definitions.
+
+    \value NoContainer
+           \l ContainerId is unknown.
+    \value NoEvaluator
+           \l EvaluatorId is unknown.
+    \value NoInstruction
+           \l InstructionId is unknown.
+    \value NoString
+           \l StringId is unknown.
+*/
 
 /*!
     \class QScxmlExecutableContent::EvaluatorInfo
