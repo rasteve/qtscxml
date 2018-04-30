@@ -175,7 +175,7 @@ MainWindow::MainWindow(QScxmlStateMachine *machine, QWidget *parent) :
     QDir dataDir(QLatin1String(":/data"));
     QFileInfoList sudokuFiles = dataDir.entryInfoList(QStringList()
                                                       << "*.data");
-    foreach (const QFileInfo &sudokuFile, sudokuFiles) {
+    for (const QFileInfo &sudokuFile : sudokuFiles) {
         m_chooser->addItem(sudokuFile.completeBaseName(),
                            sudokuFile.absoluteFilePath());
     }
