@@ -65,7 +65,7 @@ QT_BEGIN_NAMESPACE
 #ifndef BUILD_QSCXMLC
 class QScxmlEventBuilder
 {
-    QScxmlStateMachine* stateMachine;
+    QScxmlStateMachine *stateMachine;
     QScxmlExecutableContent::StringId instructionLocation;
     QString event;
     QScxmlExecutableContent::EvaluatorId eventexpr;

@@ -61,9 +61,9 @@ class QScxmlStateMachineLoader: public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(QScxmlStateMachine* stateMachine READ stateMachine DESIGNABLE false NOTIFY stateMachineChanged)
+    Q_PROPERTY(QScxmlStateMachine *stateMachine READ stateMachine DESIGNABLE false NOTIFY stateMachineChanged)
     Q_PROPERTY(QVariantMap initialValues READ initialValues WRITE setInitialValues NOTIFY initialValuesChanged)
-    Q_PROPERTY(QScxmlDataModel* dataModel READ dataModel WRITE setDataModel NOTIFY dataModelChanged)
+    Q_PROPERTY(QScxmlDataModel *dataModel READ dataModel WRITE setDataModel NOTIFY dataModelChanged)
 
 
 public:
