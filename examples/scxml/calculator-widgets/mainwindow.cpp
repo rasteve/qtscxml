@@ -115,8 +115,10 @@ MainWindow::MainWindow(QScxmlStateMachine *machine, QWidget *parent) :
         m_machine->submitEvent("C");
     });
 
-    m_machine->connectToEvent(QLatin1String("updateDisplay"), this, [this](const QScxmlEvent &event) {
-        const QString display = event.data().toMap().value("display").toString();
+    m_machine->connectToEvent(QLatin1String("updateDisplay"), this,
+                              [this](const QScxmlEvent &event) {
+        const QString display = event.data().toMap()
+                .value("display").toString();
         ui->display->setText(display);
     });
 }

@@ -117,13 +117,15 @@ TrafficLight::TrafficLight(QScxmlStateMachine *machine, QWidget *parent)
     QAbstractButton *button = new ButtonWidget(this);
     auto setButtonGeometry = [this, button](){
         QSize buttonSize = button->sizeHint();
-        button->setGeometry(width() - buttonSize.width() - 20, height() - buttonSize.height() - 20,
+        button->setGeometry(width() - buttonSize.width() - 20,
+                            height() - buttonSize.height() - 20,
                             buttonSize.width(), buttonSize.height());
     };
     connect(button, &QAbstractButton::toggled, this, setButtonGeometry);
     setButtonGeometry();
 
-    connect(button, &QAbstractButton::toggled, this, &TrafficLight::toggleWorking);
+    connect(button, &QAbstractButton::toggled,
+            this, &TrafficLight::toggleWorking);
 }
 
 void TrafficLight::toggleWorking(bool pause)

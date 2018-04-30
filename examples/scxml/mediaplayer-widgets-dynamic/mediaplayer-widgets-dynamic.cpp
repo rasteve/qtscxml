@@ -57,7 +57,8 @@ int main(int argc, char **argv)
 {
     QApplication app(argc, argv);
 
-    auto machine = QScxmlStateMachine::fromFile(QStringLiteral(":mediaplayer.scxml"));
+    auto machine = QScxmlStateMachine::fromFile(
+                QStringLiteral(":mediaplayer.scxml"));
     MainWindow mainWindow(machine);
     machine->setParent(&mainWindow);
 
