@@ -68,7 +68,7 @@ MainWindow::MainWindow(QScxmlStateMachine *stateMachine, QWidget *parent) :
     ui->mediaListView->setModel(model);
 
     connect(ui->mediaListView, &QAbstractItemView::clicked,
-            [model, stateMachine](const QModelIndex & index) {
+            [model, stateMachine](const QModelIndex &index) {
         QVariantMap data;
         data.insert(QStringLiteral("media"), model->data(index, Qt::EditRole).toString());
         stateMachine->submitEvent("tap", data);
