@@ -50,7 +50,8 @@
 
 #include "trafficlight.h"
 
-#include <QtWidgets>
+#include <QPainter>
+#include <QVBoxLayout>
 
 class TrafficLightWidget : public QWidget
 {
