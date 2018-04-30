@@ -50,15 +50,15 @@
 
 #include "mainwindow.h"
 
-#include <QStringListModel>
-#include <QScxmlStateMachine>
 #include <QComboBox>
-#include <QToolButton>
-#include <QLabel>
-#include <QGridLayout>
-#include <QFile>
 #include <QDir>
+#include <QFile>
+#include <QGridLayout>
+#include <QLabel>
+#include <QScxmlStateMachine>
+#include <QStringListModel>
 #include <QTextStream>
+#include <QToolButton>
 
 static int Size = 9;
 

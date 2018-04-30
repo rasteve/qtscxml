@@ -52,9 +52,9 @@
 #define FTPDATACHANNEL_H
 
 #include <QObject>
+#include <QScopedPointer>
 #include <QTcpServer>
 #include <QTcpSocket>
-#include <QScopedPointer>
 
 class FtpDataChannel : public QObject
 {

@@ -48,11 +48,12 @@
 **
 ****************************************************************************/
 
-
-#include "simpleftp.h"
 #include "ftpcontrolchannel.h"
 #include "ftpdatachannel.h"
+#include "simpleftp.h"
+
 #include <QCoreApplication>
+
 #include <iostream>
 
 struct Command {
