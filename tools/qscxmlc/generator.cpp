@@ -617,7 +617,7 @@ void Generator::generateClassInfos()
     }
 }
 
-void Generator::registerFunctionStrings(const QList<FunctionDef>& list)
+void Generator::registerFunctionStrings(const QList<FunctionDef> &list)
 {
     for (int i = 0; i < list.count(); ++i) {
         const FunctionDef &f = list.at(i);
@@ -637,7 +637,7 @@ void Generator::registerFunctionStrings(const QList<FunctionDef>& list)
     }
 }
 
-void Generator::generateFunctions(const QList<FunctionDef>& list, const char *functype, int type, int &paramsIndex)
+void Generator::generateFunctions(const QList<FunctionDef> &list, const char *functype, int type, int &paramsIndex)
 {
     if (list.isEmpty())
         return;
@@ -683,7 +683,7 @@ void Generator::generateFunctions(const QList<FunctionDef>& list, const char *fu
     }
 }
 
-void Generator::generateFunctionRevisions(const QList<FunctionDef>& list, const char *functype)
+void Generator::generateFunctionRevisions(const QList<FunctionDef> &list, const char *functype)
 {
     if (list.count())
         fprintf(out, "\n // %ss: revision\n", functype);
@@ -693,7 +693,7 @@ void Generator::generateFunctionRevisions(const QList<FunctionDef>& list, const 
     }
 }
 
-void Generator::generateFunctionParameters(const QList<FunctionDef>& list, const char *functype)
+void Generator::generateFunctionParameters(const QList<FunctionDef> &list, const char *functype)
 {
     if (list.isEmpty())
         return;

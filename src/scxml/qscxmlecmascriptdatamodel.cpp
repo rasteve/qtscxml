@@ -266,7 +266,7 @@ public:
     QStringList initialDataNames;
 
 private: // Uses private API
-    static void setReadonlyProperty(QJSValue *object, const QString& name, const QJSValue& value)
+    static void setReadonlyProperty(QJSValue *object, const QString &name, const QJSValue &value)
     {
         qCDebug(qscxmlLog) << "setting read-only property" << name;
         QV4::ExecutionEngine *engine = QJSValuePrivate::engine(object);
@@ -303,7 +303,7 @@ private: // Uses private API
         SetPropertyFailedForAnotherReason,
     };
 
-    static SetPropertyResult setProperty(QJSValue *object, const QString& name, const QJSValue& value)
+    static SetPropertyResult setProperty(QJSValue *object, const QString &name, const QJSValue &value)
     {
         QV4::ExecutionEngine *engine = QJSValuePrivate::engine(object);
         Q_ASSERT(engine);
