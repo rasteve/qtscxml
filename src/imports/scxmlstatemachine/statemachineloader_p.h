@@ -67,7 +67,7 @@ class QScxmlStateMachineLoader: public QObject
 
 
 public:
-    explicit QScxmlStateMachineLoader(QObject *parent = 0);
+    explicit QScxmlStateMachineLoader(QObject *parent = nullptr);
 
     QScxmlStateMachine *stateMachine() const;
 

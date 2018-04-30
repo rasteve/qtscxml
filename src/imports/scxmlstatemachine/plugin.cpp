@@ -54,7 +54,7 @@ class QScxmlStateMachinePlugin : public QQmlExtensionPlugin
     Q_PLUGIN_METADATA(IID QQmlExtensionInterface_iid)
 
 public:
-    QScxmlStateMachinePlugin(QObject *parent = 0) : QQmlExtensionPlugin(parent) { }
+    QScxmlStateMachinePlugin(QObject *parent = nullptr) : QQmlExtensionPlugin(parent) { }
     void registerTypes(const char *uri)
     {
         // @uri QtScxml

@@ -234,7 +234,7 @@ using namespace QScxmlExecutableContent;
 
 
 #ifndef BUILD_QSCXMLC
-static int parseTime(const QString &t, bool *ok = 0)
+static int parseTime(const QString &t, bool *ok = nullptr)
 {
     if (t.isEmpty()) {
         if (ok)
