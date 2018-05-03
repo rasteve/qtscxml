@@ -144,7 +144,7 @@ public:
         dataModel.setProperty(QStringLiteral("_x"), platformVars->jsValue());
 
         dataModel.setProperty(QStringLiteral("In"), engine->evaluate(
-                                  QStringLiteral("function(id){return _x.inState(id);}")));
+                                  QStringLiteral("(function(id){return _x.inState(id);})")));
     }
 
     void assignEvent(const QScxmlEvent &event)
