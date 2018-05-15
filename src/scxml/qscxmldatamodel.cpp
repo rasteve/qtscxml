@@ -53,6 +53,11 @@ QT_BEGIN_NAMESPACE
  */
 
 /*!
+  Creates a new foreach loop body.
+ */
+QScxmlDataModel::ForeachLoopBody::ForeachLoopBody()
+{}
+/*!
   Destroys a foreach loop body.
  */
 QScxmlDataModel::ForeachLoopBody::~ForeachLoopBody()
