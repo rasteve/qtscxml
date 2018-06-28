@@ -40,9 +40,14 @@
 #ifndef QSCXMLECMASCRIPTDATAMODEL_H
 #define QSCXMLECMASCRIPTDATAMODEL_H
 
+#include <QtScxml/qscxmlglobals.h>
 #include <QtScxml/qscxmldatamodel.h>
 
 QT_BEGIN_NAMESPACE
+
+// We cannot use QT_REQUIRE_CONFIG here, because the feature name contains a dash.
+#if QT_CONFIG(scxml_ecmascriptdatamodel)
+
 class QScxmlEcmaScriptDataModelPrivate;
 class Q_SCXML_EXPORT QScxmlEcmaScriptDataModel: public QScxmlDataModel
 {
@@ -67,6 +72,8 @@ public:
     bool hasScxmlProperty(const QString &name) const override;
     bool setScxmlProperty(const QString &name, const QVariant &value, const QString &context) override;
 };
+
+#endif // QT_CONFIG(scxml_ecmascriptdatamodel)
 
 QT_END_NAMESPACE
 

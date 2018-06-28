@@ -47,7 +47,6 @@
 #include <qstring.h>
 
 #ifndef BUILD_QSCXMLC
-#include "qscxmlecmascriptdatamodel.h"
 #include "qscxmlinvokableservice_p.h"
 #include "qscxmldatamodel_p.h"
 #include "qscxmlstatemachine_p.h"

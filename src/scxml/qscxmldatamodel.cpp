@@ -39,7 +39,9 @@
 
 #include "qscxmldatamodel_p.h"
 #include "qscxmlnulldatamodel.h"
+#if QT_CONFIG(scxml_ecmascriptdatamodel)
 #include "qscxmlecmascriptdatamodel.h"
+#endif
 #include "qscxmlstatemachine_p.h"
 
 QT_BEGIN_NAMESPACE
@@ -150,7 +152,9 @@ QScxmlDataModel *QScxmlDataModelPrivate::instantiateDataModel(DocumentModel::Scx
         dataModel = new QScxmlNullDataModel;
         break;
     case DocumentModel::Scxml::JSDataModel:
+#if QT_CONFIG(scxml_ecmascriptdatamodel)
         dataModel = new QScxmlEcmaScriptDataModel;
+#endif
         break;
     case DocumentModel::Scxml::CppDataModel:
         break;
