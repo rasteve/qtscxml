@@ -323,11 +323,7 @@ private: // Uses private API
             return SetPropertyFailedForAnotherReason;
         }
 
-#if defined(Q_QML_PRIVATE_API_VERSION) && Q_QML_PRIVATE_API_VERSION >= 1
         QV4::PropertyAttributes attrs = o->getOwnProperty(s->toPropertyKey());
-#else
-        QV4::PropertyAttributes attrs = o->query(s);
-#endif
         if (attrs.isWritable() || attrs.isEmpty()) {
             QV4::ScopedValue v(scope, QJSValuePrivate::convertedToValue(engine, value));
             o->insertMember(s, v);
