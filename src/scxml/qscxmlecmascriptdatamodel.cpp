@@ -283,13 +283,20 @@ private: // Uses private API
         }
 
         QV4::ScopedString s(scope, engine->newString(name));
+#if Q_QML_PRIVATE_API_VERSION < 2
         uint idx = s->asArrayIndex();
         if (idx < UINT_MAX) {
+#else
+        QV4::ScopedPropertyKey key(scope, s->toPropertyKey());
+        if (key->isArrayIndex()) {
+#endif
             Q_UNIMPLEMENTED();
             return;
         }
 
+#if Q_QML_PRIVATE_API_VERSION < 2
         s->makeIdentifier();
+#endif
         QV4::ScopedValue v(scope, QJSValuePrivate::convertedToValue(engine, value));
         o->defineReadonlyProperty(s, v);
         if (engine->hasException)
@@ -317,8 +324,13 @@ private: // Uses private API
         }
 
         QV4::ScopedString s(scope, engine->newString(name));
+#if Q_QML_PRIVATE_API_VERSION < 2
         uint idx = s->asArrayIndex();
         if (idx < UINT_MAX) {
+#else
+        QV4::ScopedPropertyKey key(scope, s->toPropertyKey());
+        if (key->isArrayIndex()) {
+#endif
             Q_UNIMPLEMENTED();
             return SetPropertyFailedForAnotherReason;
         }
