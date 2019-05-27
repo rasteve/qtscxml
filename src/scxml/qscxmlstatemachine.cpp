@@ -1095,7 +1095,8 @@ void QScxmlStateMachinePrivate::exitStates(const OrderedSet &enabledTransitions)
 
     if (m_infoSignalProxy) {
         emit m_infoSignalProxy->statesExited(
-                QVector<QScxmlStateMachineInfo::StateId>::fromStdVector(statesToExitSorted));
+                QVector<QScxmlStateMachineInfo::StateId>(statesToExitSorted.begin(),
+                                                         statesToExitSorted.end()));
     }
 }
 
@@ -1126,8 +1127,8 @@ void QScxmlStateMachinePrivate::executeTransitionContent(const OrderedSet &enabl
 
     if (m_infoSignalProxy) {
         emit m_infoSignalProxy->transitionsTriggered(
-                QVector<QScxmlStateMachineInfo::TransitionId>::fromStdVector(
-                    enabledTransitions.list()));
+                QVector<QScxmlStateMachineInfo::TransitionId>(enabledTransitions.list().begin(),
+                                                              enabledTransitions.list().end()));
     }
 }
 
@@ -1190,7 +1191,8 @@ void QScxmlStateMachinePrivate::enterStates(const OrderedSet &enabledTransitions
         emitStateActive(s, true);
     if (m_infoSignalProxy) {
         emit m_infoSignalProxy->statesEntered(
-                QVector<QScxmlStateMachineInfo::StateId>::fromStdVector(sortedStates));
+                QVector<QScxmlStateMachineInfo::StateId>(sortedStates.begin(),
+                                                         sortedStates.end()));
     }
 }
 
