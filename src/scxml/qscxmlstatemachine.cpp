@@ -768,6 +768,7 @@ void QScxmlStateMachinePrivate::attach(QScxmlStateMachineInfo *info)
 void QScxmlStateMachinePrivate::updateMetaCache()
 {
     m_stateIndexToSignalIndex.clear();
+    m_stateNameToSignalIndex.clear();
 
     if (!m_tableData)
         return;
@@ -776,10 +777,14 @@ void QScxmlStateMachinePrivate::updateMetaCache()
         return;
 
     int signalIndex = 0;
+    const int methodOffset = QMetaObjectPrivate::signalOffset(m_metaObject);
     for (int i = 0; i < m_stateTable->stateCount; ++i) {
         const auto &s = m_stateTable->state(i);
         if (!s.isHistoryState() && s.type != StateTable::State::Invalid) {
             m_stateIndexToSignalIndex.insert(i, signalIndex);
+            m_stateNameToSignalIndex.insert(m_tableData->string(s.name),
+                                            signalIndex + methodOffset);
+
             ++signalIndex;
         }
     }
@@ -1909,8 +1914,7 @@ QMetaObject::Connection QScxmlStateMachine::connectToStateImpl(const QString &sc
         types = QtPrivate::ConnectionTypes<QtPrivate::List<bool> >::types();
 
     Q_D(QScxmlStateMachine);
-    int signalIndex = QScxmlInternal::signalIndex(d->m_metaObject,
-                                                  scxmlStateName.toUtf8() + "Changed(bool)");
+    const int signalIndex = d->m_stateNameToSignalIndex.value(scxmlStateName);
     return signalIndex < 0 ? QMetaObject::Connection()
                            : QObjectPrivate::connectImpl(this, signalIndex, receiver, slot, slotObj,
                                                          type, types, d->m_metaObject);
