@@ -34,13 +34,9 @@
 #
 # $QT_END_LICENSE$
 
-if(NOT Qt5Scxml_QSCXMLC_EXECUTABLE)
-    message(FATAL_ERROR "qscxmlc executable not found -- Check installation.")
-endif()
+# qt6_add_statecharts(target_or_outfiles inputfile ... )
 
-# qt5_add_statecharts(outfiles inputfile ... )
-
-function(qt5_add_statecharts outfiles)
+function(qt6_add_statecharts target_or_outfiles)
     set(options)
     set(oneValueArgs)
     set(multiValueArgs OPTIONS)
@@ -48,6 +44,7 @@ function(qt5_add_statecharts outfiles)
     cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     set(scxml_files ${ARGS_UNPARSED_ARGUMENTS})
+    set(outfiles)
 
     foreach(it ${scxml_files})
         get_filename_component(outfilename ${it} NAME_WE)
@@ -57,12 +54,17 @@ function(qt5_add_statecharts outfiles)
         set(outfile_h ${CMAKE_CURRENT_BINARY_DIR}/${outfilename}.h)
 
         add_custom_command(OUTPUT ${outfile_cpp} ${outfile_h}
-                           COMMAND ${Qt5Scxml_QSCXMLC_EXECUTABLE}
+                           ${QT_TOOL_PATH_SETUP_COMMAND}
+                           COMMAND ${QT_CMAKE_EXPORT_NAMESPACE}::qscxmlc
                            ARGS ${ARGS_OPTIONS} --output ${outfile} ${infile}
                            MAIN_DEPENDENCY ${infile}
                            VERBATIM)
-        list(APPEND ${outfiles} ${outfile_cpp})
+        list(APPEND outfiles ${outfile_cpp})
     endforeach()
     set_source_files_properties(${outfiles} PROPERTIES SKIP_AUTOMOC TRUE)
-    set(${outfiles} ${${outfiles}} PARENT_SCOPE)
+    if (TARGET ${target_or_outfiles})
+        target_sources(${target_or_outfiles} PRIVATE ${outfiles})
+    else()
+        set(${target_or_outfiles} ${outfiles} PARENT_SCOPE)
+    endif()
 endfunction()

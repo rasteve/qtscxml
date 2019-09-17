@@ -1,0 +1,49 @@
+# Generated from qscxmlc.pro.
+
+#####################################################################
+## qscxmlc Tool:
+#####################################################################
+
+add_qt_tool(qscxmlc
+    SOURCES
+        ../../src/scxml/qscxmlcompiler.cpp ../../src/scxml/qscxmlcompiler.h ../../src/scxml/qscxmlcompiler_p.h
+        ../../src/scxml/qscxmlerror.cpp ../../src/scxml/qscxmlerror.h
+        ../../src/scxml/qscxmlexecutablecontent.cpp ../../src/scxml/qscxmlexecutablecontent.h ../../src/scxml/qscxmlexecutablecontent_p.h
+        ../../src/scxml/qscxmlglobals.h
+        ../../src/scxml/qscxmltabledata.cpp ../../src/scxml/qscxmltabledata.h
+        generator.cpp generator.h
+        main.cpp
+        moc.h
+        outputrevision.h
+        qscxmlc.cpp qscxmlc.h
+        scxmlcppdumper.cpp scxmlcppdumper.h
+        utils.h
+    DEFINES
+        BUILD_QSCXMLC
+        QT_NO_CAST_FROM_ASCII
+        QT_NO_CAST_TO_ASCII
+    INCLUDE_DIRECTORIES
+        .scxml.includes
+        .scxml_private.includes
+    LIBRARIES
+        Qt::CorePrivate
+)
+
+# Resources:
+set(templates_resource_files
+    "cppdatamodel.t"
+    "data.t"
+    "decl.t"
+)
+
+add_qt_resource(qscxmlc "templates"
+    PREFIX
+        "/"
+    FILES
+        ${templates_resource_files}
+)
+
+
+#### Keys ignored in scope 1:.:.:qscxmlc.pro:<TRUE>:
+# _LOADED = "qt_tool" "resources"
+# _OPTION = "host_build"
