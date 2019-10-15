@@ -42,7 +42,7 @@ add_qt_test(tst_scion
 # sn = "__relative_path___absolute_path___dirname_1_____OUT_PWD____SCXMLS_DIR_"
 
 #### Keys ignored in scope 3:.:.:scion.pro:defineReplace(nameTheClass):
-# cn = "__basename_1_"
+# cn = "1"
 
 extend_target(tst_scion CONDITION MSVC AND WIN32
     COMPILE_OPTIONS

@@ -9,7 +9,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(INSTALL_EXAMPLEDIR "examples")
+set(INSTALL_EXAMPLEDIR "examples/scxml/calculator-qml")
 
 find_package(Qt6 COMPONENTS Core)
 find_package(Qt6 COMPONENTS Gui)
@@ -25,6 +25,7 @@ target_link_libraries(calculator-qml PUBLIC
     Qt::Qml
     Qt::Scxml
 )
+
 
 # Resources:
 set(calculator-qml_resource_files

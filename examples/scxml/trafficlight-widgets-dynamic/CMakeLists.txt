@@ -9,7 +9,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(INSTALL_EXAMPLEDIR "examples")
+set(INSTALL_EXAMPLEDIR "examples/scxml/trafficlight-widgets-dynamic")
 
 find_package(Qt6 COMPONENTS Core)
 find_package(Qt6 COMPONENTS Gui)
@@ -26,6 +26,7 @@ target_link_libraries(trafficlight-widgets-dynamic PUBLIC
     Qt::Scxml
     Qt::Widgets
 )
+
 
 # Resources:
 set_source_files_properties("../trafficlight-common/background.png"
@@ -65,7 +66,6 @@ qt6_add_resources(trafficlight-widgets-dynamic "trafficlight-widgets-dynamic"
     FILES
         ${trafficlight-widgets-dynamic_resource_files}
 )
-
 
 install(TARGETS trafficlight-widgets-dynamic
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"

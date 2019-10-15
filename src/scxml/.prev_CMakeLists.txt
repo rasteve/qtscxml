@@ -49,7 +49,7 @@ extend_target(Scxml CONDITION QT_FEATURE_scxml_ecmascriptdatamodel
         Qt::Qml
 )
 
-#### Keys ignored in scope 3:.:.:scxml.pro:NOT force_independent AND (NOT debug_and_release OR NOT build_all OR CONFIG(release,debug OR release)):
+#### Keys ignored in scope 3:.:.:scxml.pro:NOT force_independent AND ( NOT debug_and_release OR NOT build_all OR CONFIG(release,debug OR release) ):
 # QMAKE_EXTRA_COMPILERS = "prf2build"
 # prf2build.CONFIG = "no_link" "no_clean" "target_predeps"
 # prf2build.commands = "$$QMAKE_COPY" "${QMAKE_FILE_IN}" "${QMAKE_FILE_OUT}"

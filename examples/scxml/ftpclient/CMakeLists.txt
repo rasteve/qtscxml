@@ -9,7 +9,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(INSTALL_EXAMPLEDIR "examples")
+set(INSTALL_EXAMPLEDIR "examples/scxml/ftpclient")
 
 find_package(Qt6 COMPONENTS Core)
 find_package(Qt6 COMPONENTS Scxml)
@@ -25,6 +25,7 @@ target_link_libraries(ftpclient PUBLIC
     Qt::Network
     Qt::Scxml
 )
+
 
 # Statecharts:
 qt6_add_statecharts(ftpclient

@@ -9,7 +9,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(INSTALL_EXAMPLEDIR "examples")
+set(INSTALL_EXAMPLEDIR "examples/scxml/trafficlight-qml-dynamic")
 
 find_package(Qt6 COMPONENTS Core)
 find_package(Qt6 COMPONENTS Gui)
@@ -25,6 +25,7 @@ target_link_libraries(trafficlight-qml-dynamic PUBLIC
     Qt::Qml
     Qt::Scxml
 )
+
 
 # Resources:
 set_source_files_properties("../trafficlight-common/Button.qml"
@@ -77,7 +78,6 @@ qt6_add_resources(trafficlight-qml-dynamic "trafficlight-qml-dynamic"
     FILES
         ${trafficlight-qml-dynamic_resource_files}
 )
-
 
 install(TARGETS trafficlight-qml-dynamic
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"

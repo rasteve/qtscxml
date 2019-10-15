@@ -9,7 +9,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(INSTALL_EXAMPLEDIR "examples")
+set(INSTALL_EXAMPLEDIR "examples/scxml/calculator-widgets")
 
 find_package(Qt6 COMPONENTS Core)
 find_package(Qt6 COMPONENTS Gui)
@@ -26,6 +26,7 @@ target_link_libraries(calculator-widgets PUBLIC
     Qt::Scxml
     Qt::Widgets
 )
+
 
 # Statecharts:
 qt6_add_statecharts(calculator-widgets

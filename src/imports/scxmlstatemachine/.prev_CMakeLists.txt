@@ -8,6 +8,7 @@ add_qml_module(scxml
     URI "QtScxml"
     VERSION "5.${CMAKE_PROJECT_VERSION_MINOR}"
     CLASSNAME QScxmlStateMachinePlugin
+    SKIP_TYPE_REGISTRATION
     SOURCES
         eventconnection.cpp eventconnection_p.h
         invokedservices.cpp invokedservices_p.h

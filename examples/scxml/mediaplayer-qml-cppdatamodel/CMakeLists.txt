@@ -9,7 +9,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(INSTALL_EXAMPLEDIR "examples")
+set(INSTALL_EXAMPLEDIR "examples/scxml/mediaplayer-qml-cppdatamodel")
 
 find_package(Qt6 COMPONENTS Core)
 find_package(Qt6 COMPONENTS Gui)
@@ -26,6 +26,7 @@ target_link_libraries(mediaplayer-qml-cppdatamodel PUBLIC
     Qt::Qml
     Qt::Scxml
 )
+
 
 # Resources:
 set_source_files_properties("../mediaplayer-common/Mediaplayer.qml"

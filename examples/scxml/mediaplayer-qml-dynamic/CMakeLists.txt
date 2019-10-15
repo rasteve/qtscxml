@@ -9,7 +9,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(INSTALL_EXAMPLEDIR "examples")
+set(INSTALL_EXAMPLEDIR "examples/scxml/mediaplayer-qml-dynamic")
 
 find_package(Qt6 COMPONENTS Core)
 find_package(Qt6 COMPONENTS Gui)
@@ -25,6 +25,7 @@ target_link_libraries(mediaplayer-qml-dynamic PUBLIC
     Qt::Qml
     Qt::Scxml
 )
+
 
 # Resources:
 set_source_files_properties("../mediaplayer-common/Mediaplayer.qml"
@@ -45,7 +46,6 @@ qt6_add_resources(mediaplayer-qml-dynamic "mediaplayer-qml-dynamic"
     FILES
         ${mediaplayer-qml-dynamic_resource_files}
 )
-
 
 install(TARGETS mediaplayer-qml-dynamic
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
