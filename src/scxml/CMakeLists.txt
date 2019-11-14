@@ -4,7 +4,7 @@
 ## Scxml Module:
 #####################################################################
 
-add_qt_module(Scxml
+qt_add_module(Scxml
     QMAKE_MODULE_CONFIG c++11 qscxmlc
     SOURCES
         qscxmlcompiler.cpp qscxmlcompiler.h qscxmlcompiler_p.h
@@ -32,14 +32,13 @@ add_qt_module(Scxml
 # FEATURES = "../../mkspecs/features/qscxmlc.prf"
 # INSTALLS = "features"
 # MODULE_CONFIG = "c++11" "qscxmlc"
-# _LOADED = "qt_module"
 # features.files = "$$FEATURES"
 # features.path = "$$[QT_HOST_DATA]/mkspecs/features/"
 
 ## Scopes:
 #####################################################################
 
-extend_target(Scxml CONDITION QT_FEATURE_scxml_ecmascriptdatamodel
+qt_extend_target(Scxml CONDITION QT_FEATURE_scxml_ecmascriptdatamodel
     SOURCES
         qscxmlecmascriptdatamodel.cpp qscxmlecmascriptdatamodel.h
         qscxmlecmascriptplatformproperties.cpp qscxmlecmascriptplatformproperties_p.h
@@ -56,7 +55,7 @@ extend_target(Scxml CONDITION QT_FEATURE_scxml_ecmascriptdatamodel
 # prf2build.input = "FEATURES"
 # prf2build.name = "COPY" "${QMAKE_FILE_IN}"
 # prf2build.output = "$$[QT_INSTALL_DATA/get]/mkspecs/features/${QMAKE_FILE_BASE}${QMAKE_FILE_EXT}"
-add_qt_docs(Scxml
+qt_add_docs(Scxml
     doc/qtscxml.qdocconf
 )
 

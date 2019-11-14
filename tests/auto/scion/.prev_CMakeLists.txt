@@ -4,7 +4,7 @@
 ## tst_scion Test:
 #####################################################################
 
-add_qt_test(tst_scion
+qt_add_test(tst_scion
     SOURCES
         tst_scion.cpp
     DEFINES
@@ -44,7 +44,7 @@ add_qt_test(tst_scion
 #### Keys ignored in scope 3:.:.:scion.pro:defineReplace(nameTheClass):
 # cn = "1"
 
-extend_target(tst_scion CONDITION MSVC AND WIN32
+qt_extend_target(tst_scion CONDITION MSVC AND WIN32
     COMPILE_OPTIONS
         /bigobj
 )

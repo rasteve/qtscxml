@@ -4,7 +4,7 @@
 ## tst_statemachine Test:
 #####################################################################
 
-add_qt_test(tst_statemachine
+qt_add_test(tst_statemachine
     SOURCES
         tst_statemachine.cpp
     LIBRARIES
@@ -28,7 +28,7 @@ set(tst_statemachine_resource_files
     "statenamesnested.scxml"
 )
 
-add_qt_resource(tst_statemachine "tst_statemachine"
+qt_add_resource(tst_statemachine "tst_statemachine"
     PREFIX
         "/tst_statemachine"
     FILES

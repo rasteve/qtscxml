@@ -4,7 +4,7 @@
 ## qscxmlc Tool:
 #####################################################################
 
-add_qt_tool(qscxmlc
+qt_add_tool(qscxmlc
     TOOLS_TARGET Scxml # special case
     SOURCES
         ../../src/scxml/qscxmlcompiler.cpp ../../src/scxml/qscxmlcompiler.h ../../src/scxml/qscxmlcompiler_p.h
@@ -44,7 +44,7 @@ set(templates_resource_files
     "decl.t"
 )
 
-add_qt_resource(qscxmlc "templates"
+qt_add_resource(qscxmlc "templates"
     PREFIX
         "/"
     FILES
@@ -54,5 +54,4 @@ add_qt_resource(qscxmlc "templates"
 
 
 #### Keys ignored in scope 1:.:.:qscxmlc.pro:<TRUE>:
-# _LOADED = "qt_tool" "resources"
 # _OPTION = "host_build"

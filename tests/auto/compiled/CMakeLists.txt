@@ -4,7 +4,7 @@
 ## tst_compiled Test:
 #####################################################################
 
-add_qt_test(tst_compiled
+qt_add_test(tst_compiled
     SOURCES
         tst_compiled.cpp
     PUBLIC_LIBRARIES
@@ -20,7 +20,7 @@ set(tst_compiled_resource_files
     "topmachine.scxml"
 )
 
-add_qt_resource(tst_compiled "tst_compiled"
+qt_add_resource(tst_compiled "tst_compiled"
     PREFIX
         "/"
     FILES

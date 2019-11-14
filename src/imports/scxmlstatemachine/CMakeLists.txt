@@ -4,7 +4,7 @@
 ## scxml Plugin:
 #####################################################################
 
-add_qml_module(declarative_scxml # special case
+qt_add_qml_module(declarative_scxml # special case
     URI "QtScxml"
     VERSION "5.${CMAKE_PROJECT_VERSION_MINOR}"
     CLASSNAME QScxmlStateMachinePlugin
@@ -28,4 +28,3 @@ add_qml_module(declarative_scxml # special case
 # IMPORT_VERSION = "5.$$QT_MINOR_VERSION"
 # OTHER_FILES = "plugins.qmltypes" "qmldir"
 # TARGETPATH = "QtScxml"
-# _LOADED = "qml_plugin"

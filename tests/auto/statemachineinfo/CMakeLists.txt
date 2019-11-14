@@ -4,7 +4,7 @@
 ## tst_statemachineinfo Test:
 #####################################################################
 
-add_qt_test(tst_statemachineinfo
+qt_add_test(tst_statemachineinfo
     SOURCES
         tst_statemachineinfo.cpp
     LIBRARIES
@@ -20,7 +20,7 @@ set(tst_statemachineinfo_resource_files
     "statemachine.scxml"
 )
 
-add_qt_resource(tst_statemachineinfo "tst_statemachineinfo"
+qt_add_resource(tst_statemachineinfo "tst_statemachineinfo"
     PREFIX
         "/tst_statemachineinfo"
     FILES
