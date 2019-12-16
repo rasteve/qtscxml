@@ -442,7 +442,8 @@ void Generator::generateCode()
 //
     QList<QByteArray> extraList;
     QHash<QByteArray, QByteArray> knownExtraMetaObject = knownGadgets;
-    knownExtraMetaObject.unite(knownQObjectClasses);
+    for (auto it = knownQObjectClasses.begin(), end = knownQObjectClasses.end(); it != end; ++it)
+        knownExtraMetaObject.insert(it.key(), it.value());
 
     for (int i = 0; i < cdef->propertyList.count(); ++i) {
         const PropertyDef &p = cdef->propertyList.at(i);
