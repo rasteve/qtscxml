@@ -267,8 +267,8 @@ void generateTables(const GeneratedTableData &td, Replacements &replacements)
                 return QString();
 
             const int length = strings.at(idx).size();
-            const QString str = QStringLiteral("STR_LIT(%1, %2, %3)").arg(
-                        QString::number(idx), QString::number(ucharCount), QString::number(length));
+            const QString str = QStringLiteral("%1, %2").arg(
+                        QString::number(ucharCount), QString::number(length));
             ucharCount += length + 1;
             return str;
         });
