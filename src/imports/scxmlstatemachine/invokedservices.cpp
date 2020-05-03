@@ -116,7 +116,7 @@ void QScxmlInvokedServices::setStateMachine(QScxmlStateMachine *stateMachine)
 
 QQmlListProperty<QObject> QScxmlInvokedServices::qmlChildren()
 {
-    return QQmlListProperty<QObject>(this, m_qmlChildren);
+    return QQmlListProperty<QObject>(this, &m_qmlChildren);
 }
 
 
