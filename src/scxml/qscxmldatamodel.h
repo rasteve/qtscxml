@@ -45,12 +45,13 @@
 #include <QtCore/qvariant.h>
 #include <QtCore/qvector.h>
 
+Q_MOC_INCLUDE(qscxmlstatemachine.h)
+
 QT_BEGIN_NAMESPACE
 
 class QScxmlEvent;
 
 class QScxmlStateMachine;
-class QScxmlTableData;
 
 class QScxmlDataModelPrivate;
 class Q_SCXML_EXPORT QScxmlDataModel : public QObject

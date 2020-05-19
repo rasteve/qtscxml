@@ -54,10 +54,13 @@
 
 #include <functional>
 
+Q_MOC_INCLUDE(qscxmltabledata.h)
+
 QT_BEGIN_NAMESPACE
 class QIODevice;
 class QXmlStreamWriter;
 class QTextStream;
+class QScxmlTableData;
 
 class QScxmlStateMachinePrivate;
 class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
