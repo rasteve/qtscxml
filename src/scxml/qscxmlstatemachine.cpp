@@ -529,7 +529,7 @@ void QScxmlStateMachinePrivate::routeEvent(QScxmlEvent *event)
         }
     } else if (origin.startsWith(QStringLiteral("#_")) && origin != QStringLiteral("#_internal")) {
         // route to children
-        auto originId = origin.midRef(2);
+        auto originId = QStringView{origin}.mid(2);
         for (const auto &invokedService : m_invokedServices) {
             auto service = invokedService.service;
             if (service == nullptr)
@@ -2206,7 +2206,7 @@ bool QScxmlStateMachine::isDispatchableTarget(const QString &target) const
         return true; // that's the current state machine
 
     if (target.startsWith(QStringLiteral("#_"))) {
-        QStringRef targetId = target.midRef(2);
+        QStringView targetId = QStringView{target}.mid(2);
         for (auto invokedService : d->m_invokedServices) {
             if (invokedService.service && invokedService.service->id() == targetId)
                 return true;

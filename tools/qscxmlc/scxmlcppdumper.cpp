@@ -109,27 +109,26 @@ static void genTemplate(QTextStream &out, const QString &filename, const Replace
         qFatal("Unable to open template '%s'", qPrintable(filename));
     }
     Q_ASSERT(file.compressionAlgorithm() == QResource::NoCompression);
-    QByteArray data;
-    data = QByteArray::fromRawData(reinterpret_cast<const char *>(file.data()),
-                                   int(file.size()));
-    const QString t = QString::fromLatin1(data);
-    data.clear();
+    const QString data = QString::fromLatin1(
+        QByteArray::fromRawData(reinterpret_cast<const char *>(file.data()), int(file.size()))
+    );
+    const QStringView t { data };
 
     int start = 0;
     for (int openIdx = t.indexOf(QStringLiteral("${"), start); openIdx >= 0; openIdx =
          t.indexOf(QStringLiteral("${"), start)) {
-        out << t.midRef(start, openIdx - start);
+        out << t.mid(start, openIdx - start);
         openIdx += 2;
         const int closeIdx = t.indexOf(QLatin1Char('}'), openIdx);
         Q_ASSERT(closeIdx >= openIdx);
-        QString key = t.mid(openIdx, closeIdx - openIdx);
+        QString key = t.mid(openIdx, closeIdx - openIdx).toString();
         if (!replacements.contains(key)) {
             qFatal("Replacing '%s' failed: no replacement found", qPrintable(key));
         }
         out << replacements.value(key);
         start = closeIdx + 1;
     }
-    out << t.midRef(start);
+    out << t.mid(start);
 }
 
 static const char *headerStart =

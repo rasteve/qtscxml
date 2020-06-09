@@ -1008,7 +1008,7 @@ bool QScxmlCompilerPrivate::ParserState::isExecutableContent(ParserState::Kind k
     return false;
 }
 
-QScxmlCompilerPrivate::ParserState::Kind QScxmlCompilerPrivate::ParserState::nameToParserStateKind(const QStringRef &name)
+QScxmlCompilerPrivate::ParserState::Kind QScxmlCompilerPrivate::ParserState::nameToParserStateKind(QStringView name)
 {
     static QMap<QString, ParserState::Kind> nameToKind;
     if (nameToKind.isEmpty()) {
@@ -1407,7 +1407,7 @@ bool QScxmlCompilerPrivate::preReadElementScxml()
         scxml->initial += initial.split(QChar::Space, Qt::SkipEmptyParts);
     }
 
-    const QStringRef datamodel = attributes.value(QLatin1String("datamodel"));
+    const QStringView datamodel = attributes.value(QLatin1String("datamodel"));
     if (datamodel.isEmpty() || datamodel == QLatin1String("null")) {
         scxml->dataModel = DocumentModel::Scxml::NullDataModel;
     } else if (datamodel == QLatin1String("ecmascript")) {
@@ -1431,7 +1431,7 @@ bool QScxmlCompilerPrivate::preReadElementScxml()
         addError(QStringLiteral("Unsupported data model '%1' in scxml")
                  .arg(datamodel.toString()));
     }
-    const QStringRef binding = attributes.value(QLatin1String("binding"));
+    const QStringView binding = attributes.value(QLatin1String("binding"));
     if (binding.isEmpty() || binding == QLatin1String("early")) {
         scxml->binding = DocumentModel::Scxml::EarlyBinding;
     } else if (binding == QLatin1String("late")) {
@@ -1441,7 +1441,7 @@ bool QScxmlCompilerPrivate::preReadElementScxml()
                  .arg(binding.toString()));
         return false;
     }
-    const QStringRef name = attributes.value(QLatin1String("name"));
+    const QStringView name = attributes.value(QLatin1String("name"));
     if (!name.isEmpty()) {
         scxml->name = name.toString();
     }
@@ -1529,7 +1529,7 @@ bool QScxmlCompilerPrivate::preReadElementTransition()
     transition->targets = attributes.value(QLatin1String("target")).toString().split(QLatin1Char(' '), Qt::SkipEmptyParts);
     if (attributes.hasAttribute(QStringLiteral("cond")))
         transition->condition.reset(new QString(attributes.value(QLatin1String("cond")).toString()));
-    QStringRef type = attributes.value(QLatin1String("type"));
+    QStringView type = attributes.value(QLatin1String("type"));
     if (type.isEmpty() || type == QLatin1String("external")) {
         transition->type = DocumentModel::Transition::External;
     } else if (type == QLatin1String("internal")) {
@@ -1565,7 +1565,7 @@ bool QScxmlCompilerPrivate::preReadElementHistory()
     if (!maybeId(attributes, &newState->id))
         return false;
 
-    const QStringRef type = attributes.value(QLatin1String("type"));
+    const QStringView type = attributes.value(QLatin1String("type"));
     if (type.isEmpty() || type == QLatin1String("shallow")) {
         newState->type = DocumentModel::HistoryState::Shallow;
     } else if (type == QLatin1String("deep")) {
@@ -1845,11 +1845,11 @@ bool QScxmlCompilerPrivate::preReadElementInvoke()
     invoke->idLocation = attributes.value(QLatin1String("idlocation")).toString();
     invoke->type = attributes.value(QLatin1String("type")).toString();
     invoke->typeexpr = attributes.value(QLatin1String("typeexpr")).toString();
-    QStringRef autoforwardS = attributes.value(QLatin1String("autoforward"));
-    if (QStringRef::compare(autoforwardS, QLatin1String("true"), Qt::CaseInsensitive) == 0
-            || QStringRef::compare(autoforwardS, QLatin1String("yes"), Qt::CaseInsensitive) == 0
-            || QStringRef::compare(autoforwardS, QLatin1String("t"), Qt::CaseInsensitive) == 0
-            || QStringRef::compare(autoforwardS, QLatin1String("y"), Qt::CaseInsensitive) == 0
+    QStringView autoforwardS = attributes.value(QLatin1String("autoforward"));
+    if (autoforwardS.compare(QLatin1String("true"), Qt::CaseInsensitive) == 0
+            || autoforwardS.compare(QLatin1String("yes"), Qt::CaseInsensitive) == 0
+            || autoforwardS.compare(QLatin1String("t"), Qt::CaseInsensitive) == 0
+            || autoforwardS.compare(QLatin1String("y"), Qt::CaseInsensitive) == 0
             || autoforwardS == QLatin1String("1"))
         invoke->autoforward = true;
     else
@@ -2113,7 +2113,7 @@ bool QScxmlCompilerPrivate::readDocument()
     for (bool finished = false; !finished && !m_reader->hasError();) {
         switch (m_reader->readNext()) {
         case QXmlStreamReader::StartElement : {
-            const QStringRef newTag = m_reader->name();
+            const QStringView newTag = m_reader->name();
             const ParserState::Kind newElementKind = ParserState::nameToParserStateKind(newTag);
 
             auto ns = m_reader->namespaceUri();
@@ -2154,7 +2154,7 @@ bool QScxmlCompilerPrivate::readDocument()
 
 bool QScxmlCompilerPrivate::readElement()
 {
-    const QStringRef currentTag = m_reader->name();
+    const QStringView currentTag = m_reader->name();
     const QXmlStreamAttributes attributes = m_reader->attributes();
 
     const ParserState::Kind elementKind = ParserState::nameToParserStateKind(currentTag);
@@ -2219,7 +2219,7 @@ bool QScxmlCompilerPrivate::readElement()
     for (bool finished = false; !finished && !m_reader->hasError();) {
         switch (m_reader->readNext()) {
         case QXmlStreamReader::StartElement : {
-            const QStringRef newTag = m_reader->name();
+            const QStringView newTag = m_reader->name();
             const ParserState::Kind newElementKind = ParserState::nameToParserStateKind(newTag);
 
             auto ns = m_reader->namespaceUri();
@@ -2416,7 +2416,7 @@ bool QScxmlCompilerPrivate::checkAttributes(const QXmlStreamAttributes &attribut
 {
     QStringList required = requiredNames;
     for (const QXmlStreamAttribute &attribute : attributes) {
-        const QStringRef ns = attribute.namespaceUri();
+        const QStringView ns = attribute.namespaceUri();
         if (!ns.isEmpty() && ns != scxmlNamespace && ns != qtScxmlNamespace)
             continue;
 

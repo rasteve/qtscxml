@@ -694,7 +694,7 @@ private:
         bool validChild(ParserState::Kind child) const;
         static bool validChild(ParserState::Kind parent, ParserState::Kind child);
         static bool isExecutableContent(ParserState::Kind kind);
-        static Kind nameToParserStateKind(const QStringRef &name);
+        static Kind nameToParserStateKind(QStringView name);
         static QStringList requiredAttributes(Kind kind);
         static QStringList optionalAttributes(Kind kind);
     };
