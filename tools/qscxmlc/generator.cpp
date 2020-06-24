@@ -166,7 +166,7 @@ bool Generator::registerableMetaType(const QByteArray &propertyType)
             return true;
     }
 
-    static const QVector<QByteArray> smartPointers = QVector<QByteArray>()
+    static const QList<QByteArray> smartPointers = QList<QByteArray>()
 #define STREAM_SMART_POINTER(SMART_POINTER) << #SMART_POINTER
         QT_FOR_EACH_AUTOMATIC_TEMPLATE_SMART_POINTER(STREAM_SMART_POINTER)
 #undef STREAM_SMART_POINTER
@@ -176,7 +176,7 @@ bool Generator::registerableMetaType(const QByteArray &propertyType)
         if (propertyType.startsWith(smartPointer + "<") && !propertyType.endsWith("&"))
             return knownQObjectClasses.contains(propertyType.mid(smartPointer.size() + 1, propertyType.size() - smartPointer.size() - 1 - 1));
 
-    static const QVector<QByteArray> oneArgTemplates = QVector<QByteArray>()
+    static const QList<QByteArray> oneArgTemplates = QList<QByteArray>()
 #define STREAM_1ARG_TEMPLATE(TEMPLATENAME) << #TEMPLATENAME
       QT_FOR_EACH_AUTOMATIC_TEMPLATE_1ARG(STREAM_1ARG_TEMPLATE)
 #undef STREAM_1ARG_TEMPLATE

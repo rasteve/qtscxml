@@ -31,7 +31,7 @@
 
 #include "moc.h"
 #include <QtCore/qhash.h>
-#include <QtCore/qvector.h>
+#include <QtCore/qlist.h>
 #include <QtCore/qiodevice.h>
 
 QT_BEGIN_NAMESPACE
@@ -40,7 +40,7 @@ class Generator
 {
     QIODevice &out;
     ClassDef *cdef;
-    QVector<uint> meta_data;
+    QList<uint> meta_data;
 public:
     Generator(ClassDef *classDef, const QList<QByteArray> &metaTypes, const QHash<QByteArray,
               QByteArray> &knownQObjectClasses, const QHash<QByteArray, QByteArray> &knownGadgets,

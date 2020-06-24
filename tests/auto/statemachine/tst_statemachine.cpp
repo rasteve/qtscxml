@@ -419,7 +419,7 @@ void tst_StateMachine::invokeStateMachine()
     QCOMPARE(stateMachine->isRunning(), true);
     QTRY_VERIFY(stateMachine->activeStateNames().contains(QString("anyplace")));
 
-    QVector<QScxmlInvokableService *> services = stateMachine->invokedServices();
+    QList<QScxmlInvokableService *> services = stateMachine->invokedServices();
     QCOMPARE(services.length(), 1);
     QVariant subMachineVariant = services[0]->property("stateMachine");
     QVERIFY(subMachineVariant.isValid());

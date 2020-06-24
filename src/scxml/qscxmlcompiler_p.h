@@ -129,7 +129,7 @@ struct DoneData: public Node
 {
     QString contents;
     QString expr;
-    QVector<Param *> params;
+    QList<Param *> params;
 
     DoneData(const XmlLocation &xmlLocation): Node(xmlLocation) {}
     void accept(NodeVisitor *visitor) override;
@@ -141,8 +141,8 @@ struct Instruction: public Node
     virtual ~Instruction() {}
 };
 
-typedef QVector<Instruction *> InstructionSequence;
-typedef QVector<InstructionSequence *> InstructionSequences;
+typedef QList<Instruction *> InstructionSequence;
+typedef QList<InstructionSequence *> InstructionSequences;
 
 struct Send: public Instruction
 {
@@ -157,7 +157,7 @@ struct Send: public Instruction
     QString delay;
     QString delayexpr;
     QStringList namelist;
-    QVector<Param *> params;
+    QList<Param *> params;
     QString content;
     QString contentexpr;
 
@@ -177,7 +177,7 @@ struct Invoke: public Instruction
     QString idLocation;
     QStringList namelist;
     bool autoforward;
-    QVector<Param *> params;
+    QList<Param *> params;
     InstructionSequence finalize;
 
     QSharedPointer<ScxmlDocument> content;
@@ -285,12 +285,12 @@ struct State: public AbstractState, public StateOrTransition
     enum Type { Normal, Parallel, Final };
 
     QStringList initial;
-    QVector<DataElement *> dataElements;
-    QVector<StateOrTransition *> children;
+    QList<DataElement *> dataElements;
+    QList<StateOrTransition *> children;
     InstructionSequences onEntry;
     InstructionSequences onExit;
     DoneData *doneData;
-    QVector<Invoke *> invokes;
+    QList<Invoke *> invokes;
     Type type;
 
     Transition *initialTransition; // when not set, it is filled during verification
@@ -322,7 +322,7 @@ struct Transition: public StateOrTransition
     InstructionSequence instructionsOnTransition;
     Type type;
 
-    QVector<AbstractState *> targetStates; // when not set, it is filled during verification
+    QList<AbstractState *> targetStates; // when not set, it is filled during verification
 
     Transition(const XmlLocation &xmlLocation)
         : StateOrTransition(xmlLocation)
@@ -338,7 +338,7 @@ struct HistoryState: public AbstractState, public StateOrTransition
 {
     enum Type { Deep, Shallow };
     Type type;
-    QVector<StateOrTransition *> children;
+    QList<StateOrTransition *> children;
 
     HistoryState(const XmlLocation &xmlLocation)
         : StateOrTransition(xmlLocation)
@@ -376,8 +376,8 @@ struct Scxml: public StateContainer, public Node
     QString cppDataModelClassName;
     QString cppDataModelHeaderName;
     BindingMethod binding;
-    QVector<StateOrTransition *> children;
-    QVector<DataElement *> dataElements;
+    QList<StateOrTransition *> children;
+    QList<DataElement *> dataElements;
     QScopedPointer<Script> script;
     InstructionSequence initialSetup;
 
@@ -405,11 +405,11 @@ struct ScxmlDocument
 {
     const QString fileName;
     Scxml *root;
-    QVector<AbstractState *> allStates;
-    QVector<Transition *> allTransitions;
-    QVector<Node *> allNodes;
-    QVector<InstructionSequence *> allSequences;
-    QVector<ScxmlDocument *> allSubDocuments; // weak pointers
+    QList<AbstractState *> allStates;
+    QList<Transition *> allTransitions;
+    QList<Node *> allNodes;
+    QList<InstructionSequence *> allSequences;
+    QList<ScxmlDocument *> allSubDocuments; // weak pointers
     bool isVerified;
 
     ScxmlDocument(const QString &fileName)
@@ -514,7 +514,7 @@ public:
         }
     }
 
-    void visit(const QVector<DataElement *> &dataElements)
+    void visit(const QList<DataElement *> &dataElements)
     {
         for (DataElement *dataElement : dataElements) {
             Q_ASSERT(dataElement);
@@ -522,7 +522,7 @@ public:
         }
     }
 
-    void visit(const QVector<StateOrTransition *> &children)
+    void visit(const QList<StateOrTransition *> &children)
     {
         for (StateOrTransition *child : children) {
             Q_ASSERT(child);
@@ -538,7 +538,7 @@ public:
         }
     }
 
-    void visit(const QVector<Param *> &params)
+    void visit(const QList<Param *> &params)
     {
         for (Param *param : params) {
             Q_ASSERT(param);
@@ -574,7 +574,7 @@ public:
                          const QString &fileName);
     QByteArray load(const QString &name, bool *ok);
 
-    QVector<QScxmlError> errors() const;
+    QList<QScxmlError> errors() const;
 
     void addError(const QString &msg);
     void addError(const DocumentModel::XmlLocation &location, const QString &msg);
@@ -725,8 +725,8 @@ private:
     QScxmlCompiler::Loader *m_loader;
 
     QXmlStreamReader *m_reader;
-    QVector<ParserState> m_stack;
-    QVector<QScxmlError> m_errors;
+    QList<ParserState> m_stack;
+    QList<QScxmlError> m_errors;
 };
 
 QT_END_NAMESPACE

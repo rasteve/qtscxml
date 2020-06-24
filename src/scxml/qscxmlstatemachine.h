@@ -46,11 +46,11 @@
 #include <QtScxml/qscxmlcompiler.h>
 #include <QtScxml/qscxmlinvokableservice.h>
 
+#include <QtCore/qlist.h>
+#include <QtCore/qpointer.h>
 #include <QtCore/qstring.h>
-#include <QtCore/qvector.h>
 #include <QtCore/qurl.h>
 #include <QtCore/qvariant.h>
-#include <QtCore/qpointer.h>
 
 #include <functional>
 
@@ -71,11 +71,11 @@ class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
     Q_PROPERTY(bool initialized READ isInitialized NOTIFY initializedChanged)
     Q_PROPERTY(QScxmlDataModel *dataModel READ dataModel WRITE setDataModel NOTIFY dataModelChanged)
     Q_PROPERTY(QVariantMap initialValues READ initialValues WRITE setInitialValues NOTIFY initialValuesChanged)
-    Q_PROPERTY(QVector<QScxmlInvokableService*> invokedServices READ invokedServices NOTIFY invokedServicesChanged)
+    Q_PROPERTY(QList<QScxmlInvokableService*> invokedServices READ invokedServices NOTIFY invokedServicesChanged)
     Q_PROPERTY(QString sessionId READ sessionId CONSTANT)
     Q_PROPERTY(QString name READ name CONSTANT)
     Q_PROPERTY(bool invoked READ isInvoked CONSTANT)
-    Q_PROPERTY(QVector<QScxmlError> parseErrors READ parseErrors CONSTANT)
+    Q_PROPERTY(QList<QScxmlError> parseErrors READ parseErrors CONSTANT)
     Q_PROPERTY(QScxmlCompiler::Loader *loader READ loader WRITE setLoader NOTIFY loaderChanged)
     Q_PROPERTY(QScxmlTableData *tableData READ tableData WRITE setTableData NOTIFY tableDataChanged)
 
@@ -86,7 +86,7 @@ protected:
 public:
     static QScxmlStateMachine *fromFile(const QString &fileName);
     static QScxmlStateMachine *fromData(QIODevice *data, const QString &fileName = QString());
-    QVector<QScxmlError> parseErrors() const;
+    QList<QScxmlError> parseErrors() const;
 
     QString sessionId() const;
 
@@ -271,14 +271,14 @@ public:
 
     Q_INVOKABLE bool isDispatchableTarget(const QString &target) const;
 
-    QVector<QScxmlInvokableService *> invokedServices() const;
+    QList<QScxmlInvokableService *> invokedServices() const;
 
     QScxmlTableData *tableData() const;
     void setTableData(QScxmlTableData *tableData);
 
 Q_SIGNALS:
     void runningChanged(bool running);
-    void invokedServicesChanged(const QVector<QScxmlInvokableService *> &invokedServices);
+    void invokedServicesChanged(const QList<QScxmlInvokableService *> &invokedServices);
     void log(const QString &label, const QString &msg);
     void reachedStableState();
     void finished();
@@ -316,6 +316,6 @@ private:
 QT_END_NAMESPACE
 
 Q_DECLARE_METATYPE(QScxmlStateMachine *)
-Q_DECLARE_METATYPE(QVector<QScxmlInvokableService *>)
+Q_DECLARE_METATYPE(QList<QScxmlInvokableService *>)
 
 #endif // QSCXMLSTATEMACHINE_H

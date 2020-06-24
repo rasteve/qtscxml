@@ -43,7 +43,7 @@
 #include <qxmlstream.h>
 #include <qloggingcategory.h>
 #include <qfile.h>
-#include <qvector.h>
+#include <qlist.h>
 #include <qstring.h>
 
 #ifndef BUILD_QSCXMLC
@@ -117,7 +117,7 @@ private:
                 scxml->initialTransition = createInitialTransition({firstChild});
             }
         } else {
-            QVector<DocumentModel::AbstractState *> initialStates;
+            QList<DocumentModel::AbstractState *> initialStates;
             for (const QString &initial : qAsConst(scxml->initial)) {
                 if (DocumentModel::AbstractState *s = m_stateById.value(initial))
                     initialStates.append(s);
@@ -155,7 +155,7 @@ private:
                 }
             } else {
                 Q_ASSERT(state->type == DocumentModel::State::Normal);
-                QVector<DocumentModel::AbstractState *> initialStates;
+                QList<DocumentModel::AbstractState *> initialStates;
                 for (const QString &initialState : qAsConst(state->initial)) {
                     if (DocumentModel::AbstractState *s = m_stateById.value(initialState)) {
                         initialStates.append(s);
@@ -387,7 +387,7 @@ private:
         return true;
     }
 
-    static const QVector<DocumentModel::StateOrTransition *> &allChildrenOfContainer(
+    static const QList<DocumentModel::StateOrTransition *> &allChildrenOfContainer(
             DocumentModel::StateContainer *container)
     {
         if (auto state = container->asState())
@@ -402,7 +402,7 @@ private:
     {
         const auto &allChildren = allChildrenOfContainer(container);
 
-        QVector<DocumentModel::AbstractState *> childStates;
+        QList<DocumentModel::AbstractState *> childStates;
         for (DocumentModel::StateOrTransition *child : qAsConst(allChildren)) {
             if (DocumentModel::State *s = child->asState())
                 return s;
@@ -412,12 +412,12 @@ private:
         return nullptr;
     }
 
-    static QVector<DocumentModel::AbstractState *> allAbstractStates(
+    static QList<DocumentModel::AbstractState *> allAbstractStates(
             DocumentModel::StateContainer *container)
     {
         const auto &allChildren = allChildrenOfContainer(container);
 
-        QVector<DocumentModel::AbstractState *> childStates;
+        QList<DocumentModel::AbstractState *> childStates;
         for (DocumentModel::StateOrTransition *child : qAsConst(allChildren)) {
             if (DocumentModel::State *s = child->asState())
                 childStates.append(s);
@@ -428,7 +428,7 @@ private:
     }
 
     DocumentModel::Transition *createInitialTransition(
-            const QVector<DocumentModel::AbstractState *> &states)
+            const QList<DocumentModel::AbstractState *> &states)
     {
         auto *newTransition = m_doc->newTransition(nullptr, DocumentModel::XmlLocation(-1, -1));
         newTransition->type = DocumentModel::Transition::Synthetic;
@@ -460,7 +460,7 @@ private:
     DocumentModel::ScxmlDocument *m_doc;
     bool m_hasErrors;
     QHash<QString, DocumentModel::AbstractState *> m_stateById;
-    QVector<DocumentModel::Node *> m_parentNodes;
+    QList<DocumentModel::Node *> m_parentNodes;
 };
 
 #ifndef BUILD_QSCXMLC
@@ -469,8 +469,8 @@ class InvokeDynamicScxmlFactory: public QScxmlInvokableServiceFactory
     Q_OBJECT
 public:
     InvokeDynamicScxmlFactory(const QScxmlExecutableContent::InvokeInfo &invokeInfo,
-                              const QVector<QScxmlExecutableContent::StringId> &namelist,
-                              const QVector<QScxmlExecutableContent::ParameterInfo> &params)
+                              const QList<QScxmlExecutableContent::StringId> &namelist,
+                              const QList<QScxmlExecutableContent::ParameterInfo> &params)
         : QScxmlInvokableServiceFactory(invokeInfo, namelist, params)
     {}
 
@@ -602,8 +602,8 @@ public:
         DataModelInfo dm;
         auto factoryIdCreator = [stateMachine](
                 const QScxmlExecutableContent::InvokeInfo &invokeInfo,
-                const QVector<QScxmlExecutableContent::StringId> &namelist,
-                const QVector<QScxmlExecutableContent::ParameterInfo> &params,
+                const QList<QScxmlExecutableContent::StringId> &namelist,
+                const QList<QScxmlExecutableContent::ParameterInfo> &params,
                 const QSharedPointer<DocumentModel::ScxmlDocument> &content) -> int {
             auto factory = new InvokeDynamicScxmlFactory(invokeInfo, namelist, params);
             factory->setContent(content);
@@ -629,7 +629,7 @@ private:
     }
 
 private:
-    QVector<QScxmlInvokableServiceFactory *> m_allFactoriesById;
+    QList<QScxmlInvokableServiceFactory *> m_allFactoriesById;
     int m_propertyCount;
 };
 
@@ -864,7 +864,7 @@ void QScxmlCompilerPrivate::instantiateDataModel(QScxmlStateMachine *stateMachin
 /*!
  * Returns the list of parse errors.
  */
-QVector<QScxmlError> QScxmlCompiler::errors() const
+QList<QScxmlError> QScxmlCompiler::errors() const
 {
     return d->errors();
 }
@@ -2327,7 +2327,7 @@ QByteArray QScxmlCompilerPrivate::load(const QString &name, bool *ok)
     return result;
 }
 
-QVector<QScxmlError> QScxmlCompilerPrivate::errors() const
+QList<QScxmlError> QScxmlCompilerPrivate::errors() const
 {
     return m_errors;
 }

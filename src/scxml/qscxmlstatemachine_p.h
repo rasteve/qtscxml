@@ -113,9 +113,9 @@ public:
     {}
 
 Q_SIGNALS:
-    void statesEntered(const QVector<QScxmlStateMachineInfo::StateId> &states);
-    void statesExited(const QVector<QScxmlStateMachineInfo::StateId> &states);
-    void transitionsTriggered(const QVector<QScxmlStateMachineInfo::TransitionId> &transitions);
+    void statesEntered(const QList<QScxmlStateMachineInfo::StateId> &states);
+    void statesExited(const QList<QScxmlStateMachineInfo::StateId> &states);
+    void transitionsTriggered(const QList<QScxmlStateMachineInfo::TransitionId> &transitions);
 };
 } // QScxmlInternal namespace
 
@@ -152,7 +152,7 @@ public: // types
     {
     public:
         QScopedPointer<QScxmlDataModel> m_ownedDataModel;
-        QVector<QScxmlError> m_errors;
+        QList<QScxmlError> m_errors;
     };
 
     // The OrderedSet is a set where it elements are in insertion order. See
@@ -216,7 +216,7 @@ public: // types
 
     class Queue
     {
-        QVector<QScxmlEvent *> storage;
+        QList<QScxmlEvent *> storage;
 
     public:
         Queue()
@@ -346,7 +346,7 @@ public: // types & data fields:
 
 private:
     QScopedPointer<ParserData> m_parserData; // used when created by StateMachine::fromFile.
-    typedef QHash<int, QVector<int>> HistoryValues;
+    typedef QHash<int, QList<int>> HistoryValues;
     struct InvokedService {
         int invokingState;
         QScxmlInvokableService *service;

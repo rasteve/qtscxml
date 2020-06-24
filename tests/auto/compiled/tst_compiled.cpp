@@ -258,7 +258,7 @@ void tst_Compiled::topMachine()
     });
 
     QObject::connect(&stateMachine, &QScxmlStateMachine::invokedServicesChanged,
-                     [&invokableServicesCount](const QVector<QScxmlInvokableService *> &services) {
+                     [&invokableServicesCount](const QList<QScxmlInvokableService *> &services) {
         invokableServicesCount = services.count();
     });
 
@@ -283,7 +283,7 @@ void tst_Compiled::topMachineDynamic()
     });
 
     QObject::connect(stateMachine.data(), &QScxmlStateMachine::invokedServicesChanged,
-                     [&invokableServicesCount](const QVector<QScxmlInvokableService *> &services) {
+                     [&invokableServicesCount](const QList<QScxmlInvokableService *> &services) {
         invokableServicesCount = services.count();
     });
 

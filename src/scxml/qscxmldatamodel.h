@@ -43,7 +43,6 @@
 #include <QtScxml/qscxmlexecutablecontent.h>
 
 #include <QtCore/qvariant.h>
-#include <QtCore/qvector.h>
 
 Q_MOC_INCLUDE(qscxmlstatemachine.h)
 

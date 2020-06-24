@@ -1073,7 +1073,7 @@ void QScxmlStateMachinePrivate::exitStates(const OrderedSet &enabledTransitions)
     for (int s : statesToExitSorted) {
         for (int h : historyStates(s)) {
             const auto &hState = m_stateTable->state(h);
-            QVector<int> history;
+            QList<int> history;
 
             for (int s0 : m_configuration) {
                 const auto &s0State = m_stateTable->state(s0);
@@ -1100,7 +1100,7 @@ void QScxmlStateMachinePrivate::exitStates(const OrderedSet &enabledTransitions)
 
     if (m_infoSignalProxy) {
         emit m_infoSignalProxy->statesExited(
-                QVector<QScxmlStateMachineInfo::StateId>(statesToExitSorted.begin(),
+                QList<QScxmlStateMachineInfo::StateId>(statesToExitSorted.begin(),
                                                          statesToExitSorted.end()));
     }
 }
@@ -1132,7 +1132,7 @@ void QScxmlStateMachinePrivate::executeTransitionContent(const OrderedSet &enabl
 
     if (m_infoSignalProxy) {
         emit m_infoSignalProxy->transitionsTriggered(
-                QVector<QScxmlStateMachineInfo::TransitionId>(enabledTransitions.list().begin(),
+                QList<QScxmlStateMachineInfo::TransitionId>(enabledTransitions.list().begin(),
                                                               enabledTransitions.list().end()));
     }
 }
@@ -1196,7 +1196,7 @@ void QScxmlStateMachinePrivate::enterStates(const OrderedSet &enabledTransitions
         emitStateActive(s, true);
     if (m_infoSignalProxy) {
         emit m_infoSignalProxy->statesEntered(
-                QVector<QScxmlStateMachineInfo::StateId>(sortedStates.begin(),
+                QList<QScxmlStateMachineInfo::StateId>(sortedStates.begin(),
                                                          sortedStates.end()));
     }
 }
@@ -1507,10 +1507,10 @@ QScxmlStateMachine *QScxmlStateMachine::fromData(QIODevice *data, const QString 
     return compiler.compile();
 }
 
-QVector<QScxmlError> QScxmlStateMachine::parseErrors() const
+QList<QScxmlError> QScxmlStateMachine::parseErrors() const
 {
     Q_D(const QScxmlStateMachine);
-    return d->m_parserData ? d->m_parserData->m_errors : QVector<QScxmlError>();
+    return d->m_parserData ? d->m_parserData->m_errors : QList<QScxmlError>();
 }
 
 QScxmlStateMachine::QScxmlStateMachine(const QMetaObject *metaObject, QObject *parent)
@@ -2229,11 +2229,11 @@ bool QScxmlStateMachine::isDispatchableTarget(const QString &target) const
     state machine (possibly recursively).
 */
 
-QVector<QScxmlInvokableService *> QScxmlStateMachine::invokedServices() const
+QList<QScxmlInvokableService *> QScxmlStateMachine::invokedServices() const
 {
     Q_D(const QScxmlStateMachine);
 
-    QVector<QScxmlInvokableService *> result;
+    QList<QScxmlInvokableService *> result;
     for (int i = 0, ei = int(d->m_invokedServices.size()); i != ei; ++i) {
         if (auto service = d->m_invokedServices[size_t(i)].service)
             result.append(service);

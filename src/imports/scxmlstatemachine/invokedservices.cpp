@@ -71,7 +71,7 @@ QVariantMap QScxmlInvokedServices::children()
 {
     QVariantMap ret;
     if (m_stateMachine) {
-        const QVector<QScxmlInvokableService *> children = m_stateMachine->invokedServices();
+        const QList<QScxmlInvokableService *> children = m_stateMachine->invokedServices();
         for (QScxmlInvokableService *service : children)
             ret.insert(service->name(), QVariant::fromValue(service));
     }
