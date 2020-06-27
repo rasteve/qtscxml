@@ -68,7 +68,7 @@ public:
         // receiving end of the signal is a generic method in the QML engine, at which point it's too late
         // to do a meta-type registration.
         static const int qScxmlEventMetaTypeId = qMetaTypeId<QScxmlEvent>();
-        Q_UNUSED(qScxmlEventMetaTypeId)
+        Q_UNUSED(qScxmlEventMetaTypeId);
         qmlRegisterType<QScxmlStateMachineLoader>(uri, major, minor, "StateMachineLoader");
         qmlRegisterType<QScxmlEventConnection>(uri, major, minor, "EventConnection");
         qmlRegisterType<QScxmlInvokedServices>(uri, major, minor, "InvokedServices");

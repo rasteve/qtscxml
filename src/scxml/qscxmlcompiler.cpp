@@ -840,7 +840,7 @@ QScxmlStateMachine *QScxmlCompilerPrivate::instantiateStateMachine() const
 void QScxmlCompilerPrivate::instantiateDataModel(QScxmlStateMachine *stateMachine) const
 {
 #ifdef BUILD_QSCXMLC
-    Q_UNUSED(stateMachine)
+    Q_UNUSED(stateMachine);
 #else
     if (!m_errors.isEmpty()) {
         qWarning() << "SCXML document has errors";
