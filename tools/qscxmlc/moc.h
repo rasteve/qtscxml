@@ -29,10 +29,13 @@
 #ifndef MOC_H
 #define MOC_H
 
+// -- QtScxml
 #include <QtCore/qmap.h>
 #include <QtCore/qpair.h>
 #include <QtCore/qjsondocument.h>
 #include <QtCore/qjsonarray.h>
+// -- QtScxml
+
 #include <ctype.h>
 
 QT_BEGIN_NAMESPACE
@@ -43,26 +46,33 @@ struct Type
 {
     enum ReferenceType { NoReference, Reference, RValueReference, Pointer };
 
-    inline Type() : isVolatile(false), isScoped(false), /*firstToken(NOTOKEN), */referenceType(NoReference) {}
+    inline Type() : isVolatile(false), isScoped(false), /* firstToken(NOTOKEN) -- QtScxml ,*/ referenceType(NoReference) {}
     inline explicit Type(const QByteArray &_name)
-        : name(_name), rawName(name), isVolatile(false), isScoped(false), /*firstToken(NOTOKEN),*/ referenceType(NoReference) {}
+        : name(_name), rawName(name), isVolatile(false), isScoped(false), /* firstToken(NOTOKEN) -- QtScxml ,*/ referenceType(NoReference) {}
     QByteArray name;
     //When used as a return type, the type name may be modified to remove the references.
     // rawName is the type as found in the function signature
     QByteArray rawName;
     uint isVolatile : 1;
     uint isScoped : 1;
-//    Token firstToken;
+#if 0 // -- QtScxml
+    Token firstToken;
+#endif // -- QtScxml
     ReferenceType referenceType;
 };
+Q_DECLARE_TYPEINFO(Type, Q_MOVABLE_TYPE);
 
+struct ClassDef;
 struct EnumDef
 {
     QByteArray name;
+    QByteArray enumName;
     QList<QByteArray> values;
     bool isEnumClass; // c++11 enum class
     EnumDef() : isEnumClass(false) {}
+    QJsonObject toJson(const ClassDef &cdef) const;
 };
+Q_DECLARE_TYPEINFO(EnumDef, Q_MOVABLE_TYPE);
 
 struct ArgumentDef
 {
@@ -71,82 +81,110 @@ struct ArgumentDef
     QByteArray rightType, normalizedType, name;
     QByteArray typeNameForCast; // type name to be used in cast from void * in metacall
     bool isDefault;
+
+    QJsonObject toJson() const;
 };
+Q_DECLARE_TYPEINFO(ArgumentDef, Q_MOVABLE_TYPE);
 
 struct FunctionDef
 {
-    FunctionDef(): access(Private), isConst(false), isVirtual(false), isStatic(false),
-                   inlineCode(false), wasCloned(false), isCompat(false), isInvokable(false),
-                   isScriptable(false), isSlot(false), isSignal(false), isPrivateSignal(false),
-                   isConstructor(false), isDestructor(false), isAbstract(false), revision(0), implementation(0) {}
     Type type;
+    QList<ArgumentDef> arguments;
     QByteArray normalizedType;
     QByteArray tag;
     QByteArray name;
-    QByteArray mangledName;
-
-    QList<ArgumentDef> arguments;
+    QByteArray inPrivateClass;
 
     enum Access { Private, Protected, Public };
-    Access access;
-    bool isConst;
-    bool isVirtual;
-    bool isStatic;
-    bool inlineCode;
-    bool wasCloned;
+    Access access = Private;
+    int revision = 0;
 
-    QByteArray inPrivateClass;
-    bool isCompat;
-    bool isInvokable;
-    bool isScriptable;
-    bool isSlot;
-    bool isSignal;
-    bool isPrivateSignal;
-    bool isConstructor;
-    bool isDestructor;
-    bool isAbstract;
+    bool isConst = false;
+    bool isVirtual = false;
+    bool isStatic = false;
+    bool inlineCode = false;
+    bool wasCloned = false;
 
-    int revision;
+    bool isCompat = false;
+    bool isInvokable = false;
+    bool isScriptable = false;
+    bool isSlot = false;
+    bool isSignal = false;
+    bool isPrivateSignal = false;
+    bool isConstructor = false;
+    bool isDestructor = false;
+    bool isAbstract = false;
+    bool isRawSlot = false;
 
-    const char *implementation;
+    QJsonObject toJson() const;
+    static void accessToJson(QJsonObject *obj, Access acs);
+
+// -- QtScxml
+    QByteArray mangledName;
+    const char *implementation = nullptr;
+// -- QtScxml
 };
+Q_DECLARE_TYPEINFO(FunctionDef, Q_MOVABLE_TYPE);
 
 struct PropertyDef
 {
-    PropertyDef():notifyId(-1), constant(false), final(false), gspec(ValueSpec), revision(0){}
-    QByteArray name, mangledName, type, member, read, write, reset, designable, scriptable,
-               editable, stored, user, notify, inPrivateClass;
-    int notifyId;
-    bool constant;
-    bool final;
-    enum Specification  { ValueSpec, ReferenceSpec, PointerSpec };
-    Specification gspec;
     bool stdCppSet() const {
         QByteArray s("set");
         s += toupper(name[0]);
         s += name.mid(1);
         return (s == write);
     }
-    int revision;
-};
 
+    QByteArray name, type, member, read, write, reset, designable, scriptable, stored, user, notify, inPrivateClass, qpropertyname;
+    int notifyId = -1;// -1 means no notifyId, >= 0 means signal defined in this class, < -1 means signal not defined in this class
+    enum Specification  { ValueSpec, ReferenceSpec, PointerSpec };
+    Specification gspec = ValueSpec;
+    int revision = 0;
+    bool constant = false;
+    bool final = false;
+    bool required = false;
+    bool isQProperty = false;
+    bool isQPropertyWithNotifier = false;
+
+// -- QtScxml
+    QByteArray mangledName;
+// -- QtScxml
+};
+Q_DECLARE_TYPEINFO(PropertyDef, Q_MOVABLE_TYPE);
+
+struct PrivateQPropertyDef
+{
+    Type type;
+    QByteArray name;
+    QByteArray setter;
+    QByteArray accessor;
+};
+Q_DECLARE_TYPEINFO(PrivateQPropertyDef, Q_MOVABLE_TYPE);
 
 struct ClassInfoDef
 {
     QByteArray name;
     QByteArray value;
 };
+Q_DECLARE_TYPEINFO(ClassInfoDef, Q_MOVABLE_TYPE);
 
-struct ClassDef {
-    ClassDef():
-        hasQObject(false), hasQGadget(false), notifyableProperties(0)
-        , revisionedMethods(0), revisionedProperties(0), begin(0), end(0){}
+struct BaseDef {
     QByteArray classname;
     QByteArray qualified;
+    QList<ClassInfoDef> classInfoList;
+    QMap<QByteArray, bool> enumDeclarations;
+    QList<EnumDef> enumList;
+    QMap<QByteArray, QByteArray> flagAliases;
+    int begin = 0;
+    int end = 0;
+};
+
+struct ClassDef : BaseDef {
     QList<QPair<QByteArray, FunctionDef::Access> > superclassList;
 
     struct Interface
     {
+        Interface() { } // for QList, don't use
         inline explicit Interface(const QByteArray &_className)
             : className(_className) {}
         QByteArray className;
@@ -154,35 +192,116 @@ struct ClassDef {
     };
     QList<QList<Interface> >interfaceList;
 
-    bool hasQObject;
-    bool hasQGadget;
-
     struct PluginData {
         QByteArray iid;
+        QByteArray uri;
         QMap<QString, QJsonArray> metaArgs;
         QJsonDocument metaData;
     } pluginData;
 
     QList<FunctionDef> constructorList;
     QList<FunctionDef> signalList, slotList, methodList, publicList;
-    int notifyableProperties;
+    QList<QByteArray> nonClassSignalList;
     QList<PropertyDef> propertyList;
-    QList<ClassInfoDef> classInfoList;
-    QMap<QByteArray, bool> enumDeclarations;
-    QList<EnumDef> enumList;
-    QMap<QByteArray, QByteArray> flagAliases;
-    int revisionedMethods;
-    int revisionedProperties;
+    QList<PrivateQPropertyDef> privateQProperties;
+    QHash<QByteArray, bool> qPropertyMembersMaybeWithNotifier;
+    int revisionedMethods = 0;
 
-    int begin;
-    int end;
-};
+    bool hasQObject = false;
+    bool hasQGadget = false;
+    bool hasQNamespace = false;
 
-struct NamespaceDef {
-    QByteArray name;
-    int begin;
-    int end;
+    QJsonObject toJson() const;
 };
+Q_DECLARE_TYPEINFO(ClassDef, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(ClassDef::Interface, Q_MOVABLE_TYPE);
+
+struct NamespaceDef : BaseDef {
+    bool hasQNamespace = false;
+    bool doGenerate = false;
+};
+Q_DECLARE_TYPEINFO(NamespaceDef, Q_MOVABLE_TYPE);
+
+#if 0 // -- QtScxml
+class Moc : public Parser
+{
+public:
+    Moc()
+        : noInclude(false), mustIncludeQPluginH(false), requireCompleteTypes(false)
+        {}
+
+    QByteArray filename;
+
+    bool noInclude;
+    bool mustIncludeQPluginH;
+    bool requireCompleteTypes;
+    QByteArray includePath;
+    QList<QByteArray> includeFiles;
+    QList<ClassDef> classList;
+    QMap<QByteArray, QByteArray> interface2IdMap;
+    QList<QByteArray> metaTypes;
+    // map from class name to fully qualified name
+    QHash<QByteArray, QByteArray> knownQObjectClasses;
+    QHash<QByteArray, QByteArray> knownGadgets;
+    QMap<QString, QJsonArray> metaArgs;
+    QList<QString> parsedPluginMetadataFiles;
+
+    void parse();
+    void generate(FILE *out, FILE *jsonOutput);
+
+    bool parseClassHead(ClassDef *def);
+    inline bool inClass(const ClassDef *def) const {
+        return index > def->begin && index < def->end - 1;
+    }
+
+    inline bool inNamespace(const NamespaceDef *def) const {
+        return index > def->begin && index < def->end - 1;
+    }
+
+    Type parseType();
+
+    bool parseEnum(EnumDef *def);
+
+    bool parseFunction(FunctionDef *def, bool inMacro = false);
+    bool parseMaybeFunction(const ClassDef *cdef, FunctionDef *def);
+    bool parseMaybeQProperty(ClassDef *def);
+
+    void parseSlots(ClassDef *def, FunctionDef::Access access);
+    void parseSignals(ClassDef *def);
+    void parseProperty(ClassDef *def);
+    void parsePluginData(ClassDef *def);
+    void createPropertyDef(PropertyDef &def);
+    void parsePropertyAttributes(PropertyDef &propDef);
+    void parseEnumOrFlag(BaseDef *def, bool isFlag);
+    void parseFlag(BaseDef *def);
+    void parseClassInfo(BaseDef *def);
+    void parseInterfaces(ClassDef *def);
+    void parseDeclareInterface();
+    void parseDeclareMetatype();
+    void parseMocInclude();
+    void parseSlotInPrivate(ClassDef *def, FunctionDef::Access access);
+    QByteArray parsePropertyAccessor();
+    void parsePrivateProperty(ClassDef *def);
+    void parsePrivateQProperty(ClassDef *def);
+
+    void parseFunctionArguments(FunctionDef *def);
+
+    QByteArray lexemUntil(Token);
+    bool until(Token);
+
+    // test for Q_INVOCABLE, Q_SCRIPTABLE, etc. and set the flags
+    // in FunctionDef accordingly
+    bool testFunctionAttribute(FunctionDef *def);
+    bool testFunctionAttribute(Token tok, FunctionDef *def);
+    bool testFunctionRevision(FunctionDef *def);
+    QTypeRevision parseRevision();
+
+    bool skipCxxAttributes();
+
+    void checkSuperClasses(ClassDef *def);
+    void checkProperties(ClassDef* cdef);
+};
+#endif // -- QtScxml
 
 inline QByteArray noRef(const QByteArray &type)
 {

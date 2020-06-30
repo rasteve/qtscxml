@@ -273,7 +273,7 @@ private: // Uses private API
         Q_ASSERT(engine);
         QV4::Scope scope(engine);
 
-        QV4::ScopedObject o(scope, QJSValuePrivate::getValue(object));
+        QV4::ScopedObject o(scope, QJSValuePrivate::asManagedType<QV4::Object>(object));
         if (!o)
             return;
 
@@ -289,7 +289,7 @@ private: // Uses private API
             return;
         }
 
-        QV4::ScopedValue v(scope, QJSValuePrivate::convertedToValue(engine, value));
+        QV4::ScopedValue v(scope, QJSValuePrivate::convertToReturnedValue(engine, value));
         o->defineReadonlyProperty(s, v);
         if (engine->hasException)
             engine->catchException();
@@ -310,7 +310,7 @@ private: // Uses private API
             return SetPropertyFailedForAnotherReason;
 
         QV4::Scope scope(engine);
-        QV4::ScopedObject o(scope, QJSValuePrivate::getValue(object));
+        QV4::ScopedObject o(scope, QJSValuePrivate::asManagedType<QV4::Object>(object));
         if (o == nullptr) {
             return SetPropertyFailedForAnotherReason;
         }
@@ -324,7 +324,7 @@ private: // Uses private API
 
         QV4::PropertyAttributes attrs = o->getOwnProperty(s->toPropertyKey());
         if (attrs.isWritable() || attrs.isEmpty()) {
-            QV4::ScopedValue v(scope, QJSValuePrivate::convertedToValue(engine, value));
+            QV4::ScopedValue v(scope, QJSValuePrivate::convertToReturnedValue(engine, value));
             o->insertMember(s, v);
             if (engine->hasException) {
                 engine->catchException();

@@ -795,7 +795,6 @@ QString CppDumper::generateMetaObject(const QString &className,
         signal.arguments << arg;
         classDef.signalList << signal;
 
-        ++classDef.notifyableProperties;
         PropertyDef prop;
         prop.name = stateName.toUtf8();
         if (m_translationUnit->stateMethods)
