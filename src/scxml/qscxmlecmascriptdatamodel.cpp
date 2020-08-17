@@ -192,7 +192,7 @@ public:
             return data;
         }
 
-        if (eventData == QVariant(QMetaType::VoidStar, 0)) {
+        if (eventData == QVariant(QMetaType(QMetaType::VoidStar), nullptr)) {
             return QJSValue(QJSValue::NullValue);
         }
 

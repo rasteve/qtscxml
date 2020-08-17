@@ -85,7 +85,7 @@ struct ${classname}::Data: private QScxmlTableData {
     static const qint32 theStateMachineTable[];
     static struct Strings {
         const uint offsetsAndSize[${stringCount} * 2];
-        qunicodechar stringdata[${stringdataSize}];
+        char16_t stringdata[${stringdataSize}];
     } strings;
 };
 
