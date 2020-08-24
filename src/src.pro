@@ -1,8 +1,8 @@
 TEMPLATE = subdirs
 
-SUBDIRS += scxml
+SUBDIRS += scxml statemachine
 
 qtHaveModule(qml) {
     SUBDIRS += imports
-    imports.depends = scxml
+    imports.depends = scxml statemachine
 }

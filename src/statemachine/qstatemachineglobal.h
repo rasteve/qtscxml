@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Ford Motor Company
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the QtQml module of the Qt Toolkit.
+** This file is part of the QtScxml module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,57 +37,24 @@
 **
 ****************************************************************************/
 
-#ifndef STATEMACHINE_H
-#define STATEMACHINE_H
+#ifndef QSTATEMACHINEGLOBAL_H
+#define QSTATEMACHINEGLOBAL_H
 
-#include "childrenprivate.h"
-
-#include <QtStateMachine/QStateMachine>
-#include <QtQml/QQmlParserStatus>
-#include <QtQml/QQmlListProperty>
-#include <QtQml/qqml.h>
+#include <QtCore/qglobal.h>
+#include <QtStateMachine/qtstatemachine-config.h>
 
 QT_BEGIN_NAMESPACE
 
-class StateMachine : public QStateMachine, public QQmlParserStatus
-{
-    Q_OBJECT
-    Q_INTERFACES(QQmlParserStatus)
-    Q_PROPERTY(QQmlListProperty<QObject> children READ children NOTIFY childrenChanged)
-
-    // Override to delay execution after componentComplete()
-    Q_PROPERTY(bool running READ isRunning WRITE setRunning NOTIFY qmlRunningChanged)
-
-    Q_CLASSINFO("DefaultProperty", "children")
-    QML_ELEMENT
-    QML_ADDED_IN_VERSION(1, 0)
-
-public:
-    explicit StateMachine(QObject *parent = 0);
-
-    void classBegin() override {}
-    void componentComplete() override;
-    QQmlListProperty<QObject> children();
-
-    bool isRunning() const;
-    void setRunning(bool running);
-
-private Q_SLOTS:
-    void checkChildMode();
-
-Q_SIGNALS:
-    void childrenChanged();
-    /*!
-     * \internal
-     */
-    void qmlRunningChanged();
-
-private:
-    ChildrenPrivate<StateMachine, ChildrenMode::StateOrTransition> m_children;
-    bool m_completed;
-    bool m_running;
-};
+#if defined(QT_STATIC) || defined(BUILD_QSTATEMACHINE)
+#  define Q_STATEMACHINE_EXPORT
+#else
+#  ifdef QT_BUILD_STATEMACHINE_LIB
+#    define Q_STATEMACHINE_EXPORT Q_DECL_EXPORT
+#  else
+#    define Q_STATEMACHINE_EXPORT Q_DECL_IMPORT
+#  endif
+#endif
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QSTATEMACHINEGLOBAL_H

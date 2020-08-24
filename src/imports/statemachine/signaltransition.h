@@ -40,7 +40,7 @@
 #ifndef SIGNALTRANSITION_H
 #define SIGNALTRANSITION_H
 
-#include <QtCore/QSignalTransition>
+#include <QtStateMachine/QSignalTransition>
 #include <QtCore/QVariant>
 #include <QtQml/QJSValue>
 

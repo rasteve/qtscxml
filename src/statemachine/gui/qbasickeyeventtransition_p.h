@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Ford Motor Company
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the QtQml module of the Qt Toolkit.
+** This file is part of the QtWidgets module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,55 +37,55 @@
 **
 ****************************************************************************/
 
-#ifndef STATEMACHINE_H
-#define STATEMACHINE_H
+#ifndef QBASICKEYEVENTTRANSITION_P_H
+#define QBASICKEYEVENTTRANSITION_P_H
 
-#include "childrenprivate.h"
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
-#include <QtStateMachine/QStateMachine>
-#include <QtQml/QQmlParserStatus>
-#include <QtQml/QQmlListProperty>
-#include <QtQml/qqml.h>
+#include <QtGui/qevent.h>
+#include <QtStateMachine/qabstracttransition.h>
+
+QT_REQUIRE_CONFIG(qeventtransition);
 
 QT_BEGIN_NAMESPACE
 
-class StateMachine : public QStateMachine, public QQmlParserStatus
+class QBasicKeyEventTransitionPrivate;
+class Q_AUTOTEST_EXPORT QBasicKeyEventTransition : public QAbstractTransition
 {
     Q_OBJECT
-    Q_INTERFACES(QQmlParserStatus)
-    Q_PROPERTY(QQmlListProperty<QObject> children READ children NOTIFY childrenChanged)
-
-    // Override to delay execution after componentComplete()
-    Q_PROPERTY(bool running READ isRunning WRITE setRunning NOTIFY qmlRunningChanged)
-
-    Q_CLASSINFO("DefaultProperty", "children")
-    QML_ELEMENT
-    QML_ADDED_IN_VERSION(1, 0)
-
 public:
-    explicit StateMachine(QObject *parent = 0);
+    QBasicKeyEventTransition(QState *sourceState = nullptr);
+    QBasicKeyEventTransition(QEvent::Type type, int key, QState *sourceState = nullptr);
+    QBasicKeyEventTransition(QEvent::Type type, int key,
+                             Qt::KeyboardModifiers modifierMask,
+                             QState *sourceState = nullptr);
+    ~QBasicKeyEventTransition();
 
-    void classBegin() override {}
-    void componentComplete() override;
-    QQmlListProperty<QObject> children();
+    QEvent::Type eventType() const;
+    void setEventType(QEvent::Type type);
 
-    bool isRunning() const;
-    void setRunning(bool running);
+    int key() const;
+    void setKey(int key);
 
-private Q_SLOTS:
-    void checkChildMode();
+    Qt::KeyboardModifiers modifierMask() const;
+    void setModifierMask(Qt::KeyboardModifiers modifiers);
 
-Q_SIGNALS:
-    void childrenChanged();
-    /*!
-     * \internal
-     */
-    void qmlRunningChanged();
+protected:
+    bool eventTest(QEvent *event) override;
+    void onTransition(QEvent *) override;
 
 private:
-    ChildrenPrivate<StateMachine, ChildrenMode::StateOrTransition> m_children;
-    bool m_completed;
-    bool m_running;
+    Q_DISABLE_COPY_MOVE(QBasicKeyEventTransition)
+    Q_DECLARE_PRIVATE(QBasicKeyEventTransition)
 };
 
 QT_END_NAMESPACE

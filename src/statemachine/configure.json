@@ -1,0 +1,18 @@
+{
+    "module": "statemachine",
+
+    "features": {
+        "statemachine": {
+            "label": "State machine",
+            "purpose": "Provides hierarchical finite state machines.",
+            "section": "Utilities",
+            "output": [ "publicFeature", "feature" ]
+        },
+
+        "qeventtransition": {
+            "label": "QEventTransition class",
+            "condition": "features.statemachine",
+            "output": [ "publicFeature" ]
+        }
+    }
+}

@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Ford Motor Company
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the QtQml module of the Qt Toolkit.
+** This file is part of the QtCore module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,55 +37,61 @@
 **
 ****************************************************************************/
 
-#ifndef STATEMACHINE_H
-#define STATEMACHINE_H
+#ifndef QSIGNALTRANSITION_H
+#define QSIGNALTRANSITION_H
 
-#include "childrenprivate.h"
+#include <QtCore/qmetaobject.h>
+#include <QtStateMachine/qabstracttransition.h>
 
-#include <QtStateMachine/QStateMachine>
-#include <QtQml/QQmlParserStatus>
-#include <QtQml/QQmlListProperty>
-#include <QtQml/qqml.h>
+QT_REQUIRE_CONFIG(statemachine);
 
 QT_BEGIN_NAMESPACE
 
-class StateMachine : public QStateMachine, public QQmlParserStatus
+class QSignalTransitionPrivate;
+class Q_STATEMACHINE_EXPORT QSignalTransition : public QAbstractTransition
 {
     Q_OBJECT
-    Q_INTERFACES(QQmlParserStatus)
-    Q_PROPERTY(QQmlListProperty<QObject> children READ children NOTIFY childrenChanged)
-
-    // Override to delay execution after componentComplete()
-    Q_PROPERTY(bool running READ isRunning WRITE setRunning NOTIFY qmlRunningChanged)
-
-    Q_CLASSINFO("DefaultProperty", "children")
-    QML_ELEMENT
-    QML_ADDED_IN_VERSION(1, 0)
+    Q_PROPERTY(QObject* senderObject READ senderObject WRITE setSenderObject NOTIFY senderObjectChanged)
+    Q_PROPERTY(QByteArray signal READ signal WRITE setSignal NOTIFY signalChanged)
 
 public:
-    explicit StateMachine(QObject *parent = 0);
+    QSignalTransition(QState *sourceState = nullptr);
+    QSignalTransition(const QObject *sender, const char *signal,
+                      QState *sourceState = nullptr);
+#ifdef Q_QDOC
+    template<typename PointerToMemberFunction>
+    QSignalTransition(const QObject *object, PointerToMemberFunction signal,
+                      QState *sourceState = nullptr);
+#elif defined(Q_COMPILER_DELEGATING_CONSTRUCTORS)
+    template <typename Func>
+    QSignalTransition(const typename QtPrivate::FunctionPointer<Func>::Object *obj,
+                      Func sig, QState *srcState = nullptr)
+    : QSignalTransition(obj, QMetaMethod::fromSignal(sig).methodSignature().constData(), srcState)
+    {
+    }
+#endif
 
-    void classBegin() override {}
-    void componentComplete() override;
-    QQmlListProperty<QObject> children();
+    ~QSignalTransition();
 
-    bool isRunning() const;
-    void setRunning(bool running);
+    QObject *senderObject() const;
+    void setSenderObject(const QObject *sender);
 
-private Q_SLOTS:
-    void checkChildMode();
+    QByteArray signal() const;
+    void setSignal(const QByteArray &signal);
+
+protected:
+    bool eventTest(QEvent *event) override;
+    void onTransition(QEvent *event) override;
+
+    bool event(QEvent *e) override;
 
 Q_SIGNALS:
-    void childrenChanged();
-    /*!
-     * \internal
-     */
-    void qmlRunningChanged();
+    void senderObjectChanged(QPrivateSignal);
+    void signalChanged(QPrivateSignal);
 
 private:
-    ChildrenPrivate<StateMachine, ChildrenMode::StateOrTransition> m_children;
-    bool m_completed;
-    bool m_running;
+    Q_DISABLE_COPY(QSignalTransition)
+    Q_DECLARE_PRIVATE(QSignalTransition)
 };
 
 QT_END_NAMESPACE

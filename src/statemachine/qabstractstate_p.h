@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Ford Motor Company
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the QtQml module of the Qt Toolkit.
+** This file is part of the QtCore module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,57 +37,63 @@
 **
 ****************************************************************************/
 
-#ifndef STATEMACHINE_H
-#define STATEMACHINE_H
+#ifndef QABSTRACTSTATE_P_H
+#define QABSTRACTSTATE_P_H
 
-#include "childrenprivate.h"
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
-#include <QtStateMachine/QStateMachine>
-#include <QtQml/QQmlParserStatus>
-#include <QtQml/QQmlListProperty>
-#include <QtQml/qqml.h>
+#include <private/qobject_p.h>
+#include <QtStateMachine/qabstractstate.h>
+
+QT_REQUIRE_CONFIG(statemachine);
 
 QT_BEGIN_NAMESPACE
 
-class StateMachine : public QStateMachine, public QQmlParserStatus
+class QStateMachine;
+
+class QState;
+class QAbstractStatePrivate : public QObjectPrivate
 {
-    Q_OBJECT
-    Q_INTERFACES(QQmlParserStatus)
-    Q_PROPERTY(QQmlListProperty<QObject> children READ children NOTIFY childrenChanged)
-
-    // Override to delay execution after componentComplete()
-    Q_PROPERTY(bool running READ isRunning WRITE setRunning NOTIFY qmlRunningChanged)
-
-    Q_CLASSINFO("DefaultProperty", "children")
-    QML_ELEMENT
-    QML_ADDED_IN_VERSION(1, 0)
+    Q_DECLARE_PUBLIC(QAbstractState)
 
 public:
-    explicit StateMachine(QObject *parent = 0);
+    enum StateType {
+        AbstractState,
+        StandardState,
+        FinalState,
+        HistoryState
+    };
 
-    void classBegin() override {}
-    void componentComplete() override;
-    QQmlListProperty<QObject> children();
+    QAbstractStatePrivate(StateType type);
 
-    bool isRunning() const;
-    void setRunning(bool running);
+    static QAbstractStatePrivate *get(QAbstractState *q)
+    { return q->d_func(); }
+    static const QAbstractStatePrivate *get(const QAbstractState *q)
+    { return q->d_func(); }
 
-private Q_SLOTS:
-    void checkChildMode();
+    QStateMachine *machine() const;
 
-Q_SIGNALS:
-    void childrenChanged();
-    /*!
-     * \internal
-     */
-    void qmlRunningChanged();
+    void callOnEntry(QEvent *e);
+    void callOnExit(QEvent *e);
 
-private:
-    ChildrenPrivate<StateMachine, ChildrenMode::StateOrTransition> m_children;
-    bool m_completed;
-    bool m_running;
+    void emitEntered();
+    void emitExited();
+
+    uint stateType:30;
+    uint isMachine:1;
+    bool active:1;
+    mutable QState *parentState;
 };
 
 QT_END_NAMESPACE
 
-#endif
+#endif // QABSTRACTSTATE_P_H

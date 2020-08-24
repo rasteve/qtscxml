@@ -40,7 +40,7 @@
 #ifndef TIMEOUTTRANSITION_H
 #define TIMEOUTTRANSITION_H
 
-#include <QtCore/QSignalTransition>
+#include <QtStateMachine/QSignalTransition>
 #include <QtQml/QQmlParserStatus>
 #include <QtQml/qqml.h>
 

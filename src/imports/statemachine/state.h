@@ -42,7 +42,7 @@
 
 #include "childrenprivate.h"
 
-#include <QtCore/QState>
+#include <QtStateMachine/QState>
 #include <QtQml/QQmlParserStatus>
 #include <QtQml/QQmlListProperty>
 #include <QtQml/qqml.h>

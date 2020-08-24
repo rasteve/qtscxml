@@ -3,7 +3,7 @@ TARGET = qtqmlstatemachine
 TARGETPATH = QtQml/StateMachine
 QML_IMPORT_VERSION = $$QT_VERSION
 
-QT = core-private qml-private
+QT = statemachine core-private qml-private
 
 SOURCES = \
     $$PWD/finalstate.cpp \

@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Ford Motor Company
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the QtQml module of the Qt Toolkit.
+** This file is part of the QtCore module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,55 +37,45 @@
 **
 ****************************************************************************/
 
-#ifndef STATEMACHINE_H
-#define STATEMACHINE_H
+#ifndef QSIGNALTRANSITION_P_H
+#define QSIGNALTRANSITION_P_H
 
-#include "childrenprivate.h"
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
-#include <QtStateMachine/QStateMachine>
-#include <QtQml/QQmlParserStatus>
-#include <QtQml/QQmlListProperty>
-#include <QtQml/qqml.h>
+#include "private/qabstracttransition_p.h"
+
+QT_REQUIRE_CONFIG(statemachine);
 
 QT_BEGIN_NAMESPACE
 
-class StateMachine : public QStateMachine, public QQmlParserStatus
+class QSignalTransition;
+class QSignalTransitionPrivate : public QAbstractTransitionPrivate
 {
-    Q_OBJECT
-    Q_INTERFACES(QQmlParserStatus)
-    Q_PROPERTY(QQmlListProperty<QObject> children READ children NOTIFY childrenChanged)
-
-    // Override to delay execution after componentComplete()
-    Q_PROPERTY(bool running READ isRunning WRITE setRunning NOTIFY qmlRunningChanged)
-
-    Q_CLASSINFO("DefaultProperty", "children")
-    QML_ELEMENT
-    QML_ADDED_IN_VERSION(1, 0)
-
+    Q_DECLARE_PUBLIC(QSignalTransition)
 public:
-    explicit StateMachine(QObject *parent = 0);
+    QSignalTransitionPrivate();
 
-    void classBegin() override {}
-    void componentComplete() override;
-    QQmlListProperty<QObject> children();
+    static QSignalTransitionPrivate *get(QSignalTransition *q)
+    { return q->d_func(); }
 
-    bool isRunning() const;
-    void setRunning(bool running);
+    void unregister();
+    void maybeRegister();
 
-private Q_SLOTS:
-    void checkChildMode();
+    void callOnTransition(QEvent *e) override;
 
-Q_SIGNALS:
-    void childrenChanged();
-    /*!
-     * \internal
-     */
-    void qmlRunningChanged();
-
-private:
-    ChildrenPrivate<StateMachine, ChildrenMode::StateOrTransition> m_children;
-    bool m_completed;
-    bool m_running;
+    const QObject *sender;
+    QByteArray signal;
+    int signalIndex;
+    int originalSignalIndex;
 };
 
 QT_END_NAMESPACE

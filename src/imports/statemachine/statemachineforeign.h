@@ -41,10 +41,10 @@
 #define STATEMACHINEFOREIGN_H
 
 #include <QtQml/qqml.h>
-#include <QtCore/qhistorystate.h>
-#include <QtCore/qstate.h>
-#include <QtCore/qabstractstate.h>
-#include <QtCore/qsignaltransition.h>
+#include <QtStateMachine/qhistorystate.h>
+#include <QtStateMachine/qstate.h>
+#include <QtStateMachine/qabstractstate.h>
+#include <QtStateMachine/qsignaltransition.h>
 
 struct QHistoryStateForeign
 {

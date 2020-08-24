@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Ford Motor Company
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the QtQml module of the Qt Toolkit.
+** This file is part of the QtCore module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,55 +37,47 @@
 **
 ****************************************************************************/
 
-#ifndef STATEMACHINE_H
-#define STATEMACHINE_H
+#ifndef QEVENTTRANSITION_H
+#define QEVENTTRANSITION_H
 
-#include "childrenprivate.h"
+#include <QtCore/qcoreevent.h>
+#include <QtStateMachine/qabstracttransition.h>
 
-#include <QtStateMachine/QStateMachine>
-#include <QtQml/QQmlParserStatus>
-#include <QtQml/QQmlListProperty>
-#include <QtQml/qqml.h>
+QT_REQUIRE_CONFIG(qeventtransition);
 
 QT_BEGIN_NAMESPACE
 
-class StateMachine : public QStateMachine, public QQmlParserStatus
+class QEventTransitionPrivate;
+class Q_STATEMACHINE_EXPORT QEventTransition : public QAbstractTransition
 {
     Q_OBJECT
-    Q_INTERFACES(QQmlParserStatus)
-    Q_PROPERTY(QQmlListProperty<QObject> children READ children NOTIFY childrenChanged)
-
-    // Override to delay execution after componentComplete()
-    Q_PROPERTY(bool running READ isRunning WRITE setRunning NOTIFY qmlRunningChanged)
-
-    Q_CLASSINFO("DefaultProperty", "children")
-    QML_ELEMENT
-    QML_ADDED_IN_VERSION(1, 0)
-
+    Q_PROPERTY(QObject* eventSource READ eventSource WRITE setEventSource)
+    Q_PROPERTY(QEvent::Type eventType READ eventType WRITE setEventType)
 public:
-    explicit StateMachine(QObject *parent = 0);
+    QEventTransition(QState *sourceState = nullptr);
+    QEventTransition(QObject *object, QEvent::Type type, QState *sourceState = nullptr);
+    ~QEventTransition();
 
-    void classBegin() override {}
-    void componentComplete() override;
-    QQmlListProperty<QObject> children();
+    QObject *eventSource() const;
+    void setEventSource(QObject *object);
 
-    bool isRunning() const;
-    void setRunning(bool running);
+    QEvent::Type eventType() const;
+    void setEventType(QEvent::Type type);
 
-private Q_SLOTS:
-    void checkChildMode();
+protected:
+    bool eventTest(QEvent *event) override;
+    void onTransition(QEvent *event) override;
 
-Q_SIGNALS:
-    void childrenChanged();
-    /*!
-     * \internal
-     */
-    void qmlRunningChanged();
+    bool event(QEvent *e) override;
+
+protected:
+    QEventTransition(QEventTransitionPrivate &dd, QState *parent);
+    QEventTransition(QEventTransitionPrivate &dd, QObject *object,
+                     QEvent::Type type, QState *parent);
 
 private:
-    ChildrenPrivate<StateMachine, ChildrenMode::StateOrTransition> m_children;
-    bool m_completed;
-    bool m_running;
+    Q_DISABLE_COPY(QEventTransition)
+    Q_DECLARE_PRIVATE(QEventTransition)
 };
 
 QT_END_NAMESPACE

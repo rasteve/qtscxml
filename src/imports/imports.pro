@@ -1,3 +1,2 @@
 TEMPLATE = subdirs
-SUBDIRS = scxmlstatemachine
-qtConfig(statemachine):SUBDIRS += statemachine
+SUBDIRS = scxmlstatemachine statemachine

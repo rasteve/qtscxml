@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Ford Motor Company
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the QtQml module of the Qt Toolkit.
+** This file is part of the QtCore module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,55 +37,57 @@
 **
 ****************************************************************************/
 
-#ifndef STATEMACHINE_H
-#define STATEMACHINE_H
+#ifndef QHISTORYSTATE_H
+#define QHISTORYSTATE_H
 
-#include "childrenprivate.h"
+#include <QtStateMachine/qabstractstate.h>
 
-#include <QtStateMachine/QStateMachine>
-#include <QtQml/QQmlParserStatus>
-#include <QtQml/QQmlListProperty>
-#include <QtQml/qqml.h>
+QT_REQUIRE_CONFIG(statemachine);
 
 QT_BEGIN_NAMESPACE
 
-class StateMachine : public QStateMachine, public QQmlParserStatus
+class QAbstractTransition;
+class QHistoryStatePrivate;
+class Q_STATEMACHINE_EXPORT QHistoryState : public QAbstractState
 {
     Q_OBJECT
-    Q_INTERFACES(QQmlParserStatus)
-    Q_PROPERTY(QQmlListProperty<QObject> children READ children NOTIFY childrenChanged)
-
-    // Override to delay execution after componentComplete()
-    Q_PROPERTY(bool running READ isRunning WRITE setRunning NOTIFY qmlRunningChanged)
-
-    Q_CLASSINFO("DefaultProperty", "children")
-    QML_ELEMENT
-    QML_ADDED_IN_VERSION(1, 0)
-
+    Q_PROPERTY(QAbstractState* defaultState READ defaultState WRITE setDefaultState NOTIFY defaultStateChanged)
+    Q_PROPERTY(QAbstractTransition* defaultTransition READ defaultTransition WRITE setDefaultTransition NOTIFY defaultTransitionChanged)
+    Q_PROPERTY(HistoryType historyType READ historyType WRITE setHistoryType NOTIFY historyTypeChanged)
 public:
-    explicit StateMachine(QObject *parent = 0);
+    enum HistoryType {
+        ShallowHistory,
+        DeepHistory
+    };
+    Q_ENUM(HistoryType)
 
-    void classBegin() override {}
-    void componentComplete() override;
-    QQmlListProperty<QObject> children();
+    QHistoryState(QState *parent = nullptr);
+    QHistoryState(HistoryType type, QState *parent = nullptr);
+    ~QHistoryState();
 
-    bool isRunning() const;
-    void setRunning(bool running);
+    QAbstractTransition *defaultTransition() const;
+    void setDefaultTransition(QAbstractTransition *transition);
 
-private Q_SLOTS:
-    void checkChildMode();
+    QAbstractState *defaultState() const;
+    void setDefaultState(QAbstractState *state);
+
+    HistoryType historyType() const;
+    void setHistoryType(HistoryType type);
 
 Q_SIGNALS:
-    void childrenChanged();
-    /*!
-     * \internal
-     */
-    void qmlRunningChanged();
+    void defaultTransitionChanged(QPrivateSignal);
+    void defaultStateChanged(QPrivateSignal);
+    void historyTypeChanged(QPrivateSignal);
+
+protected:
+    void onEntry(QEvent *event) override;
+    void onExit(QEvent *event) override;
+
+    bool event(QEvent *e) override;
 
 private:
-    ChildrenPrivate<StateMachine, ChildrenMode::StateOrTransition> m_children;
-    bool m_completed;
-    bool m_running;
+    Q_DISABLE_COPY(QHistoryState)
+    Q_DECLARE_PRIVATE(QHistoryState)
 };
 
 QT_END_NAMESPACE

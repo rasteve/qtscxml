@@ -43,7 +43,7 @@
 #include "childrenprivate.h"
 #include "statemachine.h"
 
-#include <QtCore/QFinalState>
+#include <QtStateMachine/QFinalState>
 #include <QtQml/QQmlListProperty>
 #include <QtQml/qqml.h>
 

@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Ford Motor Company
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the QtQml module of the Qt Toolkit.
+** This file is part of the QtCore module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,55 +37,42 @@
 **
 ****************************************************************************/
 
-#ifndef STATEMACHINE_H
-#define STATEMACHINE_H
+#ifndef QSIGNALEVENTGENERATOR_P_H
+#define QSIGNALEVENTGENERATOR_P_H
 
-#include "childrenprivate.h"
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
-#include <QtStateMachine/QStateMachine>
-#include <QtQml/QQmlParserStatus>
-#include <QtQml/QQmlListProperty>
-#include <QtQml/qqml.h>
+#include <QtCore/private/qglobal_p.h>
+#include <QtCore/qobject.h>
+
+#include <QtStateMachine/qstatemachineglobal.h>
+
+QT_REQUIRE_CONFIG(statemachine);
 
 QT_BEGIN_NAMESPACE
 
-class StateMachine : public QStateMachine, public QQmlParserStatus
+class QStateMachine;
+
+class QSignalEventGenerator : public QObject
 {
     Q_OBJECT
-    Q_INTERFACES(QQmlParserStatus)
-    Q_PROPERTY(QQmlListProperty<QObject> children READ children NOTIFY childrenChanged)
-
-    // Override to delay execution after componentComplete()
-    Q_PROPERTY(bool running READ isRunning WRITE setRunning NOTIFY qmlRunningChanged)
-
-    Q_CLASSINFO("DefaultProperty", "children")
-    QML_ELEMENT
-    QML_ADDED_IN_VERSION(1, 0)
-
 public:
-    explicit StateMachine(QObject *parent = 0);
-
-    void classBegin() override {}
-    void componentComplete() override;
-    QQmlListProperty<QObject> children();
-
-    bool isRunning() const;
-    void setRunning(bool running);
+    QSignalEventGenerator(QStateMachine *parent);
 
 private Q_SLOTS:
-    void checkChildMode();
-
-Q_SIGNALS:
-    void childrenChanged();
-    /*!
-     * \internal
-     */
-    void qmlRunningChanged();
+    void execute(QMethodRawArguments a);
 
 private:
-    ChildrenPrivate<StateMachine, ChildrenMode::StateOrTransition> m_children;
-    bool m_completed;
-    bool m_running;
+    Q_DISABLE_COPY_MOVE(QSignalEventGenerator)
 };
 
 QT_END_NAMESPACE

@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Ford Motor Company
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the QtQml module of the Qt Toolkit.
+** This file is part of the QtCore module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,55 +37,51 @@
 **
 ****************************************************************************/
 
-#ifndef STATEMACHINE_H
-#define STATEMACHINE_H
+#ifndef QABSTRACTSTATE_H
+#define QABSTRACTSTATE_H
 
-#include "childrenprivate.h"
+#include <QtCore/qobject.h>
+#include <QtStateMachine/qstatemachineglobal.h>
 
-#include <QtStateMachine/QStateMachine>
-#include <QtQml/QQmlParserStatus>
-#include <QtQml/QQmlListProperty>
-#include <QtQml/qqml.h>
+QT_REQUIRE_CONFIG(statemachine);
 
 QT_BEGIN_NAMESPACE
 
-class StateMachine : public QStateMachine, public QQmlParserStatus
+class QState;
+class QStateMachine;
+
+class QAbstractStatePrivate;
+class Q_STATEMACHINE_EXPORT QAbstractState : public QObject
 {
     Q_OBJECT
-    Q_INTERFACES(QQmlParserStatus)
-    Q_PROPERTY(QQmlListProperty<QObject> children READ children NOTIFY childrenChanged)
-
-    // Override to delay execution after componentComplete()
-    Q_PROPERTY(bool running READ isRunning WRITE setRunning NOTIFY qmlRunningChanged)
-
-    Q_CLASSINFO("DefaultProperty", "children")
-    QML_ELEMENT
-    QML_ADDED_IN_VERSION(1, 0)
-
+    Q_PROPERTY(bool active READ active NOTIFY activeChanged)
 public:
-    explicit StateMachine(QObject *parent = 0);
+    ~QAbstractState();
 
-    void classBegin() override {}
-    void componentComplete() override;
-    QQmlListProperty<QObject> children();
+    QState *parentState() const;
+    QStateMachine *machine() const;
 
-    bool isRunning() const;
-    void setRunning(bool running);
-
-private Q_SLOTS:
-    void checkChildMode();
+    bool active() const;
 
 Q_SIGNALS:
-    void childrenChanged();
-    /*!
-     * \internal
-     */
-    void qmlRunningChanged();
+    void entered(QPrivateSignal);
+    void exited(QPrivateSignal);
+    void activeChanged(bool active);
+
+protected:
+    QAbstractState(QState *parent = nullptr);
+
+    virtual void onEntry(QEvent *event) = 0;
+    virtual void onExit(QEvent *event) = 0;
+
+    bool event(QEvent *e) override;
+
+protected:
+    QAbstractState(QAbstractStatePrivate &dd, QState *parent);
 
 private:
-    ChildrenPrivate<StateMachine, ChildrenMode::StateOrTransition> m_children;
-    bool m_completed;
-    bool m_running;
+    Q_DISABLE_COPY(QAbstractState)
+    Q_DECLARE_PRIVATE(QAbstractState)
 };
 
 QT_END_NAMESPACE

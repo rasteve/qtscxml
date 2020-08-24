@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Ford Motor Company
+** Copyright (C) 2016 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the QtQml module of the Qt Toolkit.
+** This file is part of the QtCore module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,55 +37,35 @@
 **
 ****************************************************************************/
 
-#ifndef STATEMACHINE_H
-#define STATEMACHINE_H
+#ifndef QFINALSTATE_H
+#define QFINALSTATE_H
 
-#include "childrenprivate.h"
+#include <QtStateMachine/qabstractstate.h>
 
-#include <QtStateMachine/QStateMachine>
-#include <QtQml/QQmlParserStatus>
-#include <QtQml/QQmlListProperty>
-#include <QtQml/qqml.h>
+QT_REQUIRE_CONFIG(statemachine);
 
 QT_BEGIN_NAMESPACE
 
-class StateMachine : public QStateMachine, public QQmlParserStatus
+class QFinalStatePrivate;
+class Q_STATEMACHINE_EXPORT QFinalState : public QAbstractState
 {
     Q_OBJECT
-    Q_INTERFACES(QQmlParserStatus)
-    Q_PROPERTY(QQmlListProperty<QObject> children READ children NOTIFY childrenChanged)
-
-    // Override to delay execution after componentComplete()
-    Q_PROPERTY(bool running READ isRunning WRITE setRunning NOTIFY qmlRunningChanged)
-
-    Q_CLASSINFO("DefaultProperty", "children")
-    QML_ELEMENT
-    QML_ADDED_IN_VERSION(1, 0)
-
 public:
-    explicit StateMachine(QObject *parent = 0);
+    QFinalState(QState *parent = nullptr);
+    ~QFinalState();
 
-    void classBegin() override {}
-    void componentComplete() override;
-    QQmlListProperty<QObject> children();
+protected:
+    void onEntry(QEvent *event) override;
+    void onExit(QEvent *event) override;
 
-    bool isRunning() const;
-    void setRunning(bool running);
+    bool event(QEvent *e) override;
 
-private Q_SLOTS:
-    void checkChildMode();
-
-Q_SIGNALS:
-    void childrenChanged();
-    /*!
-     * \internal
-     */
-    void qmlRunningChanged();
+protected:
+    explicit QFinalState(QFinalStatePrivate &dd, QState *parent);
 
 private:
-    ChildrenPrivate<StateMachine, ChildrenMode::StateOrTransition> m_children;
-    bool m_completed;
-    bool m_running;
+    Q_DISABLE_COPY(QFinalState)
+    Q_DECLARE_PRIVATE(QFinalState)
 };
 
 QT_END_NAMESPACE
