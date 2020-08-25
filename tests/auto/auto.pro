@@ -8,3 +8,5 @@ SUBDIRS = cmake\
           statemachineinfo \
           qml \
           qmltest
+
+!uikit: SUBDIRS += qstatemachine
