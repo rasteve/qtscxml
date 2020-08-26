@@ -78,7 +78,7 @@ uint nameToBuiltinType(const QByteArray &name)
     if (name.isEmpty())
         return 0;
 
-    uint tp = QMetaType::type(name.constData());
+    uint tp = qMetaTypeTypeInternal(name.constData());
     return tp < uint(QMetaType::User) ? tp : uint(QMetaType::UnknownType);
 }
 
@@ -87,7 +87,7 @@ uint nameToBuiltinType(const QByteArray &name)
 */
 bool isBuiltinType(const QByteArray &type)
  {
-    int id = QMetaType::type(type.constData());
+    int id = qMetaTypeTypeInternal(type.constData());
     if (id == QMetaType::UnknownType)
         return false;
     return (id < QMetaType::User);
@@ -535,7 +535,7 @@ void Generator::generateCode()
 //
 // Finally create and initialize the static meta object
 //
-    fprintf(out, "QT_INIT_METAOBJECT const QMetaObject %s::staticMetaObject = { {\n", cdef->qualified.constData());
+    fprintf(out, "const QMetaObject %s::staticMetaObject = { {\n", cdef->qualified.constData());
 
     if (isQObject)
         fprintf(out, "    nullptr,\n");
@@ -1019,7 +1019,7 @@ void Generator::generateMetacall()
         fprintf(out, "        if (_id < %d)\n", int(methodList.size()));
 
         if (methodsWithAutomaticTypesHelper(methodList).isEmpty())
-            fprintf(out, "            *reinterpret_cast<int*>(_a[0]) = -1;\n");
+            fprintf(out, "            *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();\n");
         else
             fprintf(out, "            qt_static_metacall(this, _c, _id, _a);\n");
         fprintf(out, "        _id -= %d;\n    }", int(methodList.size()));
@@ -1187,13 +1187,13 @@ void Generator::generateStaticMetacall()
         if (!methodsWithAutomaticTypes.isEmpty()) {
             fprintf(out, " else if (_c == QMetaObject::RegisterMethodArgumentMetaType) {\n");
             fprintf(out, "        switch (_id) {\n");
-            fprintf(out, "        default: *reinterpret_cast<int*>(_a[0]) = -1; break;\n");
+            fprintf(out, "        default: *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType(); break;\n");
             QMap<int, QMultiMap<QByteArray, int> >::const_iterator it = methodsWithAutomaticTypes.constBegin();
             const QMap<int, QMultiMap<QByteArray, int> >::const_iterator end = methodsWithAutomaticTypes.constEnd();
             for ( ; it != end; ++it) {
                 fprintf(out, "        case %d:\n", it.key());
                 fprintf(out, "            switch (*reinterpret_cast<int*>(_a[1])) {\n");
-                fprintf(out, "            default: *reinterpret_cast<int*>(_a[0]) = -1; break;\n");
+                fprintf(out, "            default: *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType(); break;\n");
                 auto jt = it->begin();
                 const auto jend = it->end();
                 while (jt != jend) {
@@ -1201,7 +1201,7 @@ void Generator::generateStaticMetacall()
                     const QByteArray &lastKey = jt.key();
                     ++jt;
                     if (jt == jend || jt.key() != lastKey)
-                        fprintf(out, "                *reinterpret_cast<int*>(_a[0]) = qRegisterMetaType< %s >(); break;\n", lastKey.constData());
+                        fprintf(out, "                *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType::fromType< %s >(); break;\n", lastKey.constData());
                 }
                 fprintf(out, "            }\n");
                 fprintf(out, "            break;\n");
