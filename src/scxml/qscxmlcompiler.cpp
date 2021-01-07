@@ -2451,7 +2451,7 @@ QByteArray QScxmlCompilerPrivate::DefaultLoader::load(const QString &name, const
     const QUrl url(name);
     if (!url.isLocalFile() && !url.isRelative())
         errs << QStringLiteral("src attribute is not a local file (%1)").arg(name);
-    QFileInfo fInfo = url.isLocalFile() ? url.toLocalFile() : name;
+    QFileInfo fInfo(url.isLocalFile() ? url.toLocalFile() : name);
 #endif // BUILD_QSCXMLC
     if (fInfo.isRelative())
         fInfo = QFileInfo(QDir(baseDir).filePath(fInfo.filePath()));

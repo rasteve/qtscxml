@@ -114,7 +114,7 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 */
 
 /*!
-    \fn template<typename Functor> typename QtPrivate::QEnableIf<!QtPrivate::FunctionPointer<Functor>::IsPointerToMemberFunction && !std::is_same<const char*, Functor>::value, QMetaObject::Connection>::Type QScxmlStateMachine::connectToEvent(
+    \fn template<typename Functor> typename std::enable_if<!QtPrivate::FunctionPointer<Functor>::IsPointerToMemberFunction && !std::is_same<const char*, Functor>::value, QMetaObject::Connection>::type QScxmlStateMachine::connectToEvent(
                                            const QString &scxmlEventSpec,
                                            Functor functor,
                                            Qt::ConnectionType type)
@@ -133,7 +133,7 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 */
 
 /*!
-    \fn template<typename Functor> typename QtPrivate::QEnableIf<!QtPrivate::FunctionPointer<Functor>::IsPointerToMemberFunction && !std::is_same<const char*, Functor>::value, QMetaObject::Connection>::Type QScxmlStateMachine::connectToEvent(
+    \fn template<typename Functor> typename std::enable_if<!QtPrivate::FunctionPointer<Functor>::IsPointerToMemberFunction && !std::is_same<const char*, Functor>::value, QMetaObject::Connection>::type QScxmlStateMachine::connectToEvent(
                                            const QString &scxmlEventSpec,
                                            const QObject *context,
                                            Functor functor,
@@ -169,7 +169,7 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 */
 
 /*!
-    \fn template<typename Functor> typename QtPrivate::QEnableIf<!QtPrivate::FunctionPointer<Functor>::IsPointerToMemberFunction && !std::is_same<const char*, Functor>::value, QMetaObject::Connection>::Type QScxmlStateMachine::connectToState(
+    \fn template<typename Functor> typename std::enable_if<!QtPrivate::FunctionPointer<Functor>::IsPointerToMemberFunction && !std::is_same<const char*, Functor>::value, QMetaObject::Connection>::type QScxmlStateMachine::connectToState(
                                            const QString &scxmlStateName,
                                            Functor functor,
                                            Qt::ConnectionType type)
@@ -184,7 +184,7 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 */
 
 /*!
-    \fn template<typename Functor> typename QtPrivate::QEnableIf<!QtPrivate::FunctionPointer<Functor>::IsPointerToMemberFunction && !std::is_same<const char*, Functor>::value, QMetaObject::Connection>::Type QScxmlStateMachine::connectToState(
+    \fn template<typename Functor> typename std::enable_if<!QtPrivate::FunctionPointer<Functor>::IsPointerToMemberFunction && !std::is_same<const char*, Functor>::value, QMetaObject::Connection>::type QScxmlStateMachine::connectToState(
                                            const QString &scxmlStateName,
                                            const QObject *context,
                                            Functor functor,

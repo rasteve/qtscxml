@@ -132,9 +132,9 @@ public:
 
     // connect state to a functor or function pointer (without context)
     template <typename Functor>
-    inline typename QtPrivate::QEnableIf<
+    inline typename std::enable_if<
             !QtPrivate::FunctionPointer<Functor>::IsPointerToMemberFunction &&
-            !std::is_same<const char*, Functor>::value, QMetaObject::Connection>::Type
+            !std::is_same<const char*, Functor>::value, QMetaObject::Connection>::type
     connectToState(const QString &scxmlStateName, Functor functor,
                    Qt::ConnectionType type = Qt::AutoConnection)
     {
@@ -144,9 +144,9 @@ public:
 
     // connectToState to a functor or function pointer (with context)
     template <typename Functor>
-    inline typename QtPrivate::QEnableIf<
+    inline typename std::enable_if<
             !QtPrivate::FunctionPointer<Functor>::IsPointerToMemberFunction &&
-            !std::is_same<const char*, Functor>::value, QMetaObject::Connection>::Type
+            !std::is_same<const char*, Functor>::value, QMetaObject::Connection>::type
     connectToState(const QString &scxmlStateName, const QObject *context, Functor functor,
                    Qt::ConnectionType type = Qt::AutoConnection)
     {
@@ -240,9 +240,9 @@ public:
 
     // connect state to a functor or function pointer (without context)
     template <typename Functor>
-    inline typename QtPrivate::QEnableIf<
+    inline typename std::enable_if<
             !QtPrivate::FunctionPointer<Functor>::IsPointerToMemberFunction &&
-            !std::is_same<const char*, Functor>::value, QMetaObject::Connection>::Type
+            !std::is_same<const char*, Functor>::value, QMetaObject::Connection>::type
     connectToEvent(const QString &scxmlEventSpec, Functor functor,
                    Qt::ConnectionType type = Qt::AutoConnection)
     {
@@ -252,9 +252,9 @@ public:
 
     // connectToEvent to a functor or function pointer (with context)
     template <typename Functor>
-    inline typename QtPrivate::QEnableIf<
+    inline typename std::enable_if<
             !QtPrivate::FunctionPointer<Functor>::IsPointerToMemberFunction &&
-            !std::is_same<const char*, Functor>::value, QMetaObject::Connection>::Type
+            !std::is_same<const char*, Functor>::value, QMetaObject::Connection>::type
     connectToEvent(const QString &scxmlEventSpec, const QObject *context, Functor functor,
                    Qt::ConnectionType type = Qt::AutoConnection)
     {

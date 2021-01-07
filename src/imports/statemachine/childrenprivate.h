@@ -141,12 +141,12 @@ public:
         emit parentObject<T>(prop)->childrenChanged();
     }
 
-    static int count(QQmlListProperty<QObject> *prop)
+    static qsizetype count(QQmlListProperty<QObject> *prop)
     {
         return static_cast<Self *>(prop->data)->children.count();
     }
 
-    static QObject *at(QQmlListProperty<QObject> *prop, int index)
+    static QObject *at(QQmlListProperty<QObject> *prop, qsizetype index)
     {
         return static_cast<Self *>(prop->data)->children.at(index);
     }
@@ -161,7 +161,7 @@ public:
         emit parentObject<T>(prop)->childrenChanged();
     }
 
-    static void replace(QQmlListProperty<QObject> *prop, int index, QObject *item)
+    static void replace(QQmlListProperty<QObject> *prop, qsizetype index, QObject *item)
     {
         auto &children = static_cast<Self *>(prop->data)->children;
 

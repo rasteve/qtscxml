@@ -2410,11 +2410,8 @@ void QStateMachinePrivate::unregisterEventTransition(QEventTransition *transitio
 
 void QStateMachinePrivate::handleFilteredEvent(QObject *watched, QEvent *event)
 {
-    auto *tmp = QCoreApplication::instance();
-    auto *app = static_cast<QCoreApplicationPrivate*>(QObjectPrivate::get(tmp));
-
-    if (app && qobjectEvents.value(watched).contains(event->type())) {
-        postInternalEvent(new QStateMachine::WrappedEvent(watched, app->cloneEvent(event)));
+    if (qobjectEvents.value(watched).contains(event->type())) {
+        postInternalEvent(new QStateMachine::WrappedEvent(watched, event->clone()));
         processEvents(DirectProcessing);
     }
 }
