@@ -60,7 +60,7 @@ struct Type
 #endif // -- QtScxml
     ReferenceType referenceType;
 };
-Q_DECLARE_TYPEINFO(Type, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(Type, Q_RELOCATABLE_TYPE);
 
 struct ClassDef;
 struct EnumDef
@@ -72,7 +72,7 @@ struct EnumDef
     EnumDef() : isEnumClass(false) {}
     QJsonObject toJson(const ClassDef &cdef) const;
 };
-Q_DECLARE_TYPEINFO(EnumDef, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(EnumDef, Q_RELOCATABLE_TYPE);
 
 struct ArgumentDef
 {
@@ -84,7 +84,7 @@ struct ArgumentDef
 
     QJsonObject toJson() const;
 };
-Q_DECLARE_TYPEINFO(ArgumentDef, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(ArgumentDef, Q_RELOCATABLE_TYPE);
 
 struct FunctionDef
 {
@@ -105,6 +105,7 @@ struct FunctionDef
     bool inlineCode = false;
     bool wasCloned = false;
 
+    // bool returnTypeIsVolatile = false; -- QtScxml
     bool isCompat = false;
     bool isInvokable = false;
     bool isScriptable = false;
@@ -124,7 +125,7 @@ struct FunctionDef
     const char *implementation = nullptr;
 // -- QtScxml
 };
-Q_DECLARE_TYPEINFO(FunctionDef, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(FunctionDef, Q_RELOCATABLE_TYPE);
 
 struct PropertyDef
 {
@@ -135,22 +136,24 @@ struct PropertyDef
         return (s == write);
     }
 
-    QByteArray name, type, member, read, write, reset, designable, scriptable, stored, user, notify, inPrivateClass, qpropertyname;
-    int notifyId = -1;// -1 means no notifyId, >= 0 means signal defined in this class, < -1 means signal not defined in this class
+    QByteArray name, type, member, read, write, bind, reset, designable, scriptable, stored, user, notify, inPrivateClass;
+    int notifyId = -1; // -1 means no notifyId, >= 0 means signal defined in this class, < -1 means signal not defined in this class
     enum Specification  { ValueSpec, ReferenceSpec, PointerSpec };
     Specification gspec = ValueSpec;
     int revision = 0;
     bool constant = false;
     bool final = false;
     bool required = false;
-    bool isQProperty = false;
-    bool isQPropertyWithNotifier = false;
+
+    int location = -1; // token index, used for error reporting
+
+    QJsonObject toJson() const;
 
 // -- QtScxml
     QByteArray mangledName;
 // -- QtScxml
 };
-Q_DECLARE_TYPEINFO(PropertyDef, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(PropertyDef, Q_RELOCATABLE_TYPE);
 
 struct PrivateQPropertyDef
 {
@@ -159,16 +162,15 @@ struct PrivateQPropertyDef
     QByteArray setter;
     QByteArray accessor;
     QByteArray storage;
-    bool isNotifiedProperty;
 };
-Q_DECLARE_TYPEINFO(PrivateQPropertyDef, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(PrivateQPropertyDef, Q_RELOCATABLE_TYPE);
 
 struct ClassInfoDef
 {
     QByteArray name;
     QByteArray value;
 };
-Q_DECLARE_TYPEINFO(ClassInfoDef, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(ClassInfoDef, Q_RELOCATABLE_TYPE);
 
 struct BaseDef {
     QByteArray classname;
@@ -182,7 +184,7 @@ struct BaseDef {
 };
 
 struct ClassDef : BaseDef {
-    QList<QPair<QByteArray, FunctionDef::Access> > superclassList;
+    QList<QPair<QByteArray, FunctionDef::Access>> superclassList;
 
     struct Interface
     {
@@ -192,7 +194,7 @@ struct ClassDef : BaseDef {
         QByteArray className;
         QByteArray interfaceId;
     };
-    QList<QList<Interface> >interfaceList;
+    QList<QList<Interface>> interfaceList;
 
     struct PluginData {
         QByteArray iid;
@@ -205,24 +207,23 @@ struct ClassDef : BaseDef {
     QList<FunctionDef> signalList, slotList, methodList, publicList;
     QList<QByteArray> nonClassSignalList;
     QList<PropertyDef> propertyList;
-    QList<PrivateQPropertyDef> privateQProperties;
-    QHash<QByteArray, bool> qPropertyMembersMaybeWithNotifier;
     int revisionedMethods = 0;
 
     bool hasQObject = false;
     bool hasQGadget = false;
     bool hasQNamespace = false;
+    bool requireCompleteMethodTypes = false;
 
     QJsonObject toJson() const;
 };
-Q_DECLARE_TYPEINFO(ClassDef, Q_MOVABLE_TYPE);
-Q_DECLARE_TYPEINFO(ClassDef::Interface, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(ClassDef, Q_RELOCATABLE_TYPE);
+Q_DECLARE_TYPEINFO(ClassDef::Interface, Q_RELOCATABLE_TYPE);
 
 struct NamespaceDef : BaseDef {
     bool hasQNamespace = false;
     bool doGenerate = false;
 };
-Q_DECLARE_TYPEINFO(NamespaceDef, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(NamespaceDef, Q_RELOCATABLE_TYPE);
 
 #if 0 // -- QtScxml
 class Moc : public Parser
@@ -266,7 +267,6 @@ public:
 
     bool parseFunction(FunctionDef *def, bool inMacro = false);
     bool parseMaybeFunction(const ClassDef *cdef, FunctionDef *def);
-    bool parseMaybeQProperty(ClassDef *def);
 
     void parseSlots(ClassDef *def, FunctionDef::Access access);
     void parseSignals(ClassDef *def);
@@ -276,7 +276,9 @@ public:
     void parsePropertyAttributes(PropertyDef &propDef);
     void parseEnumOrFlag(BaseDef *def, bool isFlag);
     void parseFlag(BaseDef *def);
-    void parseClassInfo(BaseDef *def);
+    enum class EncounteredQmlMacro {Yes, No};
+    EncounteredQmlMacro parseClassInfo(BaseDef *def);
+    void parseClassInfo(ClassDef *def);
     void parseInterfaces(ClassDef *def);
     void parseDeclareInterface();
     void parseDeclareMetatype();
@@ -284,7 +286,6 @@ public:
     void parseSlotInPrivate(ClassDef *def, FunctionDef::Access access);
     QByteArray parsePropertyAccessor();
     void parsePrivateProperty(ClassDef *def);
-    void parsePrivateQProperty(ClassDef *def);
 
     void parseFunctionArguments(FunctionDef *def);
 
