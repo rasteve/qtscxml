@@ -4,7 +4,7 @@
 ## Scxml Module:
 #####################################################################
 
-qt_add_module(Scxml
+qt_internal_add_module(Scxml
     QMAKE_MODULE_CONFIG c++11 qscxmlc
     SOURCES
         qscxmlcompiler.cpp qscxmlcompiler.h qscxmlcompiler_p.h
@@ -40,7 +40,7 @@ qt_add_module(Scxml
 ## Scopes:
 #####################################################################
 
-qt_extend_target(Scxml CONDITION QT_FEATURE_scxml_ecmascriptdatamodel
+qt_internal_extend_target(Scxml CONDITION QT_FEATURE_scxml_ecmascriptdatamodel
     SOURCES
         qscxmlecmascriptdatamodel.cpp qscxmlecmascriptdatamodel.h
         qscxmlecmascriptplatformproperties.cpp qscxmlecmascriptplatformproperties_p.h
@@ -59,8 +59,8 @@ qt_extend_target(Scxml CONDITION QT_FEATURE_scxml_ecmascriptdatamodel
 # prf2build.input = "FEATURES"
 # prf2build.name = "COPY" "${QMAKE_FILE_IN}"
 # prf2build.output = "$$[QT_INSTALL_DATA/get]/mkspecs/features/${QMAKE_FILE_BASE}${QMAKE_FILE_EXT}"
-qt_add_docs(Scxml
+qt_internal_add_docs(Scxml
     doc/qtscxml.qdocconf
 )
 
-include(Qt6ScxmlMacros.cmake)    # special case
+include(Qt6ScxmlMacros.cmake)

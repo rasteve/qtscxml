@@ -4,7 +4,7 @@
 ## tst_scion Test:
 #####################################################################
 
-qt_add_test(tst_scion
+qt_internal_add_test(tst_scion
     SOURCES
         tst_scion.cpp
     DEFINES
@@ -44,12 +44,10 @@ qt_add_test(tst_scion
 #### Keys ignored in scope 3:.:.:scion.pro:defineReplace(nameTheClass):
 # cn = "1"
 
-qt_extend_target(tst_scion CONDITION MSVC AND WIN32
+qt_internal_extend_target(tst_scion CONDITION MSVC AND WIN32
     COMPILE_OPTIONS
         /bigobj
 )
-
-# special case begin
 
 # For a better explanation about the "blacklisted" tests, see tst_scion.cpp
 # <invoke>
@@ -121,7 +119,7 @@ foreach(f ${allfiles})
     )
 endforeach()
 
-add_qt_resource(tst_scion "scion"
+qt_internal_add_resource(tst_scion "scion"
     PREFIX "/"
     FILES ${allfiles}
 )
@@ -135,5 +133,3 @@ target_sources(tst_scion
         ${CMAKE_CURRENT_BINARY_DIR}/scxml/compiled_tests.h
         ${CMAKE_CURRENT_BINARY_DIR}/scxml/scion.h
 )
-
-# special case end

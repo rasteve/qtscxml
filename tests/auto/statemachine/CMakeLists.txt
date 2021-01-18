@@ -4,12 +4,15 @@
 ## tst_statemachine Test:
 #####################################################################
 
-qt_add_test(tst_statemachine
+qt_internal_add_test(tst_statemachine
     SOURCES
         tst_statemachine.cpp
     PUBLIC_LIBRARIES
         Qt::Gui
         Qt::Qml
+        Qt::Scxml
+    LIBRARIES
+        Qt::CorePrivate
         Qt::ScxmlPrivate
 )
 
@@ -26,7 +29,7 @@ set(tst_statemachine_resource_files
     "statenamesnested.scxml"
 )
 
-qt_add_resource(tst_statemachine "tst_statemachine"
+qt_internal_add_resource(tst_statemachine "tst_statemachine"
     PREFIX
         "/tst_statemachine"
     FILES

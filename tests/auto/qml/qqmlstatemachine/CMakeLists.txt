@@ -4,7 +4,7 @@
 ## tst_qqmlstatemachine Test:
 #####################################################################
 
-qt_add_test(tst_qqmlstatemachine
+qt_internal_add_test(tst_qqmlstatemachine
     SOURCES
         ../../shared/util.cpp ../../shared/util.h
         tst_qqmlstatemachine.cpp

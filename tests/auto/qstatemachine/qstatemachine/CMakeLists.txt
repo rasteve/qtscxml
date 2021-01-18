@@ -4,7 +4,7 @@
 ## tst_qstatemachine Test:
 #####################################################################
 
-qt_add_test(tst_qstatemachine
+qt_internal_add_test(tst_qstatemachine
     SOURCES
         tst_qstatemachine.cpp
     PUBLIC_LIBRARIES
@@ -15,7 +15,7 @@ qt_add_test(tst_qstatemachine
 ## Scopes:
 #####################################################################
 
-qt_extend_target(tst_qstatemachine CONDITION TARGET Qt::Widgets
+qt_internal_extend_target(tst_qstatemachine CONDITION TARGET Qt::Widgets
     PUBLIC_LIBRARIES
         Qt::Widgets
 )

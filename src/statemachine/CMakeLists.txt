@@ -4,7 +4,7 @@
 ## StateMachine Module:
 #####################################################################
 
-qt_add_module(StateMachine
+qt_internal_add_module(StateMachine
     SOURCES
         qabstractstate.cpp qabstractstate.h qabstractstate_p.h
         qabstracttransition.cpp qabstracttransition.h qabstracttransition_p.h
@@ -29,7 +29,7 @@ qt_add_module(StateMachine
 ## Scopes:
 #####################################################################
 
-qt_extend_target(StateMachine CONDITION QT_FEATURE_qeventtransition
+qt_internal_extend_target(StateMachine CONDITION QT_FEATURE_qeventtransition
     SOURCES
         gui/qbasickeyeventtransition.cpp gui/qbasickeyeventtransition_p.h
         gui/qbasicmouseeventtransition.cpp gui/qbasicmouseeventtransition_p.h

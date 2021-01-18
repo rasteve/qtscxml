@@ -4,7 +4,7 @@
 ## tst_dynamicmetaobject Test:
 #####################################################################
 
-qt_add_test(tst_dynamicmetaobject
+qt_internal_add_test(tst_dynamicmetaobject
     SOURCES
         tst_dynamicmetaobject.cpp
     PUBLIC_LIBRARIES
@@ -19,7 +19,7 @@ set(tst_dynamicmetaobject_resource_files
     "test1.scxml"
 )
 
-qt_add_resource(tst_dynamicmetaobject "tst_dynamicmetaobject"
+qt_internal_add_resource(tst_dynamicmetaobject "tst_dynamicmetaobject"
     PREFIX
         "/tst_dynamicmetaobject"
     FILES

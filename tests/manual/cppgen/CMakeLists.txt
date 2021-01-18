@@ -5,7 +5,7 @@
 #####################################################################
 
 qt_get_tool_target_name(target_name tst_cppgen)
-qt_add_tool(${target_name}
+qt_internal_add_tool(${target_name}
     SOURCES
         tst_cppgen.cpp
     PUBLIC_LIBRARIES
