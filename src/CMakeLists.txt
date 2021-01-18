@@ -1,6 +1,7 @@
 # Generated from src.pro.
 
 add_subdirectory(scxml)
+add_subdirectory(statemachine)
 if(TARGET Qt::Qml)
     add_subdirectory(imports)
 endif()

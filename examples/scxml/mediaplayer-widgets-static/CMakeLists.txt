@@ -9,16 +9,24 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(INSTALL_EXAMPLEDIR "examples/scxml/mediaplayer-widgets-static")
+if(NOT DEFINED INSTALL_EXAMPLESDIR)
+  set(INSTALL_EXAMPLESDIR "examples")
+endif()
+
+set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/scxml/mediaplayer-widgets-static")
 
 find_package(Qt6 COMPONENTS Core)
 find_package(Qt6 COMPONENTS Gui)
 find_package(Qt6 COMPONENTS Widgets)
 find_package(Qt6 COMPONENTS Scxml)
 
-add_qt_gui_executable(mediaplayer-widgets-static
+qt_add_executable(mediaplayer-widgets-static
     ../mediaplayer-common/mainwindow.cpp ../mediaplayer-common/mainwindow.h ../mediaplayer-common/mainwindow.ui
     mediaplayer-widgets-static.cpp
+)
+set_target_properties(mediaplayer-widgets-static PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    MACOSX_BUNDLE TRUE
 )
 target_link_libraries(mediaplayer-widgets-static PUBLIC
     Qt::Core

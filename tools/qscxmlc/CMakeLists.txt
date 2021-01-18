@@ -4,7 +4,8 @@
 ## qscxmlc Tool:
 #####################################################################
 
-qt_add_tool(qscxmlc
+qt_get_tool_target_name(target_name qscxmlc)
+qt_add_tool(${target_name}
     TOOLS_TARGET Scxml # special case
     SOURCES
         ../../src/scxml/qscxmlcompiler.cpp ../../src/scxml/qscxmlcompiler.h ../../src/scxml/qscxmlcompiler_p.h
@@ -44,7 +45,7 @@ set(templates_resource_files
     "decl.t"
 )
 
-qt_add_resource(qscxmlc "templates"
+qt_add_resource(${target_name} "templates"
     PREFIX
         "/"
     FILES

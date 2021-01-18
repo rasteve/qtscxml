@@ -9,15 +9,23 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(INSTALL_EXAMPLEDIR "examples/scxml/mediaplayer-qml-dynamic")
+if(NOT DEFINED INSTALL_EXAMPLESDIR)
+  set(INSTALL_EXAMPLESDIR "examples")
+endif()
+
+set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/scxml/mediaplayer-qml-dynamic")
 
 find_package(Qt6 COMPONENTS Core)
 find_package(Qt6 COMPONENTS Gui)
 find_package(Qt6 COMPONENTS Qml)
 find_package(Qt6 COMPONENTS Scxml)
 
-add_qt_gui_executable(mediaplayer-qml-dynamic
+qt_add_executable(mediaplayer-qml-dynamic
     mediaplayer-qml-dynamic.cpp
+)
+set_target_properties(mediaplayer-qml-dynamic PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    MACOSX_BUNDLE TRUE
 )
 target_link_libraries(mediaplayer-qml-dynamic PUBLIC
     Qt::Core

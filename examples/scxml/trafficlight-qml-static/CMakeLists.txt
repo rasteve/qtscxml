@@ -9,15 +9,23 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(INSTALL_EXAMPLEDIR "examples/scxml/trafficlight-qml-static")
+if(NOT DEFINED INSTALL_EXAMPLESDIR)
+  set(INSTALL_EXAMPLESDIR "examples")
+endif()
+
+set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/scxml/trafficlight-qml-static")
 
 find_package(Qt6 COMPONENTS Core)
 find_package(Qt6 COMPONENTS Gui)
 find_package(Qt6 COMPONENTS Qml)
 find_package(Qt6 COMPONENTS Scxml)
 
-add_qt_gui_executable(trafficlight-qml-static
+qt_add_executable(trafficlight-qml-static
     trafficlight-qml-static.cpp
+)
+set_target_properties(trafficlight-qml-static PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    MACOSX_BUNDLE TRUE
 )
 target_link_libraries(trafficlight-qml-static PUBLIC
     Qt::Core

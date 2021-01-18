@@ -17,10 +17,11 @@ set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/widgets/graphicsview/padnavigator
 
 find_package(Qt6 COMPONENTS Core)
 find_package(Qt6 COMPONENTS Gui)
+find_package(Qt6 COMPONENTS StateMachine)
 find_package(Qt6 COMPONENTS Widgets)
 find_package(Qt6 COMPONENTS OpenGL) # special case
 
-add_executable(padnavigator
+qt_add_executable(padnavigator
     flippablepad.cpp flippablepad.h
     form.ui
     main.cpp
@@ -28,11 +29,15 @@ add_executable(padnavigator
     roundrectitem.cpp roundrectitem.h
     splashitem.cpp splashitem.h
 )
+set_target_properties(padnavigator PROPERTIES
+    WIN32_EXECUTABLE FALSE
+    MACOSX_BUNDLE TRUE
+)
 target_link_libraries(padnavigator PUBLIC
     Qt::Core
     Qt::Gui
+    Qt::StateMachine
     Qt::Widgets
-    statemachine
 )
 
 

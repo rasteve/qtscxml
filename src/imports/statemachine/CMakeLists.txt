@@ -10,6 +10,7 @@ qt_add_qml_module(qtqmlstatemachine
     CLASSNAME QtQmlStateMachinePlugin
     SKIP_TYPE_REGISTRATION
     GENERATE_QMLTYPES
+    INSTALL_QMLTYPES
     SOURCES
         childrenprivate.h
         finalstate.cpp finalstate.h
@@ -22,6 +23,7 @@ qt_add_qml_module(qtqmlstatemachine
     PUBLIC_LIBRARIES
         Qt::CorePrivate
         Qt::QmlPrivate
+        Qt::StateMachine
 )
 
 #### Keys ignored in scope 1:.:.:statemachine.pro:<TRUE>:

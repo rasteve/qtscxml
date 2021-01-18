@@ -26,6 +26,8 @@ qt_add_module(Scxml
         Qt::CorePrivate
     PUBLIC_LIBRARIES
         Qt::Core
+    PRIVATE_MODULE_INTERFACE
+        Qt::CorePrivate
 )
 
 #### Keys ignored in scope 1:.:.:scxml.pro:<TRUE>:
@@ -46,6 +48,8 @@ qt_extend_target(Scxml CONDITION QT_FEATURE_scxml_ecmascriptdatamodel
         Qt::QmlPrivate
     PUBLIC_LIBRARIES
         Qt::Qml
+    PRIVATE_MODULE_INTERFACE
+        Qt::QmlPrivate
 )
 
 #### Keys ignored in scope 3:.:.:scxml.pro:NOT force_independent AND ( NOT debug_and_release OR NOT build_all OR CONFIG(release,debug OR release) ):

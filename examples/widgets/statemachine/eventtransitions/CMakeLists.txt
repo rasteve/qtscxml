@@ -17,16 +17,21 @@ set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/widgets/statemachine/eventtransit
 
 find_package(Qt6 COMPONENTS Core)
 find_package(Qt6 COMPONENTS Gui)
+find_package(Qt6 COMPONENTS StateMachine)
 find_package(Qt6 COMPONENTS Widgets)
 
-add_qt_gui_executable(eventtransitions
+qt_add_executable(eventtransitions
     main.cpp
+)
+set_target_properties(eventtransitions PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    MACOSX_BUNDLE TRUE
 )
 target_link_libraries(eventtransitions PUBLIC
     Qt::Core
     Qt::Gui
+    Qt::StateMachine
     Qt::Widgets
-    statemachine
 )
 
 install(TARGETS eventtransitions

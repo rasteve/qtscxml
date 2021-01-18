@@ -9,16 +9,24 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(INSTALL_EXAMPLEDIR "examples/scxml/calculator-widgets")
+if(NOT DEFINED INSTALL_EXAMPLESDIR)
+  set(INSTALL_EXAMPLESDIR "examples")
+endif()
+
+set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/scxml/calculator-widgets")
 
 find_package(Qt6 COMPONENTS Core)
 find_package(Qt6 COMPONENTS Gui)
 find_package(Qt6 COMPONENTS Widgets)
 find_package(Qt6 COMPONENTS Scxml)
 
-add_qt_gui_executable(calculator-widgets
+qt_add_executable(calculator-widgets
     calculator-widgets.cpp
     mainwindow.cpp mainwindow.h mainwindow.ui
+)
+set_target_properties(calculator-widgets PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    MACOSX_BUNDLE TRUE
 )
 target_link_libraries(calculator-widgets PUBLIC
     Qt::Core

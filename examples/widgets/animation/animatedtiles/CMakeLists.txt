@@ -17,16 +17,21 @@ set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/widgets/animation/animatedtiles")
 
 find_package(Qt6 COMPONENTS Core)
 find_package(Qt6 COMPONENTS Gui)
+find_package(Qt6 COMPONENTS StateMachine)
 find_package(Qt6 COMPONENTS Widgets)
 
-add_qt_gui_executable(animatedtiles
+qt_add_executable(animatedtiles
     main.cpp
+)
+set_target_properties(animatedtiles PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    MACOSX_BUNDLE TRUE
 )
 target_link_libraries(animatedtiles PUBLIC
     Qt::Core
     Qt::Gui
+    Qt::StateMachine
     Qt::Widgets
-    statemachine
 )
 
 

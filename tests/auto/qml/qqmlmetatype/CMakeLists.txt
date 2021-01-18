@@ -12,5 +12,7 @@ qt_add_test(tst_qqmlmetatype
         Qt::Gui
         Qt::GuiPrivate
         Qt::QmlPrivate
-    TESTDATA ${test_data}
 )
+
+## Scopes:
+#####################################################################

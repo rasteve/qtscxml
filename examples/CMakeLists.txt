@@ -5,5 +5,8 @@ qt_examples_build_begin()
 if(TARGET Qt::Scxml)
     add_subdirectory(scxml)
 endif()
+if(TARGET Qt::StateMachine)
+    add_subdirectory(widgets)
+endif()
 
 qt_examples_build_end()

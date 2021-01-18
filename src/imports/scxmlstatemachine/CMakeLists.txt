@@ -15,12 +15,9 @@ qt_add_qml_module(declarative_scxml # special case
         plugin.cpp
         statemachineextended.cpp statemachineextended_p.h
         statemachineloader.cpp statemachineloader_p.h
-    LIBRARIES
+    PUBLIC_LIBRARIES
         Qt::CorePrivate
         Qt::QmlPrivate
-    PUBLIC_LIBRARIES
-        Qt::Core
-        Qt::Qml
         Qt::Scxml
 )
 

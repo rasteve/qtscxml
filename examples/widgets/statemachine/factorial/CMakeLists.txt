@@ -16,13 +16,18 @@ endif()
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/widgets/statemachine/factorial")
 
 find_package(Qt6 COMPONENTS Core)
+find_package(Qt6 COMPONENTS StateMachine)
 
-add_executable(factorial
+qt_add_executable(factorial
     main.cpp
+)
+set_target_properties(factorial PROPERTIES
+    WIN32_EXECUTABLE FALSE
+    MACOSX_BUNDLE FALSE
 )
 target_link_libraries(factorial PUBLIC
     Qt::Core
-    statemachine
+    Qt::StateMachine
 )
 
 install(TARGETS factorial

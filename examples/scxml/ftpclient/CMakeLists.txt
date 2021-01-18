@@ -9,16 +9,24 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(INSTALL_EXAMPLEDIR "examples/scxml/ftpclient")
+if(NOT DEFINED INSTALL_EXAMPLESDIR)
+  set(INSTALL_EXAMPLESDIR "examples")
+endif()
+
+set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/scxml/ftpclient")
 
 find_package(Qt6 COMPONENTS Core)
 find_package(Qt6 COMPONENTS Scxml)
 find_package(Qt6 COMPONENTS Network)
 
-add_qt_gui_executable(ftpclient
+qt_add_executable(ftpclient
     ftpcontrolchannel.cpp ftpcontrolchannel.h
     ftpdatachannel.cpp ftpdatachannel.h
     main.cpp
+)
+set_target_properties(ftpclient PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    MACOSX_BUNDLE TRUE
 )
 target_link_libraries(ftpclient PUBLIC
     Qt::Core

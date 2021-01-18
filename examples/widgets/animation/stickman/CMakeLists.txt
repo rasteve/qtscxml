@@ -17,9 +17,10 @@ set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/widgets/animation/stickman")
 
 find_package(Qt6 COMPONENTS Core)
 find_package(Qt6 COMPONENTS Gui)
+find_package(Qt6 COMPONENTS StateMachine)
 find_package(Qt6 COMPONENTS Widgets)
 
-add_qt_gui_executable(stickman
+qt_add_executable(stickman
     animation.cpp animation.h
     graphicsview.cpp graphicsview.h
     lifecycle.cpp lifecycle.h
@@ -28,11 +29,15 @@ add_qt_gui_executable(stickman
     rectbutton.cpp rectbutton.h
     stickman.cpp stickman.h
 )
+set_target_properties(stickman PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    MACOSX_BUNDLE TRUE
+)
 target_link_libraries(stickman PUBLIC
     Qt::Core
     Qt::Gui
+    Qt::StateMachine
     Qt::Widgets
-    statemachine
 )
 
 

@@ -17,10 +17,11 @@ set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/widgets/animation/sub-attaq")
 
 find_package(Qt6 COMPONENTS Core)
 find_package(Qt6 COMPONENTS Gui)
+find_package(Qt6 COMPONENTS StateMachine)
 find_package(Qt6 COMPONENTS Widgets)
 find_package(Qt6 COMPONENTS OpenGL) # special case
 
-add_qt_gui_executable(sub-attaq
+qt_add_executable(sub-attaq
     animationmanager.cpp animationmanager.h
     boat.cpp boat.h boat_p.h
     bomb.cpp bomb.h
@@ -35,11 +36,15 @@ add_qt_gui_executable(sub-attaq
     textinformationitem.cpp textinformationitem.h
     torpedo.cpp torpedo.h
 )
+set_target_properties(sub-attaq PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    MACOSX_BUNDLE TRUE
+)
 target_link_libraries(sub-attaq PUBLIC
     Qt::Core
     Qt::Gui
+    Qt::StateMachine
     Qt::Widgets
-    statemachine
 )
 
 
