@@ -1,12 +1,12 @@
-# Generated from qqmlmetatype.pro.
+# Generated from qqmlstatemachinemetatype.pro.
 
 #####################################################################
-## tst_qqmlmetatype Test:
+## tst_qqmlstatemachinemetatype Test:
 #####################################################################
 
-qt_internal_add_test(tst_qqmlmetatype
+qt_internal_add_test(tst_qqmlstatemachinemetatype
     SOURCES
-        tst_qqmlmetatype.cpp
+        tst_qqmlstatemachinemetatype.cpp
     PUBLIC_LIBRARIES
         Qt::CorePrivate
         Qt::Gui

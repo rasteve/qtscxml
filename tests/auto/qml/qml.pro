@@ -2,7 +2,7 @@ TEMPLATE = subdirs
 QT_FOR_CONFIG += qml
 
 METATYPETESTS += \
-    qqmlmetatype
+    qqmlstatemachinemetatype
 
 PUBLICTESTS += \
     qqmlstatemachine

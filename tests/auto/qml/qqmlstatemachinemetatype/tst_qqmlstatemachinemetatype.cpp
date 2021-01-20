@@ -33,7 +33,7 @@
 #include <private/qqmlmetatype_p.h>
 #include <private/qqmlengine_p.h>
 
-class tst_qqmlmetatype : public QObject
+class tst_qqmlstatemachinemetatype : public QObject
 {
     Q_OBJECT
 
@@ -63,6 +63,6 @@ private slots:
     }
 };
 
-QTEST_MAIN(tst_qqmlmetatype)
+QTEST_MAIN(tst_qqmlstatemachinemetatype)
 
-#include "tst_qqmlmetatype.moc"
+#include "tst_qqmlstatemachinemetatype.moc"
