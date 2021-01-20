@@ -61,6 +61,8 @@
 #include <QtCore/qstring.h>
 #include <QtCore/qxmlstream.h>
 
+#include <memory>
+
 QT_BEGIN_NAMESPACE
 
 namespace DocumentModel {
@@ -719,7 +721,7 @@ private:
     QString m_fileName;
     QSet<QString> m_allIds;
 
-    QScopedPointer<DocumentModel::ScxmlDocument> m_doc;
+    std::unique_ptr<DocumentModel::ScxmlDocument> m_doc;
     DocumentModel::StateContainer *m_currentState;
     DefaultLoader m_defaultLoader;
     QScxmlCompiler::Loader *m_loader;

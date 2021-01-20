@@ -55,7 +55,7 @@ class QScxmlStateMachinePlugin : public QQmlExtensionPlugin
 
 public:
     QScxmlStateMachinePlugin(QObject *parent = nullptr) : QQmlExtensionPlugin(parent) { }
-    void registerTypes(const char *uri)
+    void registerTypes(const char *uri) override
     {
         // @uri QtScxml
         Q_ASSERT(uri == QStringLiteral("QtScxml"));

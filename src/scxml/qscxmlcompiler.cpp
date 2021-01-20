@@ -1333,7 +1333,7 @@ bool QScxmlCompilerPrivate::verifyDocument()
         this->addError(location, msg);
     };
 
-    if (ScxmlVerifier(handler).verify(m_doc.data()))
+    if (ScxmlVerifier(handler).verify(m_doc.get()))
         return true;
     else
         return false;
@@ -1341,7 +1341,7 @@ bool QScxmlCompilerPrivate::verifyDocument()
 
 DocumentModel::ScxmlDocument *QScxmlCompilerPrivate::scxmlDocument() const
 {
-    return m_doc && m_errors.isEmpty() ? m_doc.data() : nullptr;
+    return m_doc && m_errors.isEmpty() ? m_doc.get() : nullptr;
 }
 
 QString QScxmlCompilerPrivate::fileName() const
@@ -1372,7 +1372,7 @@ void QScxmlCompilerPrivate::parseSubDocument(DocumentModel::Invoke *parentInvoke
     p.setFileName(fileName);
     p.setLoader(loader());
     p.d->readDocument();
-    parentInvoke->content.reset(p.d->m_doc.take());
+    parentInvoke->content.reset(p.d->m_doc.release());
     m_doc->allSubDocuments.append(parentInvoke->content.data());
     m_errors.append(p.errors());
 }
@@ -1386,7 +1386,7 @@ bool QScxmlCompilerPrivate::parseSubElement(DocumentModel::Invoke *parentInvoke,
     p.setLoader(loader());
     p.d->resetDocument();
     bool ok = p.d->readElement();
-    parentInvoke->content.reset(p.d->m_doc.take());
+    parentInvoke->content.reset(p.d->m_doc.release());
     m_doc->allSubDocuments.append(parentInvoke->content.data());
     m_errors.append(p.errors());
     return ok;
