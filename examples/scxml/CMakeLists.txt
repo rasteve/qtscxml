@@ -1,16 +1,22 @@
 # Generated from scxml.pro.
 
-add_subdirectory(ftpclient)
+if (TARGET Qt::Network AND QT_FEATURE_scxml_ecmascriptdatamodel)
+    add_subdirectory(ftpclient)
+endif()
+
 if(TARGET Qt::Widgets)
     add_subdirectory(trafficlight-widgets-static)
     add_subdirectory(trafficlight-widgets-dynamic)
+if (QT_FEATURE_scxml_ecmascriptdatamodel)
     add_subdirectory(mediaplayer-widgets-static)
     add_subdirectory(mediaplayer-widgets-dynamic)
     add_subdirectory(calculator-widgets)
     add_subdirectory(pinball)
     add_subdirectory(sudoku)
 endif()
-if(TARGET Qt::Quick)
+endif()
+
+if(TARGET Qt::Qml)
     add_subdirectory(calculator-qml)
     add_subdirectory(trafficlight-qml-static)
     add_subdirectory(trafficlight-qml-dynamic)

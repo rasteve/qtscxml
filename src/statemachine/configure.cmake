@@ -22,5 +22,5 @@ qt_feature("statemachine" PUBLIC
 qt_feature_definition("statemachine" "QT_NO_STATEMACHINE" NEGATE VALUE "1")
 qt_feature("qeventtransition" PUBLIC
     LABEL "QEventTransition class"
-    CONDITION QT_FEATURE_statemachine
+    CONDITION QT_FEATURE_statemachine AND TARGET Qt::Gui # special case
 )
