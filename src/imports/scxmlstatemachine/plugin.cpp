@@ -43,8 +43,10 @@
 #include "statemachineextended_p.h"
 #include "invokedservices_p.h"
 
-#include <qqmlextensionplugin.h>
-#include <qqml.h>
+#include <QtQml/qqmlextensionplugin.h>
+#include <QtQml/qqml.h>
+
+extern void qml_register_types_QtScxml();
 
 QT_BEGIN_NAMESPACE
 
@@ -55,13 +57,8 @@ class QScxmlStateMachinePlugin : public QQmlExtensionPlugin
 
 public:
     QScxmlStateMachinePlugin(QObject *parent = nullptr) : QQmlExtensionPlugin(parent) { }
-    void registerTypes(const char *uri) override
+    void registerTypes(const char *) override
     {
-        // @uri QtScxml
-        Q_ASSERT(uri == QStringLiteral("QtScxml"));
-
-        int major = 5;
-        int minor = 8;
         // Do not rely on RegisterMethodArgumentMetaType meta-call to register the QScxmlEvent type.
         // This registration is required for the receiving end of the signal emission that carries
         // parameters of this type to be able to treat them correctly as a gadget. This is because the
@@ -69,17 +66,10 @@ public:
         // to do a meta-type registration.
         static const int qScxmlEventMetaTypeId = qMetaTypeId<QScxmlEvent>();
         Q_UNUSED(qScxmlEventMetaTypeId);
-        qmlRegisterType<QScxmlStateMachineLoader>(uri, major, minor, "StateMachineLoader");
-        qmlRegisterType<QScxmlEventConnection>(uri, major, minor, "EventConnection");
-        qmlRegisterType<QScxmlInvokedServices>(uri, major, minor, "InvokedServices");
-        qmlRegisterExtendedUncreatableType<QScxmlStateMachine, QScxmlStateMachineExtended>(
-                    uri, major, minor, "StateMachine", "Only created through derived types");
 
-        // The minor version used to be the current Qt 5 minor. For compatibility it is the last
-        // Qt 5 release.
-        qmlRegisterModule(uri, major, 15);
-
-        qmlProtectModule(uri, 1);
+        // Build-time generated registration function
+        volatile auto registration = &qml_register_types_QtScxml;
+        Q_UNUSED(registration);
     }
 };
 

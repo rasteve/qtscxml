@@ -6,9 +6,11 @@
 
 qt_internal_add_qml_module(declarative_scxml # special case
     URI "QtScxml"
-    VERSION "5.${CMAKE_PROJECT_VERSION_MINOR}"
+    VERSION "${CMAKE_PROJECT_VERSION}"
     CLASSNAME QScxmlStateMachinePlugin
     SKIP_TYPE_REGISTRATION
+    GENERATE_QMLTYPES
+    INSTALL_QMLTYPES
     SOURCES
         eventconnection.cpp eventconnection_p.h
         invokedservices.cpp invokedservices_p.h

@@ -54,6 +54,7 @@
 #include <QtScxml/qscxmlstatemachine.h>
 #include <QtCore/qobject.h>
 #include <QtQml/qqmlparserstatus.h>
+#include <QtQml/qqml.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -64,6 +65,8 @@ class QScxmlEventConnection : public QObject, public QQmlParserStatus
     Q_PROPERTY(QScxmlStateMachine *stateMachine READ stateMachine WRITE setStateMachine
                NOTIFY stateMachineChanged)
     Q_INTERFACES(QQmlParserStatus)
+    QML_NAMED_ELEMENT(EventConnection)
+    QML_ADDED_IN_VERSION(5,8)
 
 public:
     QScxmlEventConnection(QObject *parent = nullptr);

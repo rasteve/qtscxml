@@ -52,8 +52,10 @@
 //
 
 #include <QtScxml/qscxmlglobals.h>
+#include <QtScxml/qscxmlstatemachine.h>
 #include <QtCore/qobject.h>
 #include <QtQml/qqmllist.h>
+#include <QtQml/qqml.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -69,6 +71,17 @@ public:
 
 private:
     QObjectList m_children;
+};
+
+// The QScxmlStateMachine is defined in the scxml library
+struct QScxmlStateMachineForeign
+{
+    Q_GADGET
+    QML_UNCREATABLE("Only created through derived types")
+    QML_NAMED_ELEMENT(StateMachine)
+    QML_FOREIGN(QScxmlStateMachine)
+    QML_EXTENDED(QScxmlStateMachineExtended)
+    QML_ADDED_IN_VERSION(5,8)
 };
 
 QT_END_NAMESPACE

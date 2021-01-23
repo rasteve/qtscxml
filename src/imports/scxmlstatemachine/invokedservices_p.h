@@ -53,6 +53,7 @@
 
 #include <QtQml/qqmlparserstatus.h>
 #include <QtQml/qqmllist.h>
+#include <QtQml/qqml.h>
 #include <QtScxml/qscxmlstatemachine.h>
 
 QT_BEGIN_NAMESPACE
@@ -66,6 +67,9 @@ class QScxmlInvokedServices : public QObject, public QQmlParserStatus
     Q_PROPERTY(QQmlListProperty<QObject> qmlChildren READ qmlChildren)
     Q_INTERFACES(QQmlParserStatus)
     Q_CLASSINFO("DefaultProperty", "qmlChildren")
+    QML_NAMED_ELEMENT(InvokedServices)
+    QML_ADDED_IN_VERSION(5,8)
+
 public:
     QScxmlInvokedServices(QObject *parent = nullptr);
     QVariantMap children();

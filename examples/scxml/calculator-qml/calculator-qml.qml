@@ -48,10 +48,10 @@
 **
 ****************************************************************************/
 
-import CalculatorStateMachine 1.0
-import QtQuick 2.5
-import QtQuick.Window 2.2
-import QtScxml 5.8
+import CalculatorStateMachine
+import QtQuick
+import QtQuick.Window
+import QtScxml
 
 Window {
     id: window

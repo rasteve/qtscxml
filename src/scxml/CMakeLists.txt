@@ -30,6 +30,9 @@ qt_internal_add_module(Scxml
         Qt::CorePrivate
 )
 
+# This allows QML element registration outside of this module with the "QML_ELEMENT" & friends
+qt6_extract_metatypes(Scxml)
+
 #### Keys ignored in scope 1:.:.:scxml.pro:<TRUE>:
 # FEATURES = "../../mkspecs/features/qscxmlc.prf"
 # INSTALLS = "features"
