@@ -65,7 +65,7 @@ static int globalTick;
 { \
     QTRY_COMPARE(runningSpy.count(), 1); \
     QList<QVariant> runningArgs = runningSpy.takeFirst(); \
-    QVERIFY(runningArgs.at(0).type() == QVariant::Bool); \
+    QVERIFY(runningArgs.at(0).typeId() == QMetaType::Bool); \
     QVERIFY(runningArgs.at(0).toBool() == RUNNING); \
     QCOMPARE(machine.isRunning(), runningArgs.at(0).toBool()); \
 }
@@ -74,10 +74,10 @@ static int globalTick;
 { \
     QTRY_COMPARE(runningSpy.count(), 2); \
     QList<QVariant> runningArgs = runningSpy.takeFirst(); \
-    QVERIFY(runningArgs.at(0).type() == QVariant::Bool); \
+    QVERIFY(runningArgs.at(0).typeId() == QMetaType::Bool); \
     QVERIFY(runningArgs.at(0).toBool() == true); \
     runningArgs = runningSpy.takeFirst(); \
-    QVERIFY(runningArgs.at(0).type() == QVariant::Bool); \
+    QVERIFY(runningArgs.at(0).typeId() == QMetaType::Bool); \
     QVERIFY(runningArgs.at(0).toBool() == false); \
     QCOMPARE(machine.isRunning(), runningArgs.at(0).toBool()); \
 }
@@ -91,7 +91,7 @@ static int globalTick;
     QTRY_COMPARE(VAR##_activeSpy.count(), COUNT); \
     bool active = true; \
     for (const QList<QVariant> &activeArgs : static_cast<QList<QList<QVariant> > >(VAR##_activeSpy)) { \
-        QVERIFY(activeArgs.at(0).type() == QVariant::Bool); \
+        QVERIFY(activeArgs.at(0).typeId() == QMetaType::Bool); \
         QVERIFY(activeArgs.at(0).toBool() == active); \
         active = !active; \
     } \

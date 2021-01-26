@@ -60,15 +60,14 @@ Window::Window()
     pY = 5;
 //![0]
 
-    QFontDatabase database;
     QFont font;
-    if (database.families().contains("Monospace")) {
+    const QStringList families = QFontDatabase::families();
+    if (families.contains("Monospace")) {
         font = QFont("Monospace");
     }
     else {
-        const QStringList fontFamilies = database.families();
-        for (const QString &family : fontFamilies ) {
-            if (database.isFixedPitch(family)) {
+        for (const QString &family : families) {
+            if (QFontDatabase::isFixedPitch(family)) {
                 font = QFont(family);
                 break;
             }
