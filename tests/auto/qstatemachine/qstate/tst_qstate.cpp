@@ -72,9 +72,8 @@ void tst_QState::assignProperty()
 
     machine.setInitialState(s1);
     machine.start();
-    QCoreApplication::processEvents();
 
-    QCOMPARE(object.property("fooBar").toInt(), 20);
+    QTRY_COMPARE(object.property("fooBar").toInt(), 20);
 }
 
 void tst_QState::assignPropertyTwice()
@@ -90,9 +89,8 @@ void tst_QState::assignPropertyTwice()
 
     machine.setInitialState(s1);
     machine.start();
-    QCoreApplication::processEvents();
 
-    QCOMPARE(object.property("fooBar").toInt(), 30);
+    QTRY_COMPARE(object.property("fooBar").toInt(), 30);
 }
 
 class EventTestTransition: public QAbstractTransition
@@ -141,48 +139,48 @@ void tst_QState::historyInitialState()
     machine.start();
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.configuration().size(), 1);
-    QVERIFY(machine.configuration().contains(s1));
+    QTRY_COMPARE(machine.configuration().size(), 1);
+    QTRY_VERIFY(machine.configuration().contains(s1));
 
     machine.postEvent(new QEvent(QEvent::User));
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.configuration().size(), 2);
-    QVERIFY(machine.configuration().contains(s2));
-    QVERIFY(machine.configuration().contains(s3));
+    QTRY_COMPARE(machine.configuration().size(), 2);
+    QTRY_VERIFY(machine.configuration().contains(s2));
+    QTRY_VERIFY(machine.configuration().contains(s3));
 
     machine.postEvent(new QEvent(QEvent::User));
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.configuration().size(), 1);
-    QVERIFY(machine.configuration().contains(s1));
+    QTRY_COMPARE(machine.configuration().size(), 1);
+    QTRY_VERIFY(machine.configuration().contains(s1));
 
     machine.postEvent(new QEvent(QEvent::User));
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.configuration().size(), 2);
-    QVERIFY(machine.configuration().contains(s2));
-    QVERIFY(machine.configuration().contains(s3));
+    QTRY_COMPARE(machine.configuration().size(), 2);
+    QTRY_VERIFY(machine.configuration().contains(s2));
+    QTRY_VERIFY(machine.configuration().contains(s3));
 
     machine.postEvent(new QEvent(QEvent::Type(QEvent::User+1)));
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.configuration().size(), 2);
-    QVERIFY(machine.configuration().contains(s2));
-    QVERIFY(machine.configuration().contains(s4));
+    QTRY_COMPARE(machine.configuration().size(), 2);
+    QTRY_VERIFY(machine.configuration().contains(s2));
+    QTRY_VERIFY(machine.configuration().contains(s4));
 
     machine.postEvent(new QEvent(QEvent::User));
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.configuration().size(), 1);
-    QVERIFY(machine.configuration().contains(s1));
+    QTRY_COMPARE(machine.configuration().size(), 1);
+    QTRY_VERIFY(machine.configuration().contains(s1));
 
     machine.postEvent(new QEvent(QEvent::User));
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.configuration().size(), 2);
-    QVERIFY(machine.configuration().contains(s2));
-    QVERIFY(machine.configuration().contains(s4));
+    QTRY_COMPARE(machine.configuration().size(), 2);
+    QTRY_VERIFY(machine.configuration().contains(s2));
+    QTRY_VERIFY(machine.configuration().contains(s4));
 }
 
 void tst_QState::transitions()
@@ -336,9 +334,9 @@ void tst_QState::privateSignals()
 
     QCoreApplication::processEvents();
 
-    QVERIFY(s1Tester.testPassed);
-    QVERIFY(s2Tester.testPassed);
-    QVERIFY(t1Tester.testPassed);
+    QTRY_VERIFY(s1Tester.testPassed);
+    QTRY_VERIFY(s2Tester.testPassed);
+    QTRY_VERIFY(t1Tester.testPassed);
 
 }
 

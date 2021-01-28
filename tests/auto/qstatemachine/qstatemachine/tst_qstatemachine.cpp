@@ -336,19 +336,17 @@ void tst_QStateMachine::transitionToRootState()
     QCOMPARE(trans->targetState(), static_cast<QAbstractState *>(&machine));
 
     machine.start();
-    QCoreApplication::processEvents();
 
-    QCOMPARE(machine.configuration().count(), 1);
-    QVERIFY(machine.configuration().contains(initialState));
+    QTRY_COMPARE(machine.configuration().count(), 1);
+    QTRY_VERIFY(machine.configuration().contains(initialState));
     TEST_ACTIVE_CHANGED(initialState, 1);
 
     machine.postEvent(new QEvent(QEvent::User));
     QTest::ignoreMessage(QtWarningMsg,
                          "Unrecoverable error detected in running state machine: "
                          "Child mode of state machine 'machine' is not 'ExclusiveStates'.");
-    QCoreApplication::processEvents();
-    QVERIFY(machine.configuration().isEmpty());
-    QVERIFY(!machine.isRunning());
+    QTRY_VERIFY(machine.configuration().isEmpty());
+    QTRY_VERIFY(!machine.isRunning());
     TEST_ACTIVE_CHANGED(initialState, 2);
 }
 
@@ -401,13 +399,13 @@ void tst_QStateMachine::transitionEntersParent()
     machine.start();
     QCoreApplication::processEvents();
 
-    QCOMPARE(entryController->property("greatGrandParentEntered").toBool(), true);
-    QCOMPARE(entryController->property("grandParentEntered").toBool(), false);
-    QCOMPARE(entryController->property("parentEntered").toBool(), false);
-    QCOMPARE(entryController->property("stateEntered").toBool(), false);
-    QCOMPARE(machine.configuration().count(), 2);
-    QVERIFY(machine.configuration().contains(greatGrandParent));
-    QVERIFY(machine.configuration().contains(initialStateOfGreatGrandParent));
+    QTRY_COMPARE(entryController->property("greatGrandParentEntered").toBool(), true);
+    QTRY_COMPARE(entryController->property("grandParentEntered").toBool(), false);
+    QTRY_COMPARE(entryController->property("parentEntered").toBool(), false);
+    QTRY_COMPARE(entryController->property("stateEntered").toBool(), false);
+    QTRY_COMPARE(machine.configuration().count(), 2);
+    QTRY_VERIFY(machine.configuration().contains(greatGrandParent));
+    QTRY_VERIFY(machine.configuration().contains(initialStateOfGreatGrandParent));
 
     entryController->setProperty("greatGrandParentEntered", false);
     entryController->setProperty("grandParentEntered", false);
@@ -417,15 +415,15 @@ void tst_QStateMachine::transitionEntersParent()
     machine.postEvent(new QEvent(QEvent::User));
     QCoreApplication::processEvents();
 
-    QCOMPARE(entryController->property("greatGrandParentEntered").toBool(), false);
-    QCOMPARE(entryController->property("grandParentEntered").toBool(), true);
-    QCOMPARE(entryController->property("parentEntered").toBool(), true);
-    QCOMPARE(entryController->property("stateEntered").toBool(), true);
-    QCOMPARE(machine.configuration().count(), 4);
-    QVERIFY(machine.configuration().contains(greatGrandParent));
-    QVERIFY(machine.configuration().contains(grandParent));
-    QVERIFY(machine.configuration().contains(parent));
-    QVERIFY(machine.configuration().contains(state));
+    QTRY_COMPARE(entryController->property("greatGrandParentEntered").toBool(), false);
+    QTRY_COMPARE(entryController->property("grandParentEntered").toBool(), true);
+    QTRY_COMPARE(entryController->property("parentEntered").toBool(), true);
+    QTRY_COMPARE(entryController->property("stateEntered").toBool(), true);
+    QTRY_COMPARE(machine.configuration().count(), 4);
+    QTRY_VERIFY(machine.configuration().contains(greatGrandParent));
+    QTRY_VERIFY(machine.configuration().contains(grandParent));
+    QTRY_VERIFY(machine.configuration().contains(parent));
+    QTRY_VERIFY(machine.configuration().contains(state));
 }
 
 void tst_QStateMachine::defaultErrorState()
@@ -446,11 +444,10 @@ void tst_QStateMachine::defaultErrorState()
 
     // initialState has no initial state
     machine.start();
-    QCoreApplication::processEvents();
 
-    QCOMPARE(machine.error(), QStateMachine::NoInitialStateError);
-    QCOMPARE(machine.errorString(), QString::fromLatin1("Missing initial state in compound state 'MyInitialState'"));
-    QCOMPARE(machine.isRunning(), false);
+    QTRY_COMPARE(machine.error(), QStateMachine::NoInitialStateError);
+    QTRY_COMPARE(machine.errorString(), QString::fromLatin1("Missing initial state in compound state 'MyInitialState'"));
+    QTRY_COMPARE(machine.isRunning(), false);
 }
 
 class CustomErrorState: public QState
@@ -496,11 +493,10 @@ void tst_QStateMachine::customGlobalErrorState()
 
     initialState->addTransition(new EventTransition(QEvent::Type(QEvent::User + 1), brokenState));
     machine.start();
-    QCoreApplication::processEvents();
 
-    QCOMPARE(machine.errorState(), static_cast<QAbstractState*>(customErrorState));
-    QCOMPARE(machine.configuration().count(), 1);
-    QVERIFY(machine.configuration().contains(initialState));
+    QTRY_COMPARE(machine.errorState(), static_cast<QAbstractState*>(customErrorState));
+    QTRY_COMPARE(machine.configuration().count(), 1);
+    QTRY_VERIFY(machine.configuration().contains(initialState));
 
     machine.postEvent(new QEvent(QEvent::Type(QEvent::User + 1)));
     QCOMPARE(machine.configuration().count(), 1);
@@ -508,13 +504,13 @@ void tst_QStateMachine::customGlobalErrorState()
 
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.isRunning(), true);
-    QCOMPARE(machine.configuration().count(), 1);
-    QVERIFY(machine.configuration().contains(customErrorState));
-    QCOMPARE(customErrorState->error, QStateMachine::NoInitialStateError);
-    QCOMPARE(customErrorState->errorString, QString::fromLatin1("Missing initial state in compound state 'brokenState'"));
-    QCOMPARE(machine.error(), QStateMachine::NoInitialStateError);
-    QCOMPARE(machine.errorString(), QString::fromLatin1("Missing initial state in compound state 'brokenState'"));
+    QTRY_COMPARE(machine.isRunning(), true);
+    QTRY_COMPARE(machine.configuration().count(), 1);
+    QTRY_VERIFY(machine.configuration().contains(customErrorState));
+    QTRY_COMPARE(customErrorState->error, QStateMachine::NoInitialStateError);
+    QTRY_COMPARE(customErrorState->errorString, QString::fromLatin1("Missing initial state in compound state 'brokenState'"));
+    QTRY_COMPARE(machine.error(), QStateMachine::NoInitialStateError);
+    QTRY_COMPARE(machine.errorString(), QString::fromLatin1("Missing initial state in compound state 'brokenState'"));
 }
 
 void tst_QStateMachine::customLocalErrorStateInBrokenState()
@@ -544,10 +540,10 @@ void tst_QStateMachine::customLocalErrorStateInBrokenState()
     machine.postEvent(new QEvent(QEvent::Type(QEvent::User + 1)));
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.isRunning(), true);
-    QCOMPARE(machine.configuration().count(), 1);
-    QVERIFY(machine.configuration().contains(customErrorState));
-    QCOMPARE(customErrorState->error, QStateMachine::NoInitialStateError);
+    QTRY_COMPARE(machine.isRunning(), true);
+    QTRY_COMPARE(machine.configuration().count(), 1);
+    QTRY_VERIFY(machine.configuration().contains(customErrorState));
+    QTRY_COMPARE(customErrorState->error, QStateMachine::NoInitialStateError);
 }
 
 void tst_QStateMachine::customLocalErrorStateInOtherState()
@@ -580,7 +576,7 @@ void tst_QStateMachine::customLocalErrorStateInOtherState()
     machine.postEvent(new QEvent(QEvent::Type(QEvent::User + 1)));
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.isRunning(), false);
+    QTRY_COMPARE(machine.isRunning(), false);
 }
 
 void tst_QStateMachine::customLocalErrorStateInParentOfBrokenState()
@@ -614,9 +610,9 @@ void tst_QStateMachine::customLocalErrorStateInParentOfBrokenState()
     machine.postEvent(new QEvent(QEvent::Type(QEvent::User + 1)));
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.isRunning(), true);
-    QCOMPARE(machine.configuration().count(), 1);
-    QVERIFY(machine.configuration().contains(customErrorState));
+    QTRY_COMPARE(machine.isRunning(), true);
+    QTRY_COMPARE(machine.configuration().count(), 1);
+    QTRY_VERIFY(machine.configuration().contains(customErrorState));
 }
 
 void tst_QStateMachine::customLocalErrorStateOverridesParent()
@@ -654,10 +650,10 @@ void tst_QStateMachine::customLocalErrorStateOverridesParent()
     machine.postEvent(new QEvent(QEvent::Type(QEvent::User + 1)));
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.configuration().count(), 1);
-    QVERIFY(machine.configuration().contains(customErrorStateForBrokenState));
-    QCOMPARE(customErrorStateForBrokenState->error, QStateMachine::NoInitialStateError);
-    QCOMPARE(customErrorStateForParent->error, QStateMachine::NoError);
+    QTRY_COMPARE(machine.configuration().count(), 1);
+    QTRY_VERIFY(machine.configuration().contains(customErrorStateForBrokenState));
+    QTRY_COMPARE(customErrorStateForBrokenState->error, QStateMachine::NoInitialStateError);
+    QTRY_COMPARE(customErrorStateForParent->error, QStateMachine::NoError);
 }
 
 void tst_QStateMachine::errorStateHasChildren()
@@ -693,10 +689,10 @@ void tst_QStateMachine::errorStateHasChildren()
     machine.postEvent(new QEvent(QEvent::Type(QEvent::User + 1)));
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.isRunning(), true);
-    QCOMPARE(machine.configuration().count(), 2);
-    QVERIFY(machine.configuration().contains(customErrorState));
-    QVERIFY(machine.configuration().contains(childOfErrorState));
+    QTRY_COMPARE(machine.isRunning(), true);
+    QTRY_COMPARE(machine.configuration().count(), 2);
+    QTRY_VERIFY(machine.configuration().contains(customErrorState));
+    QTRY_VERIFY(machine.configuration().contains(childOfErrorState));
 }
 
 
@@ -733,9 +729,9 @@ void tst_QStateMachine::errorStateHasErrors()
     QTest::ignoreMessage(QtWarningMsg, "Unrecoverable error detected in running state machine: Missing initial state in compound state 'customErrorState'");
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.isRunning(), false);
-    QCOMPARE(machine.error(), QStateMachine::NoInitialStateError);
-    QCOMPARE(machine.errorString(), QString::fromLatin1("Missing initial state in compound state 'customErrorState'"));
+    QTRY_COMPARE(machine.isRunning(), false);
+    QTRY_COMPARE(machine.error(), QStateMachine::NoInitialStateError);
+    QTRY_COMPARE(machine.errorString(), QString::fromLatin1("Missing initial state in compound state 'customErrorState'"));
 }
 
 void tst_QStateMachine::errorStateIsRootState()
@@ -765,7 +761,7 @@ void tst_QStateMachine::errorStateIsRootState()
     QTest::ignoreMessage(QtWarningMsg, "Unrecoverable error detected in running state machine: Missing initial state in compound state 'brokenState'");
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.isRunning(), false);
+    QTRY_COMPARE(machine.isRunning(), false);
 }
 
 void tst_QStateMachine::errorStateEntersParentFirst()
@@ -811,15 +807,14 @@ void tst_QStateMachine::errorStateEntersParentFirst()
     initialStateOfGreatGrandParent->addTransition(new EventTransition(QEvent::User, brokenState));
 
     machine.start();
-    QCoreApplication::processEvents();
 
-    QCOMPARE(entryController->property("greatGrandParentEntered").toBool(), true);
-    QCOMPARE(entryController->property("grandParentEntered").toBool(), false);
-    QCOMPARE(entryController->property("parentEntered").toBool(), false);
-    QCOMPARE(entryController->property("errorStateEntered").toBool(), false);
-    QCOMPARE(machine.configuration().count(), 2);
-    QVERIFY(machine.configuration().contains(greatGrandParent));
-    QVERIFY(machine.configuration().contains(initialStateOfGreatGrandParent));
+    QTRY_COMPARE(entryController->property("greatGrandParentEntered").toBool(), true);
+    QTRY_COMPARE(entryController->property("grandParentEntered").toBool(), false);
+    QTRY_COMPARE(entryController->property("parentEntered").toBool(), false);
+    QTRY_COMPARE(entryController->property("errorStateEntered").toBool(), false);
+    QTRY_COMPARE(machine.configuration().count(), 2);
+    QTRY_VERIFY(machine.configuration().contains(greatGrandParent));
+    QTRY_VERIFY(machine.configuration().contains(initialStateOfGreatGrandParent));
 
     entryController->setProperty("greatGrandParentEntered", false);
     entryController->setProperty("grandParentEntered", false);
@@ -829,15 +824,15 @@ void tst_QStateMachine::errorStateEntersParentFirst()
     machine.postEvent(new QEvent(QEvent::User));
     QCoreApplication::processEvents();
 
-    QCOMPARE(entryController->property("greatGrandParentEntered").toBool(), false);
-    QCOMPARE(entryController->property("grandParentEntered").toBool(), true);
-    QCOMPARE(entryController->property("parentEntered").toBool(), true);
-    QCOMPARE(entryController->property("errorStateEntered").toBool(), true);
-    QCOMPARE(machine.configuration().count(), 4);
-    QVERIFY(machine.configuration().contains(greatGrandParent));
-    QVERIFY(machine.configuration().contains(grandParent));
-    QVERIFY(machine.configuration().contains(parent));
-    QVERIFY(machine.configuration().contains(errorState));
+    QTRY_COMPARE(entryController->property("greatGrandParentEntered").toBool(), false);
+    QTRY_COMPARE(entryController->property("grandParentEntered").toBool(), true);
+    QTRY_COMPARE(entryController->property("parentEntered").toBool(), true);
+    QTRY_COMPARE(entryController->property("errorStateEntered").toBool(), true);
+    QTRY_COMPARE(machine.configuration().count(), 4);
+    QTRY_VERIFY(machine.configuration().contains(greatGrandParent));
+    QTRY_VERIFY(machine.configuration().contains(grandParent));
+    QTRY_VERIFY(machine.configuration().contains(parent));
+    QTRY_VERIFY(machine.configuration().contains(errorState));
 }
 
 void tst_QStateMachine::customErrorStateIsNull()
@@ -862,8 +857,8 @@ void tst_QStateMachine::customErrorStateIsNull()
     QTest::ignoreMessage(QtWarningMsg, "Unrecoverable error detected in running state machine: Missing initial state in compound state ''");
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.errorState(), reinterpret_cast<QAbstractState *>(0));
-    QCOMPARE(machine.isRunning(), false);
+    QTRY_COMPARE(machine.errorState(), reinterpret_cast<QAbstractState *>(0));
+    QTRY_COMPARE(machine.isRunning(), false);
 }
 
 void tst_QStateMachine::clearError()
@@ -877,16 +872,15 @@ void tst_QStateMachine::clearError()
     new QState(brokenState);
 
     machine.start();
-    QCoreApplication::processEvents();
 
-    QCOMPARE(machine.isRunning(), true);
-    QCOMPARE(machine.error(), QStateMachine::NoInitialStateError);
-    QCOMPARE(machine.errorString(), QString::fromLatin1("Missing initial state in compound state 'brokenState'"));
+    QTRY_COMPARE(machine.isRunning(), true);
+    QTRY_COMPARE(machine.error(), QStateMachine::NoInitialStateError);
+    QTRY_COMPARE(machine.errorString(), QString::fromLatin1("Missing initial state in compound state 'brokenState'"));
 
     machine.clearError();
 
-    QCOMPARE(machine.error(), QStateMachine::NoError);
-    QVERIFY(machine.errorString().isEmpty());
+    QTRY_COMPARE(machine.error(), QStateMachine::NoError);
+    QTRY_VERIFY(machine.errorString().isEmpty());
 }
 
 void tst_QStateMachine::historyStateAsInitialState()
@@ -912,15 +906,15 @@ void tst_QStateMachine::historyStateAsInitialState()
     machine.start();
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.configuration().size(), 1);
-    QVERIFY(machine.configuration().contains(s1));
+    QTRY_COMPARE(machine.configuration().size(), 1);
+    QTRY_VERIFY(machine.configuration().contains(s1));
 
     machine.postEvent(new QEvent(QEvent::User));
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.configuration().size(), 2);
-    QVERIFY(machine.configuration().contains(s2));
-    QVERIFY(machine.configuration().contains(s21));
+    QTRY_COMPARE(machine.configuration().size(), 2);
+    QTRY_VERIFY(machine.configuration().contains(s2));
+    QTRY_VERIFY(machine.configuration().contains(s21));
 }
 
 void tst_QStateMachine::historyStateHasNowhereToGo()
@@ -950,11 +944,11 @@ void tst_QStateMachine::historyStateHasNowhereToGo()
     machine.postEvent(new QEvent(QEvent::User));
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.isRunning(), true);
-    QCOMPARE(machine.configuration().count(), 1);
-    QVERIFY(machine.configuration().contains(machine.errorState()));
-    QCOMPARE(machine.error(), QStateMachine::NoDefaultStateInHistoryStateError);
-    QCOMPARE(machine.errorString(), QString::fromLatin1("Missing default state in history state 'historyState'"));
+    QTRY_COMPARE(machine.isRunning(), true);
+    QTRY_COMPARE(machine.configuration().count(), 1);
+    QTRY_VERIFY(machine.configuration().contains(machine.errorState()));
+    QTRY_COMPARE(machine.error(), QStateMachine::NoDefaultStateInHistoryStateError);
+    QTRY_COMPARE(machine.errorString(), QString::fromLatin1("Missing default state in history state 'historyState'"));
 }
 
 void tst_QStateMachine::historyStateAfterRestart()
@@ -975,46 +969,46 @@ void tst_QStateMachine::historyStateAfterRestart()
 
     for (int x = 0; x < 2; ++x) {
         QSignalSpy runningSpy(&machine, &QStateMachine::runningChanged);
-        QVERIFY(runningSpy.isValid());
+        QTRY_VERIFY(runningSpy.isValid());
         QSignalSpy startedSpy(&machine, &QStateMachine::started);
-        QVERIFY(startedSpy.isValid());
+        QTRY_VERIFY(startedSpy.isValid());
         machine.start();
         QTRY_COMPARE(startedSpy.count(), 1);
         TEST_RUNNING_CHANGED(true);
-        QCOMPARE(machine.configuration().count(), 1);
-        QVERIFY(machine.configuration().contains(s1));
+        QTRY_COMPARE(machine.configuration().count(), 1);
+        QTRY_VERIFY(machine.configuration().contains(s1));
 
         // s1 -> s2h -> s21 (default state)
         machine.postEvent(new QEvent(QEvent::User));
         QCoreApplication::processEvents();
-        QCOMPARE(machine.configuration().count(), 2);
-        QVERIFY(machine.configuration().contains(s2));
+        QTRY_COMPARE(machine.configuration().count(), 2);
+        QTRY_VERIFY(machine.configuration().contains(s2));
         // This used to fail on the 2nd run because the
         // history had not been cleared.
-        QVERIFY(machine.configuration().contains(s21));
+        QTRY_VERIFY(machine.configuration().contains(s21));
 
         // s21 -> s22
         machine.postEvent(new QEvent(QEvent::User));
         QCoreApplication::processEvents();
-        QCOMPARE(machine.configuration().count(), 2);
-        QVERIFY(machine.configuration().contains(s2));
-        QVERIFY(machine.configuration().contains(s22));
+        QTRY_COMPARE(machine.configuration().count(), 2);
+        QTRY_VERIFY(machine.configuration().contains(s2));
+        QTRY_VERIFY(machine.configuration().contains(s22));
 
         // s2 -> s1 (s22 saved in s2h)
         machine.postEvent(new QEvent(QEvent::User));
         QCoreApplication::processEvents();
-        QCOMPARE(machine.configuration().count(), 1);
-        QVERIFY(machine.configuration().contains(s1));
+        QTRY_COMPARE(machine.configuration().count(), 1);
+        QTRY_VERIFY(machine.configuration().contains(s1));
 
         // s1 -> s2h -> s22 (saved state)
         machine.postEvent(new QEvent(QEvent::User));
         QCoreApplication::processEvents();
-        QCOMPARE(machine.configuration().count(), 2);
-        QVERIFY(machine.configuration().contains(s2));
-        QVERIFY(machine.configuration().contains(s22));
+        QTRY_COMPARE(machine.configuration().count(), 2);
+        QTRY_VERIFY(machine.configuration().contains(s2));
+        QTRY_VERIFY(machine.configuration().contains(s22));
 
         QSignalSpy stoppedSpy(&machine, &QStateMachine::stopped);
-        QVERIFY(stoppedSpy.isValid());
+        QTRY_VERIFY(stoppedSpy.isValid());
         machine.stop();
         QTRY_COMPARE(stoppedSpy.count(), 1);
         TEST_RUNNING_CHANGED(false);
@@ -1052,9 +1046,9 @@ void tst_QStateMachine::brokenStateIsNeverEntered()
     machine.postEvent(new QEvent(QEvent::User));
     QCoreApplication::processEvents();
 
-    QCOMPARE(entryController->property("errorStateEntered").toBool(), true);
-    QCOMPARE(entryController->property("brokenStateEntered").toBool(), false);
-    QCOMPARE(entryController->property("childStateEntered").toBool(), false);
+    QTRY_COMPARE(entryController->property("errorStateEntered").toBool(), true);
+    QTRY_COMPARE(entryController->property("brokenStateEntered").toBool(), false);
+    QTRY_COMPARE(entryController->property("childStateEntered").toBool(), false);
 }
 
 void tst_QStateMachine::transitionToStateNotInGraph()
@@ -1074,7 +1068,7 @@ void tst_QStateMachine::transitionToStateNotInGraph()
                                        "Child mode of state machine '' is not 'ExclusiveStates'.");
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.isRunning(), false);
+    QTRY_COMPARE(machine.isRunning(), false);
 }
 
 void tst_QStateMachine::customErrorStateNotInGraph()
@@ -1134,20 +1128,20 @@ void tst_QStateMachine::restoreProperties()
     machine.start();
     QCoreApplication::processEvents();
 
-    QCOMPARE(object->property("a").toInt(), 3);
-    QCOMPARE(object->property("b").toInt(), 2);
+    QTRY_COMPARE(object->property("a").toInt(), 3);
+    QTRY_COMPARE(object->property("b").toInt(), 2);
 
     machine.postEvent(new QEvent(QEvent::User));
     QCoreApplication::processEvents();
 
-    QCOMPARE(object->property("a").toInt(), 1);
-    QCOMPARE(object->property("b").toInt(), 5);
+    QTRY_COMPARE(object->property("a").toInt(), 1);
+    QTRY_COMPARE(object->property("b").toInt(), 5);
 
     machine.postEvent(new QEvent(QEvent::User));
     QCoreApplication::processEvents();
 
-    QCOMPARE(object->property("a").toInt(), 1);
-    QCOMPARE(object->property("b").toInt(), 2);
+    QTRY_COMPARE(object->property("a").toInt(), 1);
+    QTRY_COMPARE(object->property("b").toInt(), 2);
 }
 
 void tst_QStateMachine::rootState()
@@ -2906,37 +2900,37 @@ void tst_QStateMachine::eventTransitions()
         machine.setInitialState(s0);
         machine.start();
         QCoreApplication::processEvents();
-        QCOMPARE(machine.configuration().size(), 1);
-        QVERIFY(machine.configuration().contains(s0));
+        QTRY_COMPARE(machine.configuration().size(), 1);
+        QTRY_VERIFY(machine.configuration().contains(s0));
 
         QTest::mousePress(&button, Qt::LeftButton);
         QCoreApplication::processEvents();
-        QCOMPARE(machine.configuration().size(), 1);
-        QVERIFY(machine.configuration().contains(s1));
+        QTRY_COMPARE(machine.configuration().size(), 1);
+        QTRY_VERIFY(machine.configuration().contains(s1));
 
         s0->removeTransition(t0);
         QTest::mousePress(&button, Qt::LeftButton);
         QCoreApplication::processEvents();
-        QCOMPARE(machine.configuration().size(), 1);
-        QVERIFY(machine.configuration().contains(s0));
+        QTRY_COMPARE(machine.configuration().size(), 1);
+        QTRY_VERIFY(machine.configuration().contains(s0));
 
         QTest::mousePress(&button, Qt::LeftButton);
         QCoreApplication::processEvents();
-        QCOMPARE(machine.configuration().size(), 1);
-        QVERIFY(machine.configuration().contains(s0));
+        QTRY_COMPARE(machine.configuration().size(), 1);
+        QTRY_VERIFY(machine.configuration().contains(s0));
 
         s1->removeTransition(t1);
         QTest::mousePress(&button, Qt::LeftButton);
         QCoreApplication::processEvents();
-        QCOMPARE(machine.configuration().size(), 1);
-        QVERIFY(machine.configuration().contains(s0));
+        QTRY_COMPARE(machine.configuration().size(), 1);
+        QTRY_VERIFY(machine.configuration().contains(s0));
 
         s0->addTransition(t0);
         s1->addTransition(t1);
         QTest::mousePress(&button, Qt::LeftButton);
         QCoreApplication::processEvents();
-        QCOMPARE(machine.configuration().size(), 1);
-        QVERIFY(machine.configuration().contains(s1));
+        QTRY_COMPARE(machine.configuration().size(), 1);
+        QTRY_VERIFY(machine.configuration().contains(s1));
     }
     // multiple event transitions from same source
     {
@@ -4598,33 +4592,29 @@ void tst_QStateMachine::goToState()
     TEST_RUNNING_CHANGED(true);
 
     QStateMachinePrivate::get(&machine)->goToState(s2);
-    QCoreApplication::processEvents();
-    QCOMPARE(machine.configuration().size(), 1);
-    QVERIFY(machine.configuration().contains(s2));
+    QTRY_COMPARE(machine.configuration().size(), 1);
+    QTRY_VERIFY(machine.configuration().contains(s2));
 
     QStateMachinePrivate::get(&machine)->goToState(s2);
-    QCoreApplication::processEvents();
-    QCOMPARE(machine.configuration().size(), 1);
-    QVERIFY(machine.configuration().contains(s2));
+    QTRY_COMPARE(machine.configuration().size(), 1);
+    QTRY_VERIFY(machine.configuration().contains(s2));
 
     QStateMachinePrivate::get(&machine)->goToState(s1);
     QStateMachinePrivate::get(&machine)->goToState(s2);
     QStateMachinePrivate::get(&machine)->goToState(s1);
-    QCOMPARE(machine.configuration().size(), 1);
-    QVERIFY(machine.configuration().contains(s2));
+    QTRY_COMPARE(machine.configuration().size(), 1);
+    QTRY_VERIFY(machine.configuration().contains(s2));
 
-    QCoreApplication::processEvents();
-    QCOMPARE(machine.configuration().size(), 1);
-    QVERIFY(machine.configuration().contains(s1));
+    QTRY_COMPARE(machine.configuration().size(), 1);
+    QTRY_VERIFY(machine.configuration().contains(s1));
 
     // go to state in group
     QState *s2_1 = new QState(s2);
     s2->setInitialState(s2_1);
     QStateMachinePrivate::get(&machine)->goToState(s2_1);
-    QCoreApplication::processEvents();
-    QCOMPARE(machine.configuration().size(), 2);
-    QVERIFY(machine.configuration().contains(s2));
-    QVERIFY(machine.configuration().contains(s2_1));
+    QTRY_COMPARE(machine.configuration().size(), 2);
+    QTRY_VERIFY(machine.configuration().contains(s2));
+    QTRY_VERIFY(machine.configuration().contains(s2_1));
 }
 
 void tst_QStateMachine::goToStateFromSourceWithTransition()
@@ -4644,9 +4634,8 @@ void tst_QStateMachine::goToStateFromSourceWithTransition()
     TEST_RUNNING_CHANGED(true);
 
     QStateMachinePrivate::get(&machine)->goToState(s2);
-    QCoreApplication::processEvents();
-    QCOMPARE(machine.configuration().size(), 1);
-    QVERIFY(machine.configuration().contains(s2));
+    QTRY_COMPARE(machine.configuration().size(), 1);
+    QTRY_VERIFY(machine.configuration().contains(s2));
 }
 
 class CloneSignalTransition : public QSignalTransition
@@ -4772,8 +4761,8 @@ void tst_QStateMachine::eventFilterForApplication()
                                 new QEvent(QEvent::ApplicationActivate));
     QCoreApplication::processEvents();
 
-    QCOMPARE(machine.configuration().size(), 1);
-    QVERIFY(machine.configuration().contains(s2));
+    QTRY_COMPARE(machine.configuration().size(), 1);
+    QTRY_VERIFY(machine.configuration().contains(s2));
 }
 #endif
 
@@ -6632,7 +6621,6 @@ void tst_QStateMachine::qtbug_46703()
     h.setDefaultTransition(&defaultTransition);
 
     machine.start();
-    QCoreApplication::processEvents();
 
     QTRY_COMPARE(machine.configuration().contains(&root), true);
     QTRY_COMPARE(machine.configuration().contains(&h), false);
