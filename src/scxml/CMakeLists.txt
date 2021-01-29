@@ -22,12 +22,8 @@ qt_internal_add_module(Scxml
     DEFINES
         QT_NO_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII
-    LIBRARIES
-        Qt::CorePrivate
     PUBLIC_LIBRARIES
         Qt::Core
-    PRIVATE_MODULE_INTERFACE
-        Qt::CorePrivate
 )
 
 # This allows QML element registration outside of this module with the "QML_ELEMENT" & friends

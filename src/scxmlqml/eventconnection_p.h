@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef INVOKEDSERVICES_P_H
-#define INVOKEDSERVICES_P_H
+#ifndef EVENTCONNECTION_P_H
+#define EVENTCONNECTION_P_H
 
 //
 //  W A R N I N G
@@ -51,46 +51,61 @@
 // We mean it.
 //
 
-#include <QtQml/qqmlparserstatus.h>
-#include <QtQml/qqmllist.h>
-#include <QtQml/qqml.h>
+#include "qscxmlqmlglobals_p.h"
+
 #include <QtScxml/qscxmlstatemachine.h>
+#include <QtScxml/qscxmlevent.h>
+#include <QtCore/qobject.h>
+#include <QtQml/qqmlparserstatus.h>
+#include <QtQml/qqml.h>
 
 QT_BEGIN_NAMESPACE
 
-class QScxmlInvokedServices : public QObject, public QQmlParserStatus
+// QScxmlEvent is used as signal parameter, and defined in the cpp lib
+struct Q_SCXMLQML_PRIVATE_EXPORT QScxmlEventForeign
+{
+    Q_GADGET
+    QML_ANONYMOUS
+    QML_FOREIGN(QScxmlEvent)
+    QML_ADDED_IN_VERSION(5,8)
+};
+
+class Q_SCXMLQML_PRIVATE_EXPORT QScxmlEventConnection : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
+    Q_PROPERTY(QStringList events READ events WRITE setEvents NOTIFY eventsChanged)
     Q_PROPERTY(QScxmlStateMachine *stateMachine READ stateMachine WRITE setStateMachine
                NOTIFY stateMachineChanged)
-    Q_PROPERTY(QVariantMap children READ children NOTIFY childrenChanged)
-    Q_PROPERTY(QQmlListProperty<QObject> qmlChildren READ qmlChildren)
     Q_INTERFACES(QQmlParserStatus)
-    Q_CLASSINFO("DefaultProperty", "qmlChildren")
-    QML_NAMED_ELEMENT(InvokedServices)
+    QML_NAMED_ELEMENT(EventConnection)
     QML_ADDED_IN_VERSION(5,8)
 
 public:
-    QScxmlInvokedServices(QObject *parent = nullptr);
-    QVariantMap children();
+    QScxmlEventConnection(QObject *parent = nullptr);
+
+    QStringList events() const;
+    void setEvents(const QStringList &events);
 
     QScxmlStateMachine *stateMachine() const;
     void setStateMachine(QScxmlStateMachine *stateMachine);
 
-    QQmlListProperty<QObject> qmlChildren();
-
 Q_SIGNALS:
-    void childrenChanged();
+    void eventsChanged();
     void stateMachineChanged();
 
+    void occurred(const QScxmlEvent &event);
+
 private:
+    QScxmlStateMachine *m_stateMachine;
+    QStringList m_events;
+
+    QList<QMetaObject::Connection> m_connections;
+
+    void doConnect();
     void classBegin() override;
     void componentComplete() override;
-
-    QScxmlStateMachine *m_stateMachine = nullptr;
-    QList<QObject *> m_qmlChildren;
 };
 
 QT_END_NAMESPACE
 
-#endif // INVOKEDSERVICES_P_H
+#endif // EVENTCONNECTION_P_H

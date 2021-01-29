@@ -37,27 +37,69 @@
 **
 ****************************************************************************/
 
-#include <QtScxmlQml/private/qscxmlqmlglobals_p.h>
-#include <QtQml/qqmlextensionplugin.h>
-#include <QtQml/qqml.h>
+#ifndef STATEMACHINELOADER_P_H
+#define STATEMACHINELOADER_P_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include "qscxmlqmlglobals_p.h"
+
+#include <QtCore/qurl.h>
+#include <QtScxml/qscxmlstatemachine.h>
+#include <private/qqmlengine_p.h>
 
 QT_BEGIN_NAMESPACE
 
-class QScxmlStateMachinePlugin : public QQmlExtensionPlugin
+class Q_SCXMLQML_PRIVATE_EXPORT QScxmlStateMachineLoader: public QObject
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID QQmlExtensionInterface_iid)
+    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_PROPERTY(QScxmlStateMachine *stateMachine READ stateMachine DESIGNABLE false NOTIFY stateMachineChanged)
+    Q_PROPERTY(QVariantMap initialValues READ initialValues WRITE setInitialValues NOTIFY initialValuesChanged)
+    Q_PROPERTY(QScxmlDataModel *dataModel READ dataModel WRITE setDataModel NOTIFY dataModelChanged)
+    QML_NAMED_ELEMENT(StateMachineLoader)
+    QML_ADDED_IN_VERSION(5,8)
 
 public:
-    QScxmlStateMachinePlugin(QObject *parent = nullptr) : QQmlExtensionPlugin(parent) { }
-    void registerTypes(const char *) override
-    {
-        // Build-time generated registration function
-        volatile auto registration = &qml_register_types_QtScxml;
-        Q_UNUSED(registration);
-    }
+    explicit QScxmlStateMachineLoader(QObject *parent = nullptr);
+
+    QScxmlStateMachine *stateMachine() const;
+
+    QUrl source();
+    void setSource(const QUrl &source);
+
+    QVariantMap initialValues() const;
+    void setInitialValues(const QVariantMap &initialValues);
+
+    QScxmlDataModel *dataModel() const;
+    void setDataModel(QScxmlDataModel *dataModel);
+
+Q_SIGNALS:
+    void sourceChanged();
+    void initialValuesChanged();
+    void stateMachineChanged();
+    void dataModelChanged();
+
+private:
+    bool parse(const QUrl &source);
+
+private:
+    QUrl m_source;
+    QVariantMap m_initialValues;
+    QScxmlDataModel *m_dataModel;
+    QScxmlDataModel *m_implicitDataModel;
+    QScxmlStateMachine *m_stateMachine;
 };
 
 QT_END_NAMESPACE
 
-#include "plugin.moc"
+#endif // STATEMACHINELOADER_P_H

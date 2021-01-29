@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef STATEMACHINELOADER_P_H
-#define STATEMACHINELOADER_P_H
+#ifndef STATEMACHINEEXTENDED_P_H
+#define STATEMACHINEEXTENDED_P_H
 
 //
 //  W A R N I N G
@@ -51,53 +51,40 @@
 // We mean it.
 //
 
-#include <QtCore/qurl.h>
+#include "qscxmlqmlglobals_p.h"
+
 #include <QtScxml/qscxmlstatemachine.h>
-#include <private/qqmlengine_p.h>
+#include <QtCore/qobject.h>
+#include <QtQml/qqmllist.h>
+#include <QtQml/qqml.h>
 
 QT_BEGIN_NAMESPACE
 
-class QScxmlStateMachineLoader: public QObject
+/* Allow State Machines created from QML to have children. */
+class Q_SCXMLQML_PRIVATE_EXPORT QScxmlStateMachineExtended : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(QScxmlStateMachine *stateMachine READ stateMachine DESIGNABLE false NOTIFY stateMachineChanged)
-    Q_PROPERTY(QVariantMap initialValues READ initialValues WRITE setInitialValues NOTIFY initialValuesChanged)
-    Q_PROPERTY(QScxmlDataModel *dataModel READ dataModel WRITE setDataModel NOTIFY dataModelChanged)
-    QML_NAMED_ELEMENT(StateMachineLoader)
-    QML_ADDED_IN_VERSION(5,8)
-
+    Q_PROPERTY(QQmlListProperty<QObject> children READ children)
+    Q_CLASSINFO("DefaultProperty", "children")
 public:
-    explicit QScxmlStateMachineLoader(QObject *parent = nullptr);
-
-    QScxmlStateMachine *stateMachine() const;
-
-    QUrl source();
-    void setSource(const QUrl &source);
-
-    QVariantMap initialValues() const;
-    void setInitialValues(const QVariantMap &initialValues);
-
-    QScxmlDataModel *dataModel() const;
-    void setDataModel(QScxmlDataModel *dataModel);
-
-Q_SIGNALS:
-    void sourceChanged();
-    void initialValuesChanged();
-    void stateMachineChanged();
-    void dataModelChanged();
+    QScxmlStateMachineExtended(QObject *extendee);
+    QQmlListProperty<QObject> children();
 
 private:
-    bool parse(const QUrl &source);
+    QObjectList m_children;
+};
 
-private:
-    QUrl m_source;
-    QVariantMap m_initialValues;
-    QScxmlDataModel *m_dataModel;
-    QScxmlDataModel *m_implicitDataModel;
-    QScxmlStateMachine *m_stateMachine;
+// The QScxmlStateMachine is defined in the scxml library
+struct Q_SCXMLQML_PRIVATE_EXPORT QScxmlStateMachineForeign
+{
+    Q_GADGET
+    QML_UNCREATABLE("Only created through derived types")
+    QML_NAMED_ELEMENT(StateMachine)
+    QML_FOREIGN(QScxmlStateMachine)
+    QML_EXTENDED(QScxmlStateMachineExtended)
+    QML_ADDED_IN_VERSION(5,8)
 };
 
 QT_END_NAMESPACE
 
-#endif // STATEMACHINELOADER_P_H
+#endif // STATEMACHINEEXTENDED_P_H

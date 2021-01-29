@@ -1,3 +1,4 @@
+
 # Generated from scxmlstatemachine.pro.
 
 #####################################################################
@@ -9,18 +10,14 @@ qt_internal_add_qml_module(declarative_scxml # special case
     VERSION "${CMAKE_PROJECT_VERSION}"
     CLASSNAME QScxmlStateMachinePlugin
     SKIP_TYPE_REGISTRATION
-    GENERATE_QMLTYPES
-    INSTALL_QMLTYPES
+    PLUGIN_OPTIONAL
     SOURCES
-        eventconnection.cpp eventconnection_p.h
-        invokedservices.cpp invokedservices_p.h
         plugin.cpp
-        statemachineextended.cpp statemachineextended_p.h
-        statemachineloader.cpp statemachineloader_p.h
     PUBLIC_LIBRARIES
-        Qt::CorePrivate
-        Qt::QmlPrivate
-        Qt::Scxml
+        Qt::Core
+        Qt::Qml
+    LIBRARIES
+        Qt::ScxmlQmlPrivate
 )
 
 #### Keys ignored in scope 1:.:.:scxmlstatemachine.pro:<TRUE>:

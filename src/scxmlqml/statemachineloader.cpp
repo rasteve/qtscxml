@@ -167,7 +167,7 @@ bool QScxmlStateMachineLoader::parse(const QUrl &source)
     if (source.isLocalFile()) {
         fileName = source.toLocalFile();
     } else if (source.scheme() == QStringLiteral("qrc")) {
-        fileName = ":" + source.path();
+        fileName = QStringLiteral(":") + source.path();
     } else {
         qmlWarning(this) << QStringLiteral("%1 is neither a local nor a resource URL.")
                             .arg(source.url())

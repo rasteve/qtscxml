@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the QtScxml module of the Qt Toolkit.
@@ -37,8 +37,8 @@
 **
 ****************************************************************************/
 
-#ifndef STATEMACHINEEXTENDED_P_H
-#define STATEMACHINEEXTENDED_P_H
+#ifndef QSCXMLQMLGLOBALS_P_H
+#define QSCXMLQMLGLOBALS_P_H
 
 //
 //  W A R N I N G
@@ -51,39 +51,24 @@
 // We mean it.
 //
 
-#include <QtScxml/qscxmlglobals.h>
-#include <QtScxml/qscxmlstatemachine.h>
-#include <QtCore/qobject.h>
-#include <QtQml/qqmllist.h>
-#include <QtQml/qqml.h>
+#include <QtCore/qglobal.h>
 
 QT_BEGIN_NAMESPACE
 
-/* Allow State Machines created from QML to have children. */
-class QScxmlStateMachineExtended : public QObject
-{
-    Q_OBJECT
-    Q_PROPERTY(QQmlListProperty<QObject> children READ children)
-    Q_CLASSINFO("DefaultProperty", "children")
-public:
-    QScxmlStateMachineExtended(QObject *extendee);
-    QQmlListProperty<QObject> children();
+#if !defined(QT_STATIC)
+#  if defined(QT_BUILD_SCXMLQML_LIB)
+#    define Q_SCXMLQML_EXPORT Q_DECL_EXPORT
+#  else
+#    define Q_SCXMLQML_EXPORT Q_DECL_IMPORT
+#  endif
+#else
+#  define Q_SCXMLQML_EXPORT
+#endif
 
-private:
-    QObjectList m_children;
-};
-
-// The QScxmlStateMachine is defined in the scxml library
-struct QScxmlStateMachineForeign
-{
-    Q_GADGET
-    QML_UNCREATABLE("Only created through derived types")
-    QML_NAMED_ELEMENT(StateMachine)
-    QML_FOREIGN(QScxmlStateMachine)
-    QML_EXTENDED(QScxmlStateMachineExtended)
-    QML_ADDED_IN_VERSION(5,8)
-};
+#define Q_SCXMLQML_PRIVATE_EXPORT Q_SCXMLQML_EXPORT
 
 QT_END_NAMESPACE
 
-#endif // STATEMACHINEEXTENDED_P_H
+void Q_SCXMLQML_PRIVATE_EXPORT qml_register_types_QtScxml();
+
+#endif // QSCXMLQMLGLOBALS_P_H
