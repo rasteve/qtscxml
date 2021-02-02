@@ -9,21 +9,14 @@ qt_internal_add_qml_module(qtqmlstatemachine
     VERSION "${CMAKE_PROJECT_VERSION}"
     CLASSNAME QtQmlStateMachinePlugin
     SKIP_TYPE_REGISTRATION
-    GENERATE_QMLTYPES
-    INSTALL_QMLTYPES
+    PLUGIN_OPTIONAL
     SOURCES
-        childrenprivate.h
-        finalstate.cpp finalstate.h
         plugin.cpp
-        signaltransition.cpp signaltransition.h
-        state.cpp state.h
-        statemachine.cpp statemachine.h
-        statemachineforeign.h
-        timeouttransition.cpp timeouttransition.h
     PUBLIC_LIBRARIES
-        Qt::CorePrivate
-        Qt::QmlPrivate
-        Qt::StateMachine
+        Qt::Core
+        Qt::Qml
+    LIBRARIES
+        Qt::StateMachineQmlPrivate
 )
 
 #### Keys ignored in scope 1:.:.:statemachine.pro:<TRUE>:

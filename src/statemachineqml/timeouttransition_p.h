@@ -40,6 +40,19 @@
 #ifndef TIMEOUTTRANSITION_H
 #define TIMEOUTTRANSITION_H
 
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include "qstatemachineqmlglobals_p.h"
+
 #include <QtStateMachine/QSignalTransition>
 #include <QtQml/QQmlParserStatus>
 #include <QtQml/qqml.h>
@@ -47,7 +60,7 @@
 QT_BEGIN_NAMESPACE
 class QTimer;
 
-class TimeoutTransition : public QSignalTransition, public QQmlParserStatus
+class Q_STATEMACHINEQML_PRIVATE_EXPORT TimeoutTransition : public QSignalTransition, public QQmlParserStatus
 {
     Q_OBJECT
     Q_PROPERTY(int timeout READ timeout WRITE setTimeout NOTIFY timeoutChanged)

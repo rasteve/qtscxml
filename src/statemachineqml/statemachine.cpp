@@ -37,15 +37,12 @@
 **
 ****************************************************************************/
 
-#include "statemachine.h"
+#include "statemachine_p.h"
 
 #include <QAbstractTransition>
 #include <QQmlContext>
 #include <QQmlEngine>
 #include <QQmlInfo>
-
-#include <private/qqmlopenmetaobject_p.h>
-#include <private/qqmlengine_p.h>
 
 StateMachine::StateMachine(QObject *parent)
     : QStateMachine(parent), m_completed(false), m_running(false)
@@ -231,4 +228,4 @@ QQmlListProperty<QObject> StateMachine::children()
     \sa running, stop(), State::finished
 */
 
-#include "moc_statemachine.cpp"
+#include "moc_statemachine_p.cpp"

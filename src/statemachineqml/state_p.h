@@ -37,29 +37,44 @@
 **
 ****************************************************************************/
 
-#ifndef QQMLFINALSTATE_H
-#define QQMLFINALSTATE_H
+#ifndef STATE_H
+#define STATE_H
 
-#include "childrenprivate.h"
-#include "statemachine.h"
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
-#include <QtStateMachine/QFinalState>
+#include "qstatemachineqmlglobals_p.h"
+#include "childrenprivate_p.h"
+
+#include <QtStateMachine/QState>
+#include <QtQml/QQmlParserStatus>
 #include <QtQml/QQmlListProperty>
 #include <QtQml/qqml.h>
 
-
 QT_BEGIN_NAMESPACE
 
-class FinalState : public QFinalState
+class Q_STATEMACHINEQML_PRIVATE_EXPORT State : public QState, public QQmlParserStatus
 {
     Q_OBJECT
+    Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(QQmlListProperty<QObject> children READ children NOTIFY childrenChanged)
     Q_CLASSINFO("DefaultProperty", "children")
     QML_ELEMENT
     QML_ADDED_IN_VERSION(1, 0)
 
 public:
-    explicit FinalState(QState *parent = 0);
+    explicit State(QState *parent = 0);
+
+    void classBegin() override {}
+    void componentComplete() override;
 
     QQmlListProperty<QObject> children();
 
@@ -67,8 +82,9 @@ Q_SIGNALS:
     void childrenChanged();
 
 private:
-    ChildrenPrivate<FinalState, ChildrenMode::State> m_children;
+    ChildrenPrivate<State, ChildrenMode::StateOrTransition> m_children;
 };
 
 QT_END_NAMESPACE
+
 #endif

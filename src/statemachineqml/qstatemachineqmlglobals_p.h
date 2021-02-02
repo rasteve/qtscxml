@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Ford Motor Company
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the plugins of the Qt Toolkit.
+** This file is part of the QtSTATEMACHINE module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
@@ -37,25 +37,38 @@
 **
 ****************************************************************************/
 
-#include <QtStateMachineQml/private/qstatemachineqmlglobals_p.h>
-#include <QtQml/qqmlextensionplugin.h>
-#include <QtQml/qqml.h>
+#ifndef QSTATEMACHINEQMLGLOBALS_P_H
+#define QSTATEMACHINEQMLGLOBALS_P_H
+
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <QtCore/qglobal.h>
 
 QT_BEGIN_NAMESPACE
 
-class QtQmlStateMachinePlugin : public QQmlEngineExtensionPlugin
-{
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID QQmlEngineExtensionInterface_iid)
+#if !defined(QT_STATIC)
+#  if defined(QT_BUILD_STATEMACHINEQML_LIB)
+#    define Q_STATEMACHINEQML_EXPORT Q_DECL_EXPORT
+#  else
+#    define Q_STATEMACHINEQML_EXPORT Q_DECL_IMPORT
+#  endif
+#else
+#  define Q_STATEMACHINEQML_EXPORT
+#endif
 
-public:
-    QtQmlStateMachinePlugin(QObject *parent = nullptr) : QQmlEngineExtensionPlugin(parent)
-    {
-        volatile auto registration = &qml_register_types_QtQml_StateMachine;
-        Q_UNUSED(registration);
-    }
-};
+#define Q_STATEMACHINEQML_PRIVATE_EXPORT Q_STATEMACHINEQML_EXPORT
 
 QT_END_NAMESPACE
 
-#include "plugin.moc"
+void Q_STATEMACHINEQML_PRIVATE_EXPORT qml_register_types_QtQml_StateMachine();
+
+#endif // QSTATEMACHINEQMLGLOBALS_P_H

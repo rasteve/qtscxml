@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "signaltransition.h"
+#include "signaltransition_p.h"
 
 #include <QStateMachine>
 #include <QMetaProperty>
@@ -77,7 +77,7 @@ bool SignalTransition::eventTest(QEvent *event)
     QMetaMethod metaMethod = e->sender()->metaObject()->method(e->signalIndex());
     const auto parameterNames = metaMethod.parameterNames();
     for (int i = 0; i < count; i++)
-        context.setContextProperty(parameterNames[i], QVariant::fromValue(e->arguments().at(i)));
+        context.setContextProperty(QString::fromUtf8(parameterNames[i]), QVariant::fromValue(e->arguments().at(i)));
 
     QQmlExpression expr(m_guard, &context, this);
     QVariant result = expr.evaluate();
@@ -346,4 +346,4 @@ void SignalTransitionParser::applyBindings(
     \sa signal
 */
 
-#include "moc_signaltransition.cpp"
+#include "moc_signaltransition_p.cpp"

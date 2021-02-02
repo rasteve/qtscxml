@@ -40,6 +40,19 @@
 #ifndef SIGNALTRANSITION_H
 #define SIGNALTRANSITION_H
 
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include "qstatemachineqmlglobals_p.h"
+
 #include <QtStateMachine/QSignalTransition>
 #include <QtCore/QVariant>
 #include <QtQml/QJSValue>
@@ -52,7 +65,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class SignalTransition : public QSignalTransition, public QQmlParserStatus
+class Q_STATEMACHINEQML_PRIVATE_EXPORT SignalTransition : public QSignalTransition, public QQmlParserStatus
 {
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)

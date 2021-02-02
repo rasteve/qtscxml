@@ -37,7 +37,7 @@
 **
 ****************************************************************************/
 
-#include "state.h"
+#include "state_p.h"
 
 #include <QQmlContext>
 #include <QQmlEngine>
@@ -237,4 +237,4 @@ QQmlListProperty<QObject> State::children()
     \endlist
 */
 
-#include "moc_state.cpp"
+#include "moc_state_p.cpp"

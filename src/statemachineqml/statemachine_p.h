@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2019 The Qt Company Ltd.
+** Copyright (C) 2016 Ford Motor Company
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the QtQml module of the Qt Toolkit.
@@ -37,48 +37,69 @@
 **
 ****************************************************************************/
 
-#ifndef STATEMACHINEFOREIGN_H
-#define STATEMACHINEFOREIGN_H
+#ifndef STATEMACHINE_H
+#define STATEMACHINE_H
 
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include "qstatemachineqmlglobals_p.h"
+#include "childrenprivate_p.h"
+
+#include <QtStateMachine/QStateMachine>
+#include <QtQml/QQmlParserStatus>
+#include <QtQml/QQmlListProperty>
 #include <QtQml/qqml.h>
-#include <QtStateMachine/qhistorystate.h>
-#include <QtStateMachine/qstate.h>
-#include <QtStateMachine/qabstractstate.h>
-#include <QtStateMachine/qsignaltransition.h>
 
-struct QHistoryStateForeign
+QT_BEGIN_NAMESPACE
+
+class Q_STATEMACHINEQML_PRIVATE_EXPORT StateMachine : public QStateMachine, public QQmlParserStatus
 {
-    Q_GADGET
-    QML_FOREIGN(QHistoryState)
-    QML_NAMED_ELEMENT(HistoryState)
+    Q_OBJECT
+    Q_INTERFACES(QQmlParserStatus)
+    Q_PROPERTY(QQmlListProperty<QObject> children READ children NOTIFY childrenChanged)
+
+    // Override to delay execution after componentComplete()
+    Q_PROPERTY(bool running READ isRunning WRITE setRunning NOTIFY qmlRunningChanged)
+
+    Q_CLASSINFO("DefaultProperty", "children")
+    QML_ELEMENT
     QML_ADDED_IN_VERSION(1, 0)
+
+public:
+    explicit StateMachine(QObject *parent = 0);
+
+    void classBegin() override {}
+    void componentComplete() override;
+    QQmlListProperty<QObject> children();
+
+    bool isRunning() const;
+    void setRunning(bool running);
+
+private Q_SLOTS:
+    void checkChildMode();
+
+Q_SIGNALS:
+    void childrenChanged();
+    /*!
+     * \internal
+     */
+    void qmlRunningChanged();
+
+private:
+    ChildrenPrivate<StateMachine, ChildrenMode::StateOrTransition> m_children;
+    bool m_completed;
+    bool m_running;
 };
 
-struct QStateForeign
-{
-    Q_GADGET
-    QML_FOREIGN(QState)
-    QML_NAMED_ELEMENT(QState)
-    QML_ADDED_IN_VERSION(1, 0)
-    QML_UNCREATABLE("Don't use this, use State instead.")
-};
+QT_END_NAMESPACE
 
-struct QAbstractStateForeign
-{
-    Q_GADGET
-    QML_FOREIGN(QAbstractState)
-    QML_NAMED_ELEMENT(QAbstractState)
-    QML_ADDED_IN_VERSION(1, 0)
-    QML_UNCREATABLE("Don't use this, use State instead.")
-};
-
-struct QSignalTransitionForeign
-{
-    Q_GADGET
-    QML_FOREIGN(QSignalTransition)
-    QML_NAMED_ELEMENT(QSignalTransition)
-    QML_ADDED_IN_VERSION(1, 0)
-    QML_UNCREATABLE("Don't use this, use SignalTransition instead.")
-};
-
-#endif // STATEMACHINEFOREIGN_H
+#endif

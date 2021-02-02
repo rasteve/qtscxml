@@ -37,49 +37,78 @@
 **
 ****************************************************************************/
 
-#include "finalstate.h"
+#include "timeouttransition_p.h"
 
-#include <QQmlContext>
-#include <QQmlEngine>
 #include <QQmlInfo>
+#include <QTimer>
+#include <QState>
 
-FinalState::FinalState(QState *parent)
-    : QFinalState(parent)
+TimeoutTransition::TimeoutTransition(QState* parent)
+    : QSignalTransition((m_timer = new QTimer), SIGNAL(timeout()), parent)
 {
+    m_timer->setSingleShot(true);
+    m_timer->setInterval(1000);
 }
 
-QQmlListProperty<QObject> FinalState::children()
+TimeoutTransition::~TimeoutTransition()
 {
-    return QQmlListProperty<QObject>(this, &m_children,
-                                     m_children.append, m_children.count, m_children.at,
-                                     m_children.clear, m_children.replace, m_children.removeLast);
+    delete m_timer;
+}
+
+int TimeoutTransition::timeout() const
+{
+    return m_timer->interval();
+}
+
+void TimeoutTransition::setTimeout(int timeout)
+{
+    if (timeout != m_timer->interval()) {
+        m_timer->setInterval(timeout);
+        emit timeoutChanged();
+    }
+}
+
+void TimeoutTransition::componentComplete()
+{
+    QState *state = qobject_cast<QState*>(parent());
+    if (!state) {
+        qmlWarning(this) << "Parent needs to be a State";
+        return;
+    }
+
+    connect(state, SIGNAL(entered()), m_timer, SLOT(start()));
+    connect(state, SIGNAL(exited()), m_timer, SLOT(stop()));
+    if (state->active())
+        m_timer->start();
 }
 
 /*!
-    \qmltype FinalState
+    \qmltype TimeoutTransition
     \inqmlmodule QtQml.StateMachine
-    \inherits QAbstractState
+    \inherits QSignalTransition
     \ingroup statemachine-qmltypes
     \since 5.4
 
-    \brief Provides a final state.
+    \brief The TimeoutTransition type provides a transition based on a timer.
 
+    \l{Timer} type can be combined with SignalTransition to enact more complex
+    timeout based transitions.
 
-    A final state is used to communicate that (part of) a StateMachine has
-    finished its work.  When a final top-level state is entered, the state
-    machine's \l{State::finished}{finished}() signal is emitted. In
-    general, when a final substate (a child of a State) is entered, the parent
-    state's \l{State::finished}{finished}() signal is emitted.  FinalState
-    is part of \l{The Declarative State Machine Framework}.
-
-    To use a final state, you create a FinalState object and add a transition
-    to it from another state.
+    TimeoutTransition is part of \l{The Declarative State Machine Framework}.
 
     \section1 Example Usage
 
-    \snippet qml/statemachine/finalstate.qml document
+    \snippet qml/statemachine/timeouttransition.qml document
 
     \clearfloat
 
-    \sa StateMachine, State
+    \sa StateMachine, SignalTransition, FinalState, HistoryState
 */
+
+/*!
+    \qmlproperty int TimeoutTransition::timeout
+
+    \brief The timeout interval in milliseconds.
+*/
+
+#include "moc_timeouttransition_p.cpp"

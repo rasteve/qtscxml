@@ -37,42 +37,49 @@
 **
 ****************************************************************************/
 
-#ifndef STATE_H
-#define STATE_H
+#include "finalstate_p.h"
 
-#include "childrenprivate.h"
+#include <QQmlContext>
+#include <QQmlEngine>
+#include <QQmlInfo>
 
-#include <QtStateMachine/QState>
-#include <QtQml/QQmlParserStatus>
-#include <QtQml/QQmlListProperty>
-#include <QtQml/qqml.h>
-
-QT_BEGIN_NAMESPACE
-
-class State : public QState, public QQmlParserStatus
+FinalState::FinalState(QState *parent)
+    : QFinalState(parent)
 {
-    Q_OBJECT
-    Q_INTERFACES(QQmlParserStatus)
-    Q_PROPERTY(QQmlListProperty<QObject> children READ children NOTIFY childrenChanged)
-    Q_CLASSINFO("DefaultProperty", "children")
-    QML_ELEMENT
-    QML_ADDED_IN_VERSION(1, 0)
+}
 
-public:
-    explicit State(QState *parent = 0);
+QQmlListProperty<QObject> FinalState::children()
+{
+    return QQmlListProperty<QObject>(this, &m_children,
+                                     m_children.append, m_children.count, m_children.at,
+                                     m_children.clear, m_children.replace, m_children.removeLast);
+}
 
-    void classBegin() override {}
-    void componentComplete() override;
+/*!
+    \qmltype FinalState
+    \inqmlmodule QtQml.StateMachine
+    \inherits QAbstractState
+    \ingroup statemachine-qmltypes
+    \since 5.4
 
-    QQmlListProperty<QObject> children();
+    \brief Provides a final state.
 
-Q_SIGNALS:
-    void childrenChanged();
 
-private:
-    ChildrenPrivate<State, ChildrenMode::StateOrTransition> m_children;
-};
+    A final state is used to communicate that (part of) a StateMachine has
+    finished its work.  When a final top-level state is entered, the state
+    machine's \l{State::finished}{finished}() signal is emitted. In
+    general, when a final substate (a child of a State) is entered, the parent
+    state's \l{State::finished}{finished}() signal is emitted.  FinalState
+    is part of \l{The Declarative State Machine Framework}.
 
-QT_END_NAMESPACE
+    To use a final state, you create a FinalState object and add a transition
+    to it from another state.
 
-#endif
+    \section1 Example Usage
+
+    \snippet qml/statemachine/finalstate.qml document
+
+    \clearfloat
+
+    \sa StateMachine, State
+*/

@@ -37,78 +37,50 @@
 **
 ****************************************************************************/
 
-#include "timeouttransition.h"
+#ifndef QQMLFINALSTATE_H
+#define QQMLFINALSTATE_H
 
-#include <QQmlInfo>
-#include <QTimer>
-#include <QState>
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
 
-TimeoutTransition::TimeoutTransition(QState* parent)
-    : QSignalTransition((m_timer = new QTimer), SIGNAL(timeout()), parent)
+#include "qstatemachineqmlglobals_p.h"
+#include "childrenprivate_p.h"
+#include "statemachine_p.h"
+
+#include <QtStateMachine/QFinalState>
+#include <QtQml/QQmlListProperty>
+#include <QtQml/qqml.h>
+
+
+QT_BEGIN_NAMESPACE
+
+class Q_STATEMACHINEQML_PRIVATE_EXPORT FinalState : public QFinalState
 {
-    m_timer->setSingleShot(true);
-    m_timer->setInterval(1000);
-}
+    Q_OBJECT
+    Q_PROPERTY(QQmlListProperty<QObject> children READ children NOTIFY childrenChanged)
+    Q_CLASSINFO("DefaultProperty", "children")
+    QML_ELEMENT
+    QML_ADDED_IN_VERSION(1, 0)
 
-TimeoutTransition::~TimeoutTransition()
-{
-    delete m_timer;
-}
+public:
+    explicit FinalState(QState *parent = 0);
 
-int TimeoutTransition::timeout() const
-{
-    return m_timer->interval();
-}
+    QQmlListProperty<QObject> children();
 
-void TimeoutTransition::setTimeout(int timeout)
-{
-    if (timeout != m_timer->interval()) {
-        m_timer->setInterval(timeout);
-        emit timeoutChanged();
-    }
-}
+Q_SIGNALS:
+    void childrenChanged();
 
-void TimeoutTransition::componentComplete()
-{
-    QState *state = qobject_cast<QState*>(parent());
-    if (!state) {
-        qmlWarning(this) << "Parent needs to be a State";
-        return;
-    }
+private:
+    ChildrenPrivate<FinalState, ChildrenMode::State> m_children;
+};
 
-    connect(state, SIGNAL(entered()), m_timer, SLOT(start()));
-    connect(state, SIGNAL(exited()), m_timer, SLOT(stop()));
-    if (state->active())
-        m_timer->start();
-}
-
-/*!
-    \qmltype TimeoutTransition
-    \inqmlmodule QtQml.StateMachine
-    \inherits QSignalTransition
-    \ingroup statemachine-qmltypes
-    \since 5.4
-
-    \brief The TimeoutTransition type provides a transition based on a timer.
-
-    \l{Timer} type can be combined with SignalTransition to enact more complex
-    timeout based transitions.
-
-    TimeoutTransition is part of \l{The Declarative State Machine Framework}.
-
-    \section1 Example Usage
-
-    \snippet qml/statemachine/timeouttransition.qml document
-
-    \clearfloat
-
-    \sa StateMachine, SignalTransition, FinalState, HistoryState
-*/
-
-/*!
-    \qmlproperty int TimeoutTransition::timeout
-
-    \brief The timeout interval in milliseconds.
-*/
-
-#include "moc_timeouttransition.cpp"
+QT_END_NAMESPACE
+#endif
