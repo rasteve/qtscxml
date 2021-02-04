@@ -156,6 +156,7 @@ public:
                                   slotObj, type);
     }
 
+    //! [onentry]
     static std::function<void(bool)> onEntry(const QObject *receiver, const char *method)
     {
         const QPointer<QObject> receiverPointer(const_cast<QObject *>(receiver));
@@ -165,6 +166,7 @@ public:
         };
     }
 
+    //! [onexit]
     static std::function<void(bool)> onExit(const QObject *receiver, const char *method)
     {
         const QPointer<QObject> receiverPointer(const_cast<QObject *>(receiver));
@@ -174,6 +176,7 @@ public:
         };
     }
 
+    //! [onentry-functor]
     template<typename Functor>
     static std::function<void(bool)> onEntry(Functor functor)
     {
@@ -183,6 +186,7 @@ public:
         };
     }
 
+    //! [onexit-functor]
     template<typename Functor>
     static std::function<void(bool)> onExit(Functor functor)
     {
@@ -192,6 +196,7 @@ public:
         };
     }
 
+    //! [onentry-template]
     template<typename PointerToMemberFunction>
     static std::function<void(bool)> onEntry(
             const typename QtPrivate::FunctionPointer<PointerToMemberFunction>::Object *receiver,
@@ -205,6 +210,7 @@ public:
         };
     }
 
+    //! [onexit-template]
     template<typename PointerToMemberFunction>
     static std::function<void(bool)> onExit(
             const typename QtPrivate::FunctionPointer<PointerToMemberFunction>::Object *receiver,

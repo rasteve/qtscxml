@@ -52,11 +52,13 @@
     import QtScxml
     \endqml
 
-    To link against the module, add this line to your qmake .pro file:
+    To link against the module:
 
-    \code
-    QT += scxml
-    \endcode
+    Using cmake:
+    \include qtscxml-module-use.qdocinc cmakebuild
+
+    Using qmake:
+    \include qtscxml-module-use.qdocinc qmakebuild
 
     \section1 Articles and Guides
 

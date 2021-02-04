@@ -15,10 +15,7 @@ endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/scxml/invoke-dynamic")
 
-find_package(Qt6 COMPONENTS Core)
-find_package(Qt6 COMPONENTS Gui)
-find_package(Qt6 COMPONENTS Qml)
-find_package(Qt6 COMPONENTS Scxml)
+find_package(Qt6 COMPONENTS Core Gui Qml Scxml)
 
 qt_add_executable(invoke-dynamic
     invoke-dynamic.cpp
@@ -28,12 +25,11 @@ set_target_properties(invoke-dynamic PROPERTIES
     MACOSX_BUNDLE TRUE
 )
 target_link_libraries(invoke-dynamic PUBLIC
-    Qt::Core
-    Qt::Gui
-    Qt::Qml
-    Qt::Scxml
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Qml
+    Qt6::Scxml
 )
-
 
 # Resources:
 set_source_files_properties("../invoke-common/Button.qml"

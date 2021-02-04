@@ -15,10 +15,7 @@ endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/scxml/trafficlight-widgets-dynamic")
 
-find_package(Qt6 COMPONENTS Core)
-find_package(Qt6 COMPONENTS Gui)
-find_package(Qt6 COMPONENTS Widgets)
-find_package(Qt6 COMPONENTS Scxml)
+find_package(Qt6 COMPONENTS Core Gui Widgets Scxml)
 
 qt_add_executable(trafficlight-widgets-dynamic
     ../trafficlight-common/trafficlight.cpp ../trafficlight-common/trafficlight.h
@@ -29,10 +26,10 @@ set_target_properties(trafficlight-widgets-dynamic PROPERTIES
     MACOSX_BUNDLE TRUE
 )
 target_link_libraries(trafficlight-widgets-dynamic PUBLIC
-    Qt::Core
-    Qt::Gui
-    Qt::Scxml
-    Qt::Widgets
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Scxml
+    Qt6::Widgets
 )
 
 

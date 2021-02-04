@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -25,29 +25,30 @@
 **
 ****************************************************************************/
 
-/*!
-    \module QtScxml
-    \title Qt SCXML C++ Classes
-    \brief Provides classes to create and use state machines from SCXML files.
-
-    \ingroup modules
-    \ingroup technology-apis
-    \qtvariable scxml
-    \qtcmakepackage Scxml
-
-    To include the definitions of the module's classes, use the following directive:
-
+//! [cmakebuild]
     \code
-    #include <QScxmlStateMachine>
+    find_package(Qt6 COMPONENTS Scxml REQUIRED)
+    target_link_libraries(mytarget PRIVATE Qt6::Scxml)
     \endcode
+//! [cmakebuild]
 
-    To use the module with cmake, use the \c{find_package()} command to locate the
-    needed module components in the \c{Qt6} package:
-    \include qtscxml-module-use.qdocinc cmakebuild
+//! [qmakebuild]
+    \code
+    QT += scxml
+    \endcode
+//! [qmakebuild]
 
-    To configure the module for building with qmake, add the module as a value
-    of the \c QT variable in the project's .pro file:
-    \include qtscxml-module-use.qdocinc qmakebuild
+//! [qmakestatecharts]
+    \code
+    STATECHARTS = MyStatemachine.scxml
+    \endcode
+//! [qmakestatecharts]
 
-    For more information, see \l{Instantiating State Machines}.
-*/
+//! [cmakestatecharts]
+    \code
+    qt6_add_statecharts(mytarget
+        MyStatemachine.scxml
+    )
+    \endcode
+//! [cmakestatecharts]
+

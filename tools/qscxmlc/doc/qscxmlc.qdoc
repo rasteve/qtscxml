@@ -39,18 +39,23 @@
 
     \section1 Usage
 
-    The \c qscxml tool is invoked automatically if the QT variable in the
-    project file includes \c scxml, and the .scxml file to use is specified
-    using the \c STATECHARTS variable.
+    The \c qscxmlc tool is invoked automatically if the project is linked against
+    the \c scxml library in the project file, and the \c .scxml file to use is specified
+    using the special build directives \c STATECHARTS or qt6_add_statecharts.
 
-    \badcode
-    QT += scxml
-    STATECHARTS = MyStatemachine.scxml
-    \endcode
+    When using cmake:
 
-    With above definitions, \c qmake invokes \c qscxmlc to generate
-    MyStatemachine.h and MyStatemachine.cpp, and adds them to \l [QMake]
-    HEADERS and \l [QMAKE] SOURCES variables.
+    \include qtscxml-module-use.qdocinc cmakebuild
+    \include qtscxml-module-use.qdocinc cmakestatecharts
+
+    When using qmake:
+
+    \include qtscxml-module-use.qdocinc qmakebuild
+    \include qtscxml-module-use.qdocinc qmakestatecharts
+
+    With above definitions, \c qmake or \c cmake invokes \c qscxmlc to generate
+    MyStatemachine.h and MyStatemachine.cpp, and adds them appropriately
+    to the project as headers and sources.
 
     By default, the name of the generated class that implements the state
     machine corresponds with the \e name attribute of the \c <scxml> root

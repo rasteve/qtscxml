@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -26,28 +26,35 @@
 ****************************************************************************/
 
 /*!
-    \module QtScxml
-    \title Qt SCXML C++ Classes
-    \brief Provides classes to create and use state machines from SCXML files.
+    \page qtscxml-changes-qt6.html
+    \title Changes to Qt SCXML
+    \ingroup changes-qt-5-to-6
+    \brief Migrate Qt SCXML to Qt 6.
 
-    \ingroup modules
-    \ingroup technology-apis
-    \qtvariable scxml
-    \qtcmakepackage Scxml
+    Qt 6 is a result of the conscious effort to make the framework more
+    efficient and easy to use.
 
-    To include the definitions of the module's classes, use the following directive:
+    We try to maintain binary and source compatibility for all the public
+    APIs in each release. But some changes were inevitable in an effort to
+    make Qt a better framework.
 
-    \code
-    #include <QScxmlStateMachine>
-    \endcode
+    In this topic we summarize those changes in Qt SCXML module, and provide
+    guidance to handle them.
 
-    To use the module with cmake, use the \c{find_package()} command to locate the
-    needed module components in the \c{Qt6} package:
-    \include qtscxml-module-use.qdocinc cmakebuild
+    \section1 Changes overview
 
-    To configure the module for building with qmake, add the module as a value
-    of the \c QT variable in the project's .pro file:
-    \include qtscxml-module-use.qdocinc qmakebuild
+    The Qt SCXML module is generally speaking source compatible with the Qt5
+    version and users of the library should be able to continue with no or
+    minor changes to their project.
 
-    For more information, see \l{Instantiating State Machines}.
+    \section1 Build system
+
+    As with Qt6 in general, the Qt SCXML module has cmake support in addition
+    to qmake.
+
+    \section1 QML imports
+
+    The QML import versioning is optional unless one has a specific
+    reason for not using the latest. Generally speaking the versioned imports
+    work from version 5.8 to 6.x, where 'x' is the current minor release.
 */

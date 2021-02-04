@@ -200,7 +200,7 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 */
 
 /*!
-    \fn std::function<void(bool)> QScxmlStateMachine::onEntry(
+    \fn [onentry] std::function<void(bool)> QScxmlStateMachine::onEntry(
             const QObject *receiver, const char *method)
 
     Returns a functor that accepts a boolean argument and calls the given
@@ -215,7 +215,7 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
  */
 
 /*!
-    \fn std::function<void(bool)> QScxmlStateMachine::onExit(
+    \fn [onexit] std::function<void(bool)> QScxmlStateMachine::onExit(
             const QObject *receiver, const char *method)
 
     Returns a functor that accepts a boolean argument and calls the given
@@ -230,7 +230,7 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
  */
 
 /*!
-    \fn template<typename Functor> std::function<void(bool)> QScxmlStateMachine::onEntry(
+    \fn [onentry-functor] template<typename Functor> std::function<void(bool)> QScxmlStateMachine::onEntry(
             Functor functor)
 
     Returns a functor that accepts a boolean argument and calls the given
@@ -242,7 +242,7 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
  */
 
 /*!
-    \fn template<typename Functor> std::function<void(bool)> QScxmlStateMachine::onExit(Functor functor)
+    \fn [onexit-functor] template<typename Functor> std::function<void(bool)> QScxmlStateMachine::onExit(Functor functor)
 
     Returns a functor that accepts a boolean argument and calls the given
     \a functor if that argument is \c false. The given \a functor must not
@@ -253,7 +253,7 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
  */
 
 /*!
-    \fn template<typename PointerToMemberFunction> std::function<void(bool)> QScxmlStateMachine::onEntry(
+    \fn [onentry-template] template<typename PointerToMemberFunction> std::function<void(bool)> QScxmlStateMachine::onEntry(
             const typename QtPrivate::FunctionPointer<PointerToMemberFunction>::Object *receiver,
             PointerToMemberFunction method)
 
@@ -267,7 +267,7 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
  */
 
 /*!
-    \fn template<typename PointerToMemberFunction> std::function<void(bool)> QScxmlStateMachine::onExit(
+    \fn [onexit-template] template<typename PointerToMemberFunction> std::function<void(bool)> QScxmlStateMachine::onExit(
             const typename QtPrivate::FunctionPointer<PointerToMemberFunction>::Object *receiver,
             PointerToMemberFunction method)
 

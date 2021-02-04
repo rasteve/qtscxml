@@ -15,9 +15,7 @@ endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/scxml/ftpclient")
 
-find_package(Qt6 COMPONENTS Core)
-find_package(Qt6 COMPONENTS Scxml)
-find_package(Qt6 COMPONENTS Network)
+find_package(Qt6 COMPONENTS Core Scxml Network)
 
 qt_add_executable(ftpclient
     ftpcontrolchannel.cpp ftpcontrolchannel.h
@@ -29,11 +27,10 @@ set_target_properties(ftpclient PROPERTIES
     MACOSX_BUNDLE TRUE
 )
 target_link_libraries(ftpclient PUBLIC
-    Qt::Core
-    Qt::Network
-    Qt::Scxml
+    Qt6::Core
+    Qt6::Network
+    Qt6::Scxml
 )
-
 
 # Statecharts:
 qt6_add_statecharts(ftpclient

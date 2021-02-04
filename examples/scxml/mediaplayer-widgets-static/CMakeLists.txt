@@ -15,10 +15,7 @@ endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/scxml/mediaplayer-widgets-static")
 
-find_package(Qt6 COMPONENTS Core)
-find_package(Qt6 COMPONENTS Gui)
-find_package(Qt6 COMPONENTS Widgets)
-find_package(Qt6 COMPONENTS Scxml)
+find_package(Qt6 COMPONENTS Core Gui Widgets Scxml)
 
 qt_add_executable(mediaplayer-widgets-static
     ../mediaplayer-common/mainwindow.cpp ../mediaplayer-common/mainwindow.h ../mediaplayer-common/mainwindow.ui
@@ -29,12 +26,11 @@ set_target_properties(mediaplayer-widgets-static PROPERTIES
     MACOSX_BUNDLE TRUE
 )
 target_link_libraries(mediaplayer-widgets-static PUBLIC
-    Qt::Core
-    Qt::Gui
-    Qt::Scxml
-    Qt::Widgets
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Scxml
+    Qt6::Widgets
 )
-
 
 # Statecharts:
 qt6_add_statecharts(mediaplayer-widgets-static

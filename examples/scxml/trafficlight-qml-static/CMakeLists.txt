@@ -15,10 +15,7 @@ endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/scxml/trafficlight-qml-static")
 
-find_package(Qt6 COMPONENTS Core)
-find_package(Qt6 COMPONENTS Gui)
-find_package(Qt6 COMPONENTS Qml)
-find_package(Qt6 COMPONENTS Scxml)
+find_package(Qt6 COMPONENTS Core Gui Qml Scxml)
 
 qt_add_executable(trafficlight-qml-static
     trafficlight-qml-static.cpp
@@ -28,10 +25,10 @@ set_target_properties(trafficlight-qml-static PROPERTIES
     MACOSX_BUNDLE TRUE
 )
 target_link_libraries(trafficlight-qml-static PUBLIC
-    Qt::Core
-    Qt::Gui
-    Qt::Qml
-    Qt::Scxml
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Qml
+    Qt6::Scxml
 )
 
 
