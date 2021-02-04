@@ -37,12 +37,12 @@
 **
 ****************************************************************************/
 
-#include "qscxmlglobals_p.h"
+#include <QtScxml/private/qscxmlglobals_p.h>
 #include "qscxmlecmascriptdatamodel.h"
 #include "qscxmlecmascriptplatformproperties_p.h"
-#include "qscxmlexecutablecontent_p.h"
-#include "qscxmlstatemachine_p.h"
-#include "qscxmldatamodel_p.h"
+#include <QtScxml/private/qscxmlexecutablecontent_p.h>
+#include <QtScxml/private/qscxmlstatemachine_p.h>
+#include <QtScxml/private/qscxmldatamodel_p.h>
 
 #include <qjsengine.h>
 #include <qjsondocument.h>
@@ -52,6 +52,9 @@
 #include <functional>
 
 QT_BEGIN_NAMESPACE
+
+Q_LOGGING_CATEGORY(qscxmlLog, "qt.scxml.statemachine")
+Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
 using namespace QScxmlExecutableContent;
 

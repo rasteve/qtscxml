@@ -37,44 +37,55 @@
 **
 ****************************************************************************/
 
-#ifndef QSCXMLECMASCRIPTDATAMODEL_H
-#define QSCXMLECMASCRIPTDATAMODEL_H
+#ifndef QSCXMLECMASCRIPTPLATFORMPROPERTIES_P_H
+#define QSCXMLECMASCRIPTPLATFORMPROPERTIES_P_H
 
-#include <QtScxml/qscxmlglobals.h>
-#include <QtScxml/qscxmldatamodel.h>
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include "qscxmlglobals.h"
+
+#include <QtCore/qobject.h>
+
+QT_FORWARD_DECLARE_CLASS(QJSEngine)
+QT_FORWARD_DECLARE_CLASS(QJSValue)
 
 QT_BEGIN_NAMESPACE
 
-// We cannot use QT_REQUIRE_CONFIG here, because the feature name contains a dash.
-#if QT_CONFIG(scxml_ecmascriptdatamodel)
-
-class QScxmlEcmaScriptDataModelPrivate;
-class Q_SCXML_EXPORT QScxmlEcmaScriptDataModel: public QScxmlDataModel
+class QScxmlStateMachine;
+class QScxmlPlatformProperties: public QObject
 {
     Q_OBJECT
-    Q_DECLARE_PRIVATE(QScxmlEcmaScriptDataModel)
+
+    QScxmlPlatformProperties(QObject *parent);
+
+    Q_PROPERTY(QString marks READ marks CONSTANT)
+
 public:
-    explicit QScxmlEcmaScriptDataModel(QObject *parent = nullptr);
+    static QScxmlPlatformProperties *create(QJSEngine *engine, QScxmlStateMachine *stateMachine);
+    ~QScxmlPlatformProperties();
 
-    Q_INVOKABLE bool setup(const QVariantMap &initialDataValues) override;
+    QJSEngine *engine() const;
+    QScxmlStateMachine *stateMachine() const;
+    QJSValue jsValue() const;
 
-    QString evaluateToString(QScxmlExecutableContent::EvaluatorId id, bool *ok) override final;
-    bool evaluateToBool(QScxmlExecutableContent::EvaluatorId id, bool *ok) override final;
-    QVariant evaluateToVariant(QScxmlExecutableContent::EvaluatorId id, bool *ok) override final;
-    void evaluateToVoid(QScxmlExecutableContent::EvaluatorId id, bool *ok) override final;
-    void evaluateAssignment(QScxmlExecutableContent::EvaluatorId id, bool *ok) override final;
-    void evaluateInitialization(QScxmlExecutableContent::EvaluatorId id, bool *ok) override final;
-    void evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok, ForeachLoopBody *body) override final;
+    QString marks() const;
 
-    void setScxmlEvent(const QScxmlEvent &event) override;
+    Q_INVOKABLE bool inState(const QString &stateName);
 
-    QVariant scxmlProperty(const QString &name) const override;
-    bool hasScxmlProperty(const QString &name) const override;
-    bool setScxmlProperty(const QString &name, const QVariant &value, const QString &context) override;
+private:
+    class Data;
+    Data *data;
 };
-
-#endif // QT_CONFIG(scxml_ecmascriptdatamodel)
 
 QT_END_NAMESPACE
 
-#endif // QSCXMLECMASCRIPTDATAMODEL_H
+#endif // QSCXMLECMASCRIPTPLATFORMPROPERTIES_P_H

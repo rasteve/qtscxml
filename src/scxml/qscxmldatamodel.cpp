@@ -39,12 +39,16 @@
 
 #include "qscxmldatamodel_p.h"
 #include "qscxmlnulldatamodel.h"
-#if QT_CONFIG(scxml_ecmascriptdatamodel)
-#include "qscxmlecmascriptdatamodel.h"
-#endif
 #include "qscxmlstatemachine_p.h"
 
+#include <QtCore/private/qfactoryloader_p.h>
+#include "qscxmldatamodelplugin.h"
+
 QT_BEGIN_NAMESPACE
+
+Q_GLOBAL_STATIC_WITH_ARGS(QFactoryLoader, loader,
+        ("org.qt-project.qt.scxml.datamodel.plugin",
+         QStringLiteral("/scxmldatamodel")))
 
 /*!
   \class QScxmlDataModel::ForeachLoopBody
@@ -144,6 +148,31 @@ QScxmlStateMachine *QScxmlDataModel::stateMachine() const
     return d->m_stateMachine;
 }
 
+/*!
+ * Creates a data model from a plugin specified by key.
+ */
+QScxmlDataModel *QScxmlDataModel::createScxmlDataModel(const QString& pluginKey)
+{
+    QScxmlDataModel *model = nullptr;
+
+    int pluginIndex = loader()->indexOf(pluginKey);
+
+    if (QObject *object = loader()->instance(pluginIndex)) {
+        if (auto *plugin = qobject_cast<QScxmlDataModelPlugin *>(object)) {
+            model = plugin->createScxmlDataModel();
+            if (!model)
+                qWarning() << pluginKey << " data model was not instantiated, createScxmlDataModel() returned null.";
+
+        } else {
+            qWarning() << "plugin object for" << pluginKey << "is not a QScxmlDatModelPlugin.";
+        }
+        delete object;
+    } else {
+        qWarning() << pluginKey << " plugin not found." ;
+    }
+    return model;
+}
+
 QScxmlDataModel *QScxmlDataModelPrivate::instantiateDataModel(DocumentModel::Scxml::DataModelType type)
 {
     QScxmlDataModel *dataModel = nullptr;
@@ -152,16 +181,13 @@ QScxmlDataModel *QScxmlDataModelPrivate::instantiateDataModel(DocumentModel::Scx
         dataModel = new QScxmlNullDataModel;
         break;
     case DocumentModel::Scxml::JSDataModel:
-#if QT_CONFIG(scxml_ecmascriptdatamodel)
-        dataModel = new QScxmlEcmaScriptDataModel;
-#endif
+        dataModel = QScxmlDataModel::createScxmlDataModel(QStringLiteral("ecmascriptdatamodel"));
         break;
     case DocumentModel::Scxml::CppDataModel:
         break;
     default:
         Q_UNREACHABLE();
     }
-
     return dataModel;
 }
 

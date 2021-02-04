@@ -543,7 +543,7 @@ void CppDumper::writeImplStart()
             includes += l("QScxmlNullDataModel");
             break;
         case DocumentModel::Scxml::JSDataModel:
-            includes += l("QScxmlEcmaScriptDataModel");
+            includes += l("QScxmlDataModel");
             break;
         case DocumentModel::Scxml::CppDataModel:
             includes += doc->root->cppDataModelHeaderName;
@@ -584,8 +584,11 @@ void CppDumper::writeImplBody(const GeneratedTableData &table,
         dataModelInitialization = l("stateMachine.setDataModel(&dataModel);");
         break;
     case DocumentModel::Scxml::JSDataModel:
-        dataModelField = l("QScxmlEcmaScriptDataModel dataModel;");
-        dataModelInitialization = l("stateMachine.setDataModel(&dataModel);");
+        dataModelField = l("QScxmlDataModel *dataModel;");
+        dataModelInitialization = l(
+        "   dataModel = QScxmlDataModel::createScxmlDataModel(QStringLiteral(\"ecmascriptdatamodel\"));\n"
+        "   stateMachine.setDataModel(dataModel);\n"
+        );
         break;
     case DocumentModel::Scxml::CppDataModel:
         dataModelField = QStringLiteral("// Data model %1 is set from outside.").arg(

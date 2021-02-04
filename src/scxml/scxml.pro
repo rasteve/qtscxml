@@ -43,18 +43,6 @@ SOURCES += \
     qscxmltabledata.cpp \
     qscxmlstatemachineinfo.cpp
 
-qtConfig(scxml-ecmascriptdatamodel) {
-    QT += qml-private
-
-    HEADERS += \
-        qscxmlecmascriptdatamodel.h \
-        qscxmlecmascriptplatformproperties_p.h
-
-    SOURCES += \
-        qscxmlecmascriptdatamodel.cpp \
-        qscxmlecmascriptplatformproperties.cpp
-}
-
 load(qt_module)
 
 FEATURES += ../../mkspecs/features/qscxmlc.prf

@@ -57,6 +57,7 @@
 #include <QtCore/private/qobject_p.h>
 #include <QtCore/private/qmetaobject_p.h>
 #include <QtCore/qmetaobject.h>
+#include "qscxmlglobals_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -120,7 +121,7 @@ Q_SIGNALS:
 } // QScxmlInternal namespace
 
 class QScxmlInvokableService;
-class QScxmlStateMachinePrivate: public QObjectPrivate
+class Q_SCXML_PRIVATE_EXPORT QScxmlStateMachinePrivate: public QObjectPrivate
 {
     Q_DECLARE_PUBLIC(QScxmlStateMachine)
 

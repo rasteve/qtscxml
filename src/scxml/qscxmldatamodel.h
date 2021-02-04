@@ -72,6 +72,8 @@ public:
 public:
     explicit QScxmlDataModel(QObject *parent = nullptr);
 
+    static QScxmlDataModel *createScxmlDataModel(const QString& pluginKey);
+
     void setStateMachine(QScxmlStateMachine *stateMachine);
     QScxmlStateMachine *stateMachine() const;
 

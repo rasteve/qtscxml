@@ -6,6 +6,7 @@
 
 qt_internal_add_module(Scxml
     QMAKE_MODULE_CONFIG c++11 qscxmlc
+    PLUGIN_TYPES scxmldatamodel
     SOURCES
         qscxmlcompiler.cpp qscxmlcompiler.h qscxmlcompiler_p.h
         qscxmlcppdatamodel.cpp qscxmlcppdatamodel.h qscxmlcppdatamodel_p.h
@@ -19,11 +20,16 @@ qt_internal_add_module(Scxml
         qscxmlstatemachine.cpp qscxmlstatemachine.h qscxmlstatemachine_p.h
         qscxmlstatemachineinfo.cpp qscxmlstatemachineinfo_p.h
         qscxmltabledata.cpp qscxmltabledata.h qscxmltabledata_p.h
+        qscxmldatamodelplugin.h qscxmldatamodelplugin.cpp
     DEFINES
         QT_NO_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII
+    LIBRARIES
+        Qt::CorePrivate
     PUBLIC_LIBRARIES
         Qt::Core
+    PRIVATE_MODULE_INTERFACE
+        Qt::CorePrivate
 )
 
 # This allows QML element registration outside of this module with the "QML_ELEMENT" & friends
@@ -39,17 +45,6 @@ qt6_extract_metatypes(Scxml)
 ## Scopes:
 #####################################################################
 
-qt_internal_extend_target(Scxml CONDITION QT_FEATURE_scxml_ecmascriptdatamodel
-    SOURCES
-        qscxmlecmascriptdatamodel.cpp qscxmlecmascriptdatamodel.h
-        qscxmlecmascriptplatformproperties.cpp qscxmlecmascriptplatformproperties_p.h
-    LIBRARIES
-        Qt::QmlPrivate
-    PUBLIC_LIBRARIES
-        Qt::Qml
-    PRIVATE_MODULE_INTERFACE
-        Qt::QmlPrivate
-)
 
 #### Keys ignored in scope 3:.:.:scxml.pro:NOT force_independent AND ( NOT debug_and_release OR NOT build_all OR CONFIG(release,debug OR release) ):
 # QMAKE_EXTRA_COMPILERS = "prf2build"
