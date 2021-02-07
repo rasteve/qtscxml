@@ -1,5 +1,6 @@
 # Generated from auto.pro.
 
+add_subdirectory(scxmlcoutput)
 if (TARGET Qt::Gui AND TARGET Qt::Qml)
     add_subdirectory(compiled)
     add_subdirectory(dynamicmetaobject)

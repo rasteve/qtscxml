@@ -38,31 +38,41 @@
 
 function(qt6_add_statecharts target_or_outfiles)
     set(options)
-    set(oneValueArgs)
-    set(multiValueArgs OPTIONS)
+    set(oneValueArgs OUTPUT_DIR NAMESPACE)
+    set(multiValueArgs QSCXMLC_ARGUMENTS)
 
     cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     set(scxml_files ${ARGS_UNPARSED_ARGUMENTS})
     set(outfiles)
 
+    if (ARGS_NAMESPACE)
+        set(namespace "--namespace" ${ARGS_NAMESPACE})
+    endif()
+
+    set(qscxmlcOutputDir ${CMAKE_CURRENT_BINARY_DIR})
+    if (ARGS_OUTPUT_DIR)
+        set(qscxmlcOutputDir ${ARGS_OUTPUT_DIR})
+    endif()
+
     foreach(it ${scxml_files})
         get_filename_component(outfilename ${it} NAME_WE)
         get_filename_component(infile ${it} ABSOLUTE)
-        set(outfile ${CMAKE_CURRENT_BINARY_DIR}/${outfilename})
-        set(outfile_cpp ${CMAKE_CURRENT_BINARY_DIR}/${outfilename}.cpp)
-        set(outfile_h ${CMAKE_CURRENT_BINARY_DIR}/${outfilename}.h)
+        set(outfile ${qscxmlcOutputDir}/${outfilename})
+        set(outfile_cpp ${qscxmlcOutputDir}/${outfilename}.cpp)
+        set(outfile_h ${qscxmlcOutputDir}/${outfilename}.h)
 
         add_custom_command(OUTPUT ${outfile_cpp} ${outfile_h}
                            ${QT_TOOL_PATH_SETUP_COMMAND}
                            COMMAND ${QT_CMAKE_EXPORT_NAMESPACE}::qscxmlc
-                           ARGS ${ARGS_OPTIONS} --output ${outfile} ${infile}
+                           ARGS ${namespace} ${ARGS_QSCXMLC_ARGUMENTS} --output ${outfile} ${infile}
                            MAIN_DEPENDENCY ${infile}
                            VERBATIM)
         list(APPEND outfiles ${outfile_cpp})
     endforeach()
     set_source_files_properties(${outfiles} PROPERTIES SKIP_AUTOMOC TRUE)
     if (TARGET ${target_or_outfiles})
+        target_include_directories(${target_or_outfiles} PRIVATE ${qscxmlcOutputDir})
         target_sources(${target_or_outfiles} PRIVATE ${outfiles})
     else()
         set(${target_or_outfiles} ${outfiles} PARENT_SCOPE)
