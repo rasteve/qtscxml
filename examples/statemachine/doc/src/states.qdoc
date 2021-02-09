@@ -28,6 +28,7 @@
 /*!
     \example animation/states
     \title States Example
+    \ingroup examples-qtstatemachine
 
     \brief The States example shows how to use the Qt state machine to play
     animations.

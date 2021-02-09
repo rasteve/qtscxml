@@ -49,23 +49,17 @@
 ****************************************************************************/
 
 //! [document]
-import QtQuick 2.0
-import QtQml.StateMachine 1.0
+import QtQuick
+import QtQml.StateMachine
 
 Rectangle {
 //![0]
-    Row {
+    Button {
         anchors.fill: parent
-        spacing: 2
-        Button {
-            id: button
-            // change the button label to the active state id
-            text: s11.active ? "s11" : s12.active ? "s12" : "s13"
-        }
-        Button {
-            id: quitButton
-            text: "quit"
-        }
+        id: button
+
+        // change the button label to the active state id
+        text: s1.active ? "s1" : s2.active ? "s2" : "s3"
     }
 
     StateMachine {
@@ -78,58 +72,38 @@ Rectangle {
 
         State {
             id: s1
-            // set the initial state
-            initialState: s11
-
             // create a transition from s1 to s2 when the button is clicked
             SignalTransition {
                 targetState: s2
-                signal: quitButton.clicked
+                signal: button.clicked
             }
             // do something when the state enters/exits
             onEntered: console.log("s1 entered")
             onExited: console.log("s1 exited")
-            State {
-                id: s11
-                // create a transition from s11 to s12 when the button is clicked
-                SignalTransition {
-                    targetState: s12
-                    signal: button.clicked
-                }
-                // do something when the state enters/exits
-                onEntered: console.log("s11 entered")
-                onExited: console.log("s11 exited")
-            }
-
-            State {
-                id: s12
-                // create a transition from s12 to s13 when the button is clicked
-                SignalTransition {
-                    targetState: s13
-                    signal: button.clicked
-                }
-                // do something when the state enters/exits
-                onEntered: console.log("s12 entered")
-                onExited: console.log("s12 exited")
-            }
-            State {
-                id: s13
-                // create a transition from s13 to s11 when the button is clicked
-                SignalTransition {
-                    targetState: s11
-                    signal: button.clicked
-                }
-                // do something when the state enters/exits
-                onEntered: console.log("s13 entered")
-                onExited: console.log("s13 exited")
-            }
         }
-        FinalState {
+
+        State {
             id: s2
+            // create a transition from s2 to s3 when the button is clicked
+            SignalTransition {
+                targetState: s3
+                signal: button.clicked
+            }
+            // do something when the state enters/exits
             onEntered: console.log("s2 entered")
             onExited: console.log("s2 exited")
         }
-        onFinished: Qt.quit()
+        State {
+            id: s3
+            // create a transition from s3 to s1 when the button is clicked
+            SignalTransition {
+                targetState: s1
+                signal: button.clicked
+            }
+            // do something when the state enters/exits
+            onEntered: console.log("s3 entered")
+            onExited: console.log("s3 exited")
+        }
     }
 //![0]
 }

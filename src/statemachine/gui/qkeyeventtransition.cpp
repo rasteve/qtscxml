@@ -54,7 +54,7 @@ QT_BEGIN_NAMESPACE
   \ingroup statemachine
   \inmodule QtStateMachine
 
-  QKeyEventTransition is part of \l{The State Machine Framework}.
+  QKeyEventTransition is part of \l{Qt State Machine Overview}{Qt State Machine Framework}.
 
   \sa QState::addTransition()
 */

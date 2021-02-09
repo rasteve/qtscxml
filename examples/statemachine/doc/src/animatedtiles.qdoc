@@ -28,6 +28,7 @@
 /*!
     \example animation/animatedtiles
     \title Animated Tiles Example
+    \ingroup examples-qtstatemachine
 
     \brief The Animated Tiles example animates items in a graphics scene.
 

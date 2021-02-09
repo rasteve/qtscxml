@@ -28,16 +28,14 @@
 /*!
     \example statemachine/factorial
     \title Factorial States Example
+    \ingroup examples-qtstatemachine
 
-    \brief The Factorial States example shows how to use \l{The State Machine
-    Framework} to calculate the factorial of an integer.
+    \brief The Factorial States example shows how to use \l{Qt State Machine Overview}
+    to calculate the factorial of an integer.
 
     The statechart for calculating the factorial looks as follows:
 
     \image factorial-example.png
-    \omit
-    \caption This is a caption
-    \endomit
 
     In other words, the state machine calculates the factorial of 6 and prints
     the result.

@@ -217,16 +217,15 @@ void SignalTransitionParser::applyBindings(
 /*!
     \qmltype QAbstractTransition
     \inqmlmodule QtQml.StateMachine
-    \omit
     \ingroup statemachine-qmltypes
-    \endomit
     \since 5.4
 
     \brief The QAbstractTransition type is the base type of transitions between QAbstractState objects.
 
     The QAbstractTransition type is the abstract base type of transitions
     between states (QAbstractState objects) of a StateMachine.
-    QAbstractTransition is part of \l{The Declarative State Machine Framework}.
+    QAbstractTransition is part of \l{Qt State Machine QML Guide}{Qt State Machine QML API}
+
 
     The sourceState() property has the source of the transition. The
     targetState and targetStates properties return the target(s) of the
@@ -276,9 +275,7 @@ void SignalTransitionParser::applyBindings(
     \qmltype QSignalTransition
     \inqmlmodule QtQml.StateMachine
     \inherits QAbstractTransition
-    \omit
     \ingroup statemachine-qmltypes
-    \endomit
     \since 5.4
 
     \brief The QSignalTransition type provides a transition based on a Qt signal.
@@ -311,7 +308,7 @@ void SignalTransitionParser::applyBindings(
 
     \brief The SignalTransition type provides a transition based on a Qt signal.
 
-    SignalTransition is part of \l{The Declarative State Machine Framework}.
+    SignalTransition is part of \l{Qt State Machine QML Guide}{Qt State Machine QML API}.
 
     \section1 Example Usage
 

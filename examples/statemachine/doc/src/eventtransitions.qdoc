@@ -28,9 +28,10 @@
 /*!
     \example statemachine/eventtransitions
     \title Event Transitions Example
+    \ingroup examples-qtstatemachine
 
     \brief The Event Transitions example shows how to use event transitions,
-    a feature of \l{The State Machine Framework}.
+    a feature of \l{Qt State Machine Overview}{Qt State Machine Framework}.
 
     The Event Transitions Example illustrates how states change when a
     user enters or leaves the area of a button. The states are handled by

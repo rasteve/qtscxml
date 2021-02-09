@@ -49,30 +49,38 @@
 ****************************************************************************/
 
 //! [document]
-import QtQuick 2.0
-import QtQml.StateMachine 1.0 as DSM
+import QtQuick
+import QtQml.StateMachine as DSM
 
 Rectangle {
-    Button {
-        anchors.fill: parent
-        id: button
-        text: "Finish state"
-        enabled: !stateMachine.running
-        onClicked: stateMachine.running = true
-        DSM.StateMachine {
-            id: stateMachine
-            initialState: state
-            running: true
-            DSM.State {
-                id: state
-                DSM.TimeoutTransition {
-                    targetState: finalState
-                    timeout: 1000
-                }
+    DSM.StateMachine {
+        id: stateMachine
+        initialState: state
+        running: true
+        DSM.State {
+            id: state
+            DSM.SignalTransition {
+                targetState: finalState
+                signal: button.clicked
+                guard: guardButton.checked
             }
-            DSM.FinalState {
-                id: finalState
-            }
+        }
+        DSM.FinalState {
+            id: finalState
+        }
+        onFinished: Qt.quit()
+    }
+    Row {
+        spacing: 2
+        Button {
+            id: button
+            text: "Finish state"
+        }
+
+        Button {
+            id: guardButton
+            checkable: true
+            text: checked ? "Press to block the SignalTransition" : "Press to unblock the SignalTransition"
         }
     }
 }

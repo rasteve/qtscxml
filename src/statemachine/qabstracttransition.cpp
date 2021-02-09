@@ -57,8 +57,8 @@ QT_BEGIN_NAMESPACE
 
   The QAbstractTransition class is the abstract base class of transitions
   between states (QAbstractState objects) of a
-  QStateMachine. QAbstractTransition is part of \l{The State Machine
-  Framework}.
+  QStateMachine. QAbstractTransition is part of \l{Qt State Machine Overview}
+  {Qt State Machine Framework}.
 
   The sourceState() function returns the source of the transition. The
   targetStates() function returns the targets of the transition. The machine()

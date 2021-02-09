@@ -54,8 +54,8 @@ QT_BEGIN_NAMESPACE
   A history state is a pseudo-state that represents the child state that the
   parent state was in the last time the parent state was exited. A transition
   with a history state as its target is in fact a transition to one or more
-  other child states of the parent state. QHistoryState is part of \l{The
-  State Machine Framework}.
+  other child states of the parent state. QHistoryState is part of \l{Qt State Machine Overview}
+  {Qt State Machine Framework}.
 
   Use the setDefaultState() function to set the state that should be entered
   if the parent state has never been entered.  Example:

@@ -28,6 +28,7 @@
 /*!
     \example animation/stickman
     \title Stickman Example
+    \ingroup examples-qtstatemachine
 
     \brief The Stickman example shows how to animate transitions in a state
     machine to implement key frame animations.

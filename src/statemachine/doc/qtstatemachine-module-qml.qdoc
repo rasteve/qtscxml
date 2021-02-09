@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -26,16 +26,17 @@
 ****************************************************************************/
 
 /*!
-    \example animation/sub-attaq
-    \title Sub-Attaq
-    \ingroup examples-qtstatemachine
+    \qmlmodule QtQml.StateMachine 6.\QtMinorVersion
+    \title Qt State Machine QML Types
+    \ingroup qmlmodules
+    \brief Enables the use of State Machine with QML.
 
-    \brief This example shows Qt's ability to combine \l{The Animation Framework}{the animation framework}
-    and \l{Qt State Machine Overview}{the state machine framework} to create a game.
+    To import the QML types into your application, use the following import statement
+    in your .qml file:
 
-    \image sub-attaq-demo.png
+    \qml
+    import QtQml.StateMachine
+    \endqml
 
-    The purpose of the game is to destroy all submarines to win the current level.
-    The boat can be controlled using left and right keys. To fire a bomb you can press
-    up and down keys.
-*/
+    For more information, see \l {Qt State Machine QML Guide}.
+ */

@@ -55,7 +55,7 @@ QT_BEGIN_NAMESPACE
   machine's \l{QStateMachine::finished()}{finished}() signal is emitted. In
   general, when a final substate (a child of a QState) is entered, the parent
   state's \l{QState::finished()}{finished}() signal is emitted.  QFinalState
-  is part of \l{The State Machine Framework}.
+  is part of \l{Qt State Machine Overview}{Qt State Machine Framework}.
 
   To use a final state, you create a QFinalState object and add a transition
   to it from another state. Example:

@@ -26,29 +26,19 @@
 ****************************************************************************/
 
 /*!
-  \qmlmodule QtQml.StateMachine 1.\QtMinorVersion
-  \title Qt QML State Machine QML Types
-  \brief Provides QML types to create and execute state graphs.
-
-  The following is a list of QML types provided by the module:
-*/
-
-
-/*!
-  \page qmlstatemachine.html
-  \title The Declarative State Machine Framework
-  \brief Overview of the Declarative State Machine Framework for constructing and executing state graphs.
-
-  \ingroup frameworks-technologies
+  \page qmlstatemachine-qml-guide.html
+  \title Qt State Machine QML Guide
+  \brief Overview of the Qt State Machine QML for constructing and executing state graphs.
+  \ingroup technology-apis
 
   \tableofcontents
 
-  The Declarative State Machine Framework provides types for creating and
+  Qt State Machine QML APIs provide types for creating and
   executing state graphs in QML. It is similar to the C++ State Machine
   framework based on Harel's
   \l{Statecharts: A visual formalism for complex systems}, which
   is also the basis for UML state diagrams. Like its
-  \l{The State Machine Framework}{C++ counterpart}, the framework provides an
+  \l{Qt State Machine C++ Classes}{C++ counterpart}, the framework provides an
   API and execution model based on \l{State Chart XML: State Machine Notation for
   Control Abstraction}{State Chart XML (SCXML)}
   to embed the elements and semantics of statecharts in QML applications.
@@ -56,10 +46,8 @@
   For user interfaces with multiple visual states, independent of the
   application's logical state, consider using QML States and Transitions.
 
-  These following QML types are provided by framework to create event-driven
-  state machines:
-
-  \annotatedlist statemachine-qmltypes
+  For the full list of QML types provided by the framework to create event-driven
+  state machines, see: \l {Qt State Machine QML Types}
 
   \section1 Using Both QtQuick and QtQml.StateMachine Imports
 
@@ -68,9 +56,9 @@
     \e{QtQml.StateMachine} \e{last}. This way, the \e{State} type is provided
     by the Declarative State Machine Framework and not by \l{QtQuick}:
 
-  \qml \QtMinorVersion
-    import QtQuick 2.\1
-    import QtQml.StateMachine 1.\1
+  \qml
+    import QtQuick
+    import QtQml.StateMachine
 
     StateMachine {
         State {
@@ -83,8 +71,8 @@
   namespace to avoid any ambiguity with QtQuick's \e{State} item:
 
   \qml \QtMinorVersion
-    import QtQuick 2.\1
-    import QtQml.StateMachine 1.\1 as DSM
+    import QtQuick
+    import QtQml.StateMachine as DSM
 
     DSM.StateMachine {
         DSM.State {
@@ -322,7 +310,7 @@
   \section1 Related Information
 
   \list
-   \li \l{Qt QML State Machine QML Types}
-   \li \l{The State Machine Framework}
+   \li \l{Qt State Machine QML Types}
+   \li \l{Qt State Machine Overview}
   \endlist
 */

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -25,17 +25,15 @@
 **
 ****************************************************************************/
 
-/*!
-    \example animation/sub-attaq
-    \title Sub-Attaq
-    \ingroup examples-qtstatemachine
+//! [cmakebuild]
+    \code
+    find_package(Qt6 COMPONENTS StateMachine REQUIRED)
+    target_link_libraries(mytarget PRIVATE Qt6::StateMachine)
+    \endcode
+//! [cmakebuild]
 
-    \brief This example shows Qt's ability to combine \l{The Animation Framework}{the animation framework}
-    and \l{Qt State Machine Overview}{the state machine framework} to create a game.
-
-    \image sub-attaq-demo.png
-
-    The purpose of the game is to destroy all submarines to win the current level.
-    The boat can be controlled using left and right keys. To fire a bomb you can press
-    up and down keys.
-*/
+//! [qmakebuild]
+    \code
+    QT += statemachine
+    \endcode
+//! [qmakebuild]

@@ -43,3 +43,7 @@ qt_internal_extend_target(StateMachine CONDITION QT_FEATURE_qeventtransition
     PRIVATE_MODULE_INTERFACE
         Qt::GuiPrivate
 )
+
+qt_internal_add_docs(StateMachine
+    doc/qtstatemachine.qdocconf
+)

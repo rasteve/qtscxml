@@ -49,8 +49,8 @@
 ****************************************************************************/
 
 //! [document]
-import QtQuick 2.0
-import QtQml.StateMachine 1.0
+import QtQuick
+import QtQml.StateMachine
 
 Rectangle {
 //![0]

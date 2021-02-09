@@ -70,7 +70,7 @@ QQmlListProperty<QObject> FinalState::children()
     machine's \l{State::finished}{finished}() signal is emitted. In
     general, when a final substate (a child of a State) is entered, the parent
     state's \l{State::finished}{finished}() signal is emitted.  FinalState
-    is part of \l{The Declarative State Machine Framework}.
+    is part of \l{Qt State Machine QML Guide}{Qt State Machine QML API}
 
     To use a final state, you create a FinalState object and add a transition
     to it from another state.

@@ -28,6 +28,7 @@
 /*!
     \example statemachine/rogue
     \title Rogue Example
+    \ingroup examples-qtstatemachine
 
     \brief The Rogue example shows how to use the Qt state machine for event
     handling.
@@ -142,7 +143,7 @@
     This will enable the rogue to be moved with the keypad.  Notice
     that we don't set a target state for the movement transition. This
     will cause the transition to be triggered (and the
-    \l{QAbstractTransition::}{onTransition()} function to be invoked),
+    \l [CPP] {QAbstractTransition::}{onTransition()} function to be invoked),
     but the machine will not leave the \c inputState. If we had set \c
     inputState as the target state, we would first have left and then
     entered the \c inputState again.
@@ -176,7 +177,7 @@
 
     In the constructor, we tell QEventTransition to only send
     \l{QEvent::}{KeyPress} events to the
-    \l{QAbstractTransition::}{eventTest()} function:
+    \l [CPP] {QAbstractTransition::}{eventTest()} function:
 
     \snippet statemachine/rogue/movementtransition.h 1
 

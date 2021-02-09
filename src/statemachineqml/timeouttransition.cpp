@@ -91,10 +91,10 @@ void TimeoutTransition::componentComplete()
 
     \brief The TimeoutTransition type provides a transition based on a timer.
 
-    \l{Timer} type can be combined with SignalTransition to enact more complex
+    \l {QtQml::Timer}{Timer} type can be combined with SignalTransition to enact more complex
     timeout based transitions.
 
-    TimeoutTransition is part of \l{The Declarative State Machine Framework}.
+    TimeoutTransition is part of \l{Qt State Machine QML Guide}{Qt State Machine QML API}
 
     \section1 Example Usage
 

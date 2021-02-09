@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -26,58 +26,24 @@
 ****************************************************************************/
 
 /*!
-    \group statemachine
-    \brief How to create and execute state graphs.
-    \title State Machine Classes
-
-    These classes are part of the \l{The State Machine Framework}{
-    State Machine Framework}.
-
-*/
-
-/*!
-  \page statemachine-api.html
-  \title The State Machine Framework
-  \brief An overview of the State Machine framework for constructing and executing state graphs.
-
-  \ingroup frameworks-technologies
+  \page qtstatemachine-cpp-guide.html
+  \title Qt State Machine C++ Guide
+  \brief An overview of the State Machine framework for constructing and
+  executing state graphs with the C++ API.
+  \ingroup technology-apis
 
   \tableofcontents
 
   The State Machine framework provides classes for creating and executing
-  state graphs. The concepts and notation are based on those from Harel's
-  \l{http://www.wisdom.weizmann.ac.il/~dharel/SCANNED.PAPERS/Statecharts.pdf}{Statecharts: A visual formalism for complex systems}, which
-  is also the basis of UML state diagrams. The semantics of state machine
-  execution are based on \l{State Chart XML: State Machine Notation for
-  Control Abstraction}{State Chart XML (SCXML)}.
+  state graphs. This page illustrates the framework's key features in C++.
 
-  Statecharts provide a graphical way of modeling how a system reacts to
-  stimuli. This is done by defining the possible \e states that the system can
-  be in, and how the system can move from one state to another (\e transitions
-  between states). A key characteristic of event-driven systems (such as Qt
-  applications) is that behavior often depends not only on the last or current
-  event, but also the events that preceded it. With statecharts, this
-  information is easy to express.
+  \sa {Qt State Machine Overview}
+  \sa {Qt State Machine QML Guide}
 
-  The State Machine framework provides an API and execution model that can be
-  used to effectively embed the elements and semantics of statecharts in Qt
-  applications. The framework integrates tightly with Qt's meta-object system;
-  for example, transitions between states can be triggered by signals, and
-  states can be configured to set properties and invoke methods on {QObject}s.
-  Qt's event system is used to drive the state machines.
+  \section1 C++ Classes in the State Machine Framework
 
-  The state graph in the State Machine framework is hierarchical. States can be nested inside of
-  other states, and the current configuration of the state machine consists of the set of states
-  which are currently active. All the states in a valid configuration of the state machine will
-  have a common ancestor.
-
-  \sa {The Declarative State Machine Framework}
-
-  \section1 Classes in the State Machine Framework
-
-  These classes are provided by qt for creating event-driven state machines.
-
-  \annotatedlist statemachine
+  For the full list of C++ classes in the State Machine framework see
+  \l {Qt State Machine C++ Classes}
 
   \section1 A Simple State Machine
 
@@ -88,9 +54,6 @@
   machine is in state \c s1. The statechart for this machine is as follows:
 
     \image statemachine-button.png
-    \omit
-    \caption This is a caption
-    \endomit
 
   The following snippet shows the code needed to create such a state machine.
   First, we create the state machine and states:
@@ -165,9 +128,6 @@
   state. The following diagram shows the new state machine.
 
     \image statemachine-button-nested.png
-    \omit
-    \caption This is a caption
-    \endomit
 
   The three original states have been renamed \c s11, \c s12 and \c s13 to
   reflect that they are now children of the new top-level state, \c s1.  Child
@@ -223,9 +183,6 @@
   has been added.
 
     \image statemachine-button-history.png
-    \omit
-    \caption This is a caption
-    \endomit
 
   The following code shows how it can be implemented; in this example we
   simply display a message box when \c s3 is entered, then immediately return
@@ -242,9 +199,6 @@
   move between all possible combinations.
 
     \image statemachine-nonparallel.png
-    \omit
-    \caption This is a caption
-    \endomit
 
   If we added a third property (say, Red vs Blue), the total number of states
   would double, to eight; and if we added a fourth property (say, Enclosed vs
@@ -256,9 +210,6 @@
   any of their sibling states.
 
     \image statemachine-parallel.png
-    \omit
-    \caption This is a caption
-    \endomit
 
   To create a parallel state group, pass QState::ParallelStates to the QState
   constructor.
@@ -287,9 +238,6 @@
   before entering a final state:
 
     \image statemachine-finished.png
-    \omit
-    \caption This is a caption
-    \endomit
 
   When \c s1 's final state is entered, \c s1 will automatically emit
   \l {QState::}{finished()}. We use a signal transition to cause this event to trigger a
@@ -353,7 +301,7 @@
   When posting a custom event to the state machine, you typically also have
   one or more custom transitions that can be triggered from events of that
   type. To create such a transition, you subclass QAbstractTransition and
-  reimplement QAbstractTransition::eventTest(), where you check if an event
+  reimplement \l [CPP] {QAbstractTransition::}{eventTest()}, where you check if an event
   matches your event type (and optionally other criteria, e.g. attributes of
   the event object).
 
@@ -367,16 +315,13 @@
 
   \snippet statemachine/main4.cpp 1
 
-  In the \l {QAbstractTransition::}{eventTest()} reimplementation, we first check if the event type is the
+  In the \l [CPP] {QAbstractTransition::}{eventTest()} reimplementation, we first check if the event type is the
   desired one; if so, we cast the event to a \c StringEvent and perform the
   string comparison.
 
   The following is a statechart that uses the custom event and transition:
 
     \image statemachine-customevents.png
-    \omit
-    \caption This is a caption
-    \endomit
 
   Here's what the implementation of the statechart looks like:
 
@@ -392,9 +337,6 @@
   following statechart:
 
     \image statemachine-customevents2.png
-    \omit
-    \caption This is a caption
-    \endomit
 
   For deeply nested statecharts, you can add such "fallback" transitions at
   the level of granularity that's most appropriate.
@@ -437,10 +379,25 @@
   state \c s3, no value is defined for the state, but \c s1 defines the property to be 1.0, so this
   is the value that will be assigned to \c fooBar.
 
-  \section1 Animating Property Assignments
+  \section1 Animations and States Machines
 
-  The State Machine API connects with the Animation API in Qt to allow automatically animating
-  properties as they are assigned in states.
+  The State Machine API connects with the \l {The Animation Framework} to allow automatically
+  animating properties as they are assigned in states.
+
+  The state machine provides a special state that can play an animation.
+  A QState can also set properties when the state is entered or exited, and
+  this special animation state will interpolate between these values when given a
+  QPropertyAnimation.
+
+  We can associate one or more animations to a transition between states
+  using a QSignalTransition or QEventTransition class. These classes
+  are both derived from QAbstractTransition, which defines the
+  convenience function \l [CPP] {QAbstractTransition::}{addAnimation()} that
+  enables the appending of one or more animations triggered when the
+  transition occurs.
+
+  We also have the possibility to associate properties with the
+  states rather than setting the start and end values ourselves.
 
   Say we have the following code:
 
@@ -488,9 +445,9 @@
   message box will pop up before the geometry of the button has actually been set.
 
   To ensure that the message box does not pop up until the geometry actually reaches its final
-  value, we can use the state's \l {QState::}{propertiesAssigned()} signal. The \l {QState::}{propertiesAssigned()} signal will be
-  emitted when the property is assigned its final value, whether this is done immediately or
-  after the animation has finished playing.
+  value, we can use the state's \l {QState::}{propertiesAssigned()} signal.
+  The \l {QState::}{propertiesAssigned()} signal will be emitted when the property is assigned
+  its final value, whether this is done immediately or after the animation has finished playing.
 
   \snippet statemachine/main5.cpp 6
 

@@ -28,17 +28,15 @@
 /*!
     \example statemachine/pingpong
     \title Ping Pong States Example
+    \ingroup examples-qtstatemachine
 
     \brief The Ping Pong States example shows how to use parallel states together
-    with custom events and transitions in \l{The State Machine Framework}.
+    with custom events and transitions in \l{Qt State Machine Overview}{Qt State Machine Framework}.
 
     This example implements a statechart where two states communicate by
     posting events to the state machine. The state chart looks as follows:
 
     \image pingpong-example.png
-    \omit
-    \caption This is a caption
-    \endomit
 
     The \c pinger and \c ponger states are parallel states, i.e. they are
     entered simultaneously and will take transitions independently of

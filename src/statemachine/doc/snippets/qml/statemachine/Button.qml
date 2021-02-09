@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Ford Motor Company
+** Copyright (C) 2017 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the documentation of the Qt Toolkit.
+** This file is part of the examples of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:BSD$
 ** Commercial License Usage
@@ -48,48 +48,51 @@
 **
 ****************************************************************************/
 
-//! [document]
-import QtQuick 2.0
-import QtQml.StateMachine 1.0 as DSM
+import QtQuick
+import QtQuick.Window
 
-Rectangle {
-    Button {
+Item {
+    id: container
+
+    property alias text: buttonLabel.text
+    property alias label: buttonLabel
+    signal clicked
+    property alias containsMouse: mouseArea.containsMouse
+    property alias pressed: mouseArea.pressed
+    implicitHeight: Math.max(Screen.pixelDensity * 7, buttonLabel.implicitHeight * 1.2)
+    implicitWidth: Math.max(Screen.pixelDensity * 11, buttonLabel.implicitWidth * 1.3)
+    height: implicitHeight
+    width: implicitWidth
+    property bool checkable: false
+    property bool checked: false
+
+    SystemPalette { id: palette }
+
+    Rectangle {
+        id: frame
         anchors.fill: parent
-        id: button
-        text: "Press me"
-        DSM.StateMachine {
-            id: stateMachine
-            initialState: parentState
-            running: true
-            DSM.State {
-                id: parentState
-                initialState: child2
-                onEntered: console.log("parentState entered")
-                onExited: console.log("parentState exited")
-                DSM.State {
-                    id: child1
-                    onEntered: console.log("child1 entered")
-                    onExited: console.log("child1 exited")
-                }
-                DSM.State {
-                    id: child2
-                    onEntered: console.log("child2 entered")
-                    onExited: console.log("child2 exited")
-                }
-                DSM.HistoryState {
-                    id: historyState
-                    defaultState: child1
-                }
-                DSM.SignalTransition {
-                    targetState: historyState
-
-                    // Clicking the button will cause the state machine to enter the child state
-                    // that parentState was in the last time parentState was exited, or the history state's default
-                    // state if parentState has never been entered.
-                    signal: button.clicked
-                }
-            }
+        color: palette.button
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: mouseArea.pressed ? Qt.darker(palette.button, 1.3) : palette.button }
+            GradientStop { position: 1.0; color: Qt.darker(palette.button, 1.3) }
         }
+        antialiasing: true
+        radius: height / 6
+        border.color: Qt.darker(palette.button, 1.5)
+        border.width: 1
+    }
+
+    MouseArea {
+        id: mouseArea
+        anchors.fill: parent
+        onClicked: container.clicked()
+        hoverEnabled: true
+    }
+
+    Text {
+        id: buttonLabel
+        text: container.text
+        color: palette.buttonText
+        anchors.centerIn: parent
     }
 }
-//! [document]

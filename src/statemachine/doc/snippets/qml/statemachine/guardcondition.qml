@@ -49,17 +49,30 @@
 ****************************************************************************/
 
 //! [document]
-import QtQuick 2.0
-import QtQml.StateMachine 1.0 as DSM
+import QtQuick
+import QtQml.StateMachine as DSM
 
 Rectangle {
-    DSM.StateMachine {
-        id: stateMachine
-        initialState: state
-        running: true
-        DSM.State {
-            id: state
+    Button {
+        anchors.fill: parent
+        id: button
+        DSM.StateMachine {
+            DSM.State {
+                DSM.SignalTransition {
+                    targetState: finalState
+                    signal: button.mysignal
+                    // the guard condition uses the mystr string argument from mysignal
+                    guard: mystr == "test"
+                }
+            }
+            DSM.FinalState {
+                id: finalState
+            }
         }
+        // define the signal the SignalTransition is connected with
+        signal mysignal(mystr: string)
+        // on clicking the button emit the signal with a single string argument
+        onClicked: button.mysignal("test")
     }
 }
 //! [document]

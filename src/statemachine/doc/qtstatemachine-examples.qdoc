@@ -26,16 +26,12 @@
 ****************************************************************************/
 
 /*!
-    \example animation/sub-attaq
-    \title Sub-Attaq
-    \ingroup examples-qtstatemachine
+\group examples-qtstatemachine
+\title Qt State Machine Examples
+\brief Examples for the Qt State Machine module.
+\ingroup all-examples
 
-    \brief This example shows Qt's ability to combine \l{The Animation Framework}{the animation framework}
-    and \l{Qt State Machine Overview}{the state machine framework} to create a game.
+The Qt State Machine example applications demonstrate the functionality provided by the
+\l{Qt State Machine} module.
 
-    \image sub-attaq-demo.png
-
-    The purpose of the game is to destroy all submarines to win the current level.
-    The boat can be controlled using left and right keys. To fire a bomb you can press
-    up and down keys.
 */

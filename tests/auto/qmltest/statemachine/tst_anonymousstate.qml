@@ -26,8 +26,8 @@
 **
 ****************************************************************************/
 
-import QtTest 1.1
-import QtQml.StateMachine 1.0
+import QtTest
+import QtQml.StateMachine
 
 TestCase {
     StateMachine {

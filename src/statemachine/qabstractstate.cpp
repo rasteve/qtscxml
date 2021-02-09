@@ -57,7 +57,7 @@ QT_BEGIN_NAMESPACE
 
   The QAbstractState class is the abstract base class of states that are part
   of a QStateMachine. It defines the interface that all state objects have in
-  common. QAbstractState is part of \l{The State Machine Framework}.
+  common. QAbstractState is part of \l{Qt State Machine Overview}{Qt State Machine Framework}.
 
   The entered() signal is emitted when the state has been entered. The
   exited() signal is emitted when the state has been exited.

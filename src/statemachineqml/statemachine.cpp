@@ -103,13 +103,13 @@ QQmlListProperty<QObject> StateMachine::children()
 
     StateMachine is based on the concepts and notation of
     \l{http://www.wisdom.weizmann.ac.il/~dharel/SCANNED.PAPERS/Statecharts.pdf}{Statecharts}.
-    StateMachine is part of \l{The Declarative State Machine Framework}.
+    StateMachine is part of \l{Qt State Machine QML Guide}{Qt State Machine QML API}
 
     A state machine manages a set of states and transitions between those
     states; these states and transitions define a state graph.  Once a state
     graph has been built, the state machine can execute it. StateMachine's
     execution algorithm is based on the \l{http://www.w3.org/TR/scxml/}{State Chart XML (SCXML)}
-    algorithm. The framework's \l{The Declarative State Machine Framework}{overview}
+    algorithm. The framework's \l{Qt State Machine QML Guide}{overview}
     gives several state graphs and the code to build them.
 
     Before the machine can be started, the \l{State::initialState}{initialState}
@@ -143,7 +143,7 @@ QQmlListProperty<QObject> StateMachine::children()
 
     \clearfloat
 
-    \sa QAbstractState, State, SignalTransition, TimeoutTransition, HistoryState {The Declarative State Machine Framework}
+    \sa QAbstractState, State, SignalTransition, TimeoutTransition, HistoryState {Qt State Machine QML Guide}
 */
 
 /*!

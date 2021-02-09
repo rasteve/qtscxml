@@ -26,9 +26,9 @@
 **
 ****************************************************************************/
 
-import QtQml 2.0
+import QtQml
 
-import QtQml.StateMachine 1.0
+import QtQml.StateMachine
 
 import CppObjectEnum 1.0
 

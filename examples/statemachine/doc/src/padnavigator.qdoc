@@ -28,11 +28,11 @@
 /*!
     \example graphicsview/padnavigator
     \title Pad Navigator Example
-    \ingroup examples-graphicsview
+    \ingroup examples-qtstatemachine
     \brief Demonstrates how to create animated user interface.
 
     The Pad Navigator Example shows how you can use Graphics View together with
-    embedded widgets and Qt's \l{The State Machine Framework}{state machine
+    embedded widgets and Qt's \l{Qt State Machine Overview}{state machine
     framework} to create a simple but useful, dynamic, animated user interface.
 
     \image padnavigator-example.png

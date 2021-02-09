@@ -58,7 +58,7 @@ QT_BEGIN_NAMESPACE
   \ingroup statemachine
 
   QState objects can have child states, and can have transitions to other
-  states. QState is part of \l{The State Machine Framework}.
+  states. QState is part of \l{Qt State Machine Overview}{Qt State Machine Framework}.
 
   The addTransition() function adds a transition. The removeTransition()
   function removes a transition. The transitions() function returns the
@@ -445,7 +445,7 @@ void QState::removeTransition(QAbstractTransition *transition)
   \since 4.7
 
   Returns this state's outgoing transitions (i.e. transitions where
-  this state is the \l{QAbstractTransition::sourceState()}{source
+  this state is the \l [CPP] {QAbstractTransition::sourceState()}{source
   state}), or an empty list if this state has no outgoing transitions.
 
   \sa addTransition()
@@ -568,7 +568,7 @@ bool QState::event(QEvent *e)
   If there are no relevant animations, or no property assignments defined for the state, then
   the signal will be emitted immediately before the state is entered.
 
-  \sa QState::assignProperty(), QAbstractTransition::addAnimation()
+  \b {See also}  \l QState::assignProperty() and \l [CPP] {QAbstractTransition::addAnimation()}
 */
 
 /*!

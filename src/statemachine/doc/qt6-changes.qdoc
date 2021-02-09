@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the documentation of the Qt Toolkit.
@@ -26,16 +26,35 @@
 ****************************************************************************/
 
 /*!
-    \example animation/sub-attaq
-    \title Sub-Attaq
-    \ingroup examples-qtstatemachine
+    \page qtstatemachine-changes-qt6.html
+    \title Changes to Qt State Machine
+    \ingroup changes-qt-5-to-6
+    \brief Migrate Qt State Machine to Qt 6.
 
-    \brief This example shows Qt's ability to combine \l{The Animation Framework}{the animation framework}
-    and \l{Qt State Machine Overview}{the state machine framework} to create a game.
+    Qt 6 is a result of the conscious effort to make the framework more
+    efficient and easy to use.
 
-    \image sub-attaq-demo.png
+    We try to maintain binary and source compatibility for all the public
+    APIs in each release. But some changes were inevitable in an effort to
+    make Qt a better framework.
 
-    The purpose of the game is to destroy all submarines to win the current level.
-    The boat can be controlled using left and right keys. To fire a bomb you can press
-    up and down keys.
+    In this topic we summarize those changes in Qt State Machine module, and provide
+    guidance to handle them.
+
+    \section1 Changes overview
+
+    The Qt StateMachine module is generally speaking source compatible with the Qt5
+    version and users of the library should be able to continue with no or
+    minor changes to their project.
+
+    \section1 Build system
+
+    As with Qt 6 in general, the Qt State Machine module has cmake support in addition
+    to qmake.
+
+    \section1 QML imports
+
+    The QML import versioning is optional unless one has a specific
+    reason for not using the latest. Generally speaking the versioned imports
+    work from version 5.8 to 6.x, where 'x' is the current minor release.
 */

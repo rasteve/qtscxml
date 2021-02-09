@@ -49,10 +49,11 @@
 ****************************************************************************/
 
 //! [document]
-import QtQuick 2.0
-import QtQml.StateMachine 1.0
+import QtQuick
+import QtQml.StateMachine
 
 Rectangle {
+//![0]
     Row {
         anchors.fill: parent
         spacing: 2
@@ -100,7 +101,6 @@ Rectangle {
                 onExited: console.log("s11 exited")
             }
 
-//![0]
             State {
                 id: s12
                 // create a transition from s12 to s13 when the button is clicked
@@ -108,19 +108,10 @@ Rectangle {
                     targetState: s13
                     signal: button.clicked
                 }
-
-                // ignore Quit button when we are in state 12
-                SignalTransition {
-                    targetState: s12
-                    signal: quitButton.clicked
-                }
-
                 // do something when the state enters/exits
                 onEntered: console.log("s12 entered")
                 onExited: console.log("s12 exited")
             }
-//![0]
-
             State {
                 id: s13
                 // create a transition from s13 to s11 when the button is clicked
@@ -140,5 +131,6 @@ Rectangle {
         }
         onFinished: Qt.quit()
     }
+//![0]
 }
 //! [document]

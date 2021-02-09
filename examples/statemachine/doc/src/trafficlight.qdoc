@@ -28,8 +28,9 @@
 /*!
     \example statemachine/trafficlight
     \title Traffic Light Example
+    \ingroup examples-qtstatemachine
 
-    \brief The Traffic Light example shows how to use \l{The State Machine Framework}
+    \brief The Traffic Light example shows how to use \l{Qt State Machine Overview}
     to implement the control flow of a traffic light.
 
     \image trafficlight-example.png
@@ -60,9 +61,6 @@
     LightState to another. Here is the statechart for the light state:
 
     \image trafficlight-example1.png
-    \omit
-    \caption This is a caption
-    \endomit
 
     \snippet statemachine/trafficlight/main.cpp 3
 
@@ -74,9 +72,6 @@
     This is what the statechart looks like:
 
     \image trafficlight-example2.png
-    \omit
-    \caption This is a caption
-    \endomit
 
     \snippet statemachine/trafficlight/main.cpp 4
 

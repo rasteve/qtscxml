@@ -58,8 +58,8 @@ QT_BEGIN_NAMESPACE
 
   Typically you would use the overload of QState::addTransition() that takes a
   sender and signal as arguments, rather than creating QSignalTransition
-  objects directly. QSignalTransition is part of \l{The State Machine
-  Framework}.
+  objects directly. QSignalTransition is part of \l{Qt State Machine Overview}
+  {Qt State Machine Framework}.
 
   You can subclass QSignalTransition and reimplement eventTest() to make a
   signal transition conditional; the event object passed to eventTest() will

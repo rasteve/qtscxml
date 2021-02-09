@@ -49,25 +49,24 @@
 ****************************************************************************/
 
 //! [document]
-import QtQuick 2.0
-import QtQml.StateMachine 1.0 as DSM
+import QtQuick
+import QtQml.StateMachine as DSM
 
 Rectangle {
-    DSM.StateMachine {
-        id: stateMachine
-        initialState: state
-        running: true
-        DSM.State {
-            id: state
-            DSM.TimeoutTransition {
-                targetState: finalState
-                timeout: 200
+    Button {
+        anchors.fill: parent
+        id: button
+        DSM.StateMachine {
+            DSM.State {
+                DSM.SignalTransition {
+                    targetState: finalState
+                    signal: button.clicked
+                }
+            }
+            DSM.FinalState {
+                id: finalState
             }
         }
-        DSM.FinalState {
-            id: finalState
-        }
-        onFinished: console.log("state finished")
     }
 }
 //! [document]

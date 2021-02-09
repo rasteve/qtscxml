@@ -57,7 +57,7 @@ QT_BEGIN_NAMESPACE
   \ingroup statemachine
 
   A QEventTransition object binds an event to a particular QObject.
-  QEventTransition is part of \l{The State Machine Framework}.
+  QEventTransition is part of \l{Qt State Machine Overview}{Qt State Machine Framework}.
 
   Example:
 

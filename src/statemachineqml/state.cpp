@@ -69,9 +69,7 @@ QQmlListProperty<QObject> State::children()
 /*!
     \qmltype QAbstractState
     \inqmlmodule QtQml.StateMachine
-    \omit
     \ingroup statemachine-qmltypes
-    \endomit
     \since 5.4
 
     \brief The QAbstractState type is the base type of States of a StateMachine.
@@ -118,7 +116,7 @@ QQmlListProperty<QObject> State::children()
     \brief Provides a general-purpose state for StateMachine.
 
     State objects can have child states as well as transitions to other
-    states. State is part of \l{The Declarative State Machine Framework}.
+    states. State is part of \l{Qt State Machine QML Guide}{Qt State Machine QML API}
 
     \section1 States with Child States
 
@@ -191,7 +189,7 @@ QQmlListProperty<QObject> State::children()
     parent state was in the last time the parent state was exited.  A transition
     with a history state as its target is in fact a transition to one of the
     other child states of the parent state.
-    HistoryState is part of \l{The Declarative State Machine Framework}.
+    HistoryState is part of \l{Qt State Machine QML Guide}{Qt State Machine QML API}.
 
     Use the defaultState property to set the state that should be entered
     if the parent state has never been entered.

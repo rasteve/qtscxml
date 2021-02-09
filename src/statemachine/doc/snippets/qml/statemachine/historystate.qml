@@ -49,38 +49,46 @@
 ****************************************************************************/
 
 //! [document]
-import QtQuick 2.0
-import QtQml.StateMachine 1.0 as DSM
+import QtQuick
+import QtQml.StateMachine as DSM
 
 Rectangle {
-    DSM.StateMachine {
-        id: stateMachine
-        initialState: state
-        running: true
-        DSM.State {
-            id: state
-            DSM.SignalTransition {
-                targetState: finalState
-                signal: button.clicked
-                guard: guardButton.checked
-            }
-        }
-        DSM.FinalState {
-            id: finalState
-        }
-        onFinished: Qt.quit()
-    }
-    Row {
-        spacing: 2
-        Button {
-            id: button
-            text: "Finish state"
-        }
+    Button {
+        anchors.fill: parent
+        id: button
+        text: "Press me"
+        DSM.StateMachine {
+            id: stateMachine
+            initialState: parentState
+            running: true
+            DSM.State {
+                id: parentState
+                initialState: child2
+                onEntered: console.log("parentState entered")
+                onExited: console.log("parentState exited")
+                DSM.State {
+                    id: child1
+                    onEntered: console.log("child1 entered")
+                    onExited: console.log("child1 exited")
+                }
+                DSM.State {
+                    id: child2
+                    onEntered: console.log("child2 entered")
+                    onExited: console.log("child2 exited")
+                }
+                DSM.HistoryState {
+                    id: historyState
+                    defaultState: child1
+                }
+                DSM.SignalTransition {
+                    targetState: historyState
 
-        Button {
-            id: guardButton
-            checkable: true
-            text: checked ? "Press to block the SignalTransition" : "Press to unblock the SignalTransition"
+                    // Clicking the button will cause the state machine to enter the child state
+                    // that parentState was in the last time parentState was exited, or the history state's default
+                    // state if parentState has never been entered.
+                    signal: button.clicked
+                }
+            }
         }
     }
 }

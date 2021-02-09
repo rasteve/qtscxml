@@ -28,6 +28,7 @@
 /*!
     \example animation/moveblocks
     \title Move Blocks Example
+    \ingroup examples-qtstatemachine
 
     \brief The Move Blocks example shows how to animate items in a
     QGraphicsScene using a QStateMachine with a custom transition.
@@ -135,7 +136,7 @@
     \snippet animation/moveblocks/main.cpp 13
 
     As mentioned before, QAbstractTransition will set up an animation
-    added with \l{QAbstractTransition::}{addAnimation()} using
+    added with \l [CPP] {QAbstractTransition::}{addAnimation()} using
     property values set with \l{QState::}{assignProperty()}.
 
     \section1 The StateSwitcher Class
@@ -171,7 +172,7 @@
 
     \c StateSwitchTransition inherits QAbstractTransition and triggers
     on \c{StateSwitchEvent}s. It contains only inline functions, so
-    let's take a look at its \l{QAbstractTransition::}{eventTest()}
+    let's take a look at its \l [CPP] {QAbstractTransition::}{eventTest()}
     function, which is the only function that we define..
 
     \snippet animation/moveblocks/main.cpp 14
