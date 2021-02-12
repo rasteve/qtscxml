@@ -17,5 +17,5 @@ SOURCES += main.cpp \
 RESOURCES += stickman.qrc
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/widgets/animation/stickman
+target.path = $$[QT_INSTALL_EXAMPLES]/statemachine/animation/stickman
 INSTALLS += target

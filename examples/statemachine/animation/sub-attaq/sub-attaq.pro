@@ -29,5 +29,5 @@ SOURCES += boat.cpp \
 RESOURCES += subattaq.qrc
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/widgets/animation/sub-attaq
+target.path = $$[QT_INSTALL_EXAMPLES]/statemachine/animation/sub-attaq
 INSTALLS += target

@@ -6,5 +6,5 @@ SOURCES       = main.cpp \
                 window.cpp
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/widgets/statemachine/rogue
+target.path = $$[QT_INSTALL_EXAMPLES]/statemachine/statemachine/rogue
 INSTALLS += target

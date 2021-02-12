@@ -21,7 +21,7 @@ requires(qtConfig(treewidget))
 qtHaveModule(opengl): QT += opengl openglwidgets
 
 # install
-target.path = $$[QT_INSTALL_EXAMPLES]/widgets/graphicsview/padnavigator
+target.path = $$[QT_INSTALL_EXAMPLES]/statemachine/graphicsview/padnavigator
 INSTALLS += target
 
 CONFIG += console
