@@ -81,7 +81,7 @@ QT_BEGIN_NAMESPACE
 
 
 QScxmlEventConnection::QScxmlEventConnection(QObject *parent) :
-    QObject(parent), m_stateMachine(nullptr)
+    QObject(parent)
 {
 }
 
@@ -92,11 +92,18 @@ QStringList QScxmlEventConnection::events() const
 
 void QScxmlEventConnection::setEvents(const QStringList &events)
 {
-    if (events != m_events) {
-        m_events = events;
-        doConnect();
-        emit eventsChanged();
+    if (events == m_events.value()) {
+        m_events.removeBindingUnlessInWrapper();
+        return;
     }
+    m_events = events;
+    doConnect();
+    m_events.notify();
+}
+
+QBindable<QStringList> QScxmlEventConnection::bindableEvents()
+{
+    return &m_events;
 }
 
 QScxmlStateMachine *QScxmlEventConnection::stateMachine() const
@@ -106,11 +113,18 @@ QScxmlStateMachine *QScxmlEventConnection::stateMachine() const
 
 void QScxmlEventConnection::setStateMachine(QScxmlStateMachine *stateMachine)
 {
-    if (stateMachine != m_stateMachine) {
-        m_stateMachine = stateMachine;
-        doConnect();
-        emit stateMachineChanged();
+    if (stateMachine == m_stateMachine.value()) {
+        m_stateMachine.removeBindingUnlessInWrapper();
+        return;
     }
+    m_stateMachine = stateMachine;
+    doConnect();
+    m_stateMachine.notify();
+}
+
+QBindable<QScxmlStateMachine*> QScxmlEventConnection::bindableStateMachine()
+{
+    return &m_stateMachine;
 }
 
 void QScxmlEventConnection::doConnect()
@@ -119,13 +133,11 @@ void QScxmlEventConnection::doConnect()
         disconnect(connection);
     m_connections.clear();
     if (m_stateMachine) {
-        for (const QString &event : qAsConst(m_events)) {
+        for (const QString &event : qAsConst(m_events.value())) {
             m_connections.append(m_stateMachine->connectToEvent(event, this,
                                                                 &QScxmlEventConnection::occurred));
         }
-
     }
-
 }
 
 void QScxmlEventConnection::classBegin()
@@ -134,10 +146,9 @@ void QScxmlEventConnection::classBegin()
 
 void QScxmlEventConnection::componentComplete()
 {
-    if (!m_stateMachine) {
-        if ((m_stateMachine = qobject_cast<QScxmlStateMachine *>(parent())))
-            doConnect();
-    }
+    auto parentStateMachine = qobject_cast<QScxmlStateMachine *>(parent());
+    if (!m_stateMachine.value() && parentStateMachine)
+        setStateMachine(parentStateMachine);
 }
 
 QT_END_NAMESPACE

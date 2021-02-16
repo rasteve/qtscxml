@@ -58,6 +58,8 @@
 #include <QtCore/qobject.h>
 #include <QtQml/qqmlparserstatus.h>
 #include <QtQml/qqml.h>
+#include "QtCore/qproperty.h"
+#include <private/qproperty_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -73,9 +75,10 @@ struct Q_SCXMLQML_PRIVATE_EXPORT QScxmlEventForeign
 class Q_SCXMLQML_PRIVATE_EXPORT QScxmlEventConnection : public QObject, public QQmlParserStatus
 {
     Q_OBJECT
-    Q_PROPERTY(QStringList events READ events WRITE setEvents NOTIFY eventsChanged)
+    Q_PROPERTY(QStringList events READ events WRITE setEvents NOTIFY eventsChanged
+               BINDABLE bindableEvents)
     Q_PROPERTY(QScxmlStateMachine *stateMachine READ stateMachine WRITE setStateMachine
-               NOTIFY stateMachineChanged)
+               NOTIFY stateMachineChanged BINDABLE bindableStateMachine)
     Q_INTERFACES(QQmlParserStatus)
     QML_NAMED_ELEMENT(EventConnection)
     QML_ADDED_IN_VERSION(5,8)
@@ -85,9 +88,11 @@ public:
 
     QStringList events() const;
     void setEvents(const QStringList &events);
+    QBindable<QStringList> bindableEvents();
 
     QScxmlStateMachine *stateMachine() const;
     void setStateMachine(QScxmlStateMachine *stateMachine);
+    QBindable<QScxmlStateMachine*> bindableStateMachine();
 
 Q_SIGNALS:
     void eventsChanged();
@@ -96,8 +101,12 @@ Q_SIGNALS:
     void occurred(const QScxmlEvent &event);
 
 private:
-    QScxmlStateMachine *m_stateMachine;
-    QStringList m_events;
+    Q_OBJECT_COMPAT_PROPERTY_WITH_ARGS(QScxmlEventConnection, QScxmlStateMachine*, m_stateMachine,
+                                      &QScxmlEventConnection::setStateMachine,
+                                      &QScxmlEventConnection::stateMachineChanged, nullptr);
+    Q_OBJECT_COMPAT_PROPERTY(QScxmlEventConnection, QStringList, m_events,
+                             &QScxmlEventConnection::setEvents,
+                             &QScxmlEventConnection::eventsChanged);
 
     QList<QMetaObject::Connection> m_connections;
 
