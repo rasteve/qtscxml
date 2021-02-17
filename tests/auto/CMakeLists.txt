@@ -1,4 +1,3 @@
-# Generated from auto.pro.
 
 add_subdirectory(scxmlcoutput)
 if (TARGET Qt::Gui AND TARGET Qt::Qml)

@@ -1,4 +1,3 @@
-# Generated from statemachineinfo.pro.
 
 #####################################################################
 ## tst_statemachineinfo Test:

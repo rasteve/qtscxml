@@ -1,4 +1,3 @@
-# Generated from compiled.pro.
 
 #####################################################################
 ## tst_compiled Test:

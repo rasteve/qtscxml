@@ -1,4 +1,3 @@
-# Generated from qqmlstatemachinemetatype.pro.
 
 #####################################################################
 ## tst_qqmlstatemachinemetatype Test:

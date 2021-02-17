@@ -1,4 +1,3 @@
-# Generated from statemachine.pro.
 
 #####################################################################
 ## statemachine Test:

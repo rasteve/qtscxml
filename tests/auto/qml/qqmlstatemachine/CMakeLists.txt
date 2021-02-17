@@ -1,4 +1,3 @@
-# Generated from qqmlstatemachine.pro.
 
 #####################################################################
 ## tst_qqmlstatemachine Test:

@@ -1,4 +1,3 @@
-# Generated from qstatemachine.pro.
 
 #####################################################################
 ## tst_qstatemachine Test:

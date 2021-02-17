@@ -1,4 +1,3 @@
-# Generated from dynamicmetaobject.pro.
 
 #####################################################################
 ## tst_dynamicmetaobject Test:
