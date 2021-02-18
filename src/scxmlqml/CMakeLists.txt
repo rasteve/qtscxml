@@ -11,6 +11,8 @@ qt_internal_add_module(ScxmlQml
         Qt::Core
         Qt::Qml
         Qt::Scxml
+    LIBRARIES
+        Qt::CorePrivate
 )
 
 set_target_properties(ScxmlQml PROPERTIES

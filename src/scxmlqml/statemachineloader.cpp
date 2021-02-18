@@ -58,9 +58,7 @@
 
 QScxmlStateMachineLoader::QScxmlStateMachineLoader(QObject *parent)
     : QObject(parent)
-    , m_dataModel(nullptr)
     , m_implicitDataModel(nullptr)
-    , m_stateMachine(nullptr)
 {
 }
 
@@ -72,6 +70,19 @@ QScxmlStateMachineLoader::QScxmlStateMachineLoader(QObject *parent)
 QT_PREPEND_NAMESPACE(QScxmlStateMachine) *QScxmlStateMachineLoader::stateMachine() const
 {
     return m_stateMachine;
+}
+
+void QScxmlStateMachineLoader::setStateMachine(QScxmlStateMachine* stateMachine)
+{
+    if (m_stateMachine.value() != stateMachine) {
+        delete m_stateMachine.value();
+        m_stateMachine = stateMachine;
+    }
+}
+
+QBindable<QScxmlStateMachine*> QScxmlStateMachineLoader::bindableStateMachine()
+{
+    return &m_stateMachine;
 }
 
 /*!
@@ -90,22 +101,22 @@ void QScxmlStateMachineLoader::setSource(const QUrl &source)
     if (!source.isValid())
         return;
 
-    QUrl oldSource = m_source;
-    if (m_stateMachine) {
-        delete m_stateMachine;
-        m_stateMachine = nullptr;
-        m_implicitDataModel = nullptr;
-    }
+    const QUrl oldSource = m_source;
+    setStateMachine(nullptr);
+    m_implicitDataModel = nullptr;
 
-    if (parse(source)) {
+    if (parse(source))
         m_source = source;
-        emit sourceChanged();
-    } else {
-        m_source.clear();
-        if (!oldSource.isEmpty()) {
-            emit sourceChanged();
-        }
-    }
+    else
+        m_source = QUrl();
+
+    if (oldSource != m_source)
+        m_source.notify();
+}
+
+QBindable<QUrl> QScxmlStateMachineLoader::bindableSource()
+{
+    return &m_source;
 }
 
 QVariantMap QScxmlStateMachineLoader::initialValues() const
@@ -115,12 +126,19 @@ QVariantMap QScxmlStateMachineLoader::initialValues() const
 
 void QScxmlStateMachineLoader::setInitialValues(const QVariantMap &initialValues)
 {
-    if (initialValues != m_initialValues) {
-        m_initialValues = initialValues;
-        if (m_stateMachine)
-            m_stateMachine->setInitialValues(initialValues);
-        emit initialValuesChanged();
+    if (initialValues == m_initialValues.value()) {
+        m_initialValues.removeBindingUnlessInWrapper();
+        return;
     }
+    m_initialValues = initialValues;
+    if (m_stateMachine.value())
+        m_stateMachine.value()->setInitialValues(initialValues);
+    m_initialValues.notify();
+}
+
+QBindable<QVariantMap> QScxmlStateMachineLoader::bindableInitialValues()
+{
+    return &m_initialValues;
 }
 
 QScxmlDataModel *QScxmlStateMachineLoader::dataModel() const
@@ -130,16 +148,23 @@ QScxmlDataModel *QScxmlStateMachineLoader::dataModel() const
 
 void QScxmlStateMachineLoader::setDataModel(QScxmlDataModel *dataModel)
 {
-    if (dataModel != m_dataModel) {
-        m_dataModel = dataModel;
-        if (m_stateMachine) {
-            if (dataModel)
-                m_stateMachine->setDataModel(dataModel);
-            else
-                m_stateMachine->setDataModel(m_implicitDataModel);
-        }
-        emit dataModelChanged();
+    if (dataModel == m_dataModel.value()) {
+        m_dataModel.removeBindingUnlessInWrapper();
+        return;
     }
+    m_dataModel = dataModel;
+    if (m_stateMachine.value()) {
+        if (dataModel)
+            m_stateMachine.value()->setDataModel(dataModel);
+        else
+            m_stateMachine.value()->setDataModel(m_implicitDataModel);
+    }
+    m_dataModel.notify();
+}
+
+QBindable<QScxmlDataModel*> QScxmlStateMachineLoader::bindableDataModel()
+{
+    return &m_dataModel;
 }
 
 bool QScxmlStateMachineLoader::parse(const QUrl &source)
@@ -174,30 +199,27 @@ bool QScxmlStateMachineLoader::parse(const QUrl &source)
                          << QStringLiteral("Invoking services by relative path will not work.");
     }
 
-    m_stateMachine = QScxmlStateMachine::fromData(&buf, fileName);
-    m_stateMachine->setParent(this);
-    m_implicitDataModel = m_stateMachine->dataModel();
+    auto stateMachine = QScxmlStateMachine::fromData(&buf, fileName);
+    stateMachine->setParent(this);
+    m_implicitDataModel = stateMachine->dataModel();
 
-    if (m_stateMachine->parseErrors().isEmpty()) {
-        if (m_dataModel)
-            m_stateMachine->setDataModel(m_dataModel);
-        m_stateMachine->setInitialValues(m_initialValues);
-        emit stateMachineChanged();
-
+    if (stateMachine->parseErrors().isEmpty()) {
+        if (m_dataModel.value())
+            stateMachine->setDataModel(m_dataModel.value());
+        stateMachine->setInitialValues(m_initialValues.value());
+        setStateMachine(stateMachine);
         // as this is deferred any pending property updates to m_dataModel and m_initialValues
         // should still occur before start().
-        QMetaObject::invokeMethod(m_stateMachine, "start", Qt::QueuedConnection);
+        QMetaObject::invokeMethod(m_stateMachine.value(), "start", Qt::QueuedConnection);
         return true;
     } else {
         qmlWarning(this) << QStringLiteral("Something went wrong while parsing '%1':")
                          .arg(source.url())
                       << Qt::endl;
-        const auto errors = m_stateMachine->parseErrors();
+        const auto errors = stateMachine->parseErrors();
         for (const QScxmlError &error : errors) {
             qmlWarning(this) << error.toString();
         }
-
-        emit stateMachineChanged();
         return false;
     }
 }

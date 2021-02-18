@@ -55,17 +55,23 @@
 
 #include <QtCore/qurl.h>
 #include <QtScxml/qscxmlstatemachine.h>
-#include <private/qqmlengine_p.h>
+
+#include <QtCore/private/qproperty_p.h>
+#include <QtQml/qqml.h>
 
 QT_BEGIN_NAMESPACE
 
 class Q_SCXMLQML_PRIVATE_EXPORT QScxmlStateMachineLoader: public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(QScxmlStateMachine *stateMachine READ stateMachine DESIGNABLE false NOTIFY stateMachineChanged)
-    Q_PROPERTY(QVariantMap initialValues READ initialValues WRITE setInitialValues NOTIFY initialValuesChanged)
-    Q_PROPERTY(QScxmlDataModel *dataModel READ dataModel WRITE setDataModel NOTIFY dataModelChanged)
+    Q_PROPERTY(QUrl source READ source WRITE setSource
+               NOTIFY sourceChanged BINDABLE bindableSource)
+    Q_PROPERTY(QScxmlStateMachine *stateMachine READ stateMachine DESIGNABLE false
+               NOTIFY stateMachineChanged BINDABLE bindableStateMachine)
+    Q_PROPERTY(QVariantMap initialValues READ initialValues WRITE setInitialValues
+               NOTIFY initialValuesChanged BINDABLE bindableInitialValues)
+    Q_PROPERTY(QScxmlDataModel *dataModel READ dataModel
+               WRITE setDataModel NOTIFY dataModelChanged BINDABLE bindableDataModel)
     QML_NAMED_ELEMENT(StateMachineLoader)
     QML_ADDED_IN_VERSION(5,8)
 
@@ -73,15 +79,19 @@ public:
     explicit QScxmlStateMachineLoader(QObject *parent = nullptr);
 
     QScxmlStateMachine *stateMachine() const;
+    QBindable<QScxmlStateMachine*> bindableStateMachine();
 
     QUrl source();
     void setSource(const QUrl &source);
+    QBindable<QUrl> bindableSource();
 
     QVariantMap initialValues() const;
     void setInitialValues(const QVariantMap &initialValues);
+    QBindable<QVariantMap> bindableInitialValues();
 
     QScxmlDataModel *dataModel() const;
     void setDataModel(QScxmlDataModel *dataModel);
+    QBindable<QScxmlDataModel*> bindableDataModel();
 
 Q_SIGNALS:
     void sourceChanged();
@@ -91,13 +101,21 @@ Q_SIGNALS:
 
 private:
     bool parse(const QUrl &source);
+    void setStateMachine(QScxmlStateMachine* stateMachine);
 
 private:
-    QUrl m_source;
-    QVariantMap m_initialValues;
-    QScxmlDataModel *m_dataModel;
+    Q_OBJECT_COMPAT_PROPERTY(QScxmlStateMachineLoader, QUrl,
+                             m_source, &QScxmlStateMachineLoader::setSource,
+                             &QScxmlStateMachineLoader::sourceChanged);
+    Q_OBJECT_COMPAT_PROPERTY(QScxmlStateMachineLoader, QVariantMap,
+                             m_initialValues, &QScxmlStateMachineLoader::setInitialValues,
+                             &QScxmlStateMachineLoader::initialValuesChanged);
+    Q_OBJECT_COMPAT_PROPERTY_WITH_ARGS(QScxmlStateMachineLoader, QScxmlDataModel*,
+                             m_dataModel, &QScxmlStateMachineLoader::setDataModel,
+                             &QScxmlStateMachineLoader::dataModelChanged, nullptr);
+    Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(QScxmlStateMachineLoader, QScxmlStateMachine*,
+                             m_stateMachine, nullptr, &QScxmlStateMachineLoader::stateMachineChanged);
     QScxmlDataModel *m_implicitDataModel;
-    QScxmlStateMachine *m_stateMachine;
 };
 
 QT_END_NAMESPACE
