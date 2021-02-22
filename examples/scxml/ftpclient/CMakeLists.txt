@@ -23,7 +23,7 @@ qt_add_executable(ftpclient
     main.cpp
 )
 set_target_properties(ftpclient PROPERTIES
-    WIN32_EXECUTABLE TRUE
+    WIN32_EXECUTABLE FALSE
     MACOSX_BUNDLE TRUE
 )
 target_link_libraries(ftpclient PUBLIC
