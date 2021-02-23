@@ -56,9 +56,12 @@ class QStatePrivate;
 class Q_STATEMACHINE_EXPORT QState : public QAbstractState
 {
     Q_OBJECT
-    Q_PROPERTY(QAbstractState* initialState READ initialState WRITE setInitialState NOTIFY initialStateChanged)
-    Q_PROPERTY(QAbstractState* errorState READ errorState WRITE setErrorState NOTIFY errorStateChanged)
-    Q_PROPERTY(ChildMode childMode READ childMode WRITE setChildMode NOTIFY childModeChanged)
+    Q_PROPERTY(QAbstractState* initialState READ initialState WRITE setInitialState
+               NOTIFY initialStateChanged BINDABLE bindableInitialState)
+    Q_PROPERTY(QAbstractState* errorState READ errorState WRITE setErrorState
+               NOTIFY errorStateChanged BINDABLE bindableErrorState)
+    Q_PROPERTY(ChildMode childMode READ childMode WRITE setChildMode
+               NOTIFY childModeChanged BINDABLE bindableChildMode)
 public:
     enum ChildMode {
         ExclusiveStates,
@@ -78,6 +81,7 @@ public:
 
     QAbstractState *errorState() const;
     void setErrorState(QAbstractState *state);
+    QBindable<QAbstractState*> bindableErrorState();
 
     void addTransition(QAbstractTransition *transition);
     QSignalTransition *addTransition(const QObject *sender, const char *signal, QAbstractState *target);
@@ -100,9 +104,11 @@ public:
 
     QAbstractState *initialState() const;
     void setInitialState(QAbstractState *state);
+    QBindable<QAbstractState*> bindableInitialState();
 
     ChildMode childMode() const;
     void setChildMode(ChildMode mode);
+    QBindable<QState::ChildMode> bindableChildMode();
 
 #ifndef QT_NO_PROPERTIES
     void assignProperty(QObject *object, const char *name,

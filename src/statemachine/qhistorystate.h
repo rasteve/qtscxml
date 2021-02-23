@@ -52,8 +52,11 @@ class Q_STATEMACHINE_EXPORT QHistoryState : public QAbstractState
 {
     Q_OBJECT
     Q_PROPERTY(QAbstractState* defaultState READ defaultState WRITE setDefaultState NOTIFY defaultStateChanged)
-    Q_PROPERTY(QAbstractTransition* defaultTransition READ defaultTransition WRITE setDefaultTransition NOTIFY defaultTransitionChanged)
-    Q_PROPERTY(HistoryType historyType READ historyType WRITE setHistoryType NOTIFY historyTypeChanged)
+    Q_PROPERTY(QAbstractTransition* defaultTransition READ defaultTransition
+               WRITE setDefaultTransition NOTIFY defaultTransitionChanged
+               BINDABLE bindableDefaultTransition)
+    Q_PROPERTY(HistoryType historyType READ historyType WRITE setHistoryType
+               NOTIFY historyTypeChanged BINDABLE bindableHistoryType)
 public:
     enum HistoryType {
         ShallowHistory,
@@ -67,12 +70,14 @@ public:
 
     QAbstractTransition *defaultTransition() const;
     void setDefaultTransition(QAbstractTransition *transition);
+    QBindable<QAbstractTransition*> bindableDefaultTransition();
 
     QAbstractState *defaultState() const;
     void setDefaultState(QAbstractState *state);
 
     HistoryType historyType() const;
     void setHistoryType(HistoryType type);
+    QBindable<QHistoryState::HistoryType> bindableHistoryType();
 
 Q_SIGNALS:
     void defaultTransitionChanged(QPrivateSignal);

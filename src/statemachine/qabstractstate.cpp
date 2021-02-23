@@ -115,19 +115,13 @@ void QAbstractStatePrivate::emitEntered()
 {
     Q_Q(QAbstractState);
     emit q->entered(QAbstractState::QPrivateSignal());
-    if (!active) {
-        active = true;
-        emit q->activeChanged(true);
-    }
+    active.setValue(true);
 }
 
 void QAbstractStatePrivate::emitExited()
 {
     Q_Q(QAbstractState);
-    if (active) {
-        active = false;
-        emit q->activeChanged(false);
-    }
+    active.setValue(false);
     emit q->exited(QAbstractState::QPrivateSignal());
 }
 
@@ -185,6 +179,12 @@ bool QAbstractState::active() const
 {
     Q_D(const QAbstractState);
     return d->active;
+}
+
+QBindable<bool> QAbstractState::bindableActive()
+{
+    Q_D(QAbstractState);
+    return &d->active;
 }
 
 /*!

@@ -48,6 +48,8 @@
 #include "private/qstate_p.h"
 #include "private/qstatemachine_p.h"
 
+#include "../../shared/bindableutils.h"
+
 static int globalTick;
 
 // Run exec for a maximum of TIMEOUT msecs
@@ -260,6 +262,7 @@ private slots:
     void cancelDelayedEventWithChrono();
     void postDelayedEventWithChronoAndStop();
     void postDelayedEventWithChronoFromThread();
+    void bindings();
 };
 
 class TestState : public QState
@@ -6856,6 +6859,62 @@ void tst_QStateMachine::postDelayedEventWithChronoFromThread()
     TEST_ACTIVE_CHANGED(s1, 2);
     QVERIFY(poster.firstEventWasCancelled);
 #endif
+}
+
+void tst_QStateMachine::bindings()
+{
+    QStateMachine machine;
+    TestState *state1 = new TestState(&machine);
+    TestTransition *transition1 = new TestTransition(state1);
+    TestTransition *transition2 = new TestTransition(state1);
+
+    // -- QHistoryState::defaultTransition
+    QHistoryState *historyState = new QHistoryState(&machine);
+    testWritableBindableBasics<QHistoryState, QAbstractTransition*>(
+                *historyState, transition1, transition2, "defaultTransition");
+
+    // -- QHistoryState::historyType
+    QHistoryState::HistoryType type1 = QHistoryState::HistoryType::DeepHistory;
+    QHistoryState::HistoryType type2 = QHistoryState::HistoryType::ShallowHistory;
+    testWritableBindableBasics<QHistoryState, QHistoryState::HistoryType>(
+                *historyState, type1, type2, "historyType");
+
+    // -- QState::initialState
+    QAbstractState *is1 = new QState(state1);
+    QAbstractState *is2 = new QState(state1);
+    testWritableBindableBasics<QState, QAbstractState*>(
+                *state1, is1, is2, "initialState");
+
+    // -- QState::errorState
+    testWritableBindableBasics<QState, QAbstractState*>(
+                *state1, is1, is2, "errorState");
+
+    // -- QState::childMode
+    // Make a new state as re-use of state1 would yield irrelevant warnings
+    TestState *state2 = new TestState(&machine);
+    QState::ChildMode mode1 = QState::ChildMode::ParallelStates;
+    QState::ChildMode mode2 = QState::ChildMode::ExclusiveStates;
+    testWritableBindableBasics<QState, QState::ChildMode>(
+                *state2, mode1, mode2, "childMode");
+
+    // -- QAbstractState::active
+    QState *startState = new QState(&machine);
+    QFinalState *endState = new QFinalState(&machine);
+    DEFINE_ACTIVE_SPY(startState);
+    DEFINE_ACTIVE_SPY(endState);
+    machine.setInitialState(startState);
+    startState->addTransition(endState);
+
+    // Create a binding to the "active" property
+    QProperty<bool> active([&](){ return endState->active(); });
+    QVERIFY(!active);
+    machine.start();
+    // startState should get "enter/active == true" + "exit/active == false"
+    QTRY_COMPARE(startState_activeSpy.count(), 2);
+    // endState should get "enter/active == true"
+    QTRY_COMPARE(endState_activeSpy.count(), 1);
+    // Verify that the "active" value changed via binding
+    QVERIFY(active);
 }
 
 QTEST_MAIN(tst_QStateMachine)

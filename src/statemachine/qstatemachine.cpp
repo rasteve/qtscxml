@@ -1792,8 +1792,7 @@ void QStateMachinePrivate::_q_start()
     const auto config = configuration;
     for (QAbstractState *state : config) {
         QAbstractStatePrivate *abstractStatePrivate = QAbstractStatePrivate::get(state);
-        abstractStatePrivate->active = false;
-        emit state->activeChanged(false);
+        abstractStatePrivate->active.setValue(false);
     }
     configuration.clear();
     qDeleteAll(internalEventQueue);

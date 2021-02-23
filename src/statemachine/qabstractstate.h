@@ -54,7 +54,7 @@ class QAbstractStatePrivate;
 class Q_STATEMACHINE_EXPORT QAbstractState : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(bool active READ active NOTIFY activeChanged)
+    Q_PROPERTY(bool active READ active NOTIFY activeChanged BINDABLE bindableActive)
 public:
     ~QAbstractState();
 
@@ -62,6 +62,7 @@ public:
     QStateMachine *machine() const;
 
     bool active() const;
+    QBindable<bool> bindableActive();
 
 Q_SIGNALS:
     void entered(QPrivateSignal);

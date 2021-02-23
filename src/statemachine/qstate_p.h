@@ -58,6 +58,7 @@
 #include <QtCore/qbytearray.h>
 #include <QtCore/qpointer.h>
 #include <QtCore/qvariant.h>
+#include <QtCore/private/qproperty_p.h>
 
 QT_REQUIRE_CONFIG(statemachine);
 
@@ -109,9 +110,27 @@ public:
     void emitFinished();
     void emitPropertiesAssigned();
 
-    QAbstractState *errorState;
-    QAbstractState *initialState;
-    QState::ChildMode childMode;
+    void initialStateChanged()
+    {
+        emit q_func()->initialStateChanged(QState::QPrivateSignal());
+    }
+    Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(QStatePrivate, QAbstractState*, initialState,
+                                       nullptr, &QStatePrivate::initialStateChanged);
+
+    void errorStateChanged()
+    {
+        emit q_func()->errorStateChanged(QState::QPrivateSignal());
+    }
+    Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(QStatePrivate, QAbstractState*, errorState,
+                                       nullptr, &QStatePrivate::errorStateChanged);
+
+    void childModeChanged()
+    {
+        emit q_func()->childModeChanged(QState::QPrivateSignal());
+    }
+    Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(QStatePrivate, QState::ChildMode, childMode,
+                                         QState::ExclusiveStates, &QStatePrivate::childModeChanged);
+
     mutable bool childStatesListNeedsRefresh;
     mutable bool transitionsListNeedsRefresh;
     mutable QList<QAbstractState*> childStatesList;

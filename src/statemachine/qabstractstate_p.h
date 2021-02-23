@@ -88,9 +88,16 @@ public:
     void emitEntered();
     void emitExited();
 
-    uint stateType:30;
-    uint isMachine:1;
-    bool active:1;
+    quint16 stateType;
+    bool isMachine;
+
+    void activeChanged()
+    {
+        emit q_func()->activeChanged(active.value());
+    }
+    Q_OBJECT_BINDABLE_PROPERTY(QAbstractStatePrivate, bool, active,
+                               &QAbstractStatePrivate::activeChanged);
+
     mutable QState *parentState;
 };
 

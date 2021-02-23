@@ -208,11 +208,21 @@ QAbstractTransition *QHistoryState::defaultTransition() const
 void QHistoryState::setDefaultTransition(QAbstractTransition *transition)
 {
     Q_D(QHistoryState);
-    if (d->defaultTransition != transition) {
-        d->defaultTransition = transition;
-        transition->setParent(this);
-        emit defaultTransitionChanged(QHistoryState::QPrivateSignal());
+    if (d->defaultTransition.value() == transition) {
+        d->defaultTransition.removeBindingUnlessInWrapper();
+        return;
     }
+    d->defaultTransition = transition;
+    if (transition)
+        transition->setParent(this);
+    d->defaultTransition.notify();
+    emit defaultTransitionChanged(QHistoryState::QPrivateSignal());
+}
+
+QBindable<QAbstractTransition*> QHistoryState::bindableDefaultTransition()
+{
+    Q_D(QHistoryState);
+    return &d->defaultTransition;
 }
 
 /*!
@@ -222,7 +232,7 @@ void QHistoryState::setDefaultTransition(QAbstractTransition *transition)
 QAbstractState *QHistoryState::defaultState() const
 {
     Q_D(const QHistoryState);
-    return d->defaultTransition ? d->defaultTransition->targetState() : nullptr;
+    return d->defaultTransition.value() ? d->defaultTransition->targetState() : nullptr;
 }
 
 static inline bool isSoleEntry(const QList<QAbstractState*> &states, const QAbstractState * state)
@@ -245,10 +255,11 @@ void QHistoryState::setDefaultState(QAbstractState *state)
                  "to this history state's group (%p)", state, parentState());
         return;
     }
-    if (!d->defaultTransition || !isSoleEntry(d->defaultTransition->targetStates(), state)) {
-        if (!d->defaultTransition || !qobject_cast<DefaultStateTransition*>(d->defaultTransition)) {
-            d->defaultTransition = new DefaultStateTransition(this, state);
-            emit defaultTransitionChanged(QHistoryState::QPrivateSignal());
+    if (!d->defaultTransition.value()
+            || !isSoleEntry(d->defaultTransition->targetStates(), state)) {
+        if (!d->defaultTransition.value()
+                || !qobject_cast<DefaultStateTransition*>(d->defaultTransition)) {
+            d->defaultTransition.setValue(new DefaultStateTransition(this, state));
         } else {
             d->defaultTransition->setTargetState(state);
         }
@@ -271,10 +282,13 @@ QHistoryState::HistoryType QHistoryState::historyType() const
 void QHistoryState::setHistoryType(HistoryType type)
 {
     Q_D(QHistoryState);
-    if (d->historyType != type) {
-        d->historyType = type;
-        emit historyTypeChanged(QHistoryState::QPrivateSignal());
-    }
+    d->historyType = type;
+}
+
+QBindable<QHistoryState::HistoryType> QHistoryState::bindableHistoryType()
+{
+    Q_D(QHistoryState);
+    return &d->historyType;
 }
 
 /*!

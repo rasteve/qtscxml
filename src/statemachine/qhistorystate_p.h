@@ -57,6 +57,7 @@
 
 #include <QtStateMachine/qabstracttransition.h>
 #include <QtStateMachine/qhistorystate.h>
+#include <QtCore/private/qproperty_p.h>
 
 QT_REQUIRE_CONFIG(statemachine);
 
@@ -72,8 +73,21 @@ public:
     static QHistoryStatePrivate *get(QHistoryState *q)
     { return q->d_func(); }
 
-    QAbstractTransition *defaultTransition;
-    QHistoryState::HistoryType historyType;
+    void setDefaultTransition(QAbstractTransition* transition)
+    {
+        q_func()->setDefaultTransition(transition);
+    }
+    Q_OBJECT_COMPAT_PROPERTY_WITH_ARGS(QHistoryStatePrivate,
+                                       QAbstractTransition*, defaultTransition,
+                                       &QHistoryStatePrivate::setDefaultTransition, nullptr);
+
+    void historyTypeChanged()
+    {
+        emit q_func()->historyTypeChanged(QHistoryState::QPrivateSignal());
+    }
+    Q_OBJECT_BINDABLE_PROPERTY(QHistoryStatePrivate, QHistoryState::HistoryType,
+                               historyType, &QHistoryStatePrivate::historyTypeChanged);
+
     QList<QAbstractState*> configuration;
 };
 

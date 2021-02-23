@@ -146,7 +146,6 @@ QT_BEGIN_NAMESPACE
 
 QStatePrivate::QStatePrivate()
     : QAbstractStatePrivate(StandardState),
-      errorState(nullptr), initialState(nullptr), childMode(QState::ExclusiveStates),
       childStatesListNeedsRefresh(true), transitionsListNeedsRefresh(true)
 {
 }
@@ -302,11 +301,13 @@ void QState::setErrorState(QAbstractState *state)
                  "to a different state machine");
         return;
     }
+    d->errorState = state;
+}
 
-    if (d->errorState != state) {
-        d->errorState = state;
-        emit errorStateChanged(QState::QPrivateSignal());
-    }
+QBindable<QAbstractState*> QState::bindableErrorState()
+{
+    Q_D(QState);
+    return &d->errorState;
 }
 
 /*!
@@ -499,10 +500,13 @@ void QState::setInitialState(QAbstractState *state)
                  state, this);
         return;
     }
-    if (d->initialState != state) {
-        d->initialState = state;
-        emit initialStateChanged(QState::QPrivateSignal());
-    }
+    d->initialState = state;
+}
+
+QBindable<QAbstractState*> QState::bindableInitialState()
+{
+    Q_D(QState);
+    return &d->initialState;
 }
 
 /*!
@@ -521,17 +525,18 @@ void QState::setChildMode(ChildMode mode)
 {
     Q_D(QState);
 
-    if (mode == QState::ParallelStates && d->initialState) {
+    if (mode == QState::ParallelStates && d->initialState.value()) {
         qWarning("QState::setChildMode: setting the child-mode of state %p to "
                  "parallel removes the initial state", this);
-        d->initialState = nullptr;
-        emit initialStateChanged(QState::QPrivateSignal());
+        d->initialState.setValue(nullptr);
     }
+    d->childMode = mode;
+}
 
-    if (d->childMode != mode) {
-        d->childMode = mode;
-        emit childModeChanged(QState::QPrivateSignal());
-    }
+QBindable<QState::ChildMode> QState::bindableChildMode()
+{
+    Q_D(QState);
+    return &d->childMode;
 }
 
 /*!
@@ -543,8 +548,10 @@ bool QState::event(QEvent *e)
     if ((e->type() == QEvent::ChildAdded) || (e->type() == QEvent::ChildRemoved)) {
         d->childStatesListNeedsRefresh = true;
         d->transitionsListNeedsRefresh = true;
-        if ((e->type() == QEvent::ChildRemoved) && (static_cast<QChildEvent *>(e)->child() == d->initialState))
-            d->initialState = nullptr;
+        if ((e->type() == QEvent::ChildRemoved)
+                && (static_cast<QChildEvent *>(e)->child() == d->initialState.value())) {
+            d->initialState.setValue(nullptr);
+        }
     }
     return QAbstractState::event(e);
 }
