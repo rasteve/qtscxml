@@ -118,7 +118,7 @@ Window {
     EventConnection {
         stateMachine: root.stateMachine
         events: ["playbackStarted", "playbackStopped"]
-        onOccurred: {
+        onOccurred: (event)=> {
             var media = event.data.media;
             if (event.name === "playbackStarted") {
                 theText.text = "Playing '" + media + "'";

@@ -64,7 +64,7 @@ Window {
         running: true
         EventConnection {
             events: ["updateDisplay"]
-            onOccurred: resultText.text = event.data.display
+            onOccurred: (event)=> resultText.text = event.data.display
         }
     }
 
