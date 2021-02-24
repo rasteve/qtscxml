@@ -51,7 +51,7 @@
 #include <QtCore>
 #include <QtStateMachine>
 
-#include <stdio.h>
+#include <iostream>
 
 //! [0]
 class PingEvent : public QEvent
@@ -80,7 +80,7 @@ protected:
     void onEntry(QEvent *) override
     {
         machine()->postEvent(new PingEvent());
-        fprintf(stdout, "ping?\n");
+        std::cout << "ping?" << std::endl;
     }
 };
 //! [1]
@@ -98,7 +98,7 @@ protected:
     void onTransition(QEvent *) override
     {
         machine()->postDelayedEvent(new PingEvent(), 500);
-        fprintf(stdout, "ping?\n");
+        std::cout << "ping?" << std::endl;
     }
 };
 //! [3]
@@ -116,7 +116,7 @@ protected:
     void onTransition(QEvent *) override
     {
         machine()->postDelayedEvent(new PongEvent(), 500);
-        fprintf(stdout, "pong!\n");
+        std::cout << "pong!" << std::endl;
     }
 };
 //! [2]
