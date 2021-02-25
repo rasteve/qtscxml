@@ -45,7 +45,7 @@ TestCase {
             SignalTransition {
                 id: signalTrans
                 signal: testCase.mysignal
-                onTriggered: {
+                onTriggered: (mystr, mybool, myint) => {
                     testCase.mystr = mystr
                     testCase.mybool = mybool
                     testCase.myint = myint
