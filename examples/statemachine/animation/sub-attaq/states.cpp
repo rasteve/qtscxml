@@ -156,6 +156,7 @@ void PlayState::onEntry(QEvent *)
     //We lost we should reach the final state
     lostState->addTransition(lostState, &QState::finished, finalState);
 
+    scene->textInformationItem->hide();
     machine->start();
 }
 
@@ -224,7 +225,7 @@ LostState::LostState(GraphicsScene *scene, PlayState *game, QState *parent) : QS
 void LostState::onEntry(QEvent *)
 {
     //The message to display
-    QString message = QString("You lose on level %1. Your score is %2.").arg(game->currentLevel+1).arg(game->score);
+    QString message = QString("You lost on level %1. Your score is %2.").arg(game->currentLevel+1).arg(game->score);
 
     //We set the level back to 0
     game->currentLevel = 0;
@@ -258,11 +259,11 @@ void WinState::onEntry(QEvent *)
 
     QString message;
     if (scene->levelsData.size() - 1 != game->currentLevel) {
-        message = QString("You win the level %1. Your score is %2.\nPress Space to continue.").arg(game->currentLevel+1).arg(game->score);
+        message = QString("You won level %1. Your score is %2.\nPress Space to continue.").arg(game->currentLevel+1).arg(game->score);
         //We increment the level number
         game->currentLevel++;
     } else {
-        message = QString("You finish the game on level %1. Your score is %2.").arg(game->currentLevel+1).arg(game->score);
+        message = QString("You finished the game on level %1. Your score is %2.").arg(game->currentLevel+1).arg(game->score);
         //We set the level back to 0
         game->currentLevel = 0;
         //We set the score back to 0

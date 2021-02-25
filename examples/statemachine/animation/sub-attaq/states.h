@@ -142,7 +142,7 @@ public:
 private:
 };
 
-//These transtion is used to update the score
+//This transition is used to update the score
 class UpdateScoreTransition : public QSignalTransition
 {
 public:
@@ -154,7 +154,7 @@ private:
     GraphicsScene *scene;
 };
 
-//These transtion test if we have won the game
+//This transition tests if we have won the game
 class WinTransition : public QSignalTransition
 {
 public:
@@ -166,7 +166,7 @@ private:
     GraphicsScene *scene;
 };
 
-//These transtion is true if one level has been completed and the player want to continue
+//This transition is true if one level has been completed and the player wants to continue
  class CustomSpaceTransition : public QKeyEventTransition
 {
 public:

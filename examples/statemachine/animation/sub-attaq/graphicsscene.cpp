@@ -84,17 +84,21 @@ GraphicsScene::GraphicsScene(int x, int y, int width, int height, Mode mode, QOb
     surfaceItem->setPos(0, sealLevel() - surfaceItem->boundingRect().height() / 2);
     addItem(surfaceItem);
 
-    //The item that display score and level
+    //The item that displays score and level
     progressItem = new ProgressItem(backgroundItem);
 
     textInformationItem = new TextInformationItem(backgroundItem);
-    textInformationItem->hide();
+
+    textInformationItem->setMessage(QString("Select new game from the menu or press Ctrl+N to start!<br/>Press left or right to move the ship and up to drop bombs."), false);
+    textInformationItem->setPos(backgroundItem->boundingRect().center().x() - textInformationItem->boundingRect().size().width() / 2,
+                                backgroundItem->boundingRect().height() * 3 / 4);
+
     //We create the boat
     addItem(boat);
     boat->setPos(this->width()/2, sealLevel() - boat->size().height());
     boat->hide();
 
-    //parse the xml that contain all data of the game
+    //Parse the xml that contains all data of the game
     QXmlStreamReader reader;
     QFile file(":data.xml");
     file.open(QIODevice::ReadOnly);
@@ -177,19 +181,19 @@ void GraphicsScene::setupScene(QAction *newAction, QAction *quitAction)
     //Final state
     QFinalState *finalState = new QFinalState(machine);
 
-    //Animation when the player enter in the game
+    //Animation when the player enters the game
     QAnimationState *lettersMovingState = new QAnimationState(machine);
     lettersMovingState->setAnimation(lettersGroupMoving);
 
-    //Animation when the welcome screen disappear
+    //Animation when the welcome screen disappears
     QAnimationState *lettersFadingState = new QAnimationState(machine);
     lettersFadingState->setAnimation(lettersGroupFading);
 
-    //if new game then we fade out the welcome screen and start playing
+    //if it is a new game then we fade out the welcome screen and start playing
     lettersMovingState->addTransition(newAction, &QAction::triggered, lettersFadingState);
     lettersFadingState->addTransition(lettersFadingState, &QAnimationState::animationFinished, gameState);
 
-    //New Game is triggered then player start playing
+    //New Game is triggered then player starts playing
     gameState->addTransition(newAction, &QAction::triggered, gameState);
 
     //Wanna quit, then connect to CTRL+Q

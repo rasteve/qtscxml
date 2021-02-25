@@ -56,9 +56,11 @@ TextInformationItem::TextInformationItem (QGraphicsItem *parent)
     setFont(QFont("Comic Sans MS", 15));
 }
 
-void TextInformationItem::setMessage(const QString &text)
+void TextInformationItem::setMessage(const QString &text, bool centerPosition)
 {
     setHtml(text);
-    setPos(parentItem()->boundingRect().center().x() - boundingRect().size().width() / 2,
-           parentItem()->boundingRect().center().y());
+    if (centerPosition) {
+        setPos(parentItem()->boundingRect().center().x() - boundingRect().size().width() / 2,
+               parentItem()->boundingRect().center().y());
+    }
 }
