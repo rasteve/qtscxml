@@ -36,12 +36,14 @@ depends += qtcore qtdoc qmake qtquick qtwidgets qtstatemachine
 
 headerdirs = .. \
              ../../scxmlqml \
-             ../../imports/scxmlstatemachine
+             ../../imports/scxmlstatemachine \
+             ../../plugins/scxmldatamodel/ecmascriptdatamodel
 
 sourcedirs += .. \
               ../../scxmlqml \
               ../../../tools/qscxmlc/doc \
-              ../../../examples/scxml
+              ../../../examples/scxml \
+              ../../plugins/scxmldatamodel/ecmascriptdatamodel
 
 excludefiles += "../qscxmlexecutablecontent_p.h"
 

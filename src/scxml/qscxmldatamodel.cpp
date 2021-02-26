@@ -149,7 +149,7 @@ QScxmlStateMachine *QScxmlDataModel::stateMachine() const
 }
 
 /*!
- * Creates a data model from a plugin specified by key.
+ * Creates a data model from a plugin specified by a \a pluginKey.
  */
 QScxmlDataModel *QScxmlDataModel::createScxmlDataModel(const QString& pluginKey)
 {
