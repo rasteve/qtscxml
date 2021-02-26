@@ -51,7 +51,7 @@ class QSignalTransitionPrivate;
 class Q_STATEMACHINE_EXPORT QSignalTransition : public QAbstractTransition
 {
     Q_OBJECT
-    Q_PROPERTY(QObject* senderObject READ senderObject WRITE setSenderObject NOTIFY senderObjectChanged)
+    Q_PROPERTY(const QObject* senderObject READ senderObject WRITE setSenderObject NOTIFY senderObjectChanged)
     Q_PROPERTY(QByteArray signal READ signal WRITE setSignal NOTIFY signalChanged)
 
 public:
@@ -73,7 +73,7 @@ public:
 
     ~QSignalTransition();
 
-    QObject *senderObject() const;
+    const QObject *senderObject() const;
     void setSenderObject(const QObject *sender);
 
     QByteArray signal() const;

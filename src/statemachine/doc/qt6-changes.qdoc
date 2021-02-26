@@ -41,11 +41,18 @@
     In this topic we summarize those changes in Qt State Machine module, and provide
     guidance to handle them.
 
-    \section1 Changes overview
+    \section1 Changes
 
     The Qt StateMachine module is generally speaking source compatible with the Qt5
     version and users of the library should be able to continue with no or
     minor changes to their project.
+
+    \section2 QSignalTransition
+
+    The \l [CPP] QSignalTransition::senderObject() getter and the related
+    Q_PROPERTY now also use const QObject*. These are now better aligned
+    with the setter \l [CPP] QSignalTransition::setSenderObject(const QObject*) that takes a
+    const QObject* as a parameter.
 
     \section1 Build system
 

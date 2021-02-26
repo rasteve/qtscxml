@@ -159,7 +159,7 @@ void SignalTransition::connectTriggered()
     if (!m_complete || !m_compilationUnit)
         return;
 
-    QObject *target = senderObject();
+    const QObject *target = senderObject();
     QQmlData *ddata = QQmlData::get(this);
     QQmlRefPointer<QQmlContextData> ctxtdata = ddata ? ddata->outerContext : nullptr;
 

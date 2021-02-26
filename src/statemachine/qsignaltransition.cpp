@@ -169,10 +169,10 @@ QSignalTransition::~QSignalTransition()
 /*!
   Returns the sender object associated with this signal transition.
 */
-QObject *QSignalTransition::senderObject() const
+const QObject *QSignalTransition::senderObject() const
 {
     Q_D(const QSignalTransition);
-    return const_cast<QObject *>(d->sender);
+    return d->sender;
 }
 
 /*!
