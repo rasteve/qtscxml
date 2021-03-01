@@ -9,11 +9,12 @@ qt_internal_add_test(tst_qqmlstatemachine
         tst_qqmlstatemachine.cpp
     INCLUDE_DIRECTORIES
         ../../shared
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::CorePrivate
         Qt::Gui
         Qt::GuiPrivate
         Qt::QmlPrivate
+        Qt::StateMachineQmlPrivate
 )
 
 ## Scopes:
@@ -27,4 +28,11 @@ qt_extend_target(tst_qqmlstatemachine CONDITION ANDROID OR IOS
 qt_extend_target(tst_qqmlstatemachine CONDITION NOT ANDROID AND NOT IOS
     DEFINES
         QT_QMLTEST_DATADIR=\\\"${CMAKE_CURRENT_SOURCE_DIR}/data\\\"
+)
+
+qt_internal_add_resource(tst_qqmlstatemachine "tst_qqmlstatemachine"
+    PREFIX
+        "/"
+    FILES
+        "data/signaltransition.qml"
 )

@@ -14,6 +14,8 @@ qt_internal_add_module(StateMachineQml
         Qt::Core
         Qt::Qml
         Qt::StateMachine
+    LIBRARIES
+        Qt::QmlPrivate
 )
 
 set_target_properties(StateMachineQml PROPERTIES

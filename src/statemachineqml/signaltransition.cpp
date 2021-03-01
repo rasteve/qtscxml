@@ -54,7 +54,7 @@
 SignalTransition::SignalTransition(QState *parent)
     : QSignalTransition(this, SIGNAL(invokeYourself()), parent), m_complete(false), m_signalExpression(nullptr)
 {
-    connect(this, SIGNAL(signalChanged()), SIGNAL(qmlSignalChanged()));
+    connect(this, &SignalTransition::signalChanged, [this](){ m_signal.notify(); });
 }
 
 bool SignalTransition::eventTest(QEvent *event)
@@ -63,7 +63,7 @@ bool SignalTransition::eventTest(QEvent *event)
     if (!QSignalTransition::eventTest(event))
         return false;
 
-    if (m_guard.isEmpty())
+    if (m_guard.value().isEmpty())
         return true;
 
     QQmlContext *outerContext = QQmlEngine::contextForObject(this);
@@ -79,7 +79,7 @@ bool SignalTransition::eventTest(QEvent *event)
     for (int i = 0; i < count; i++)
         context.setContextProperty(QString::fromUtf8(parameterNames[i]), QVariant::fromValue(e->arguments().at(i)));
 
-    QQmlExpression expr(m_guard, &context, this);
+    QQmlExpression expr(m_guard.value(), &context, this);
     QVariant result = expr.evaluate();
 
     return result.toBool();
@@ -101,8 +101,10 @@ const QJSValue& SignalTransition::signal()
 
 void SignalTransition::setSignal(const QJSValue &signal)
 {
-    if (m_signal.strictlyEquals(signal))
+    if (m_signal.value().strictlyEquals(signal)) {
+        m_signal.removeBindingUnlessInWrapper();
         return;
+    }
 
     QV4::ExecutionEngine *jsEngine = QQmlEngine::contextForObject(this)->engine()->handle();
     QV4::Scope scope(jsEngine);
@@ -111,16 +113,15 @@ void SignalTransition::setSignal(const QJSValue &signal)
     QMetaMethod signalMethod;
 
     m_signal = signal;
-    QJSValuePrivate::manageStringOnV4Heap(jsEngine, &m_signal);
-
-    QV4::ScopedValue value(scope, QJSValuePrivate::asReturnedValue(&m_signal));
+    QV4::ScopedValue value(scope, QJSValuePrivate::asReturnedValue(&signal));
 
     // Did we get the "slot" that can be used to invoke the signal?
     if (QV4::QObjectMethod *signalSlot = value->as<QV4::QObjectMethod>()) {
         sender = signalSlot->object();
         Q_ASSERT(sender);
         signalMethod = sender->metaObject()->method(signalSlot->methodIndex());
-    } else if (QV4::QmlSignalHandler *signalObject = value->as<QV4::QmlSignalHandler>()) { // or did we get the signal object (the one with the connect()/disconnect() functions) ?
+    } else if (QV4::QmlSignalHandler *signalObject = value->as<QV4::QmlSignalHandler>()) {
+        // or did we get the signal object (the one with the connect()/disconnect() functions) ?
         sender = signalObject->object();
         Q_ASSERT(sender);
         signalMethod = sender->metaObject()->method(signalObject->signalIndex());
@@ -130,9 +131,15 @@ void SignalTransition::setSignal(const QJSValue &signal)
     }
 
     QSignalTransition::setSenderObject(sender);
+    // the call below will emit change signal, and the interceptor lambda in ctor will notify()
     QSignalTransition::setSignal(signalMethod.methodSignature());
 
     connectTriggered();
+}
+
+QBindable<QJSValue> SignalTransition::bindableSignal()
+{
+    return &m_signal;
 }
 
 QQmlScriptString SignalTransition::guard() const
@@ -142,11 +149,12 @@ QQmlScriptString SignalTransition::guard() const
 
 void SignalTransition::setGuard(const QQmlScriptString &guard)
 {
-    if (m_guard == guard)
-        return;
-
     m_guard = guard;
-    emit guardChanged();
+}
+
+QBindable<QQmlScriptString> SignalTransition::bindableGuard()
+{
+    return &m_guard;
 }
 
 void SignalTransition::invoke()
@@ -169,7 +177,8 @@ void SignalTransition::connectTriggered()
 
     QV4::ExecutionEngine *jsEngine = QQmlEngine::contextForObject(this)->engine()->handle();
     QV4::Scope scope(jsEngine);
-    QV4::Scoped<QV4::QObjectMethod> qobjectSignal(scope, QJSValuePrivate::asReturnedValue(&m_signal));
+    QV4::Scoped<QV4::QObjectMethod> qobjectSignal(
+                scope, QJSValuePrivate::asReturnedValue(&m_signal.value()));
     Q_ASSERT(qobjectSignal);
     QMetaMethod metaMethod = target->metaObject()->method(qobjectSignal->methodIndex());
     int signalIndex = QMetaObjectPrivate::signalIndex(metaMethod);

@@ -62,6 +62,7 @@
 #include <private/qqmlcustomparser_p.h>
 #include <private/qqmlrefcount_p.h>
 #include <private/qqmlboundsignal_p.h>
+#include <QtCore/private/qproperty_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -69,8 +70,10 @@ class Q_STATEMACHINEQML_PRIVATE_EXPORT SignalTransition : public QSignalTransiti
 {
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
-    Q_PROPERTY(QJSValue signal READ signal WRITE setSignal NOTIFY qmlSignalChanged)
-    Q_PROPERTY(QQmlScriptString guard READ guard WRITE setGuard NOTIFY guardChanged)
+    Q_PROPERTY(QJSValue signal READ signal WRITE setSignal
+               NOTIFY qmlSignalChanged BINDABLE bindableSignal)
+    Q_PROPERTY(QQmlScriptString guard READ guard WRITE setGuard
+               NOTIFY guardChanged BINDABLE bindableGuard)
     QML_ELEMENT
     QML_ADDED_IN_VERSION(1, 0)
     QML_CUSTOMPARSER
@@ -80,12 +83,14 @@ public:
 
     QQmlScriptString guard() const;
     void setGuard(const QQmlScriptString &guard);
+    QBindable<QQmlScriptString> bindableGuard();
 
     bool eventTest(QEvent *event) override;
     void onTransition(QEvent *event) override;
 
     const QJSValue &signal();
     void setSignal(const QJSValue &signal);
+    QBindable<QJSValue> bindableSignal();
 
     Q_INVOKABLE void invoke();
 
@@ -103,8 +108,11 @@ private:
     void connectTriggered();
 
     friend class SignalTransitionParser;
-    QJSValue m_signal;
-    QQmlScriptString m_guard;
+
+    Q_OBJECT_COMPAT_PROPERTY(SignalTransition, QJSValue, m_signal, &SignalTransition::setSignal,
+                             &SignalTransition::qmlSignalChanged);
+    Q_OBJECT_BINDABLE_PROPERTY(SignalTransition, QQmlScriptString,
+                               m_guard, &SignalTransition::guardChanged);
     bool m_complete;
     QQmlRefPointer<QV4::ExecutableCompilationUnit> m_compilationUnit;
     QList<const QV4::CompiledData::Binding *> m_bindings;

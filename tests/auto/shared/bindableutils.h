@@ -46,7 +46,8 @@
 // "propertyName" is the name of the property we are interested in testing
 template<typename TestedClass, typename TestedData>
 void testWritableBindableBasics(TestedClass& testedClass, TestedData data1,
-                        TestedData data2, const char* propertyName)
+                        TestedData data2, const char* propertyName,
+                        std::function<bool(TestedData,TestedData)> dataComparator = [](TestedData d1, TestedData d2) { return d1 == d2; })
 {
     // Get the property we are testing
     const QMetaObject *metaObject = testedClass.metaObject();
@@ -66,7 +67,8 @@ void testWritableBindableBasics(TestedClass& testedClass, TestedData data1,
 
     // Test basic property read and write
     testedClass.setProperty(propertyName, QVariant::fromValue(data1));
-    QVERIFY2(testedClass.property(propertyName).template value<TestedData>() == data1, qPrintable(id));
+
+    QVERIFY2(dataComparator(testedClass.property(propertyName).template value<TestedData>(), data1), qPrintable(id));
     QVERIFY2(spy.count() == 1, qPrintable(id + ", actual: " + QString::number(spy.count())));
 
     // Test setting a binding as a source for the property
@@ -76,25 +78,25 @@ void testWritableBindableBasics(TestedClass& testedClass, TestedData data1,
     bindable.setBinding(Qt::makePropertyBinding(property2));
     QVERIFY2(bindable.hasBinding(), qPrintable(id));
     // Check that the value also changed
-    QVERIFY2(testedClass.property(propertyName).template value<TestedData>() == data2, qPrintable(id));
+    QVERIFY2(dataComparator(testedClass.property(propertyName).template value<TestedData>(), data2), qPrintable(id));
     QVERIFY2(spy.count() == 2, qPrintable(id + ", actual: " + QString::number(spy.count())));
     // Same test but with a lambda binding (cast to be able to set the lambda directly)
     QBindable<TestedData> *typedBindable = static_cast<QBindable<TestedData>*>(&bindable);
     typedBindable->setBinding([&](){ return property1.value(); });
     QVERIFY2(typedBindable->hasBinding(), qPrintable(id));
-    QVERIFY2(testedClass.property(propertyName).template value<TestedData>() == data1, qPrintable(id));
+    QVERIFY2(dataComparator(testedClass.property(propertyName).template value<TestedData>(), data1), qPrintable(id));
     QVERIFY2(spy.count() == 3, qPrintable(id + ", actual: " + QString::number(spy.count())));
 
     // Remove binding by setting a value directly
     QVERIFY2(bindable.hasBinding(), qPrintable(id));
     testedClass.setProperty(propertyName, QVariant::fromValue(data2));
-    QVERIFY2(testedClass.property(propertyName).template value<TestedData>() == data2, qPrintable(id));
+    QVERIFY2(dataComparator(testedClass.property(propertyName).template value<TestedData>(), data2), qPrintable(id));
     QVERIFY2(!bindable.hasBinding(), qPrintable(id));
     QVERIFY2(spy.count() == 4, qPrintable(id + ", actual: " + QString::number(spy.count())));
 
     // Test using the property as the source in a binding
     QProperty<bool> data1Used([&](){
-        return testedClass.property(propertyName).template value<TestedData>() == data1;
+        return dataComparator(testedClass.property(propertyName).template value<TestedData>(), data1);
     });
     QVERIFY2(data1Used == false, qPrintable(id));
     testedClass.setProperty(propertyName, QVariant::fromValue(data1));

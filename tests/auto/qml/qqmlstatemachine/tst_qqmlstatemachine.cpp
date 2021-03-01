@@ -28,8 +28,13 @@
 #include <QQmlComponent>
 #include <QQmlContext>
 #include <QQmlEngine>
+#include <QtQuick/QQuickItem>
+#include <QtStateMachineQml/private/signaltransition_p.h>
+#include <QtQml/qqmlscriptstring.h>
+
 #include <QTest>
 #include "../../shared/util.h"
+#include "../../shared/bindableutils.h"
 
 class tst_qqmlstatemachine : public QQmlDataTest
 {
@@ -39,6 +44,7 @@ public:
 
 private slots:
     void tst_cppObjectSignal();
+    void tst_bindings();
 };
 
 
@@ -104,6 +110,33 @@ void tst_qqmlstatemachine::tst_cppObjectSignal()
     QTRY_VERIFY(!rootObject->property("running").toBool());
 }
 
+void tst_qqmlstatemachine::tst_bindings()
+{
+    // -- SignalTransition::guard
+    SignalTransition signalTransition;
+    // Generating QQmlScriptString requires proper qml context setup, and here we
+    // use same the element that we are testing to create the testing material
+    QQmlEngine engine;
+    QQmlComponent component(&engine, QUrl(QLatin1String("qrc:///data/signaltransition.qml")));
+
+    std::unique_ptr<QObject> obj(component.create());
+    SignalTransition *st1 = qobject_cast<SignalTransition*>(obj->findChild<QObject*>("st1"));
+    SignalTransition *st2 = qobject_cast<SignalTransition*>(obj->findChild<QObject*>("st2"));
+    QVERIFY(st1 && st2 && (st1->guard() != st2->guard()));
+    testWritableBindableBasics<SignalTransition, QQmlScriptString>(
+        signalTransition, st1->guard(), st2->guard(), "guard");
+
+    // -- SignalTransition::signal
+    // We use QML to create the test material (QJSValues that contain valid methods)
+    QVariant signal1;
+    QVariant signal2;
+    QMetaObject::invokeMethod(obj.get(), "getSignal1", Q_RETURN_ARG(QVariant, signal1));
+    QMetaObject::invokeMethod(obj.get(), "getSignal2", Q_RETURN_ARG(QVariant, signal2));
+    // QJSValue does not implement operator== so we supply own comparator
+    testWritableBindableBasics<SignalTransition, QJSValue>(
+                *st1, signal1.value<QJSValue>(), signal2.value<QJSValue>(), "signal",
+                [](QJSValue d1, QJSValue d2) { return d1.strictlyEquals(d2); });
+}
 
 QTEST_MAIN(tst_qqmlstatemachine)
 
