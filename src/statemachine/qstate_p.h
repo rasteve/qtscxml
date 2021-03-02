@@ -84,7 +84,7 @@ struct QPropertyAssignment
     QVariant value;
     bool explicitlySet; // false means the property is being restored to its old value
 };
-Q_DECLARE_TYPEINFO(QPropertyAssignment, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(QPropertyAssignment, Q_RELOCATABLE_TYPE);
 
 #endif // QT_NO_PROPERTIES
 
