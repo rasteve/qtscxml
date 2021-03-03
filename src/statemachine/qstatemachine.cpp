@@ -2250,7 +2250,7 @@ void QStateMachinePrivate::registerSignalTransition(QSignalTransition *transitio
     Q_Q(QStateMachine);
     if (QSignalTransitionPrivate::get(transition)->signalIndex != -1)
         return; // already registered
-    const QObject *sender = QSignalTransitionPrivate::get(transition)->sender;
+    const QObject *sender = QSignalTransitionPrivate::get(transition)->senderObject;
     if (!sender)
         return;
     QByteArray signal = QSignalTransitionPrivate::get(transition)->signal;
@@ -2310,7 +2310,7 @@ void QStateMachinePrivate::unregisterSignalTransition(QSignalTransition *transit
     int signalIndex = QSignalTransitionPrivate::get(transition)->signalIndex;
     if (signalIndex == -1)
         return; // not registered
-    const QObject *sender = QSignalTransitionPrivate::get(transition)->sender;
+    const QObject *sender = QSignalTransitionPrivate::get(transition)->senderObject;
     QSignalTransitionPrivate::get(transition)->signalIndex = -1;
 
     connectionsMutex.lock();

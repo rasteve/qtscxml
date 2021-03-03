@@ -52,6 +52,7 @@
 //
 
 #include "private/qabstracttransition_p.h"
+#include <QtCore/private/qproperty_p.h>
 
 QT_REQUIRE_CONFIG(statemachine);
 
@@ -72,8 +73,20 @@ public:
 
     void callOnTransition(QEvent *e) override;
 
-    const QObject *sender;
-    QByteArray signal;
+    void setSenderObject(const QObject* sender)
+    {
+        q_func()->setSenderObject(sender);
+    }
+    Q_OBJECT_COMPAT_PROPERTY_WITH_ARGS(QSignalTransitionPrivate, const QObject*,
+                                       senderObject, &QSignalTransitionPrivate::setSenderObject,
+                                       nullptr);
+
+    void setSignal(const QByteArray& signal)
+    {
+        q_func()->setSignal(signal);
+    }
+    Q_OBJECT_COMPAT_PROPERTY(QSignalTransitionPrivate, QByteArray,
+                             signal, &QSignalTransitionPrivate::setSignal);
     int signalIndex;
     int originalSignalIndex;
 };

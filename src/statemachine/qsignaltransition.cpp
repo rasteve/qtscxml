@@ -107,7 +107,6 @@ QT_BEGIN_NAMESPACE
 
 QSignalTransitionPrivate::QSignalTransitionPrivate()
 {
-    sender = nullptr;
     signalIndex = -1;
 }
 
@@ -143,8 +142,8 @@ QSignalTransition::QSignalTransition(const QObject *sender, const char *signal,
     : QAbstractTransition(*new QSignalTransitionPrivate, sourceState)
 {
     Q_D(QSignalTransition);
-    d->sender = sender;
-    d->signal = signal;
+    d->senderObject.setValueBypassingBindings(sender);
+    d->signal.setValueBypassingBindings(signal);
     d->maybeRegister();
 }
 
@@ -172,7 +171,7 @@ QSignalTransition::~QSignalTransition()
 const QObject *QSignalTransition::senderObject() const
 {
     Q_D(const QSignalTransition);
-    return d->sender;
+    return d->senderObject;
 }
 
 /*!
@@ -181,12 +180,21 @@ const QObject *QSignalTransition::senderObject() const
 void QSignalTransition::setSenderObject(const QObject *sender)
 {
     Q_D(QSignalTransition);
-    if (sender == d->sender)
+    if (sender == d->senderObject.value()) {
+        d->senderObject.removeBindingUnlessInWrapper();
         return;
+    }
     d->unregister();
-    d->sender = sender;
+    d->senderObject = sender;
     d->maybeRegister();
+    d->senderObject.notify();
     emit senderObjectChanged(QPrivateSignal());
+}
+
+QBindable<const QObject*> QSignalTransition::bindableSenderObject()
+{
+    Q_D(QSignalTransition);
+    return &d->senderObject;
 }
 
 /*!
@@ -204,12 +212,21 @@ QByteArray QSignalTransition::signal() const
 void QSignalTransition::setSignal(const QByteArray &signal)
 {
     Q_D(QSignalTransition);
-    if (signal == d->signal)
+    if (signal == d->signal.value()) {
+        d->signal.removeBindingUnlessInWrapper();
         return;
+    }
     d->unregister();
     d->signal = signal;
     d->maybeRegister();
+    d->signal.notify();
     emit signalChanged(QPrivateSignal());
+}
+
+QBindable<QByteArray> QSignalTransition::bindableSignal()
+{
+    Q_D(QSignalTransition);
+    return &d->signal;
 }
 
 /*!
@@ -226,7 +243,7 @@ bool QSignalTransition::eventTest(QEvent *event)
         if (d->signalIndex == -1)
             return false;
         QStateMachine::SignalEvent *se = static_cast<QStateMachine::SignalEvent*>(event);
-        return (se->sender() == d->sender)
+        return (se->sender() == d->senderObject.value())
             && (se->signalIndex() == d->signalIndex);
     }
     return false;

@@ -6915,6 +6915,19 @@ void tst_QStateMachine::bindings()
     QTRY_COMPARE(endState_activeSpy.count(), 1);
     // Verify that the "active" value changed via binding
     QVERIFY(active);
+
+    // -- QSignalTransition::senderObject
+    QSignalTransition signalTransition;
+    QObject sender1;
+    QObject sender2;
+    testWritableBindableBasics<QSignalTransition, const QObject*>(
+                signalTransition, &sender1, &sender2, "senderObject");
+
+    // -- QSignalTransition::signal
+    QByteArray arr1("arr1");
+    QByteArray arr2("arr2");
+    testWritableBindableBasics<QSignalTransition, QByteArray>(
+                signalTransition, arr1, arr2, "signal");
 }
 
 QTEST_MAIN(tst_QStateMachine)
