@@ -33,6 +33,57 @@
 #include <QObject>
 
 // This is a helper function to test basics of typical bindable
+//  properties that are read-only (but can change) Primarily ensure:
+// - properties work as before bindings
+// - added bindable aspects work
+//
+// "TestedClass" is the class type we are testing
+// "TestedData" is the data type of the property we are testing
+// "testedClass" is an instance of the class we are interested testing
+// "data0" is the initial datavalue
+// "data1" is an instance of the propertydata and must differ from data0
+// "propertyName" is the name of the property we are interested in testing
+// "modifierFunction" that does whatever is needed to change the underlying property
+// A custom "dataComparator" can be provided for cases that the data doesn't have operator==
+template<typename TestedClass, typename TestedData>
+void testReadableBindableBasics(TestedClass& testedClass, TestedData data0, TestedData data1,
+                        const char* propertyName,
+                        std::function<void()> modifierFunction = [](){ qWarning() << "Error, data modifier function must be provided"; },
+                        std::function<bool(TestedData,TestedData)> dataComparator = [](TestedData d1, TestedData d2) { return d1 == d2; })
+{
+    // Get the property we are testing
+    const QMetaObject *metaObject = testedClass.metaObject();
+    QMetaProperty metaProperty = metaObject->property(metaObject->indexOfProperty(propertyName));
+
+    // Generate a string to help identify failures (as this is a generic template)
+    QString id(metaObject->className());
+    id.append(QStringLiteral("::"));
+    id.append(propertyName);
+
+    // Fail gracefully if preconditions to use this helper function are not met:
+    QVERIFY2(metaProperty.isBindable() && metaProperty.hasNotifySignal(), qPrintable(id));
+    QVERIFY2(modifierFunction, qPrintable(id));
+    // Create a signal spy for the property changed -signal
+    QSignalSpy spy(&testedClass, metaProperty.notifySignal());
+    QUntypedBindable bindable = metaProperty.bindable(&testedClass);
+
+    // Verify initial data is as expected
+    QVERIFY2(dataComparator(testedClass.property(propertyName).template value<TestedData>(), data0), qPrintable(id));
+    // Use the property as the source in a binding
+    QProperty<bool> data1Used([&](){
+        return dataComparator(testedClass.property(propertyName).template value<TestedData>(), data1);
+    });
+    // Verify binding's initial state
+    QVERIFY2(data1Used == false, qPrintable(id));
+    // Call the supplied modifier function and verify that the value and binding both change
+    modifierFunction();
+    QVERIFY2(data1Used == true, qPrintable(id));
+    QVERIFY2(dataComparator(testedClass.property(propertyName).template value<TestedData>(), data1), qPrintable(id));
+    QVERIFY2(spy.count() == 1, qPrintable(id + ", actual: " + QString::number(spy.count())));
+}
+
+
+// This is a helper function to test basics of typical bindable
 //  properties that are writable. Primarily ensure:
 // - properties work as before bindings
 // - added bindable aspects work
@@ -44,6 +95,7 @@
 // The "data1" and "data2" must differ from one another, and
 // the "data1" must differ from instance property's initial state
 // "propertyName" is the name of the property we are interested in testing
+// A custom "dataComparator" can be provided for cases that the data doesn't have operator==
 template<typename TestedClass, typename TestedData>
 void testWritableBindableBasics(TestedClass& testedClass, TestedData data1,
                         TestedData data2, const char* propertyName,

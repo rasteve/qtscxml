@@ -33,6 +33,9 @@
 #include <QtScxml/qscxmlstatemachine.h>
 #include <QtScxml/qscxmlinvokableservice.h>
 #include <QtScxml/private/qscxmlstatemachine_p.h>
+#include <QtScxml/QScxmlNullDataModel>
+
+#include "../shared/bindableutils.h"
 
 enum { SpyWaitTime = 8000 };
 
@@ -57,6 +60,8 @@ private Q_SLOTS:
 
     void multipleInvokableServices(); // QTBUG-61484
     void logWithoutExpr();
+
+    void bindings();
 };
 
 void tst_StateMachine::stateNames_data()
@@ -453,6 +458,61 @@ void tst_StateMachine::logWithoutExpr()
     stateMachine->start();
     QSignalSpy logSpy(stateMachine.data(), SIGNAL(log(QString,QString)));
     QTRY_COMPARE(logSpy.count(), 1);
+}
+
+void tst_StateMachine::bindings()
+{
+    // -- QScxmlStateMachine::initialized
+    std::unique_ptr<QScxmlStateMachine> stateMachine1(
+                QScxmlStateMachine::fromFile(QString(":/tst_statemachine/invoke.scxml")));
+    QVERIFY(stateMachine1.get());
+    testReadableBindableBasics<QScxmlStateMachine, bool>(
+                *stateMachine1, false, true, "initialized", [&](){ stateMachine1.get()->start(); });
+
+    // -- QScxmlStateMachine::initialValues
+    QVariantMap map1{{"map", 1}};
+    QVariantMap map2{{"map", 2}};
+    testWritableBindableBasics<QScxmlStateMachine, QVariantMap>(
+                *stateMachine1, map1, map2, "initialValues");
+
+    // -- QScxmlStateMachine::loader
+    class MockLoader: public QScxmlCompiler::Loader
+    {
+    public:
+        QByteArray load(const QString&, const QString&, QStringList*) override { return QByteArray(); }
+    };
+    MockLoader loader1;
+    MockLoader loader2;
+    testWritableBindableBasics<QScxmlStateMachine, QScxmlCompiler::Loader*>(
+                *stateMachine1, &loader1, &loader2, "loader");
+
+    // -- QScxmlStateMachine::dataModel
+    // Use non-existent file below, as valid file would initialize the model
+    std::unique_ptr<QScxmlStateMachine> stateMachine2(
+                QScxmlStateMachine::fromFile(QString("not_a_real_file")));
+    std::unique_ptr<QScxmlStateMachine> stateMachine3(
+                QScxmlStateMachine::fromFile(QString("not_a_real_file")));
+    QScxmlNullDataModel model1;
+    QScxmlNullDataModel model2;
+    // Use the "readable" test helper as the data can only change once
+    testReadableBindableBasics<QScxmlStateMachine, QScxmlDataModel*>(
+                *stateMachine2, nullptr, &model1, "dataModel",
+                [&](){ stateMachine2->setDataModel(&model1); });
+    // verify that setting the model twice will not break the binding (setting is ignored)
+    QProperty<QScxmlDataModel*> modelProperty(&model1);
+    stateMachine3.get()->bindableDataModel().setBinding(Qt::makePropertyBinding(modelProperty));
+    QVERIFY(stateMachine3.get()->bindableDataModel().hasBinding());
+    QVERIFY(stateMachine3.get()->dataModel() == &model1);
+    stateMachine3.get()->setDataModel(&model2); // should be ignored
+    QVERIFY(stateMachine3.get()->dataModel() == &model1);
+    QVERIFY(stateMachine3.get()->bindableDataModel().hasBinding());
+
+    // -- QScxmlStateMachine::tableData
+    // Use the statemachine to generate the tabledDatas for testing
+    std::unique_ptr<QScxmlStateMachine> stateMachine4(
+                QScxmlStateMachine::fromFile(QString(":/tst_statemachine/invoke.scxml")));
+    testWritableBindableBasics<QScxmlStateMachine, QScxmlTableData*>(
+                *stateMachine2, stateMachine1.get()->tableData(), stateMachine4.get()->tableData(), "tableData");
 }
 
 QTEST_MAIN(tst_StateMachine)

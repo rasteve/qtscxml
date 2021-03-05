@@ -68,16 +68,21 @@ class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
     Q_DECLARE_PRIVATE(QScxmlStateMachine)
     Q_OBJECT
     Q_PROPERTY(bool running READ isRunning WRITE setRunning NOTIFY runningChanged)
-    Q_PROPERTY(bool initialized READ isInitialized NOTIFY initializedChanged)
-    Q_PROPERTY(QScxmlDataModel *dataModel READ dataModel WRITE setDataModel NOTIFY dataModelChanged)
-    Q_PROPERTY(QVariantMap initialValues READ initialValues WRITE setInitialValues NOTIFY initialValuesChanged)
+    Q_PROPERTY(bool initialized READ isInitialized
+               NOTIFY initializedChanged BINDABLE bindableInitialized)
+    Q_PROPERTY(QScxmlDataModel *dataModel READ dataModel WRITE setDataModel
+               NOTIFY dataModelChanged BINDABLE bindableDataModel)
+    Q_PROPERTY(QVariantMap initialValues READ initialValues WRITE setInitialValues
+               NOTIFY initialValuesChanged BINDABLE bindableInitialValues)
     Q_PROPERTY(QList<QScxmlInvokableService*> invokedServices READ invokedServices NOTIFY invokedServicesChanged)
     Q_PROPERTY(QString sessionId READ sessionId CONSTANT)
     Q_PROPERTY(QString name READ name CONSTANT)
     Q_PROPERTY(bool invoked READ isInvoked CONSTANT)
     Q_PROPERTY(QList<QScxmlError> parseErrors READ parseErrors CONSTANT)
-    Q_PROPERTY(QScxmlCompiler::Loader *loader READ loader WRITE setLoader NOTIFY loaderChanged)
-    Q_PROPERTY(QScxmlTableData *tableData READ tableData WRITE setTableData NOTIFY tableDataChanged)
+    Q_PROPERTY(QScxmlCompiler::Loader *loader READ loader WRITE setLoader
+               NOTIFY loaderChanged BINDABLE bindableLoader)
+    Q_PROPERTY(QScxmlTableData *tableData READ tableData WRITE setTableData
+               NOTIFY tableDataChanged BINDABLE bindableTableData)
 
 protected:
     explicit QScxmlStateMachine(const QMetaObject *metaObject, QObject *parent = nullptr);
@@ -92,18 +97,22 @@ public:
 
     bool isInvoked() const;
     bool isInitialized() const;
+    QBindable<bool> bindableInitialized() const;
 
     void setDataModel(QScxmlDataModel *model);
     QScxmlDataModel *dataModel() const;
+    QBindable<QScxmlDataModel*> bindableDataModel();
 
     void setLoader(QScxmlCompiler::Loader *loader);
     QScxmlCompiler::Loader *loader() const;
+    QBindable<QScxmlCompiler::Loader*> bindableLoader();
 
     bool isRunning() const;
     void setRunning(bool running);
 
     QVariantMap initialValues();
     void setInitialValues(const QVariantMap &initialValues);
+    QBindable<QVariantMap> bindableInitialValues();
 
     QString name() const;
     Q_INVOKABLE QStringList stateNames(bool compress = true) const;
@@ -281,6 +290,7 @@ public:
 
     QScxmlTableData *tableData() const;
     void setTableData(QScxmlTableData *tableData);
+    QBindable<QScxmlTableData*> bindableTableData();
 
 Q_SIGNALS:
     void runningChanged(bool running);
