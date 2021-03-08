@@ -35,6 +35,7 @@
 #include <QtScxml/private/qscxmlstatemachine_p.h>
 #include <QtScxml/QScxmlNullDataModel>
 
+#include "topmachine.h"
 #include "../shared/bindableutils.h"
 
 enum { SpyWaitTime = 8000 };
@@ -513,10 +514,31 @@ void tst_StateMachine::bindings()
                 QScxmlStateMachine::fromFile(QString(":/tst_statemachine/invoke.scxml")));
     testWritableBindableBasics<QScxmlStateMachine, QScxmlTableData*>(
                 *stateMachine2, stateMachine1.get()->tableData(), stateMachine4.get()->tableData(), "tableData");
+
+    // -- QScxmlStateMachine::invokedServices
+    // Test executes statemachine and observes as the invoked services change
+    TopMachine topSm;
+    QSignalSpy invokedSpy(&topSm, SIGNAL(invokedServicesChanged(const QList<QScxmlInvokableService *>)));
+    QCOMPARE(topSm.invokedServices().count(), 0);
+    // at some point during the topSm execution there are 3 invoked services
+    topSm.start();
+    QTRY_COMPARE(topSm.invokedServices().count(), 3);
+    QCOMPARE(invokedSpy.count(), 1);
+    // after completion invoked services drop back to 0
+    QTRY_COMPARE(topSm.isRunning(), false);
+    QCOMPARE(topSm.invokedServices().count(), 0);
+    QCOMPARE(invokedSpy.count(), 2);
+    // bind *to* the invokedservices property and check that we observe same changes
+    // during the topSm execution
+    QProperty<qsizetype> invokedServicesObserver;
+    invokedServicesObserver.setBinding([&](){ return topSm.invokedServices().count(); });
+    QCOMPARE(invokedServicesObserver, 0);
+    topSm.start();
+    QTRY_COMPARE(invokedServicesObserver, 3);
+    QCOMPARE(topSm.invokedServices().count(), 3);
+    QCOMPARE(invokedSpy.count(), 3);
 }
 
 QTEST_MAIN(tst_StateMachine)
 
 #include "tst_statemachine.moc"
-
-

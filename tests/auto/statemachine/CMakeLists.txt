@@ -17,6 +17,9 @@ qt_internal_add_test(tst_statemachine
 
 # Resources:
 set(tst_statemachine_resource_files
+    "topmachine.scxml"
+    "submachineA.scxml"
+    "submachineB.scxml"
     "emptylog.scxml"
     "eventoccurred.scxml"
     "historystate.scxml"
@@ -35,6 +38,9 @@ qt_internal_add_resource(tst_statemachine "tst_statemachine"
         ${tst_statemachine_resource_files}
 )
 
+qt6_add_statecharts(tst_statemachine
+    topmachine.scxml
+)
 
 #### Keys ignored in scope 1:.:.:statemachine.pro:<TRUE>:
 # TEMPLATE = "app"

@@ -394,6 +394,18 @@ private:
     Queue m_externalQueue;
     QSet<int> m_statesToInvoke;
     std::vector<InvokedService> m_invokedServices;
+    QList<QScxmlInvokableService*> invokedServicesActualCalculation() const
+    {
+        QList<QScxmlInvokableService *> result;
+        for (size_t i = 0, ei = m_invokedServices.size(); i != ei; ++i) {
+            if (auto service = m_invokedServices[i].service)
+                result.append(service);
+        }
+        return result;
+    }
+    Q_OBJECT_COMPUTED_PROPERTY(QScxmlStateMachinePrivate, QList<QScxmlInvokableService*>,
+                               m_invokedServicesComputedProperty,
+                               &QScxmlStateMachinePrivate::invokedServicesActualCalculation);
     std::vector<bool> m_isFirstStateEntry;
     std::vector<QScxmlInvokableServiceFactory *> m_cachedFactories;
     enum { Invalid = 0, Starting, Running, Paused, Finished } m_runningState = Invalid;

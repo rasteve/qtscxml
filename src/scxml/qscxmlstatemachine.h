@@ -74,7 +74,8 @@ class Q_SCXML_EXPORT QScxmlStateMachine: public QObject
                NOTIFY dataModelChanged BINDABLE bindableDataModel)
     Q_PROPERTY(QVariantMap initialValues READ initialValues WRITE setInitialValues
                NOTIFY initialValuesChanged BINDABLE bindableInitialValues)
-    Q_PROPERTY(QList<QScxmlInvokableService*> invokedServices READ invokedServices NOTIFY invokedServicesChanged)
+    Q_PROPERTY(QList<QScxmlInvokableService*> invokedServices READ invokedServices
+               NOTIFY invokedServicesChanged BINDABLE bindableInvokedServices)
     Q_PROPERTY(QString sessionId READ sessionId CONSTANT)
     Q_PROPERTY(QString name READ name CONSTANT)
     Q_PROPERTY(bool invoked READ isInvoked CONSTANT)
@@ -287,6 +288,7 @@ public:
     Q_INVOKABLE bool isDispatchableTarget(const QString &target) const;
 
     QList<QScxmlInvokableService *> invokedServices() const;
+    QBindable<QList<QScxmlInvokableService*>> bindableInvokedServices();
 
     QScxmlTableData *tableData() const;
     void setTableData(QScxmlTableData *tableData);

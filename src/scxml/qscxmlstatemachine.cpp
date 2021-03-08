@@ -744,6 +744,7 @@ void QScxmlStateMachinePrivate::emitStateActive(int stateIndex, bool active)
 void QScxmlStateMachinePrivate::emitInvokedServicesChanged()
 {
     Q_Q(QScxmlStateMachine);
+    m_invokedServicesComputedProperty.notify();
     emit q->invokedServicesChanged(q->invokedServices());
 }
 
@@ -2262,13 +2263,13 @@ bool QScxmlStateMachine::isDispatchableTarget(const QString &target) const
 QList<QScxmlInvokableService *> QScxmlStateMachine::invokedServices() const
 {
     Q_D(const QScxmlStateMachine);
+    return d->m_invokedServicesComputedProperty;
+}
 
-    QList<QScxmlInvokableService *> result;
-    for (int i = 0, ei = int(d->m_invokedServices.size()); i != ei; ++i) {
-        if (auto service = d->m_invokedServices[size_t(i)].service)
-            result.append(service);
-    }
-    return result;
+QBindable<QList<QScxmlInvokableService*>> QScxmlStateMachine::bindableInvokedServices()
+{
+    Q_D(QScxmlStateMachine);
+    return &d->m_invokedServicesComputedProperty;
 }
 
 /*!
