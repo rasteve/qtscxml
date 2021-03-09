@@ -51,6 +51,16 @@ StateMachine::StateMachine(QObject *parent)
     connect(this, SIGNAL(childModeChanged()), SLOT(checkChildMode()));
 }
 
+QQmlListProperty<QObject> StateMachine::childrenActualCalculation() const
+{
+    // Mutating accesses to m_children only happen in the QML thread,
+    // so there are no thread-safety issues.
+    // The engine only creates non-const instances of the class anyway
+    return QQmlListProperty<QObject>(const_cast<StateMachine*>(this), &m_children,
+                                     m_children.append, m_children.count, m_children.at,
+                                     m_children.clear, m_children.replace, m_children.removeLast);
+}
+
 bool StateMachine::isRunning() const
 {
     return QStateMachine::isRunning();
@@ -87,9 +97,18 @@ void StateMachine::componentComplete()
 
 QQmlListProperty<QObject> StateMachine::children()
 {
-    return QQmlListProperty<QObject>(this, &m_children,
-                                     m_children.append, m_children.count, m_children.at,
-                                     m_children.clear, m_children.replace, m_children.removeLast);
+    return m_childrenComputedProperty;
+}
+
+void StateMachine::childrenContentChanged()
+{
+    m_childrenComputedProperty.notify();
+    emit childrenChanged();
+}
+
+QBindable<QQmlListProperty<QObject>> StateMachine::bindableChildren() const
+{
+    return &m_childrenComputedProperty;
 }
 
 /*!

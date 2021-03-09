@@ -31,11 +31,15 @@
 #include <QtQuick/QQuickItem>
 #include <QtStateMachineQml/private/signaltransition_p.h>
 #include <QtStateMachineQml/private/timeouttransition_p.h>
+#include <QtStateMachineQml/private/statemachine_p.h>
+#include <QtStateMachineQml/private/finalstate_p.h>
+#include <QtStateMachineQml/private/state_p.h>
 #include <QtQml/qqmlscriptstring.h>
 
 #include <QTest>
 #include "../../shared/util.h"
 #include "../../shared/bindableutils.h"
+#include "../../shared/bindableqmlutils.h"
 
 class tst_qqmlstatemachine : public QQmlDataTest
 {
@@ -145,6 +149,23 @@ void tst_qqmlstatemachine::tst_bindings()
     int timeout2{200};
     testWritableBindableBasics<TimeoutTransition, int>(
                 timeoutTransition, timeout1, timeout2, "timeout");
+
+    // -- FinalState::children
+    FinalState finalState;
+    QObject object1;
+    QObject object2;
+    testManipulableQmlListBasics<FinalState, QObject*>(
+                finalState, &object1, &object2, "children");
+
+    // -- State::children
+    State state;
+    testManipulableQmlListBasics<State, QObject*>(
+                state, &object1, &object2, "children");
+
+    // -- StateMachine::children
+    StateMachine stateMachine;
+    testManipulableQmlListBasics<StateMachine, QObject*>(
+                stateMachine, &object1, &object2, "children");
 }
 
 QTEST_MAIN(tst_qqmlstatemachine)

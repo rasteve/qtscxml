@@ -54,6 +54,7 @@
 #include "qstatemachineqmlglobals_p.h"
 #include "childrenprivate_p.h"
 
+#include <QtCore/private/qproperty_p.h>
 #include <QtStateMachine/QStateMachine>
 #include <QtQml/QQmlParserStatus>
 #include <QtQml/QQmlListProperty>
@@ -65,7 +66,8 @@ class Q_STATEMACHINEQML_PRIVATE_EXPORT StateMachine : public QStateMachine, publ
 {
     Q_OBJECT
     Q_INTERFACES(QQmlParserStatus)
-    Q_PROPERTY(QQmlListProperty<QObject> children READ children NOTIFY childrenChanged)
+    Q_PROPERTY(QQmlListProperty<QObject> children READ children
+               NOTIFY childrenChanged BINDABLE bindableChildren)
 
     // Override to delay execution after componentComplete()
     Q_PROPERTY(bool running READ isRunning WRITE setRunning NOTIFY qmlRunningChanged)
@@ -80,6 +82,7 @@ public:
     void classBegin() override {}
     void componentComplete() override;
     QQmlListProperty<QObject> children();
+    QBindable<QQmlListProperty<QObject>> bindableChildren() const;
 
     bool isRunning() const;
     void setRunning(bool running);
@@ -95,7 +98,13 @@ Q_SIGNALS:
     void qmlRunningChanged();
 
 private:
-    ChildrenPrivate<StateMachine, ChildrenMode::StateOrTransition> m_children;
+    // See the childrenActualCalculation for the mutable explanation
+    mutable ChildrenPrivate<StateMachine, ChildrenMode::StateOrTransition> m_children;
+    friend ChildrenPrivate<StateMachine, ChildrenMode::StateOrTransition>;
+    void childrenContentChanged();
+    QQmlListProperty<QObject> childrenActualCalculation() const;
+    Q_OBJECT_COMPUTED_PROPERTY(StateMachine, QQmlListProperty<QObject>, m_childrenComputedProperty,
+                               &StateMachine::childrenActualCalculation);
     bool m_completed;
     bool m_running;
 };

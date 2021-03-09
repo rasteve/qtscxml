@@ -48,11 +48,30 @@ FinalState::FinalState(QState *parent)
 {
 }
 
-QQmlListProperty<QObject> FinalState::children()
+QQmlListProperty<QObject> FinalState::childrenActualCalculation() const
 {
-    return QQmlListProperty<QObject>(this, &m_children,
+    // Mutating accesses to m_children only happen in the QML thread,
+    // so there are no thread-safety issues.
+    // The engine only creates non-const instances of the class anyway
+    return QQmlListProperty<QObject>(const_cast<FinalState*>(this), &m_children,
                                      m_children.append, m_children.count, m_children.at,
                                      m_children.clear, m_children.replace, m_children.removeLast);
+}
+
+QQmlListProperty<QObject> FinalState::children()
+{
+    return m_childrenComputedProperty;
+}
+
+void FinalState::childrenContentChanged()
+{
+    m_childrenComputedProperty.notify();
+    emit childrenChanged();
+}
+
+QBindable<QQmlListProperty<QObject>> FinalState::bindableChildren() const
+{
+    return &m_childrenComputedProperty;
 }
 
 /*!

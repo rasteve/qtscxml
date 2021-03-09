@@ -149,7 +149,7 @@ public:
     {
         Handler::parentItem(prop, item);
         static_cast<Self *>(prop->data)->children.append(item);
-        emit parentObject<T>(prop)->childrenChanged();
+        parentObject<T>(prop)->childrenContentChanged();
     }
 
     static qsizetype count(QQmlListProperty<QObject> *prop)
@@ -169,7 +169,7 @@ public:
             Handler::unparentItem(prop, oldItem);
 
         children.clear();
-        emit parentObject<T>(prop)->childrenChanged();
+        parentObject<T>(prop)->childrenContentChanged();
     }
 
     static void replace(QQmlListProperty<QObject> *prop, qsizetype index, QObject *item)
@@ -180,13 +180,13 @@ public:
         Handler::parentItem(prop, item);
 
         children.replace(index, item);
-        emit parentObject<T>(prop)->childrenChanged();
+        parentObject<T>(prop)->childrenContentChanged();
     }
 
     static void removeLast(QQmlListProperty<QObject> *prop)
     {
         Handler::unparentItem(prop, static_cast<Self *>(prop->data)->children.takeLast());
-        emit parentObject<T>(prop)->childrenChanged();
+        parentObject<T>(prop)->childrenContentChanged();
     }
 
 private:

@@ -48,6 +48,16 @@ State::State(QState *parent)
 {
 }
 
+QQmlListProperty<QObject> State::childrenActualCalculation() const
+{
+    // Mutating accesses to m_children only happen in the QML thread,
+    // so there are no thread-safety issues.
+    // The engine only creates non-const instances of the class anyway
+    return QQmlListProperty<QObject>(const_cast<State*>(this), &m_children,
+                                     m_children.append, m_children.count, m_children.at,
+                                     m_children.clear, m_children.replace, m_children.removeLast);
+}
+
 void State::componentComplete()
 {
     if (this->machine() == nullptr) {
@@ -61,9 +71,18 @@ void State::componentComplete()
 
 QQmlListProperty<QObject> State::children()
 {
-    return QQmlListProperty<QObject>(this, &m_children,
-                                     m_children.append, m_children.count, m_children.at,
-                                     m_children.clear, m_children.replace, m_children.removeLast);
+    return m_childrenComputedProperty;
+}
+
+void State::childrenContentChanged()
+{
+    m_childrenComputedProperty.notify();
+    emit childrenChanged();
+}
+
+QBindable<QQmlListProperty<QObject>> State::bindableChildren() const
+{
+    return &m_childrenComputedProperty;
 }
 
 /*!
