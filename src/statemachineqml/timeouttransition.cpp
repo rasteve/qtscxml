@@ -62,10 +62,12 @@ int TimeoutTransition::timeout() const
 
 void TimeoutTransition::setTimeout(int timeout)
 {
-    if (timeout != m_timer->interval()) {
-        m_timer->setInterval(timeout);
-        emit timeoutChanged();
-    }
+    m_timer->setInterval(timeout);
+}
+
+QBindable<int> TimeoutTransition::bindableTimeout()
+{
+    return m_timer->bindableInterval();
 }
 
 void TimeoutTransition::componentComplete()

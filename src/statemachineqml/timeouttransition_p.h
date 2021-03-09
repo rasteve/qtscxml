@@ -56,6 +56,7 @@
 #include <QtStateMachine/QSignalTransition>
 #include <QtQml/QQmlParserStatus>
 #include <QtQml/qqml.h>
+#include <QtCore/private/qproperty_p.h>
 
 QT_BEGIN_NAMESPACE
 class QTimer;
@@ -63,7 +64,7 @@ class QTimer;
 class Q_STATEMACHINEQML_PRIVATE_EXPORT TimeoutTransition : public QSignalTransition, public QQmlParserStatus
 {
     Q_OBJECT
-    Q_PROPERTY(int timeout READ timeout WRITE setTimeout NOTIFY timeoutChanged)
+    Q_PROPERTY(int timeout READ timeout WRITE setTimeout BINDABLE bindableTimeout)
     Q_INTERFACES(QQmlParserStatus)
     QML_ELEMENT
     QML_ADDED_IN_VERSION(1, 0)
@@ -74,12 +75,10 @@ public:
 
     int timeout() const;
     void setTimeout(int timeout);
+    QBindable<int> bindableTimeout();
 
     void classBegin() override {}
     void componentComplete() override;
-
-Q_SIGNALS:
-    void timeoutChanged();
 
 private:
     QTimer *m_timer;

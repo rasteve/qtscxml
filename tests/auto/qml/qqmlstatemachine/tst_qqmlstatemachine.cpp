@@ -30,6 +30,7 @@
 #include <QQmlEngine>
 #include <QtQuick/QQuickItem>
 #include <QtStateMachineQml/private/signaltransition_p.h>
+#include <QtStateMachineQml/private/timeouttransition_p.h>
 #include <QtQml/qqmlscriptstring.h>
 
 #include <QTest>
@@ -136,6 +137,14 @@ void tst_qqmlstatemachine::tst_bindings()
     testWritableBindableBasics<SignalTransition, QJSValue>(
                 *st1, signal1.value<QJSValue>(), signal2.value<QJSValue>(), "signal",
                 [](QJSValue d1, QJSValue d2) { return d1.strictlyEquals(d2); });
+
+    // -- TimeoutTransition::timeout
+    TimeoutTransition timeoutTransition;
+    QCOMPARE(timeoutTransition.timeout(), 1000); // the initialvalue
+    int timeout1{100};
+    int timeout2{200};
+    testWritableBindableBasics<TimeoutTransition, int>(
+                timeoutTransition, timeout1, timeout2, "timeout");
 }
 
 QTEST_MAIN(tst_qqmlstatemachine)
