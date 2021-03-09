@@ -217,7 +217,7 @@
     as an instance of \c RoundRectItem. The item is placed by using the \c
     posForLocation() helper function. To make room for the slip-behind
     selection item, we give each icon a \l{QGraphicsItem::zValue()}{Z-value} of
-    1. The pixmaps are distributed to the icons in round-robin fasion.
+    1. The pixmaps are distributed to the icons in round-robin fashion.
 
     Again, this approach is only suitable for example purposes. In a real-life
     application where each icon represents a specific action, it would be more
@@ -258,7 +258,7 @@
     \l{QGraphicsItem::DeviceCoordinateCache}{DeviceCoordinateCache}. This cache
     mode is suitable because the splash item only moves and is never
     transformed, and because it contains text, it's important that it has a
-    pixel perfect visual appearance (in constrast to
+    pixel perfect visual appearance (in contrast to
     \l{QGraphicsItem::ItemCoordinateCache}{ItemCoordinateCache}, where the
     visual appearance is not as good).
 
@@ -491,14 +491,14 @@
 
     Once the first substate is known, we set this up as the initial substate of
     \c frontState. We will use the (0, 0), or top-left, icon for the initial
-    substate. We initialze the selection item's position to be exactly where
+    substate. We initialize the selection item's position to be exactly where
     the top-left icon is.
 
     \snippet graphicsview/padnavigator/padnavigator.cpp 14
 
     We can now create four transitions for each icon. Each transition ensures
     that we move to the state corresponding to which arrow key has been
-    pressed. It's clear from this techinique that we could design any other
+    pressed. It's clear from this technique that we could design any other
     specific transitions to and from each of the sub states depending on these
     and other keys.
 
@@ -574,7 +574,7 @@
     \section1 Performance Notes
 
     The example uses OpenGL if this is available, to achieve optimal
-    performance; otherwise perspective tranformations can be quite costly.
+    performance; otherwise perspective transformations can be quite costly.
 
     Although this example does use QGraphicsProxyWidget to demonstrate
     integration of Qt widget components integrated into Graphics View, using

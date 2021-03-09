@@ -40,7 +40,7 @@
 
     The \c pinger and \c ponger states are parallel states, i.e. they are
     entered simultaneously and will take transitions independently of
-    eachother.
+    each other.
 
     The \c pinger state will post the first \c ping event upon entry; the \c
     ponger state will respond by posting a \c pong event; this will cause the

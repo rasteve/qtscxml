@@ -127,7 +127,7 @@
     \printuntil }
 
     We send commands to log into the FTP server as an anonymous user, to
-    announce a port for the data connection, and to retrive a file:
+    announce a port for the data connection, and to retrieve a file:
 
     \skipto QList
     \printuntil });
