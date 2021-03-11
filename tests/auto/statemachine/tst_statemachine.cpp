@@ -537,6 +537,27 @@ void tst_StateMachine::bindings()
     QTRY_COMPARE(invokedServicesObserver, 3);
     QCOMPARE(topSm.invokedServices().count(), 3);
     QCOMPARE(invokedSpy.count(), 3);
+
+    // -- QScxmlDataModel::stateMachine
+    QScxmlNullDataModel dataModel1;
+    QScxmlNullDataModel dataModel2;
+    std::unique_ptr<QScxmlStateMachine> stateMachine5(
+                QScxmlStateMachine::fromFile(QString("not_a_real_file")));
+    std::unique_ptr<QScxmlStateMachine> stateMachine6(
+                QScxmlStateMachine::fromFile(QString("not_a_real_file")));
+    // Use the "readable" test helper as the data can only change once
+    testReadableBindableBasics<QScxmlDataModel, QScxmlStateMachine*>(
+                dataModel1, nullptr, stateMachine5.get(), "stateMachine",
+                [&](){ dataModel1.setStateMachine(stateMachine5.get()); });
+    // verify that setting the model twice will not break the binding (setting is ignored)
+    QProperty<QScxmlStateMachine*> stateMachineProperty(stateMachine6.get());
+    dataModel2.bindableStateMachine().setBinding(Qt::makePropertyBinding(stateMachineProperty));
+    QVERIFY(dataModel2.bindableStateMachine().hasBinding());
+    QVERIFY(dataModel2.stateMachine() == stateMachine6.get());
+    dataModel2.setStateMachine(stateMachine5.get()); // should be ignored
+    QVERIFY(dataModel2.stateMachine() == stateMachine6.get());
+    QVERIFY(dataModel2.bindableStateMachine().hasBinding());
+
 }
 
 QTEST_MAIN(tst_StateMachine)

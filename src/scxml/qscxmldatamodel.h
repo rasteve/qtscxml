@@ -57,7 +57,8 @@ class Q_SCXML_EXPORT QScxmlDataModel : public QObject
 {
     Q_OBJECT
     Q_DECLARE_PRIVATE(QScxmlDataModel)
-    Q_PROPERTY(QScxmlStateMachine *stateMachine READ stateMachine WRITE setStateMachine NOTIFY stateMachineChanged)
+    Q_PROPERTY(QScxmlStateMachine *stateMachine READ stateMachine WRITE setStateMachine
+               NOTIFY stateMachineChanged BINDABLE bindableStateMachine)
 
 public:
     class Q_SCXML_EXPORT ForeachLoopBody
@@ -76,6 +77,7 @@ public:
 
     void setStateMachine(QScxmlStateMachine *stateMachine);
     QScxmlStateMachine *stateMachine() const;
+    QBindable<QScxmlStateMachine*> bindableStateMachine();
 
     Q_INVOKABLE virtual bool setup(const QVariantMap &initialDataValues) = 0;
 

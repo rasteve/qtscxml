@@ -131,11 +131,12 @@ void QScxmlDataModel::setStateMachine(QScxmlStateMachine *stateMachine)
 {
     Q_D(QScxmlDataModel);
 
-    if (d->m_stateMachine == nullptr && stateMachine != nullptr) {
+    if (d->m_stateMachine.value() == nullptr && stateMachine != nullptr) {
+        // the binding is removed only on the first valid set
+        // as the later attempts are ignored (removed when value is set below)
         d->m_stateMachine = stateMachine;
-        if (stateMachine)
-            stateMachine->setDataModel(this);
-        emit stateMachineChanged(stateMachine);
+        stateMachine->setDataModel(this);
+        d->m_stateMachine.notify();
     }
 }
 
@@ -146,6 +147,12 @@ QScxmlStateMachine *QScxmlDataModel::stateMachine() const
 {
     Q_D(const QScxmlDataModel);
     return d->m_stateMachine;
+}
+
+QBindable<QScxmlStateMachine*> QScxmlDataModel::bindableStateMachine()
+{
+    Q_D(QScxmlDataModel);
+    return &d->m_stateMachine;
 }
 
 /*!
