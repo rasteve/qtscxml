@@ -31,6 +31,14 @@
 
 #include <QtTest>
 #include <QObject>
+#include <memory>
+
+#define DEFINE_CHANGE_SPY \
+        std::unique_ptr<QSignalSpy> changeSpy(metaProperty.hasNotifySignal() ? new QSignalSpy(&testedClass, metaProperty.notifySignal()) : nullptr);
+
+#define VERIFY_CHANGE_COUNT(expected_count) \
+    if (changeSpy) \
+        QVERIFY2(changeSpy.get()->count() == expected_count, qPrintable(id + ", actual: " + QString::number(changeSpy.get()->count())));
 
 // This is a helper function to test basics of typical bindable
 //  properties that are read-only (but can change) Primarily ensure:
@@ -61,10 +69,10 @@ void testReadableBindableBasics(TestedClass& testedClass, TestedData data0, Test
     id.append(propertyName);
 
     // Fail gracefully if preconditions to use this helper function are not met:
-    QVERIFY2(metaProperty.isBindable() && metaProperty.hasNotifySignal(), qPrintable(id));
+    QVERIFY2(metaProperty.isBindable(), qPrintable(id));
     QVERIFY2(modifierFunction, qPrintable(id));
-    // Create a signal spy for the property changed -signal
-    QSignalSpy spy(&testedClass, metaProperty.notifySignal());
+    // Create a signal spy for the property changed -signal (if the property has such signal)
+    DEFINE_CHANGE_SPY
     QUntypedBindable bindable = metaProperty.bindable(&testedClass);
 
     // Verify initial data is as expected
@@ -79,7 +87,7 @@ void testReadableBindableBasics(TestedClass& testedClass, TestedData data0, Test
     modifierFunction();
     QVERIFY2(data1Used == true, qPrintable(id));
     QVERIFY2(dataComparator(testedClass.property(propertyName).template value<TestedData>(), data1), qPrintable(id));
-    QVERIFY2(spy.count() == 1, qPrintable(id + ", actual: " + QString::number(spy.count())));
+    VERIFY_CHANGE_COUNT(1)
 }
 
 
@@ -111,17 +119,16 @@ void testWritableBindableBasics(TestedClass& testedClass, TestedData data1,
     id.append(propertyName);
 
     // Fail gracefully if preconditions to use this helper function are not met:
-    QVERIFY2(metaProperty.isBindable() && metaProperty.isWritable()
-            && metaProperty.hasNotifySignal(), qPrintable(id));
-    // Create a signal spy for the property changed -signal
-    QSignalSpy spy(&testedClass, metaProperty.notifySignal());
+    QVERIFY2(metaProperty.isBindable() && metaProperty.isWritable(), qPrintable(id));
+    // Create a signal change for the property changed -signal (if the property has such signal)
+    DEFINE_CHANGE_SPY
     QUntypedBindable bindable = metaProperty.bindable(&testedClass);
 
     // Test basic property read and write
     testedClass.setProperty(propertyName, QVariant::fromValue(data1));
 
     QVERIFY2(dataComparator(testedClass.property(propertyName).template value<TestedData>(), data1), qPrintable(id));
-    QVERIFY2(spy.count() == 1, qPrintable(id + ", actual: " + QString::number(spy.count())));
+    VERIFY_CHANGE_COUNT(1)
 
     // Test setting a binding as a source for the property
     QProperty<TestedData> property1(data1);
@@ -131,20 +138,20 @@ void testWritableBindableBasics(TestedClass& testedClass, TestedData data1,
     QVERIFY2(bindable.hasBinding(), qPrintable(id));
     // Check that the value also changed
     QVERIFY2(dataComparator(testedClass.property(propertyName).template value<TestedData>(), data2), qPrintable(id));
-    QVERIFY2(spy.count() == 2, qPrintable(id + ", actual: " + QString::number(spy.count())));
+    VERIFY_CHANGE_COUNT(2)
     // Same test but with a lambda binding (cast to be able to set the lambda directly)
     QBindable<TestedData> *typedBindable = static_cast<QBindable<TestedData>*>(&bindable);
     typedBindable->setBinding([&](){ return property1.value(); });
     QVERIFY2(typedBindable->hasBinding(), qPrintable(id));
     QVERIFY2(dataComparator(testedClass.property(propertyName).template value<TestedData>(), data1), qPrintable(id));
-    QVERIFY2(spy.count() == 3, qPrintable(id + ", actual: " + QString::number(spy.count())));
+    VERIFY_CHANGE_COUNT(3)
 
     // Remove binding by setting a value directly
     QVERIFY2(bindable.hasBinding(), qPrintable(id));
     testedClass.setProperty(propertyName, QVariant::fromValue(data2));
     QVERIFY2(dataComparator(testedClass.property(propertyName).template value<TestedData>(), data2), qPrintable(id));
     QVERIFY2(!bindable.hasBinding(), qPrintable(id));
-    QVERIFY2(spy.count() == 4, qPrintable(id + ", actual: " + QString::number(spy.count())));
+    VERIFY_CHANGE_COUNT(4)
 
     // Test using the property as the source in a binding
     QProperty<bool> data1Used([&](){

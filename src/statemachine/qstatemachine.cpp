@@ -424,11 +424,7 @@ QStateMachinePrivate::QStateMachinePrivate()
     stop = false;
     stopProcessingReason = EventQueueEmpty;
     error = QStateMachine::NoError;
-    globalRestorePolicy = QState::DontRestoreProperties;
     signalEventGenerator = nullptr;
-#if QT_CONFIG(animation)
-    animated = true;
-#endif
 }
 
 QStateMachinePrivate::~QStateMachinePrivate()
@@ -2561,8 +2557,14 @@ QString QStateMachine::errorString() const
 void QStateMachine::clearError()
 {
     Q_D(QStateMachine);
-    d->errorString.clear();
     d->error = NoError;
+    d->errorString = QString();
+}
+
+QBindable<QString> QStateMachine::bindableErrorString() const
+{
+    Q_D(const QStateMachine);
+    return &d->errorString;
 }
 
 /*!
@@ -2586,6 +2588,12 @@ void QStateMachine::setGlobalRestorePolicy(QState::RestorePolicy restorePolicy)
 {
     Q_D(QStateMachine);
     d->globalRestorePolicy = restorePolicy;
+}
+
+QBindable<QState::RestorePolicy> QStateMachine::bindableGlobalRestorePolicy()
+{
+    Q_D(QStateMachine);
+    return &d->globalRestorePolicy;
 }
 
 /*!
@@ -3005,6 +3013,12 @@ void QStateMachine::setAnimated(bool enabled)
 {
     Q_D(QStateMachine);
     d->animated = enabled;
+}
+
+QBindable<bool> QStateMachine::bindableAnimated()
+{
+    Q_D(QStateMachine);
+    return &d->animated;
 }
 
 /*!

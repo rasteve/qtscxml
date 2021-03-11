@@ -6928,6 +6928,42 @@ void tst_QStateMachine::bindings()
     QByteArray arr2("arr2");
     testWritableBindableBasics<QSignalTransition, QByteArray>(
                 signalTransition, arr1, arr2, "signal");
+
+    // -- QAbstractTransition::transitionType
+    auto transitionType1 = QAbstractTransition::InternalTransition;
+    auto transitionType2 = QAbstractTransition::ExternalTransition;
+    testWritableBindableBasics<QAbstractTransition, QAbstractTransition::TransitionType>(
+                signalTransition, transitionType1, transitionType2, "transitionType");
+
+    // -- QStateMachine::errorString
+    QStateMachine brokenMachine;
+    brokenMachine.setErrorState(new QState(&machine)); // avoid warnings
+    QState* brokenState = new QState(&brokenMachine);
+    brokenMachine.setInitialState(brokenState);
+    new QState(brokenState); // make broken state a compound state that lacks the initial state
+    testReadableBindableBasics<QStateMachine, QString>(
+                brokenMachine, QString(), QStringLiteral("Missing initial state in compound state ''"),
+                "errorString",
+                [&](){
+                      brokenMachine.start();
+                      QTRY_VERIFY(brokenMachine.isRunning());
+                });
+    // test also clearing of the error above
+    testReadableBindableBasics<QStateMachine, QString>(
+                brokenMachine, QStringLiteral("Missing initial state in compound state ''"),  QString(),
+                "errorString",
+                [&](){ brokenMachine.clearError(); });
+
+    // -- QStateMachine::globalRestorePolicy
+    testWritableBindableBasics<QStateMachine, QState::RestorePolicy>(
+                machine, QState::RestorePolicy::RestoreProperties,
+                QState::RestorePolicy::DontRestoreProperties, "globalRestorePolicy");
+
+#if QT_CONFIG(animation)
+    // -- QStateMachine::animated
+    testWritableBindableBasics<QStateMachine, bool>(
+                machine, false, true, "animated");
+#endif
 }
 
 QTEST_MAIN(tst_QStateMachine)

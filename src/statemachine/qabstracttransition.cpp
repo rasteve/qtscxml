@@ -132,11 +132,6 @@ QT_BEGIN_NAMESPACE
   \sa QAbstractTransition::transitionType
 */
 
-QAbstractTransitionPrivate::QAbstractTransitionPrivate()
-    : transitionType(QAbstractTransition::ExternalTransition)
-{
-}
-
 QStateMachine *QAbstractTransitionPrivate::machine() const
 {
     if (QState *source = sourceState())
@@ -322,6 +317,12 @@ void QAbstractTransition::setTransitionType(TransitionType type)
 {
     Q_D(QAbstractTransition);
     d->transitionType = type;
+}
+
+QBindable<QAbstractTransition::TransitionType> QAbstractTransition::bindableTransitionType()
+{
+    Q_D(QAbstractTransition);
+    return &d->transitionType;
 }
 
 /*!

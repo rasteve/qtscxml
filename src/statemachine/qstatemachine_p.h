@@ -255,14 +255,15 @@ public:
     QMutex externalEventMutex;
 
     QStateMachine::Error error;
-    QState::RestorePolicy globalRestorePolicy;
+    Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(QStateMachinePrivate, QState::RestorePolicy,
+                                         globalRestorePolicy, QState::DontRestoreProperties);
+    Q_OBJECT_BINDABLE_PROPERTY(QStateMachinePrivate, QString, errorString);
 
-    QString errorString;
     QSet<QAbstractState *> pendingErrorStates;
     QSet<QAbstractState *> pendingErrorStatesForDefaultEntry;
 
 #if QT_CONFIG(animation)
-    bool animated;
+    Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(QStateMachinePrivate, bool, animated, true);
 
     struct InitializeAnimationResult {
         QList<QAbstractAnimation*> handledAnimations;

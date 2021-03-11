@@ -61,11 +61,12 @@ class QAbstractAnimation;
 class Q_STATEMACHINE_EXPORT QStateMachine : public QState
 {
     Q_OBJECT
-    Q_PROPERTY(QString errorString READ errorString)
-    Q_PROPERTY(QState::RestorePolicy globalRestorePolicy READ globalRestorePolicy WRITE setGlobalRestorePolicy)
+    Q_PROPERTY(QString errorString READ errorString BINDABLE bindableErrorString)
+    Q_PROPERTY(QState::RestorePolicy globalRestorePolicy READ globalRestorePolicy
+               WRITE setGlobalRestorePolicy BINDABLE bindableGlobalRestorePolicy)
     Q_PROPERTY(bool running READ isRunning WRITE setRunning NOTIFY runningChanged)
 #if QT_CONFIG(animation)
-    Q_PROPERTY(bool animated READ isAnimated WRITE setAnimated)
+    Q_PROPERTY(bool animated READ isAnimated WRITE setAnimated BINDABLE bindableAnimated)
 #endif
 public:
     class Q_STATEMACHINE_EXPORT SignalEvent : public QEvent
@@ -122,14 +123,17 @@ public:
     void removeState(QAbstractState *state);
 
     Error error() const;
+
     QString errorString() const;
     void clearError();
+    QBindable<QString> bindableErrorString() const;
 
     bool isRunning() const;
 
 #if QT_CONFIG(animation)
     bool isAnimated() const;
     void setAnimated(bool enabled);
+    QBindable<bool> bindableAnimated();
 
     void addDefaultAnimation(QAbstractAnimation *animation);
     QList<QAbstractAnimation *> defaultAnimations() const;
@@ -138,6 +142,7 @@ public:
 
     QState::RestorePolicy globalRestorePolicy() const;
     void setGlobalRestorePolicy(QState::RestorePolicy restorePolicy);
+    QBindable<QState::RestorePolicy> bindableGlobalRestorePolicy();
 
     void postEvent(QEvent *event, EventPriority priority = NormalPriority);
     int postDelayedEvent(QEvent *event, int delay);

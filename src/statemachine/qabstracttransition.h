@@ -65,7 +65,8 @@ class Q_STATEMACHINE_EXPORT QAbstractTransition : public QObject
     Q_PROPERTY(QState* sourceState READ sourceState)
     Q_PROPERTY(QAbstractState* targetState READ targetState WRITE setTargetState NOTIFY targetStateChanged)
     Q_PROPERTY(QList<QAbstractState*> targetStates READ targetStates WRITE setTargetStates NOTIFY targetStatesChanged)
-    Q_PROPERTY(TransitionType transitionType READ transitionType WRITE setTransitionType REVISION(1, 1))
+    Q_PROPERTY(TransitionType transitionType READ transitionType WRITE setTransitionType
+               BINDABLE bindableTransitionType REVISION(1, 1))
 public:
     enum TransitionType {
         ExternalTransition,
@@ -84,6 +85,7 @@ public:
 
     TransitionType transitionType() const;
     void setTransitionType(TransitionType type);
+    QBindable<QAbstractTransition::TransitionType> bindableTransitionType();
 
     QStateMachine *machine() const;
 

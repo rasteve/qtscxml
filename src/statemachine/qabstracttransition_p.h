@@ -70,7 +70,7 @@ class Q_STATEMACHINE_EXPORT QAbstractTransitionPrivate
 {
     Q_DECLARE_PUBLIC(QAbstractTransition)
 public:
-    QAbstractTransitionPrivate();
+    QAbstractTransitionPrivate() = default;
 
     static QAbstractTransitionPrivate *get(QAbstractTransition *q)
     { return q->d_func(); }
@@ -82,7 +82,10 @@ public:
     void emitTriggered();
 
     QList<QPointer<QAbstractState>> targetStates;
-    QAbstractTransition::TransitionType transitionType;
+
+    Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(QAbstractTransitionPrivate,
+                                         QAbstractTransition::TransitionType, transitionType,
+                                         QAbstractTransition::ExternalTransition);
 
 #if QT_CONFIG(animation)
     QList<QAbstractAnimation*> animations;
