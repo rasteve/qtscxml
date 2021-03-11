@@ -149,6 +149,7 @@ int main(int argc, char **argv)
     QPixmap kineticPix(":/images/kinetic.png");
     QPixmap bgPix(":/images/Time-For-Lunch-2.jpg");
 
+//! [0]
     QGraphicsScene scene(-350, -350, 700, 700);
 
     QList<Pixmap *> items;
@@ -159,7 +160,9 @@ int main(int argc, char **argv)
         items << item;
         scene.addItem(item);
     }
+//! [0]
 
+//! [1]
     // Buttons
     QGraphicsItem *buttonParent = new QGraphicsRectItem;
     Button *ellipseButton = new Button(QPixmap(":/images/ellipse.png"), buttonParent);
@@ -178,7 +181,9 @@ int main(int argc, char **argv)
     buttonParent->setTransform(QTransform::fromScale(0.75, 0.75), true);
     buttonParent->setPos(200, 200);
     buttonParent->setZValue(65);
+//! [1]
 
+//! [2]
     // States
     QState *rootState = new QState;
     QState *ellipseState = new QState(rootState);
@@ -186,7 +191,9 @@ int main(int argc, char **argv)
     QState *randomState = new QState(rootState);
     QState *tiledState = new QState(rootState);
     QState *centeredState = new QState(rootState);
+//! [2]
 
+//! [3]
     // Values
     for (int i = 0; i < items.count(); ++i) {
         Pixmap *item = items.at(i);
@@ -213,7 +220,9 @@ int main(int argc, char **argv)
         // Centered
         centeredState->assignProperty(item, "pos", QPointF());
     }
+//! [3]
 
+//! [4]
     // Ui
     View *view = new View(&scene);
     view->setWindowTitle(QT_TRANSLATE_NOOP(QGraphicsView, "Animated Tiles"));
@@ -222,12 +231,16 @@ int main(int argc, char **argv)
     view->setCacheMode(QGraphicsView::CacheBackground);
     view->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     view->show();
+//! [4]
 
+//! [5]
     QStateMachine states;
     states.addState(rootState);
     states.setInitialState(rootState);
     rootState->setInitialState(centeredState);
+//! [5]
 
+//! [6]
     QParallelAnimationGroup *group = new QParallelAnimationGroup;
     for (int i = 0; i < items.count(); ++i) {
         QPropertyAnimation *anim = new QPropertyAnimation(items[i], "pos");
@@ -235,6 +248,9 @@ int main(int argc, char **argv)
         anim->setEasingCurve(QEasingCurve::InOutBack);
         group->addAnimation(anim);
     }
+//! [6]
+
+//! [7]
     QAbstractTransition *trans = rootState->addTransition(ellipseButton, &Button::pressed, ellipseState);
     trans->addAnimation(group);
 
@@ -249,7 +265,9 @@ int main(int argc, char **argv)
 
     trans = rootState->addTransition(centeredButton, &Button::pressed, centeredState);
     trans->addAnimation(group);
+//! [7]
 
+//! [8]
     QTimer timer;
     timer.start(125);
     timer.setSingleShot(true);
@@ -257,6 +275,7 @@ int main(int argc, char **argv)
     trans->addAnimation(group);
 
     states.start();
+//! [8]
 
 #ifdef QT_KEYPAD_NAVIGATION
     QApplication::setNavigationMode(Qt::NavigationModeCursorAuto);
