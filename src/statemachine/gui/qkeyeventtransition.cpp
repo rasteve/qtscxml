@@ -129,6 +129,12 @@ void QKeyEventTransition::setKey(int key)
     d->transition->setKey(key);
 }
 
+QBindable<int> QKeyEventTransition::bindableKey()
+{
+    Q_D(QKeyEventTransition);
+    return d->transition->bindableKey();
+}
+
 /*!
   Returns the keyboard modifier mask that this key event transition checks
   for.
@@ -147,6 +153,12 @@ void QKeyEventTransition::setModifierMask(Qt::KeyboardModifiers modifierMask)
 {
     Q_D(QKeyEventTransition);
     d->transition->setModifierMask(modifierMask);
+}
+
+QBindable<Qt::KeyboardModifiers> QKeyEventTransition::bindableModifierMask()
+{
+    Q_D(QKeyEventTransition);
+    return d->transition->bindableModifierMask();
 }
 
 /*!

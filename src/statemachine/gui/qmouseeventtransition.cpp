@@ -135,6 +135,12 @@ void QMouseEventTransition::setButton(Qt::MouseButton button)
     d->transition->setButton(button);
 }
 
+QBindable<Qt::MouseButton> QMouseEventTransition::bindableButton()
+{
+    Q_D(QMouseEventTransition);
+    return d->transition->bindableButton();
+}
+
 /*!
   Returns the keyboard modifier mask that this mouse event transition checks
   for.
@@ -154,6 +160,13 @@ void QMouseEventTransition::setModifierMask(Qt::KeyboardModifiers modifierMask)
     Q_D(QMouseEventTransition);
     d->transition->setModifierMask(modifierMask);
 }
+
+QBindable<Qt::KeyboardModifiers> QMouseEventTransition::bindableModifierMask()
+{
+    Q_D(QMouseEventTransition);
+    return d->transition->bindableModifierMask();
+}
+
 
 /*!
   Returns the hit test path for this mouse event transition.

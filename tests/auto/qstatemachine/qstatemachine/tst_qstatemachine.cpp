@@ -41,7 +41,7 @@
 #include "qstate.h"
 #include "qhistorystate.h"
 #include "qsignaltransition.h"
-#ifndef QT_NO_WIDGETS
+#if QT_CONFIG(qeventtransition)
 #include "qkeyeventtransition.h"
 #include "qmouseeventtransition.h"
 #endif
@@ -6977,6 +6977,31 @@ void tst_QStateMachine::bindings()
     auto eventType2 = QEvent::Leave;
     testWritableBindableBasics<QEventTransition, QEvent::Type>(
                 eventTransition, eventType1, eventType2, "eventType");
+
+    // -- QKeyEventTransition::key
+    QKeyEventTransition keyEventTransition;
+    int key1{1};
+    int key2{2};
+    testWritableBindableBasics<QKeyEventTransition, int>(
+                keyEventTransition, key1, key2, "key");
+
+    // -- QKeyEventTransition::modifierMask
+    Qt::KeyboardModifiers mod1 = Qt::KeyboardModifier::ShiftModifier;
+    Qt::KeyboardModifiers mod2 = Qt::KeyboardModifier::ControlModifier;
+    testWritableBindableBasics<QKeyEventTransition>(
+                keyEventTransition, mod1, mod2, "modifierMask");
+
+    // -- QMouseEventTransition::button
+    QMouseEventTransition mouseEventTransition;
+    Qt::MouseButton button1 = Qt::MouseButton::LeftButton;
+    Qt::MouseButton button2 = Qt::MouseButton::RightButton;
+    testWritableBindableBasics<QMouseEventTransition>(
+                mouseEventTransition, button1, button2, "button");
+
+    // -- QMouseEventTransition::modifierMask
+    testWritableBindableBasics<QMouseEventTransition>(
+                mouseEventTransition, mod1, mod2, "modifierMask");
+
 }
 
 QTEST_MAIN(tst_QStateMachine)

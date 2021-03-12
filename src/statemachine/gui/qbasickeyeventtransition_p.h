@@ -75,9 +75,11 @@ public:
 
     int key() const;
     void setKey(int key);
+    QBindable<int> bindableKey();
 
     Qt::KeyboardModifiers modifierMask() const;
     void setModifierMask(Qt::KeyboardModifiers modifiers);
+    QBindable<Qt::KeyboardModifiers> bindableModifierMask();
 
 protected:
     bool eventTest(QEvent *event) override;

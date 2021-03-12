@@ -50,8 +50,9 @@ class QKeyEventTransitionPrivate;
 class Q_STATEMACHINE_EXPORT QKeyEventTransition : public QEventTransition
 {
     Q_OBJECT
-    Q_PROPERTY(int key READ key WRITE setKey)
-    Q_PROPERTY(Qt::KeyboardModifiers modifierMask READ modifierMask WRITE setModifierMask)
+    Q_PROPERTY(int key READ key WRITE setKey BINDABLE bindableKey)
+    Q_PROPERTY(Qt::KeyboardModifiers modifierMask READ modifierMask WRITE setModifierMask
+               BINDABLE bindableModifierMask)
 public:
     QKeyEventTransition(QState *sourceState = nullptr);
     QKeyEventTransition(QObject *object, QEvent::Type type, int key,
@@ -60,9 +61,11 @@ public:
 
     int key() const;
     void setKey(int key);
+    QBindable<int> bindableKey();
 
     Qt::KeyboardModifiers modifierMask() const;
     void setModifierMask(Qt::KeyboardModifiers modifiers);
+    QBindable<Qt::KeyboardModifiers> bindableModifierMask();
 
 protected:
     void onTransition(QEvent *event) override;

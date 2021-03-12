@@ -75,9 +75,11 @@ public:
 
     Qt::MouseButton button() const;
     void setButton(Qt::MouseButton button);
+    QBindable<Qt::MouseButton> bindableButton();
 
     Qt::KeyboardModifiers modifierMask() const;
     void setModifierMask(Qt::KeyboardModifiers modifiers);
+    QBindable<Qt::KeyboardModifiers> bindableModifierMask();
 
     QPainterPath hitTestPath() const;
     void setHitTestPath(const QPainterPath &path);

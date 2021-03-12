@@ -58,21 +58,16 @@ class QBasicKeyEventTransitionPrivate : public QAbstractTransitionPrivate
 {
     Q_DECLARE_PUBLIC(QBasicKeyEventTransition)
 public:
-    QBasicKeyEventTransitionPrivate();
+    QBasicKeyEventTransitionPrivate() = default;
 
     static QBasicKeyEventTransitionPrivate *get(QBasicKeyEventTransition *q);
 
-    QEvent::Type eventType;
-    int key;
-    Qt::KeyboardModifiers modifierMask;
-};
+    QEvent::Type eventType = QEvent::None;
 
-QBasicKeyEventTransitionPrivate::QBasicKeyEventTransitionPrivate()
-{
-    eventType = QEvent::None;
-    key = 0;
-    modifierMask = Qt::NoModifier;
-}
+    Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(QBasicKeyEventTransitionPrivate, int, key, 0);
+    Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(QBasicKeyEventTransitionPrivate, Qt::KeyboardModifiers,
+                                         modifierMask, Qt::NoModifier);
+};
 
 QBasicKeyEventTransitionPrivate *QBasicKeyEventTransitionPrivate::get(QBasicKeyEventTransition *q)
 {
@@ -158,6 +153,12 @@ void QBasicKeyEventTransition::setKey(int key)
     d->key = key;
 }
 
+QBindable<int> QBasicKeyEventTransition::bindableKey()
+{
+    Q_D(QBasicKeyEventTransition);
+    return &d->key;
+}
+
 /*!
   Returns the keyboard modifier mask that this key event transition checks
   for.
@@ -178,6 +179,12 @@ void QBasicKeyEventTransition::setModifierMask(Qt::KeyboardModifiers modifierMas
     d->modifierMask = modifierMask;
 }
 
+QBindable<Qt::KeyboardModifiers> QBasicKeyEventTransition::bindableModifierMask()
+{
+    Q_D(QBasicKeyEventTransition);
+    return &d->modifierMask;
+}
+
 /*!
   \reimp
 */
@@ -187,7 +194,7 @@ bool QBasicKeyEventTransition::eventTest(QEvent *event)
     if (event->type() == d->eventType) {
         QKeyEvent *ke = static_cast<QKeyEvent*>(event);
         return (ke->key() == d->key)
-            && ((ke->modifiers() & d->modifierMask) == d->modifierMask);
+            && ((ke->modifiers() & d->modifierMask.value()) == d->modifierMask.value());
     }
     return false;
 }

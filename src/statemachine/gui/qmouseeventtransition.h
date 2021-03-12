@@ -51,8 +51,9 @@ class QPainterPath;
 class Q_STATEMACHINE_EXPORT QMouseEventTransition : public QEventTransition
 {
     Q_OBJECT
-    Q_PROPERTY(Qt::MouseButton button READ button WRITE setButton)
-    Q_PROPERTY(Qt::KeyboardModifiers modifierMask READ modifierMask WRITE setModifierMask)
+    Q_PROPERTY(Qt::MouseButton button READ button WRITE setButton BINDABLE bindableButton)
+    Q_PROPERTY(Qt::KeyboardModifiers modifierMask READ modifierMask WRITE setModifierMask
+               BINDABLE bindableModifierMask)
 public:
     QMouseEventTransition(QState *sourceState = nullptr);
     QMouseEventTransition(QObject *object, QEvent::Type type,
@@ -61,9 +62,11 @@ public:
 
     Qt::MouseButton button() const;
     void setButton(Qt::MouseButton button);
+    QBindable<Qt::MouseButton> bindableButton();
 
     Qt::KeyboardModifiers modifierMask() const;
     void setModifierMask(Qt::KeyboardModifiers modifiers);
+    QBindable<Qt::KeyboardModifiers> bindableModifierMask();
 
     QPainterPath hitTestPath() const;
     void setHitTestPath(const QPainterPath &path);

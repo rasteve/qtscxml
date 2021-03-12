@@ -59,21 +59,17 @@ class QBasicMouseEventTransitionPrivate : public QAbstractTransitionPrivate
 {
     Q_DECLARE_PUBLIC(QBasicMouseEventTransition)
 public:
-    QBasicMouseEventTransitionPrivate();
+    QBasicMouseEventTransitionPrivate() = default;
 
     static QBasicMouseEventTransitionPrivate *get(QBasicMouseEventTransition *q);
 
-    QEvent::Type eventType;
-    Qt::MouseButton button;
-    Qt::KeyboardModifiers modifierMask;
+    QEvent::Type eventType = QEvent::None;
+    Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(QBasicMouseEventTransitionPrivate, Qt::MouseButton,
+                                         button, Qt::NoButton);
+    Q_OBJECT_BINDABLE_PROPERTY_WITH_ARGS(QBasicMouseEventTransitionPrivate, Qt::KeyboardModifiers,
+                                          modifierMask, Qt::NoModifier);
     QPainterPath path;
 };
-
-QBasicMouseEventTransitionPrivate::QBasicMouseEventTransitionPrivate()
-{
-    eventType = QEvent::None;
-    button = Qt::NoButton;
-}
 
 QBasicMouseEventTransitionPrivate *QBasicMouseEventTransitionPrivate::get(QBasicMouseEventTransition *q)
 {
@@ -144,6 +140,12 @@ void QBasicMouseEventTransition::setButton(Qt::MouseButton button)
     d->button = button;
 }
 
+QBindable<Qt::MouseButton> QBasicMouseEventTransition::bindableButton()
+{
+    Q_D(QBasicMouseEventTransition);
+    return &d->button;
+}
+
 /*!
   Returns the keyboard modifier mask that this mouse event transition checks
   for.
@@ -163,6 +165,13 @@ void QBasicMouseEventTransition::setModifierMask(Qt::KeyboardModifiers modifierM
     Q_D(QBasicMouseEventTransition);
     d->modifierMask = modifierMask;
 }
+
+QBindable<Qt::KeyboardModifiers> QBasicMouseEventTransition::bindableModifierMask()
+{
+    Q_D(QBasicMouseEventTransition);
+    return &d->modifierMask;
+}
+
 
 /*!
   Returns the hit test path for this mouse event transition.
@@ -191,7 +200,7 @@ bool QBasicMouseEventTransition::eventTest(QEvent *event)
     if (event->type() == d->eventType) {
         QMouseEvent *me = static_cast<QMouseEvent*>(event);
         return (me->button() == d->button)
-            && ((me->modifiers() & d->modifierMask) == d->modifierMask)
+            && ((me->modifiers() & d->modifierMask.value()) == d->modifierMask.value())
             && (d->path.isEmpty() || d->path.contains(me->position().toPoint()));
     }
     return false;
