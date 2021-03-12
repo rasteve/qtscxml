@@ -6964,6 +6964,19 @@ void tst_QStateMachine::bindings()
     testWritableBindableBasics<QStateMachine, bool>(
                 machine, false, true, "animated");
 #endif
+
+    // -- QEventTransition::eventSource
+    QEventTransition eventTransition;
+    QObject source1;
+    QObject source2;
+    testWritableBindableBasics<QEventTransition, QObject*>(
+                eventTransition, &source1, &source2, "eventSource");
+
+    // -- QEventTransition::eventType
+    auto eventType1 = QEvent::Enter;
+    auto eventType2 = QEvent::Leave;
+    testWritableBindableBasics<QEventTransition, QEvent::Type>(
+                eventTransition, eventType1, eventType2, "eventType");
 }
 
 QTEST_MAIN(tst_QStateMachine)

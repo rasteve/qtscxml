@@ -52,6 +52,7 @@
 //
 
 #include "private/qabstracttransition_p.h"
+#include <QtCore/private/qproperty_p.h>
 
 QT_REQUIRE_CONFIG(qeventtransition);
 
@@ -62,7 +63,7 @@ class Q_STATEMACHINE_EXPORT QEventTransitionPrivate : public QAbstractTransition
 {
     Q_DECLARE_PUBLIC(QEventTransition)
 public:
-    QEventTransitionPrivate();
+    QEventTransitionPrivate() = default;
     ~QEventTransitionPrivate();
 
     static QEventTransitionPrivate *get(QEventTransition *q)
@@ -71,9 +72,20 @@ public:
     void unregister();
     void maybeRegister();
 
-    QObject *object;
-    bool registered;
-    QEvent::Type eventType;
+    void setEventSource(QObject* eventSource)
+    {
+        q_func()->setEventSource(eventSource);
+    }
+    Q_OBJECT_COMPAT_PROPERTY_WITH_ARGS(QEventTransitionPrivate, QObject*, object,
+                                       &QEventTransitionPrivate::setEventSource, nullptr);
+
+    void setEventType(QEvent::Type eventType)
+    {
+        q_func()->setEventType(eventType);
+    }
+    Q_OBJECT_COMPAT_PROPERTY_WITH_ARGS(QEventTransitionPrivate, QEvent::Type, eventType,
+                                       &QEventTransitionPrivate::setEventType, QEvent::None);
+    bool registered = false;
 };
 
 QT_END_NAMESPACE

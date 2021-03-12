@@ -51,8 +51,10 @@ class QEventTransitionPrivate;
 class Q_STATEMACHINE_EXPORT QEventTransition : public QAbstractTransition
 {
     Q_OBJECT
-    Q_PROPERTY(QObject* eventSource READ eventSource WRITE setEventSource)
-    Q_PROPERTY(QEvent::Type eventType READ eventType WRITE setEventType)
+    Q_PROPERTY(QObject* eventSource READ eventSource WRITE setEventSource
+               BINDABLE bindableEventSource)
+    Q_PROPERTY(QEvent::Type eventType READ eventType WRITE setEventType
+               BINDABLE bindableEventType)
 public:
     QEventTransition(QState *sourceState = nullptr);
     QEventTransition(QObject *object, QEvent::Type type, QState *sourceState = nullptr);
@@ -60,9 +62,11 @@ public:
 
     QObject *eventSource() const;
     void setEventSource(QObject *object);
+    QBindable<QObject*> bindableEventSource();
 
     QEvent::Type eventType() const;
     void setEventType(QEvent::Type type);
+    QBindable<QEvent::Type> bindableEventType();
 
 protected:
     bool eventTest(QEvent *event) override;

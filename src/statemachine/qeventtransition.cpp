@@ -98,12 +98,6 @@ QT_BEGIN_NAMESPACE
 
     \brief the type of event that this event transition is associated with
 */
-QEventTransitionPrivate::QEventTransitionPrivate()
-{
-    object = nullptr;
-    eventType = QEvent::None;
-    registered = false;
-}
 
 QEventTransitionPrivate::~QEventTransitionPrivate()
 {
@@ -142,8 +136,8 @@ QEventTransition::QEventTransition(QObject *object, QEvent::Type type,
 {
     Q_D(QEventTransition);
     d->registered = false;
-    d->object = object;
-    d->eventType = type;
+    d->object.setValueBypassingBindings(object);
+    d->eventType.setValueBypassingBindings(type);
     d->maybeRegister();
 }
 
@@ -164,8 +158,8 @@ QEventTransition::QEventTransition(QEventTransitionPrivate &dd, QObject *object,
 {
     Q_D(QEventTransition);
     d->registered = false;
-    d->object = object;
-    d->eventType = type;
+    d->object.setValueBypassingBindings(object);
+    d->eventType.setValueBypassingBindings(type);
     d->maybeRegister();
 }
 
@@ -191,11 +185,20 @@ QEvent::Type QEventTransition::eventType() const
 void QEventTransition::setEventType(QEvent::Type type)
 {
     Q_D(QEventTransition);
-    if (d->eventType == type)
+    if (d->eventType.value() == type) {
+        d->eventType.removeBindingUnlessInWrapper();
         return;
+    }
     d->unregister();
     d->eventType = type;
     d->maybeRegister();
+    d->eventType.notify();
+}
+
+QBindable<QEvent::Type> QEventTransition::bindableEventType()
+{
+    Q_D(QEventTransition);
+    return &d->eventType;
 }
 
 /*!
@@ -214,11 +217,20 @@ QObject *QEventTransition::eventSource() const
 void QEventTransition::setEventSource(QObject *object)
 {
     Q_D(QEventTransition);
-    if (d->object == object)
+    if (d->object.value() == object) {
+        d->object.removeBindingUnlessInWrapper();
         return;
+    }
     d->unregister();
     d->object = object;
     d->maybeRegister();
+    d->object.notify();
+}
+
+QBindable<QObject*> QEventTransition::bindableEventSource()
+{
+    Q_D(QEventTransition);
+    return &d->object;
 }
 
 /*!
@@ -230,7 +242,7 @@ bool QEventTransition::eventTest(QEvent *event)
     if (event->type() == QEvent::StateMachineWrapped) {
         QStateMachine::WrappedEvent *we = static_cast<QStateMachine::WrappedEvent*>(event);
         return (we->object() == d->object)
-            && (we->event()->type() == d->eventType);
+            && (we->event()->type() == d->eventType.value());
     }
     return false;
 }
