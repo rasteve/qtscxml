@@ -86,6 +86,7 @@ public:
     }
 };
 
+//![0]
 int main(int argc, char *argv[])
 {
     Q_INIT_RESOURCE(states);
@@ -143,13 +144,17 @@ int main(int argc, char *argv[])
     scene.addItem(p4);
     scene.addItem(p5);
     scene.addItem(p6);
+//![0]
 
+//![1]
     QStateMachine machine;
     QState *state1 = new QState(&machine);
     QState *state2 = new QState(&machine);
     QState *state3 = new QState(&machine);
     machine.setInitialState(state1);
+//![1]
 
+//![2]
     // State 1
     state1->assignProperty(button, "text", "Switch to state 2");
     state1->assignProperty(widget, "geometry", QRectF(0, 0, 400, 150));
@@ -173,6 +178,7 @@ int main(int argc, char *argv[])
     state1->assignProperty(p4, "opacity", qreal(0));
     state1->assignProperty(p5, "opacity", qreal(0));
     state1->assignProperty(p6, "opacity", qreal(0));
+//![2]
 
     // State 2
     state2->assignProperty(button, "text", "Switch to state 3");
@@ -215,6 +221,7 @@ int main(int argc, char *argv[])
     state3->assignProperty(p5, "opacity", qreal(1));
     state3->assignProperty(p6, "opacity", qreal(1));
 
+//![3]
     QAbstractTransition *t1 = state1->addTransition(button, &QAbstractButton::clicked, state2);
     QSequentialAnimationGroup *animation1SubGroup = new QSequentialAnimationGroup;
     animation1SubGroup->addPause(250);
@@ -239,6 +246,7 @@ int main(int argc, char *argv[])
     t1->addAnimation(new QPropertyAnimation(p4, "opacity"));
     t1->addAnimation(new QPropertyAnimation(p5, "opacity"));
     t1->addAnimation(new QPropertyAnimation(p6, "opacity"));
+//![3]
 
     QAbstractTransition *t2 = state2->addTransition(button, &QAbstractButton::clicked, state3);
     t2->addAnimation(new QPropertyAnimation(box, "geometry"));
@@ -284,6 +292,7 @@ int main(int argc, char *argv[])
     t3->addAnimation(new QPropertyAnimation(p5, "opacity"));
     t3->addAnimation(new QPropertyAnimation(p6, "opacity"));
 
+//![4]
     machine.start();
 
     GraphicsView view(&scene);
@@ -291,6 +300,7 @@ int main(int argc, char *argv[])
     view.show();
 
     return app.exec();
+//![4]
 }
 
 #include "main.moc"
