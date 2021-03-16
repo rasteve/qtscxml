@@ -62,6 +62,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+//![1]
     QMenu *file = menuBar()->addMenu(tr("&File"));
 
     QAction *newAction = file->addAction(tr("New Game"));
@@ -81,4 +82,5 @@ MainWindow::MainWindow(QWidget *parent)
     view->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     scene->setupScene(newAction, quitAction);
     setCentralWidget(view);
+//![1]
 }

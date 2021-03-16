@@ -90,53 +90,54 @@ void PlayState::onEntry(QEvent *)
         delete machine;
     }
 
+//![4]
     machine = new QStateMachine;
 
-    //This state is when player is playing
+    //This state is active when the player is playing
     LevelState *levelState = new LevelState(scene, this, machine);
 
-    //This state is when the player is actually playing but the game is not paused
+    //This state is active when the player is actually playing but the game is not paused
     QState *playingState = new QState(levelState);
     levelState->setInitialState(playingState);
 
-    //This state is when the game is paused
+    //This state is active when the game is paused
     PauseState *pauseState = new PauseState(scene, levelState);
 
-    //We have one view, it receive the key press event
+    //We have one view, it receives the key press events
     QKeyEventTransition *pressPplay = new QKeyEventTransition(scene->views().at(0), QEvent::KeyPress, Qt::Key_P);
     pressPplay->setTargetState(pauseState);
     QKeyEventTransition *pressPpause = new QKeyEventTransition(scene->views().at(0), QEvent::KeyPress, Qt::Key_P);
     pressPpause->setTargetState(playingState);
 
-    //Pause "P" is triggered, the player pause the game
+    //Pause "P" is triggered, when the player pauses the game
     playingState->addTransition(pressPplay);
 
-    //To get back playing when the game has been paused
+    //To get back to playing when the game has been paused
     pauseState->addTransition(pressPpause);
 
-    //This state is when player have lost
+    //This state is active when player has lost
     LostState *lostState = new LostState(scene, this, machine);
 
-    //This state is when player have won
+    //This state is active when player has won
     WinState *winState = new WinState(scene, this, machine);
 
-    //The boat has been destroyed then the game is finished
+    //If boat has been destroyed then the game is finished
     levelState->addTransition(scene->boat, &Boat::boatExecutionFinished,lostState);
 
-    //This transition check if we won or not
+    //This transition checks if we have won or not
     WinTransition *winTransition = new WinTransition(scene, this, winState);
 
-    //The boat has been destroyed then the game is finished
+    //If boat has been destroyed then the game is finished
     levelState->addTransition(winTransition);
 
-    //This state is an animation when the score changed
+    //This state is for an animation when the score changes
     UpdateScoreState *scoreState = new UpdateScoreState(levelState);
 
-    //This transition update the score when a submarine die
+    //This transition updates the score when a submarine is destroyed
     UpdateScoreTransition *scoreTransition = new UpdateScoreTransition(scene, this, levelState);
     scoreTransition->setTargetState(scoreState);
 
-    //The boat has been destroyed then the game is finished
+    //If the boat has been destroyed then the game is finished
     playingState->addTransition(scoreTransition);
 
     //We go back to play state
@@ -148,16 +149,18 @@ void PlayState::onEntry(QEvent *)
     //Final state
     QFinalState *finalState = new QFinalState(machine);
 
-    //This transition is triggered when the player press space after completing a level
+    //This transition is triggered when the player presses space after completing a level
     CustomSpaceTransition *spaceTransition = new CustomSpaceTransition(scene->views().at(0), this, QEvent::KeyPress, Qt::Key_Space);
     spaceTransition->setTargetState(levelState);
     winState->addTransition(spaceTransition);
 
-    //We lost we should reach the final state
+    //We lost so we should reach the final state
     lostState->addTransition(lostState, &QState::finished, finalState);
 
     scene->textInformationItem->hide();
     machine->start();
+//![4]
+
 }
 
 LevelState::LevelState(GraphicsScene *scene, PlayState *game, QState *parent) : QState(parent), scene(scene), game(game)
@@ -168,6 +171,7 @@ void LevelState::onEntry(QEvent *)
     initializeLevel();
 }
 
+//![5]
 void LevelState::initializeLevel()
 {
     //we re-init the boat
@@ -199,6 +203,7 @@ void LevelState::initializeLevel()
         }
     }
 }
+//![5]
 
 /** Pause State */
 PauseState::PauseState(GraphicsScene *scene, QState *parent) : QState(parent), scene(scene)

@@ -74,6 +74,7 @@
 GraphicsScene::GraphicsScene(int x, int y, int width, int height, Mode mode, QObject *parent)
     : QGraphicsScene(x, y, width, height, parent), mode(mode), boat(new Boat)
 {
+//![2]
     PixmapItem *backgroundItem = new PixmapItem(QStringLiteral("background"), mode);
     backgroundItem->setZValue(1);
     backgroundItem->setPos(0,0);
@@ -97,6 +98,7 @@ GraphicsScene::GraphicsScene(int x, int y, int width, int height, Mode mode, QOb
     addItem(boat);
     boat->setPos(this->width()/2, sealLevel() - boat->size().height());
     boat->hide();
+//![2]
 
     //Parse the xml that contains all data of the game
     QXmlStreamReader reader;
@@ -173,6 +175,7 @@ void GraphicsScene::setupScene(QAction *newAction, QAction *quitAction)
         fadeAnim->setEasingCurve(QEasingCurve::OutQuad);
     }
 
+//![3]
     QStateMachine *machine = new QStateMachine(this);
 
     //This state is when the player is playing
@@ -207,6 +210,7 @@ void GraphicsScene::setupScene(QAction *newAction, QAction *quitAction)
 
     //We reach the final state, then we quit
     connect(machine, &QStateMachine::finished, qApp, &QApplication::quit);
+//![3]
 }
 
 void GraphicsScene::addItem(Bomb *bomb)
