@@ -61,6 +61,16 @@
     machine corresponds with the \e name attribute of the \c <scxml> root
     element.
 
+    The \c qscxmlc tool can also be invoked manually and the resulting header and
+    source files can be used as regular source files in a project. When
+    using these source files as part of a \c cmake project, one must
+    additionally disable automatic moc in the CMakeLists.txt file as
+    illustrated by this example:
+    \code
+    set_source_files_properties(statemachine.h PROPERTIES SKIP_AUTOMOC TRUE)
+    \endcode
+    If you omit this, you will see duplicate symbol errors during compilation.
+
     \section1 Command-Line Options
 
     The \c qscxmlc tool supports the following command-line options, which can be specified using
