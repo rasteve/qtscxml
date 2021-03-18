@@ -105,7 +105,9 @@ struct FunctionDef
     bool inlineCode = false;
     bool wasCloned = false;
 
-    // bool returnTypeIsVolatile = false; -- QtScxml
+#if 0 // -- QtScxml
+    bool returnTypeIsVolatile = false;
+#endif // -- QtScxml
     bool isCompat = false;
     bool isInvokable = false;
     bool isScriptable = false;

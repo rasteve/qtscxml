@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
-** Copyright (C) 2013 Olivier Goffart <ogoffart@woboq.com>
+** Copyright (C) 2020 The Qt Company Ltd.
+** Copyright (C) 2019 Olivier Goffart <ogoffart@woboq.com>
 ** Copyright (C) 2018 Intel Corporation.
 ** Contact: https://www.qt.io/licensing/
 **
@@ -105,10 +105,11 @@ QT_FOR_EACH_STATIC_TYPE(RETURN_METATYPENAME_STRING)
     return nullptr;
  }
 
+// -- QtScxml
 Generator::Generator(ClassDef *classDef, const QList<QByteArray> &metaTypes,
                      const QHash<QByteArray, QByteArray> &knownQObjectClasses,
                      const QHash<QByteArray, QByteArray> &knownGadgets,
-                     QIODevice &outfile, // -- QtScxml
+                     QIODevice &outfile,
                      bool requireCompleteTypes)
     : out(outfile),
       cdef(classDef),
@@ -120,6 +121,7 @@ Generator::Generator(ClassDef *classDef, const QList<QByteArray> &metaTypes,
     if (cdef->superclassList.size())
         purestSuperClass = cdef->superclassList.constFirst().first;
 }
+// -- QtScxml
 
 static inline int lengthOfEscapeSequence(const QByteArray &s, int i)
 {
