@@ -35,12 +35,16 @@
     to implement a simple state machine that toggles the current
     state when a button is clicked.
 
+    \image twowaybutton-example.png
+
     \snippet statemachine/twowaybutton/main.cpp 0
 
     The application's main() function begins by constructing the application
     object, a button and a state machine.
 
     \snippet statemachine/twowaybutton/main.cpp 1
+
+    \image twowaybutton-chart.png
 
     The state machine has two states; \c on and \c off. When either state is
     entered, the text of the button will be set accordingly.
