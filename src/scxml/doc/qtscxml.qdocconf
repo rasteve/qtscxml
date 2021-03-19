@@ -42,7 +42,6 @@ headerdirs = .. \
 sourcedirs += .. \
               ../../scxmlqml \
               ../../../tools/qscxmlc/doc \
-              ../../../examples/scxml \
               ../../plugins/scxmldatamodel/ecmascriptdatamodel
 
 excludefiles += "../qscxmlexecutablecontent_p.h"
