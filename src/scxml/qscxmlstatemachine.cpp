@@ -1247,7 +1247,15 @@ void QScxmlStateMachinePrivate::addDescendantStatesToEnter(
                 addAncestorStatesToEnter(s, state.parent, statesToEnter, statesForDefaultEntry,
                                          defaultHistoryContent);
         } else {
-            const auto transitionIdx = m_stateTable->array(state.transitions)[0];
+            int transitionIdx = StateTable::InvalidIndex;
+            if (state.transitions == StateTable::InvalidIndex) {
+                int parentInitialTransition = m_stateTable->state(state.parent).initialTransition;
+                if (parentInitialTransition == StateTable::InvalidIndex)
+                    return;
+                transitionIdx = parentInitialTransition;
+            } else {
+                transitionIdx = m_stateTable->array(state.transitions)[0];
+            }
             const auto &defaultHistoryTransition = m_stateTable->transition(transitionIdx);
             defaultHistoryContent->operator[](state.parent) =
                     defaultHistoryTransition.transitionInstructions;
@@ -1457,7 +1465,7 @@ void QScxmlStateMachinePrivate::getEffectiveTargetStates(OrderedSet *targets,
                 for (int historyState : historyValueIter.value()) {
                     targets->add(historyState);
                 }
-            } else {
+            } else if (state.transitions != StateTable::InvalidIndex) {
                 getEffectiveTargetStates(targets, m_stateTable->array(state.transitions)[0]);
             }
         } else {

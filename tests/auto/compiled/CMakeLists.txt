@@ -39,6 +39,7 @@ qt6_add_statecharts(tst_compiled
     initialhistory.scxml
     connection.scxml
     topmachine.scxml
+    historyState.scxml
 )
 
 #### Keys ignored in scope 1:.:.:compiled.pro:<TRUE>:
