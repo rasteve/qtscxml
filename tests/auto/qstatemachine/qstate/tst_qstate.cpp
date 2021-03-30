@@ -103,12 +103,12 @@ public:
     }
 
 protected:
-    bool eventTest(QEvent *e)
+    bool eventTest(QEvent *e) override
     {
         return e->type() == m_type;
     }
 
-    void onTransition(QEvent *) {}
+    void onTransition(QEvent *) override {}
 
 private:
     QEvent::Type m_type;

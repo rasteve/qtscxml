@@ -277,10 +277,10 @@ public:
     { setObjectName(objectName); }
     QList<QPair<int, Event> > events;
 protected:
-    virtual void onEntry(QEvent *) {
+    virtual void onEntry(QEvent *) override {
         events.append(qMakePair(globalTick++, Entry));
     }
-    virtual void onExit(QEvent *) {
+    virtual void onExit(QEvent *) override {
         events.append(qMakePair(globalTick++, Exit));
     }
 };
@@ -293,10 +293,10 @@ public:
     { setTargetState(target); setObjectName(objectName); }
     QList<int> triggers;
 protected:
-    virtual bool eventTest(QEvent *) {
+    virtual bool eventTest(QEvent *) override {
         return true;
     }
-    virtual void onTransition(QEvent *) {
+    virtual void onTransition(QEvent *) override {
         triggers.append(globalTick++);
     }
 };
@@ -311,10 +311,10 @@ public:
         : QAbstractTransition(parent), m_type(type)
     { setTargetStates(targets); }
 protected:
-    virtual bool eventTest(QEvent *e) {
+    virtual bool eventTest(QEvent *e) override {
         return (e->type() == m_type);
     }
-    virtual void onTransition(QEvent *) {}
+    virtual void onTransition(QEvent *) override {}
 private:
     QEvent::Type m_type;
 };
@@ -458,7 +458,7 @@ public:
     {
     }
 
-    void onEntry(QEvent *)
+    void onEntry(QEvent *) override
     {
         error = m_machine->error();
         errorString = m_machine->errorString();
@@ -1733,14 +1733,14 @@ public:
     { setTargetState(target); }
 
 protected:
-    virtual bool eventTest(QEvent *e)
+    virtual bool eventTest(QEvent *e) override
     {
         if (e->type() != QEvent::Type(QEvent::User+2))
             return false;
         StringEvent *se = static_cast<StringEvent*>(e);
         return (m_value == se->value) && (!m_cond.isValid() || m_cond.match(m_value).hasMatch());
     }
-    virtual void onTransition(QEvent *) {}
+    virtual void onTransition(QEvent *) override {}
 
 private:
     QString m_value;
@@ -1759,14 +1759,14 @@ public:
         { m_delay = delay; }
 
 protected:
-    virtual void onEntry(QEvent *)
+    virtual void onEntry(QEvent *) override
     {
         if (m_delay == -1)
             machine()->postEvent(new StringEvent(m_value));
         else
             machine()->postDelayedEvent(new StringEvent(m_value), m_delay);
     }
-    virtual void onExit(QEvent *) {}
+    virtual void onExit(QEvent *) override {}
 
 private:
     QString m_value;
@@ -2284,7 +2284,7 @@ public:
         return m_transitionArgs;
     }
 protected:
-    bool eventTest(QEvent *e) {
+    bool eventTest(QEvent *e) override {
         if (!QSignalTransition::eventTest(e))
             return false;
         QStateMachine::SignalEvent *se = static_cast<QStateMachine::SignalEvent*>(e);
@@ -2293,7 +2293,7 @@ protected:
         m_eventTestArgs = se->arguments();
         return true;
     }
-    void onTransition(QEvent *e) {
+    void onTransition(QEvent *e) override {
         QSignalTransition::onTransition(e);
         QStateMachine::SignalEvent *se = static_cast<QStateMachine::SignalEvent*>(e);
         m_transitionSender = se->sender();
@@ -2693,7 +2693,7 @@ public:
         return m_eventType;
     }
 protected:
-    bool eventTest(QEvent *e) {
+    bool eventTest(QEvent *e) override {
         if (!QEventTransition::eventTest(e))
             return false;
         QStateMachine::WrappedEvent *we = static_cast<QStateMachine::WrappedEvent*>(e);
@@ -4647,7 +4647,7 @@ public:
         setTargetState(target);
     }
 
-    void onTransition(QEvent *e)
+    void onTransition(QEvent *e) override
     {
         QSignalTransition::onTransition(e);
         QStateMachine::SignalEvent *se = static_cast<QStateMachine::SignalEvent*>(e);
@@ -4695,7 +4695,7 @@ public:
                          this, SLOT(postEvent()));
     }
 protected:
-    virtual void run()
+    virtual void run() override
     {
         exec();
     }
@@ -4807,13 +4807,13 @@ void tst_QStateMachine::stopInTransitionToFinalState()
 class StopInEventTestTransition : public QAbstractTransition
 {
 public:
-    bool eventTest(QEvent *e)
+    bool eventTest(QEvent *e) override
     {
         if (e->type() == QEvent::User)
             machine()->stop();
         return false;
     }
-    void onTransition(QEvent *)
+    void onTransition(QEvent *) override
     { }
 };
 
@@ -4863,7 +4863,7 @@ class IncrementReceiversTest : public QObject
 signals:
     void mySignal();
 public:
-    virtual void connectNotify(const QMetaMethod &signal)
+    virtual void connectNotify(const QMetaMethod &signal) override
     {
         signalList.append(signal);
     }
@@ -5739,7 +5739,7 @@ public:
         : QState(parent), onEntryPassed(false), enteredPassed(false)
     { QObject::connect(this, SIGNAL(entered()), this, SLOT(onEntered())); }
 
-    virtual void onEntry(QEvent *)
+    virtual void onEntry(QEvent *) override
     { onEntryPassed = property("wasAssigned").toBool(); }
 
     bool onEntryPassed;
@@ -6138,7 +6138,7 @@ public:
     SignalTransitionMutatorThread(QSignalTransition *transition)
         : m_transition(transition)
     {}
-    void run()
+    void run() override
     {
         // Cause repeated registration and unregistration
         for (int i = 0; i < 50000; ++i) {
@@ -6614,8 +6614,8 @@ void tst_QStateMachine::qtbug_46703()
     a.setInitialState(&a3);
     b.setInitialState(&b1);
     struct : public QAbstractTransition {
-        virtual bool eventTest(QEvent *) { return false; }
-        virtual void onTransition(QEvent *) {}
+        virtual bool eventTest(QEvent *) override { return false; }
+        virtual void onTransition(QEvent *) override {}
     } defaultTransition;
     defaultTransition.setTargetStates(QList<QAbstractState*>() << &a2 << &b2);
     h.setDefaultTransition(&defaultTransition);
