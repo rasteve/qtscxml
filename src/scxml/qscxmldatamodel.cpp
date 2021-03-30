@@ -42,7 +42,7 @@
 #include "qscxmlstatemachine_p.h"
 
 #include <QtCore/private/qfactoryloader_p.h>
-#include "qscxmldatamodelplugin.h"
+#include "qscxmldatamodelplugin_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -89,7 +89,7 @@ QScxmlDataModel::ForeachLoopBody::~ForeachLoopBody()
  *
  * One data model can only belong to one state machine.
  *
- * \sa QScxmlStateMachine QScxmlCppDataModel QScxmlEcmaScriptDataModel QScxmlNullDataModel
+ * \sa QScxmlStateMachine QScxmlCppDataModel QScxmlNullDataModel
  */
 
 /*!

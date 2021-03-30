@@ -43,9 +43,18 @@
 
     \section1 Changes overview
 
-    The Qt SCXML module is generally speaking source compatible with the Qt5
+    The Qt SCXML module is largely source compatible with the Qt5
     version and users of the library should be able to continue with no or
     minor changes to their project.
+
+    \section1 API changes
+
+    \section2 QScxmlEcmaScriptDataModel API removal
+
+    The ecmascript datamodel, when enabled, introduces a dependency to the Qt QML library.
+    In Qt5 this depedendency is created at build time, whereas in Qt6 the dependency
+    is moved to runtime (internally a plugin). As a consequence the
+    QScxmlEcmaScriptDataModel class is no longer part of the public API.
 
     \section1 Build system
 

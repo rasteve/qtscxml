@@ -6,8 +6,8 @@ qt_internal_add_plugin(QDataModelPluginEcmaScript
     OUTPUT_NAME qscxmldatamodelecmascript
     TYPE scxmldatamodel
     SOURCES
-        qdatamodel_ecmascript_plugin.cpp qdatamodel_ecmascript_plugin.h
-        qscxmlecmascriptdatamodel.h qscxmlecmascriptdatamodel.cpp
+        qdatamodel_ecmascript_plugin.cpp qdatamodel_ecmascript_plugin_p.h
+        qscxmlecmascriptdatamodel_p.h qscxmlecmascriptdatamodel.cpp
         qscxmlecmascriptplatformproperties.cpp qscxmlecmascriptplatformproperties_p.h
     PUBLIC_LIBRARIES
         Qt::Core

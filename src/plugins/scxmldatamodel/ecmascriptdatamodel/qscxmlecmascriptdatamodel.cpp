@@ -38,7 +38,7 @@
 ****************************************************************************/
 
 #include <QtScxml/private/qscxmlglobals_p.h>
-#include "qscxmlecmascriptdatamodel.h"
+#include "qscxmlecmascriptdatamodel_p.h"
 #include "qscxmlecmascriptplatformproperties_p.h"
 #include <QtScxml/private/qscxmlexecutablecontent_p.h>
 #include <QtScxml/private/qscxmlstatemachine_p.h>
@@ -345,30 +345,24 @@ private:
     QJSValue dataModel;
 };
 
-/*!
- * \class QScxmlEcmaScriptDataModel
- * \brief The QScxmlEcmaScriptDataModel class is the ECMAScript data model for
+/*
+ * The QScxmlEcmaScriptDataModel class is the ECMAScript data model for
  * a Qt SCXML state machine.
- * \since 5.7
- * \inmodule QtScxml
  *
  * This class implements the ECMAScript data model as described in
- * \l {SCXML Specification - B.2 The ECMAScript Data Model}. It can be
+ * "SCXML Specification - B.2 The ECMAScript Data Model". It can be
  * subclassed to perform custom initialization.
  *
- * \sa QScxmlStateMachine QScxmlDataModel
+ * See also QScxmlStateMachine QScxmlDataModel
  */
 
-/*!
- * Creates a new ECMAScript data model, with the parent object \a parent.
+/*
+ * Creates a new ECMAScript data model, with the parent object parent.
  */
 QScxmlEcmaScriptDataModel::QScxmlEcmaScriptDataModel(QObject *parent)
     : QScxmlDataModel(*(new QScxmlEcmaScriptDataModelPrivate), parent)
 {}
 
-/*!
-  \reimp
- */
 bool QScxmlEcmaScriptDataModel::setup(const QVariantMap &initialDataValues)
 {
     Q_D(QScxmlEcmaScriptDataModel);
@@ -395,9 +389,6 @@ bool QScxmlEcmaScriptDataModel::setup(const QVariantMap &initialDataValues)
     return ok;
 }
 
-/*!
-  \reimp
- */
 QString QScxmlEcmaScriptDataModel::evaluateToString(QScxmlExecutableContent::EvaluatorId id,
                                                     bool *ok)
 {
@@ -407,9 +398,6 @@ QString QScxmlEcmaScriptDataModel::evaluateToString(QScxmlExecutableContent::Eva
     return d->evalStr(d->string(info.expr), d->string(info.context), ok);
 }
 
-/*!
-  \reimp
- */
 bool QScxmlEcmaScriptDataModel::evaluateToBool(QScxmlExecutableContent::EvaluatorId id,
                                                bool *ok)
 {
@@ -419,9 +407,6 @@ bool QScxmlEcmaScriptDataModel::evaluateToBool(QScxmlExecutableContent::Evaluato
     return d->evalBool(d->string(info.expr), d->string(info.context), ok);
 }
 
-/*!
-  \reimp
- */
 QVariant QScxmlEcmaScriptDataModel::evaluateToVariant(QScxmlExecutableContent::EvaluatorId id,
                                                       bool *ok)
 {
@@ -431,9 +416,6 @@ QVariant QScxmlEcmaScriptDataModel::evaluateToVariant(QScxmlExecutableContent::E
     return d->evalJSValue(d->string(info.expr), d->string(info.context), ok).toVariant();
 }
 
-/*!
-  \reimp
- */
 void QScxmlEcmaScriptDataModel::evaluateToVoid(QScxmlExecutableContent::EvaluatorId id,
                                                bool *ok)
 {
@@ -443,9 +425,6 @@ void QScxmlEcmaScriptDataModel::evaluateToVoid(QScxmlExecutableContent::Evaluato
     d->eval(d->string(info.expr), d->string(info.context), ok);
 }
 
-/*!
-  \reimp
- */
 void QScxmlEcmaScriptDataModel::evaluateAssignment(QScxmlExecutableContent::EvaluatorId id,
                                                    bool *ok)
 {
@@ -467,9 +446,6 @@ void QScxmlEcmaScriptDataModel::evaluateAssignment(QScxmlExecutableContent::Eval
     }
 }
 
-/*!
-  \reimp
- */
 void QScxmlEcmaScriptDataModel::evaluateInitialization(QScxmlExecutableContent::EvaluatorId id,
                                                        bool *ok)
 {
@@ -484,9 +460,6 @@ void QScxmlEcmaScriptDataModel::evaluateInitialization(QScxmlExecutableContent::
     evaluateAssignment(id, ok);
 }
 
-/*!
-  \reimp
- */
 void QScxmlEcmaScriptDataModel::evaluateForeach(QScxmlExecutableContent::EvaluatorId id, bool *ok,
                                                 ForeachLoopBody *body)
 {
@@ -534,36 +507,24 @@ void QScxmlEcmaScriptDataModel::evaluateForeach(QScxmlExecutableContent::Evaluat
     *ok = true;
 }
 
-/*!
- * \reimp
- */
 void QScxmlEcmaScriptDataModel::setScxmlEvent(const QScxmlEvent &event)
 {
     Q_D(QScxmlEcmaScriptDataModel);
     d->assignEvent(event);
 }
 
-/*!
- * \reimp
- */
 QVariant QScxmlEcmaScriptDataModel::scxmlProperty(const QString &name) const
 {
     Q_D(const QScxmlEcmaScriptDataModel);
     return d->property(name).toVariant();
 }
 
-/*!
- * \reimp
- */
 bool QScxmlEcmaScriptDataModel::hasScxmlProperty(const QString &name) const
 {
     Q_D(const QScxmlEcmaScriptDataModel);
     return d->hasProperty(name);
 }
 
-/*!
- * \reimp
- */
 bool QScxmlEcmaScriptDataModel::setScxmlProperty(const QString &name, const QVariant &value,
                                                  const QString &context)
 {

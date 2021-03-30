@@ -1561,8 +1561,7 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
     Changing the data model when the state machine has been \c initialized is
     not specified in the SCXML standard and leads to undefined behavior.
 
-    \sa QScxmlDataModel, QScxmlNullDataModel, QScxmlEcmaScriptDataModel,
-        QScxmlCppDataModel
+    \sa QScxmlDataModel, QScxmlNullDataModel, QScxmlCppDataModel
 */
 
 /*!
@@ -1577,8 +1576,7 @@ QScxmlStateMachine::QScxmlStateMachine(QScxmlStateMachinePrivate &dd, QObject *p
     Changing the data model when the state machine has been \l initialized is
     not specified in the SCXML standard and leads to undefined behavior.
 
-    \sa QScxmlDataModel, QScxmlNullDataModel, QScxmlEcmaScriptDataModel,
-        QScxmlCppDataModel
+    \sa QScxmlDataModel, QScxmlNullDataModel, QScxmlCppDataModel
 */
 
 /*!

@@ -19,7 +19,7 @@ qt_internal_add_module(Scxml
         qscxmlstatemachine.cpp qscxmlstatemachine.h qscxmlstatemachine_p.h
         qscxmlstatemachineinfo.cpp qscxmlstatemachineinfo_p.h
         qscxmltabledata.cpp qscxmltabledata.h qscxmltabledata_p.h
-        qscxmldatamodelplugin.h qscxmldatamodelplugin.cpp
+        qscxmldatamodelplugin_p.h qscxmldatamodelplugin.cpp
     DEFINES
         QT_NO_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII

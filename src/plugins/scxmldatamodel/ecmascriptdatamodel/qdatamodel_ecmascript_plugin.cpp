@@ -35,8 +35,8 @@
 ****************************************************************************/
 
 #include "QtScxml/qscxmldatamodel.h"
-#include "qscxmlecmascriptdatamodel.h"
-#include "qdatamodel_ecmascript_plugin.h"
+#include "qscxmlecmascriptdatamodel_p.h"
+#include "qdatamodel_ecmascript_plugin_p.h"
 
 QT_BEGIN_NAMESPACE
 

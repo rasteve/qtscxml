@@ -34,7 +34,7 @@
 **
 ****************************************************************************/
 
-#include "qscxmldatamodelplugin.h"
+#include "qscxmldatamodelplugin_p.h"
 
 QT_BEGIN_NAMESPACE
 
