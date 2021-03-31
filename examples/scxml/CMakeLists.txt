@@ -16,7 +16,7 @@ if (QT_FEATURE_scxml_ecmascriptdatamodel)
 endif()
 endif()
 
-if(TARGET Qt::Qml)
+if(TARGET Qt::Qml AND TARGET Qt::Gui)
     add_subdirectory(calculator-qml)
     add_subdirectory(trafficlight-qml-static)
     add_subdirectory(trafficlight-qml-dynamic)

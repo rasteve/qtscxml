@@ -5,7 +5,7 @@ qt_examples_build_begin()
 if(TARGET Qt::Scxml)
     add_subdirectory(scxml)
 endif()
-if(TARGET Qt::StateMachine AND QT_FEATURE_qeventtransition)
+if(TARGET Qt::StateMachine)
     add_subdirectory(statemachine)
 endif()
 

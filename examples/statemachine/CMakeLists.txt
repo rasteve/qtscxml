@@ -1,10 +1,10 @@
 # Generated from widgets.pro.
 
-if(NOT TARGET Qt::Widgets)
-    return()
-endif()
-add_subdirectory(graphicsview)
 add_subdirectory(statemachine)
-if(QT_FEATURE_animation)
-    add_subdirectory(animation)
+
+if(TARGET Qt::Widgets)
+    add_subdirectory(graphicsview)
+    if(QT_FEATURE_animation)
+        add_subdirectory(animation)
+    endif()
 endif()
