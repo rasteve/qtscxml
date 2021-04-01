@@ -82,8 +82,7 @@
         \li Description
       \row
         \li \c {--namespace <namespace>}
-        \li Put the generated class(es) in the specified namespace. You can use the
-            \c QSCXMLC_NAMESPACE variable to specify this in your project file.
+        \li Put the generated class(es) in the specified namespace.
       \row
         \li \c {-o <base/out/name>}
         \li The base name of the output files. This can include a path. If none is specified, the
@@ -104,5 +103,22 @@
         \li Generate extra accessor and signal methods for states. This way you can connect to
             state changes with plain QObject::connect() and directly call a method to find out if
             a state is currently active.
+    \endtable
+
+    In addition to \c QSCXMLC_ARGUMENTS options, the \c qmake and \c CMake project files support
+    the following options:
+
+    \table
+      \header
+        \li Option
+        \li Description
+      \row
+        \li \c {QSCXMLC_DIR|OUTPUT_DIR <directory>}
+        \li \c QSCXMLC_DIR (qmake) or \c OUTPUT_DIR (cmake) specifies the directory for the output
+            files.
+      \row
+        \li \c {QSCXMLC_NAMESPACE|NAMESPACE <namespace>}
+        \li \c QSCXMLC_NAMESPACE (qmake) or \c NAMESPACE (cmake) specifies the namespace for the
+            generated classes.
     \endtable
 */
