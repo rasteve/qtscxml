@@ -34,16 +34,11 @@ qt_internal_add_module(Scxml
 # This allows QML element registration outside of this module with the "QML_ELEMENT" & friends
 qt6_extract_metatypes(Scxml)
 
-#### Keys ignored in scope 1:.:.:scxml.pro:<TRUE>:
-# FEATURES = "../../mkspecs/features/qscxmlc.prf"
-# INSTALLS = "features"
-# MODULE_CONFIG = "c++11" "qscxmlc"
-# features.files = "$$FEATURES"
-# features.path = "$$[QT_HOST_DATA]/mkspecs/features/"
-
-## Scopes:
-#####################################################################
-
+# Install the public qscxlmc.prf file that is used by the qmake
+set(scxml_mkspecs "${CMAKE_CURRENT_SOURCE_DIR}/../../mkspecs/features/qscxmlc.prf")
+set(mkspecs_install_dir "${INSTALL_MKSPECSDIR}")
+qt_path_join(mkspecs_install_dir "${QT_INSTALL_DIR}" "${mkspecs_install_dir}" "features")
+qt_copy_or_install(FILES "${scxml_mkspecs}" DESTINATION ${mkspecs_install_dir})
 
 #### Keys ignored in scope 3:.:.:scxml.pro:NOT force_independent AND ( NOT debug_and_release OR NOT build_all OR CONFIG(release,debug OR release) ):
 # QMAKE_EXTRA_COMPILERS = "prf2build"
