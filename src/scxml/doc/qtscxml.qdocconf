@@ -48,8 +48,7 @@ excludefiles += "../qscxmlexecutablecontent_p.h"
 
 tagfile = qtscxml.tags
 
-manifestmeta.highlighted.names = "QtScxml/Qt SCXML Calculator QML Example" \
-                                 "QtScxml/Qt SCXML Traffic Light QML Example (Dynamic)"
+manifestmeta.highlighted.names = "QtScxml/Qt SCXML Traffic Light QML Example (Dynamic)"
 
 navigation.landingpage = "Qt SCXML"
 navigation.cppclassespage = "Qt SCXML C++ Classes"
