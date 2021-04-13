@@ -49,20 +49,31 @@ qt_internal_extend_target(tst_scion CONDITION MSVC AND WIN32
 )
 
 # For a better explanation about the "blacklisted" tests, see tst_scion.cpp
-# <invoke>
+# <invoke>. The files with sub in their file name are loaded from other
+# tests, they are not to be run alone.
+
 set(blacklisted
     test216sub1.scxml
     test226sub1.txml
     test239sub1.scxml
     test242sub1.scxml
     test276sub1.scxml
+    # 530: Scxml children element and expr attribute in content, not supported
+    # at the moment by the scxml compiler.
     test530.txml.scxml)
 
 # other
 list(APPEND blacklisted
+    # 301: The scxml is trying to use a nonexistent file as a script souce,
+    # script compilation fails.
     test301.txml.scxml
+    # 441a and b tests the exmode scxml element attribute that is not
+    # supported by the scxml compiler. This attribute was also removed
+    # from the latest scxml specification.
     test441a.txml.scxml
     test441b.txml.scxml
+    # 557: Compilation fails at parsing books as data element content and loading
+    # data content from external file.
     test557.txml.scxml)
 
 set(scxmls_dir ../../3rdparty/scion-tests/scxml-test-framework/test)
