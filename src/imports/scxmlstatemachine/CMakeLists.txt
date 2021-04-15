@@ -6,7 +6,7 @@
 
 qt_internal_add_qml_module(declarative_scxml
     URI "QtScxml"
-    VERSION "${CMAKE_PROJECT_VERSION}"
+    VERSION "${PROJECT_VERSION}"
     CLASSNAME QScxmlStateMachinePlugin
     SKIP_TYPE_REGISTRATION
     PLUGIN_OPTIONAL

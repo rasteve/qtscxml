@@ -5,7 +5,7 @@
 
 qt_internal_add_qml_module(qtqmlstatemachine
     URI "QtQml.StateMachine"
-    VERSION "${CMAKE_PROJECT_VERSION}"
+    VERSION "${PROJECT_VERSION}"
     CLASSNAME QtQmlStateMachinePlugin
     SKIP_TYPE_REGISTRATION
     PLUGIN_OPTIONAL
