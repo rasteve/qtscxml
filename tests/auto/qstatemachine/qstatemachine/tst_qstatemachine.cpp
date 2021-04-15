@@ -6186,6 +6186,9 @@ void tst_QStateMachine::signalTransitionRegistrationThreadSafety()
 
 void tst_QStateMachine::childModeConstructor()
 {
+    // Any child mode other than ExclusiveStates results in an invalid child mode
+    // warning. So the three warnings here are expected. See more about this in
+    // the QStateMachine constructor.
     {
         QStateMachine machine(QState::ExclusiveStates);
         QCOMPARE(machine.childMode(), QState::ExclusiveStates);
