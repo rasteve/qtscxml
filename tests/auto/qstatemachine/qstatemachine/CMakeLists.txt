@@ -6,15 +6,16 @@
 qt_internal_add_test(tst_qstatemachine
     SOURCES
         tst_qstatemachine.cpp
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::StateMachine
         Qt::StateMachinePrivate
+        Qt::TestPrivate
 )
 
 ## Scopes:
 #####################################################################
 
 qt_internal_extend_target(tst_qstatemachine CONDITION TARGET Qt::Widgets
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::Widgets
 )

@@ -37,8 +37,8 @@
 #include <QtQml/qqmlscriptstring.h>
 
 #include <QTest>
+#include <QtTest/private/qpropertytesthelper_p.h>
 #include "../../shared/util.h"
-#include "../../shared/bindableutils.h"
 #include "../../shared/bindableqmlutils.h"
 
 class tst_qqmlstatemachine : public QQmlDataTest
@@ -117,19 +117,23 @@ void tst_qqmlstatemachine::tst_cppObjectSignal()
 
 void tst_qqmlstatemachine::tst_bindings()
 {
-    // -- SignalTransition::guard
     SignalTransition signalTransition;
     // Generating QQmlScriptString requires proper qml context setup, and here we
     // use same the element that we are testing to create the testing material
     QQmlEngine engine;
     QQmlComponent component(&engine, QUrl(QLatin1String("qrc:///data/signaltransition.qml")));
-
     std::unique_ptr<QObject> obj(component.create());
     SignalTransition *st1 = qobject_cast<SignalTransition*>(obj->findChild<QObject*>("st1"));
     SignalTransition *st2 = qobject_cast<SignalTransition*>(obj->findChild<QObject*>("st2"));
     QVERIFY(st1 && st2 && (st1->guard() != st2->guard()));
-    testWritableBindableBasics<SignalTransition, QQmlScriptString>(
+
+    // -- SignalTransition::guard
+    QTestPrivate::testReadWritePropertyBasics<SignalTransition, QQmlScriptString>(
         signalTransition, st1->guard(), st2->guard(), "guard");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "SignalTransition::guard bindable test failed.";
+        return;
+    }
 
     // -- SignalTransition::signal
     // We use QML to create the test material (QJSValues that contain valid methods)
@@ -138,17 +142,25 @@ void tst_qqmlstatemachine::tst_bindings()
     QMetaObject::invokeMethod(obj.get(), "getSignal1", Q_RETURN_ARG(QVariant, signal1));
     QMetaObject::invokeMethod(obj.get(), "getSignal2", Q_RETURN_ARG(QVariant, signal2));
     // QJSValue does not implement operator== so we supply own comparator
-    testWritableBindableBasics<SignalTransition, QJSValue>(
+    QTestPrivate::testReadWritePropertyBasics<SignalTransition, QJSValue>(
                 *st1, signal1.value<QJSValue>(), signal2.value<QJSValue>(), "signal",
                 [](QJSValue d1, QJSValue d2) { return d1.strictlyEquals(d2); });
+    if (QTest::currentTestFailed()) {
+        qWarning() << "SignalTransition::signal bindable test failed.";
+        return;
+    }
 
     // -- TimeoutTransition::timeout
     TimeoutTransition timeoutTransition;
     QCOMPARE(timeoutTransition.timeout(), 1000); // the initialvalue
     int timeout1{100};
     int timeout2{200};
-    testWritableBindableBasics<TimeoutTransition, int>(
+    QTestPrivate::testReadWritePropertyBasics<TimeoutTransition, int>(
                 timeoutTransition, timeout1, timeout2, "timeout");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "TimeoutTransition::timeout bindable test failed.";
+        return;
+    }
 
     // -- FinalState::children
     FinalState finalState;

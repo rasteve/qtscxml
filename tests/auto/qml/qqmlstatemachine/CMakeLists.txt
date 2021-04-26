@@ -15,6 +15,7 @@ qt_internal_add_test(tst_qqmlstatemachine
         Qt::GuiPrivate
         Qt::QmlPrivate
         Qt::StateMachineQmlPrivate
+        Qt::TestPrivate
 )
 
 ## Scopes:

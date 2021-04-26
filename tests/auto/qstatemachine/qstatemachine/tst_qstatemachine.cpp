@@ -27,6 +27,7 @@
 ****************************************************************************/
 
 #include <QtTest/QtTest>
+#include <QtTest/private/qpropertytesthelper_p.h>
 #include <QtCore/QCoreApplication>
 #ifndef QT_NO_WIDGETS
 #include <QtWidgets/QPushButton>
@@ -47,8 +48,6 @@
 #endif
 #include "private/qstate_p.h"
 #include "private/qstatemachine_p.h"
-
-#include "../../shared/bindableutils.h"
 
 static int globalTick;
 
@@ -6870,32 +6869,52 @@ void tst_QStateMachine::bindings()
 
     // -- QHistoryState::defaultTransition
     QHistoryState *historyState = new QHistoryState(&machine);
-    testWritableBindableBasics<QHistoryState, QAbstractTransition*>(
+    QTestPrivate::testReadWritePropertyBasics<QHistoryState, QAbstractTransition*>(
                 *historyState, transition1, transition2, "defaultTransition");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QHistoryState::defaultTransition bindable test failed.";
+        return;
+    }
 
     // -- QHistoryState::historyType
     QHistoryState::HistoryType type1 = QHistoryState::HistoryType::DeepHistory;
     QHistoryState::HistoryType type2 = QHistoryState::HistoryType::ShallowHistory;
-    testWritableBindableBasics<QHistoryState, QHistoryState::HistoryType>(
+    QTestPrivate::testReadWritePropertyBasics<QHistoryState, QHistoryState::HistoryType>(
                 *historyState, type1, type2, "historyType");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QHistoryState::historyType bindable test failed.";
+        return;
+    }
 
     // -- QState::initialState
     QAbstractState *is1 = new QState(state1);
     QAbstractState *is2 = new QState(state1);
-    testWritableBindableBasics<QState, QAbstractState*>(
+    QTestPrivate::testReadWritePropertyBasics<QState, QAbstractState*>(
                 *state1, is1, is2, "initialState");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QState::initialState bindable test failed.";
+        return;
+    }
 
     // -- QState::errorState
-    testWritableBindableBasics<QState, QAbstractState*>(
+    QTestPrivate::testReadWritePropertyBasics<QState, QAbstractState*>(
                 *state1, is1, is2, "errorState");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QState::errorState bindable test failed.";
+        return;
+    }
 
     // -- QState::childMode
     // Make a new state as re-use of state1 would yield irrelevant warnings
     TestState *state2 = new TestState(&machine);
     QState::ChildMode mode1 = QState::ChildMode::ParallelStates;
     QState::ChildMode mode2 = QState::ChildMode::ExclusiveStates;
-    testWritableBindableBasics<QState, QState::ChildMode>(
+    QTestPrivate::testReadWritePropertyBasics<QState, QState::ChildMode>(
                 *state2, mode1, mode2, "childMode");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QState::childMode bindable test failed.";
+        return;
+    }
 
     // -- QAbstractState::active
     QState *startState = new QState(&machine);
@@ -6920,20 +6939,32 @@ void tst_QStateMachine::bindings()
     QSignalTransition signalTransition;
     QObject sender1;
     QObject sender2;
-    testWritableBindableBasics<QSignalTransition, const QObject*>(
+    QTestPrivate::testReadWritePropertyBasics<QSignalTransition, const QObject*>(
                 signalTransition, &sender1, &sender2, "senderObject");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QSignalTransition::senderObject bindable test failed.";
+        return;
+    }
 
     // -- QSignalTransition::signal
     QByteArray arr1("arr1");
     QByteArray arr2("arr2");
-    testWritableBindableBasics<QSignalTransition, QByteArray>(
+    QTestPrivate::testReadWritePropertyBasics<QSignalTransition, QByteArray>(
                 signalTransition, arr1, arr2, "signal");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QSignalTransition::signal bindable test failed.";
+        return;
+    }
 
     // -- QAbstractTransition::transitionType
     auto transitionType1 = QAbstractTransition::InternalTransition;
     auto transitionType2 = QAbstractTransition::ExternalTransition;
-    testWritableBindableBasics<QAbstractTransition, QAbstractTransition::TransitionType>(
+    QTestPrivate::testReadWritePropertyBasics<QAbstractTransition, QAbstractTransition::TransitionType>(
                 signalTransition, transitionType1, transitionType2, "transitionType");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QAbstractTransition::transitionType bindable test failed.";
+        return;
+    }
 
     // -- QStateMachine::errorString
     QStateMachine brokenMachine;
@@ -6941,67 +6972,106 @@ void tst_QStateMachine::bindings()
     QState* brokenState = new QState(&brokenMachine);
     brokenMachine.setInitialState(brokenState);
     new QState(brokenState); // make broken state a compound state that lacks the initial state
-    testReadableBindableBasics<QStateMachine, QString>(
+    QTestPrivate::testReadOnlyPropertyBasics<QStateMachine, QString>(
                 brokenMachine, QString(), QStringLiteral("Missing initial state in compound state ''"),
                 "errorString",
                 [&](){
                       brokenMachine.start();
                       QTRY_VERIFY(brokenMachine.isRunning());
                 });
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QStateMachine::errorString bindable test failed for (non-empty case).";
+        return;
+    }
     // test also clearing of the error above
-    testReadableBindableBasics<QStateMachine, QString>(
+    QTestPrivate::testReadOnlyPropertyBasics<QStateMachine, QString>(
                 brokenMachine, QStringLiteral("Missing initial state in compound state ''"),  QString(),
                 "errorString",
                 [&](){ brokenMachine.clearError(); });
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QStateMachine::errorString bindable test failed (empty case).";
+        return;
+    }
 
     // -- QStateMachine::globalRestorePolicy
-    testWritableBindableBasics<QStateMachine, QState::RestorePolicy>(
+    QTestPrivate::testReadWritePropertyBasics<QStateMachine, QState::RestorePolicy>(
                 machine, QState::RestorePolicy::RestoreProperties,
                 QState::RestorePolicy::DontRestoreProperties, "globalRestorePolicy");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QStateMachine::globalRestorePolicy bindable test failed.";
+        return;
+    }
 
 #if QT_CONFIG(animation)
     // -- QStateMachine::animated
-    testWritableBindableBasics<QStateMachine, bool>(
+    QTestPrivate::testReadWritePropertyBasics<QStateMachine, bool>(
                 machine, false, true, "animated");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QStateMachine::animated bindable test failed.";
+        return;
+    }
 #endif
 
     // -- QEventTransition::eventSource
     QEventTransition eventTransition;
     QObject source1;
     QObject source2;
-    testWritableBindableBasics<QEventTransition, QObject*>(
+    QTestPrivate::testReadWritePropertyBasics<QEventTransition, QObject*>(
                 eventTransition, &source1, &source2, "eventSource");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QEventTransition::eventSource bindable test failed.";
+        return;
+    }
 
     // -- QEventTransition::eventType
     auto eventType1 = QEvent::Enter;
     auto eventType2 = QEvent::Leave;
-    testWritableBindableBasics<QEventTransition, QEvent::Type>(
+    QTestPrivate::testReadWritePropertyBasics<QEventTransition, QEvent::Type>(
                 eventTransition, eventType1, eventType2, "eventType");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QEventTransition::eventType bindable test failed.";
+        return;
+    }
 
     // -- QKeyEventTransition::key
     QKeyEventTransition keyEventTransition;
     int key1{1};
     int key2{2};
-    testWritableBindableBasics<QKeyEventTransition, int>(
+    QTestPrivate::testReadWritePropertyBasics<QKeyEventTransition, int>(
                 keyEventTransition, key1, key2, "key");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QKeyEventTransition::key bindable test failed.";
+        return;
+    }
 
     // -- QKeyEventTransition::modifierMask
     Qt::KeyboardModifiers mod1 = Qt::KeyboardModifier::ShiftModifier;
     Qt::KeyboardModifiers mod2 = Qt::KeyboardModifier::ControlModifier;
-    testWritableBindableBasics<QKeyEventTransition>(
+    QTestPrivate::testReadWritePropertyBasics<QKeyEventTransition>(
                 keyEventTransition, mod1, mod2, "modifierMask");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QKeyEventTransition::modifierMask bindable test failed.";
+        return;
+    }
 
     // -- QMouseEventTransition::button
     QMouseEventTransition mouseEventTransition;
     Qt::MouseButton button1 = Qt::MouseButton::LeftButton;
     Qt::MouseButton button2 = Qt::MouseButton::RightButton;
-    testWritableBindableBasics<QMouseEventTransition>(
+    QTestPrivate::testReadWritePropertyBasics<QMouseEventTransition>(
                 mouseEventTransition, button1, button2, "button");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QMouseEventTransition::button bindable test failed.";
+        return;
+    }
 
     // -- QMouseEventTransition::modifierMask
-    testWritableBindableBasics<QMouseEventTransition>(
+    QTestPrivate::testReadWritePropertyBasics<QMouseEventTransition>(
                 mouseEventTransition, mod1, mod2, "modifierMask");
-
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QMouseEventTransition::modifierMask bindable test failed.";
+        return;
+    }
 }
 
 QTEST_MAIN(tst_QStateMachine)

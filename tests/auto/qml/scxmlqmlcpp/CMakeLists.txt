@@ -5,6 +5,7 @@ qt_internal_add_test(tst_scxmlqmlcpp
         Qt::Scxml
         Qt::ScxmlQmlPrivate
         Qt::CorePrivate
+        Qt::TestPrivate
 )
 
 qt_internal_add_resource(tst_scxmlqmlcpp "tst_compiled"

@@ -27,7 +27,7 @@
 ****************************************************************************/
 
 #include <QtTest>
-#include <QObject>
+#include <QtTest/private/qpropertytesthelper_p.h>
 #include <QtScxml/QScxmlStateMachine>
 #include <QtScxml/QScxmlNullDataModel>
 #include <QtScxmlQml/private/eventconnection_p.h>
@@ -38,106 +38,143 @@
 #include <QtQml/QQmlEngine>
 #include <QtQml/QQmlComponent>
 #include <memory>
-#include "../../shared/bindableutils.h"
-
-#include <QDebug>
 
 class tst_scxmlqmlcpp: public QObject
 {
     Q_OBJECT
+
 private slots:
-    void bindings();
+    void initTestCase();
+
+    void eventConnectionStateMachineBinding();
+    void eventConnectionEventsBinding();
+
+    void invokedServicesStateMachineBinding();
+    void invokedServicesChildrenBinding();
+
+    void stateMachineLoaderInitialValuesBinding();
+    void stateMachineLoaderSourceStateMachineBinding();
+    void stateMachineLoaderDatamodelBinding();
+
+private:
+    QScxmlEventConnection m_eventConnection;
+    QScxmlInvokedServices m_invokedServices;
+    QScxmlStateMachineLoader m_stateMachineLoader;
+    std::unique_ptr<QScxmlStateMachine> m_stateMachine1;
+    std::unique_ptr<QScxmlStateMachine> m_stateMachine2;
 };
 
-void tst_scxmlqmlcpp::bindings() {
+void tst_scxmlqmlcpp::initTestCase()
+{
+    m_stateMachine1.reset(QScxmlStateMachine::fromFile("no_real_file_needed"));
+    m_stateMachine2.reset(QScxmlStateMachine::fromFile("no_real_file_needed"));
+}
 
-    // -- test eventconnection::stateMachine
-    QScxmlEventConnection eventConnection;
-    std::unique_ptr<QScxmlStateMachine> sm1(QScxmlStateMachine::fromFile("no_real_file_needed"));
-    std::unique_ptr<QScxmlStateMachine> sm2(QScxmlStateMachine::fromFile("no_real_file_needed"));
-    testWritableBindableBasics<QScxmlEventConnection, QScxmlStateMachine*>(
-                eventConnection, sm1.get(), sm2.get(), "stateMachine");
+void tst_scxmlqmlcpp::eventConnectionStateMachineBinding()
+{
+    QCOMPARE(m_eventConnection.bindableStateMachine().value(), nullptr);
+    QTestPrivate::testReadWritePropertyBasics<QScxmlEventConnection, QScxmlStateMachine*>(
+               m_eventConnection, m_stateMachine1.get(), m_stateMachine2.get(),  "stateMachine");
+    m_eventConnection.setStateMachine(nullptr); // tidy up
+}
 
-    // -- test eventconnection::events
+void tst_scxmlqmlcpp::eventConnectionEventsBinding()
+{
     QStringList eventList1{{"event1"},{"event2"}};
     QStringList eventList2{{"event3"},{"event4"}};
-    testWritableBindableBasics<QScxmlEventConnection, QStringList>(
-                eventConnection, eventList1, eventList2, "events");
+    QCOMPARE(m_eventConnection.events(), QStringList());
+    QTestPrivate::testReadWritePropertyBasics<QScxmlEventConnection, QStringList>(
+                m_eventConnection, eventList1, eventList2, "events");
+    m_eventConnection.setEvents(QStringList()); // tidy up
+}
 
-    // -- test invokedservices::statemachine
-    QScxmlInvokedServices invokedServices;
-    testWritableBindableBasics<QScxmlInvokedServices, QScxmlStateMachine*>(
-                invokedServices, sm1.get(), sm2.get(), "stateMachine");
+void tst_scxmlqmlcpp::invokedServicesStateMachineBinding()
+{
+    QCOMPARE(m_invokedServices.stateMachine(), nullptr);
+    QTestPrivate::testReadWritePropertyBasics<QScxmlInvokedServices, QScxmlStateMachine*>(
+                m_invokedServices, m_stateMachine1.get(), m_stateMachine2.get(), "stateMachine");
+    m_invokedServices.setStateMachine(nullptr); // tidy up
+}
 
-    // -- test invokedservices::children
+void tst_scxmlqmlcpp::invokedServicesChildrenBinding()
+{
     TopMachine topSm;
+    QScxmlInvokedServices invokedServices;
     invokedServices.setStateMachine(&topSm);
     QCOMPARE(invokedServices.children().count(), 0);
     QCOMPARE(topSm.invokedServices().count(), 0);
-
     // at some point during the topSm execution there are 3 invoked services
     // of the same name ('3' filters out as '1' at QML binding)
     topSm.start();
     QTRY_COMPARE(topSm.invokedServices().count(), 3);
     QCOMPARE(invokedServices.children().count(), 1);
-
     // after completion invoked services drop back to 0
     QTRY_COMPARE(topSm.invokedServices().count(), 0);
     QCOMPARE(invokedServices.children().count(), 0);
-
     // bind *to* the invokedservices property and check that we observe same changes
     // during the topSm execution
     QProperty<qsizetype> serviceCounter;
     serviceCounter.setBinding([&](){ return invokedServices.children().count(); });
-
     QCOMPARE(serviceCounter, 0);
     topSm.start();
     QTRY_COMPARE(serviceCounter, 1);
     QCOMPARE(topSm.invokedServices().count(), 3);
+}
 
-    // -- test statemachineloader::initialValues
-    QScxmlStateMachineLoader stateMachineLoader;
+void tst_scxmlqmlcpp::stateMachineLoaderInitialValuesBinding()
+{
     QVariantMap values1{{"key1","value1"}, {"key2","value2"}};
     QVariantMap values2{{"key3","value3"}, {"key4","value4"}};
-    testWritableBindableBasics<QScxmlStateMachineLoader, QVariantMap>(
-                stateMachineLoader, values1, values2, "initialValues");
+    QTestPrivate::testReadWritePropertyBasics<QScxmlStateMachineLoader, QVariantMap>(
+                m_stateMachineLoader, values1, values2, "initialValues");
+    m_stateMachineLoader.setInitialValues(QVariantMap()); // tidy up
+}
 
-    // -- test statemachineloader::source
+void tst_scxmlqmlcpp::stateMachineLoaderSourceStateMachineBinding()
+{
+    // Test source and stateMachine together as they interact with each other
+
     QUrl source1(QStringLiteral("qrc:///statemachine.scxml"));
     QUrl source2(QStringLiteral("qrc:///topmachine.scxml"));
-    // The 'setSource' assumes a valid qml context, so we need to create a bit differently
+    // The 'setSource' of the statemachineloader assumes a valid qml context
     QQmlEngine engine;
     QQmlComponent component(&engine);
-    component.setData("import QtQuick\n; import QtScxml\n;  Item { StateMachineLoader { objectName: \'sml\'; } }", QUrl());
+    component.setData(
+                "import QtQuick;\n"
+                "import QtScxml;\n"
+                "Item { StateMachineLoader { objectName: \'sml\'; } }",
+                QUrl());
     std::unique_ptr<QObject> root(component.create());
-    QScxmlStateMachineLoader *sml = qobject_cast<QScxmlStateMachineLoader*>(root->findChild<QObject*>("sml"));
+    QScxmlStateMachineLoader *sml =
+            qobject_cast<QScxmlStateMachineLoader*>(root->findChild<QObject*>("sml"));
     QVERIFY(sml != nullptr);
-    testWritableBindableBasics<QScxmlStateMachineLoader, QUrl>(*sml, source1, source2, "source");
 
-    // -- test statemachineloader::datamodel
-    QScxmlNullDataModel model1;
-    QScxmlNullDataModel model2;
-    testWritableBindableBasics<QScxmlStateMachineLoader,QScxmlDataModel*>
-            (stateMachineLoader, &model1, &model2, "dataModel");
+    // -- StateMachineLoader::source
+    QTestPrivate::testReadWritePropertyBasics<QScxmlStateMachineLoader, QUrl>(
+                *sml, source1, source2, "source");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QScxmlStateMachineLoader::source property testing failed";
+        return;
+    }
 
-    // -- test statemachineloader::statemachine
-    // The statemachine can be indirectly set by setting the source
+    // -- StateMachineLoader::stateMachine
+    // The statemachine can be set indirectly by setting the 'source'
     QSignalSpy smSpy(sml, &QScxmlStateMachineLoader::stateMachineChanged);
     QUrl sourceNonexistent(QStringLiteral("qrc:///file_doesnt_exist.scxml"));
     QUrl sourceBroken(QStringLiteral("qrc:///brokenstatemachine.scxml"));
 
     QVERIFY(sml->stateMachine() != nullptr);
     QTest::ignoreMessage(QtWarningMsg,
-                        "<Unknown File>:3:11: QML StateMachineLoader: Cannot open 'qrc:///file_doesnt_exist.scxml' for reading.");
+                        "<Unknown File>:3:8: QML StateMachineLoader: Cannot open 'qrc:///file_doesnt_exist.scxml' for reading.");
     sml->setSource(sourceNonexistent);
     QVERIFY(sml->stateMachine() == nullptr);
     QCOMPARE(smSpy.count(), 1);
     QTest::ignoreMessage(QtWarningMsg,
-                        "<Unknown File>:3:11: QML StateMachineLoader: :/brokenstatemachine.scxml:59:1: error: initial state 'working' not found for <scxml> element");
+                        "<Unknown File>:3:8: QML StateMachineLoader: :/brokenstatemachine.scxml:59:1: error: initial state 'working' not found for <scxml> element");
     QTest::ignoreMessage(QtWarningMsg,
                         "SCXML document has errors");
     QTest::ignoreMessage(QtWarningMsg,
-                        "<Unknown File>:3:11: QML StateMachineLoader: Something went wrong while parsing 'qrc:///brokenstatemachine.scxml':\n");
+                        "<Unknown File>:3:8: QML StateMachineLoader: Something went wrong while parsing 'qrc:///brokenstatemachine.scxml':\n");
     sml->setSource(sourceBroken);
     QVERIFY(sml->stateMachine() == nullptr);
     QCOMPARE(smSpy.count(), 1);
@@ -147,6 +184,15 @@ void tst_scxmlqmlcpp::bindings() {
     sml->setSource(source1);
     QCOMPARE(smSpy.count(), 2);
     QVERIFY(hasStateMachine == true);
+}
+
+void tst_scxmlqmlcpp::stateMachineLoaderDatamodelBinding()
+{
+    QScxmlNullDataModel model1;
+    QScxmlNullDataModel model2;
+    QTestPrivate::testReadWritePropertyBasics<QScxmlStateMachineLoader,QScxmlDataModel*>
+            (m_stateMachineLoader, &model1, &model2, "dataModel");
+    m_stateMachineLoader.setDataModel(nullptr); // tidy up
 }
 
 QTEST_MAIN(tst_scxmlqmlcpp)

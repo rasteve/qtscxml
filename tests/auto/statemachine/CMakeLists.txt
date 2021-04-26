@@ -6,13 +6,13 @@
 qt_internal_add_test(tst_statemachine
     SOURCES
         tst_statemachine.cpp
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::Gui
         Qt::Qml
         Qt::Scxml
-    LIBRARIES
         Qt::CorePrivate
         Qt::ScxmlPrivate
+        Qt::TestPrivate
 )
 
 # Resources:

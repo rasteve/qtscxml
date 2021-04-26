@@ -27,6 +27,7 @@
 ****************************************************************************/
 
 #include <QtTest>
+#include <QtTest/private/qpropertytesthelper_p.h>
 #include <QObject>
 #include <QXmlStreamReader>
 #include <QtScxml/qscxmlcompiler.h>
@@ -36,7 +37,6 @@
 #include <QtScxml/QScxmlNullDataModel>
 
 #include "topmachine.h"
-#include "../shared/bindableutils.h"
 
 enum { SpyWaitTime = 8000 };
 
@@ -467,14 +467,22 @@ void tst_StateMachine::bindings()
     std::unique_ptr<QScxmlStateMachine> stateMachine1(
                 QScxmlStateMachine::fromFile(QString(":/tst_statemachine/invoke.scxml")));
     QVERIFY(stateMachine1.get());
-    testReadableBindableBasics<QScxmlStateMachine, bool>(
+    QTestPrivate::testReadOnlyPropertyBasics<QScxmlStateMachine, bool>(
                 *stateMachine1, false, true, "initialized", [&](){ stateMachine1.get()->start(); });
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QScxmlStateMachine::initialized bindable test failed.";
+        return;
+    }
 
     // -- QScxmlStateMachine::initialValues
     QVariantMap map1{{"map", 1}};
     QVariantMap map2{{"map", 2}};
-    testWritableBindableBasics<QScxmlStateMachine, QVariantMap>(
+    QTestPrivate::testReadWritePropertyBasics<QScxmlStateMachine, QVariantMap>(
                 *stateMachine1, map1, map2, "initialValues");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QScxmlStateMachine::initialValues bindable test failed.";
+        return;
+    }
 
     // -- QScxmlStateMachine::loader
     class MockLoader: public QScxmlCompiler::Loader
@@ -484,8 +492,12 @@ void tst_StateMachine::bindings()
     };
     MockLoader loader1;
     MockLoader loader2;
-    testWritableBindableBasics<QScxmlStateMachine, QScxmlCompiler::Loader*>(
+    QTestPrivate::testReadWritePropertyBasics<QScxmlStateMachine, QScxmlCompiler::Loader*>(
                 *stateMachine1, &loader1, &loader2, "loader");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QScxmlStateMachine::loader bindable test failed.";
+        return;
+    }
 
     // -- QScxmlStateMachine::dataModel
     // Use non-existent file below, as valid file would initialize the model
@@ -494,26 +506,24 @@ void tst_StateMachine::bindings()
     std::unique_ptr<QScxmlStateMachine> stateMachine3(
                 QScxmlStateMachine::fromFile(QString("not_a_real_file")));
     QScxmlNullDataModel model1;
-    QScxmlNullDataModel model2;
-    // Use the "readable" test helper as the data can only change once
-    testReadableBindableBasics<QScxmlStateMachine, QScxmlDataModel*>(
-                *stateMachine2, nullptr, &model1, "dataModel",
-                [&](){ stateMachine2->setDataModel(&model1); });
-    // verify that setting the model twice will not break the binding (setting is ignored)
-    QProperty<QScxmlDataModel*> modelProperty(&model1);
-    stateMachine3.get()->bindableDataModel().setBinding(Qt::makePropertyBinding(modelProperty));
-    QVERIFY(stateMachine3.get()->bindableDataModel().hasBinding());
-    QVERIFY(stateMachine3.get()->dataModel() == &model1);
-    stateMachine3.get()->setDataModel(&model2); // should be ignored
-    QVERIFY(stateMachine3.get()->dataModel() == &model1);
-    QVERIFY(stateMachine3.get()->bindableDataModel().hasBinding());
+    // data can only change once
+    QTestPrivate::testWriteOncePropertyBasics<QScxmlStateMachine, QScxmlDataModel*>(
+                *stateMachine2, nullptr, &model1, "dataModel");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QScxmlStateMachine::dataModel bindable test failed.";
+        return;
+    }
 
     // -- QScxmlStateMachine::tableData
     // Use the statemachine to generate the tabledDatas for testing
     std::unique_ptr<QScxmlStateMachine> stateMachine4(
                 QScxmlStateMachine::fromFile(QString(":/tst_statemachine/invoke.scxml")));
-    testWritableBindableBasics<QScxmlStateMachine, QScxmlTableData*>(
+    QTestPrivate::testReadWritePropertyBasics<QScxmlStateMachine, QScxmlTableData*>(
                 *stateMachine2, stateMachine1.get()->tableData(), stateMachine4.get()->tableData(), "tableData");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QScxmlStateMachine::tableData bindable test failed.";
+        return;
+    }
 
     // -- QScxmlStateMachine::invokedServices
     // Test executes statemachine and observes as the invoked services change
@@ -540,24 +550,15 @@ void tst_StateMachine::bindings()
 
     // -- QScxmlDataModel::stateMachine
     QScxmlNullDataModel dataModel1;
-    QScxmlNullDataModel dataModel2;
     std::unique_ptr<QScxmlStateMachine> stateMachine5(
                 QScxmlStateMachine::fromFile(QString("not_a_real_file")));
-    std::unique_ptr<QScxmlStateMachine> stateMachine6(
-                QScxmlStateMachine::fromFile(QString("not_a_real_file")));
-    // Use the "readable" test helper as the data can only change once
-    testReadableBindableBasics<QScxmlDataModel, QScxmlStateMachine*>(
-                dataModel1, nullptr, stateMachine5.get(), "stateMachine",
-                [&](){ dataModel1.setStateMachine(stateMachine5.get()); });
-    // verify that setting the model twice will not break the binding (setting is ignored)
-    QProperty<QScxmlStateMachine*> stateMachineProperty(stateMachine6.get());
-    dataModel2.bindableStateMachine().setBinding(Qt::makePropertyBinding(stateMachineProperty));
-    QVERIFY(dataModel2.bindableStateMachine().hasBinding());
-    QVERIFY(dataModel2.stateMachine() == stateMachine6.get());
-    dataModel2.setStateMachine(stateMachine5.get()); // should be ignored
-    QVERIFY(dataModel2.stateMachine() == stateMachine6.get());
-    QVERIFY(dataModel2.bindableStateMachine().hasBinding());
-
+    // data can only change once
+    QTestPrivate::testWriteOncePropertyBasics<QScxmlDataModel, QScxmlStateMachine*>(
+                dataModel1, nullptr, stateMachine5.get(), "stateMachine");
+    if (QTest::currentTestFailed()) {
+        qWarning() << "QScxmlDataModel::stateMachine bindable test failed.";
+        return;
+    }
 }
 
 QTEST_MAIN(tst_StateMachine)
