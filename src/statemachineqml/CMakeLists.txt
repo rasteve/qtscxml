@@ -1,5 +1,4 @@
 qt_internal_add_module(StateMachineQml
-    GENERATE_METATYPES
     SOURCES
         qstatemachineqmlglobals_p.h
         finalstate_p.h finalstate.cpp

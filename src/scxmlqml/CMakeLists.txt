@@ -1,5 +1,4 @@
 qt_internal_add_module(ScxmlQml
-    GENERATE_METATYPES
     SOURCES
         eventconnection.cpp eventconnection_p.h
         invokedservices.cpp invokedservices_p.h
