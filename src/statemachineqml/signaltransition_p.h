@@ -73,6 +73,7 @@ class Q_STATEMACHINEQML_PRIVATE_EXPORT SignalTransition : public QSignalTransiti
     Q_PROPERTY(QQmlScriptString guard READ guard WRITE setGuard NOTIFY guardChanged)
     QML_ELEMENT
     QML_ADDED_IN_VERSION(1, 0)
+    QML_CUSTOMPARSER
 
 public:
     explicit SignalTransition(QState *parent = nullptr);
