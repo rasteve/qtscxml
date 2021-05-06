@@ -3,6 +3,8 @@
 ## Scxml Module:
 #####################################################################
 
+qt_internal_include_in_repo_target_set(qtscxml)
+
 qt_internal_add_module(Scxml
     QMAKE_MODULE_CONFIG c++11 qscxmlc
     PLUGIN_TYPES scxmldatamodel
