@@ -48,23 +48,22 @@
 // We mean it.
 //
 
-#include "QtScxml/qscxmldatamodel.h"
-
-#include <QtCore/QtPlugin>
+#include <QtScxml/private/qscxmlglobals_p.h>
+#include <QtScxml/qscxmldatamodel.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 
-class Q_SCXML_EXPORT QScxmlDataModelPlugin
-{
-public:
-    virtual ~QScxmlDataModelPlugin() {}
+#define QScxmlDataModelPluginInterface_iid "org.qt-project.qt.scxml.datamodel.plugin"
 
+class Q_SCXML_PRIVATE_EXPORT QScxmlDataModelPlugin : public QObject
+{
+    Q_OBJECT
+public:
     virtual QScxmlDataModel *createScxmlDataModel() const;
 };
 
-Q_DECLARE_INTERFACE(QScxmlDataModelPlugin,
-                    "org.qt-project.qt.scxml.datamodel.plugin")
-
+Q_DECLARE_INTERFACE(QScxmlDataModelPlugin, QScxmlDataModelPluginInterface_iid)
 QT_END_NAMESPACE
 
 #endif // QSCXMLDATAMODELPLUGIN_P_H

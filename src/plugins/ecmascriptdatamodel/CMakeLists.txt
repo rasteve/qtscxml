@@ -2,11 +2,11 @@
 ## EcmaScript SCXML DataModel Plugin:
 #####################################################################
 
-qt_internal_add_plugin(QDataModelPluginEcmaScript
-    OUTPUT_NAME qscxmldatamodelecmascript
+qt_internal_add_plugin(QScxmlEcmaScriptDataModelPlugin
+    OUTPUT_NAME qscxmlecmascriptdatamodel
     TYPE scxmldatamodel
     SOURCES
-        qdatamodel_ecmascript_plugin.cpp qdatamodel_ecmascript_plugin_p.h
+        qscxmlecmascriptdatamodelplugin.cpp qscxmlecmascriptdatamodelplugin_p.h
         qscxmlecmascriptdatamodel_p.h qscxmlecmascriptdatamodel.cpp
         qscxmlecmascriptplatformproperties.cpp qscxmlecmascriptplatformproperties_p.h
     PUBLIC_LIBRARIES

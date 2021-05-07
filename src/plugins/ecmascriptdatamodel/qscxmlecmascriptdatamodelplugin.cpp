@@ -34,37 +34,15 @@
 **
 ****************************************************************************/
 
-#ifndef QDATAMODELPLUGIN_ECMASCRIPT_P_H
-#define QDATAMODELPLUGIN_ECMASCRIPT_P_H
-
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
-//
-
-#include <QtScxml/private/qscxmldatamodelplugin_p.h>
-
-#include <QtCore/QObject>
+#include "QtScxml/qscxmldatamodel.h"
+#include "qscxmlecmascriptdatamodel_p.h"
+#include "qscxmlecmascriptdatamodelplugin_p.h"
 
 QT_BEGIN_NAMESPACE
 
-class QScxmlDataModelPluginEcmaScript : public QObject, public QScxmlDataModelPlugin
+QScxmlDataModel *QScxmlEcmaScriptDataModelPlugin::createScxmlDataModel() const
 {
-    Q_OBJECT
-    Q_INTERFACES(QScxmlDataModelPlugin)
-    Q_PLUGIN_METADATA(IID "org.qt-project.qt.scxml.datamodel.plugin"
-                      FILE "ecmascriptdatamodel_plugin.json")
-
-public:
-    QScxmlDataModel *createScxmlDataModel() const override;
-};
+    return new QScxmlEcmaScriptDataModel;
+}
 
 QT_END_NAMESPACE
-
-#endif
