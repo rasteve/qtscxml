@@ -1,9 +1,9 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 Ford Motor Company
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the test suite module of the Qt Toolkit.
+** This file is part of the test suite of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:GPL-EXCEPT$
 ** Commercial License Usage
@@ -26,16 +26,5 @@
 **
 ****************************************************************************/
 
-import QtTest
-import QtQml.StateMachine
-
-TestCase {
-    StateMachine {
-        State {
-          id: stateId
-        }
-        initialState: stateId
-    }
-    name: "anonymousState"
-    // no real tests, just make sure it runs
-}
+#include <QtQuickTest/quicktest.h>
+QUICK_TEST_MAIN(tst_scxmlqml)

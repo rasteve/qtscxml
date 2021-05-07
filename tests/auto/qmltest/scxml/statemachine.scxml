@@ -1,9 +1,11 @@
+<?xml version="1.0" ?>
+<!--
 /****************************************************************************
 **
-** Copyright (C) 2016 Ford Motor Company
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
-** This file is part of the test suite module of the Qt Toolkit.
+** This file is part of the QtScxml module of the Qt Toolkit.
 **
 ** $QT_BEGIN_LICENSE:GPL-EXCEPT$
 ** Commercial License Usage
@@ -25,17 +27,19 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+-->
+<scxml xmlns="http://www.w3.org/2005/07/scxml"
+    version="1.0"
+    name="ColorStepper"
+    initial="red">
 
-import QtTest
-import QtQml.StateMachine
+    <state id = "red">
+        <transition target="yellow" event="step"/>
+    </state>
 
-TestCase {
-    StateMachine {
-        State {
-          id: stateId
-        }
-        initialState: stateId
-    }
-    name: "anonymousState"
-    // no real tests, just make sure it runs
-}
+    <state id = "yellow">
+      <transition target="green" event="step"/>
+    </state>
+
+    <final id="green"/>
+</scxml>
