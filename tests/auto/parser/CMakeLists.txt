@@ -1,9 +1,9 @@
 
 #####################################################################
-## tst_parser Test:
+## tst_scxml_parser Test:
 #####################################################################
 
-qt_internal_add_test(tst_parser
+qt_internal_add_test(tst_scxml_parser
     SOURCES
         tst_parser.cpp
     PUBLIC_LIBRARIES
@@ -96,7 +96,7 @@ set(tst_parser_resource_files
     "data/test1.scxml.errors"
 )
 
-qt_internal_add_resource(tst_parser "tst_parser"
+qt_internal_add_resource(tst_scxml_parser "tst_parser"
     PREFIX
         "/tst_parser"
     FILES
