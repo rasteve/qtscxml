@@ -15,11 +15,8 @@ endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/widgets/graphicsview/padnavigator")
 
-find_package(Qt6 COMPONENTS Core)
-find_package(Qt6 COMPONENTS Gui)
-find_package(Qt6 COMPONENTS StateMachine)
-find_package(Qt6 COMPONENTS Widgets)
-find_package(Qt6 COMPONENTS OpenGL) # special case
+find_package(Qt6 REQUIRED COMPONENTS Core Gui StateMachine Widgets)
+find_package(Qt6 OPTIONAL_COMPONENTS OpenGL OpenGLWidgets)
 
 qt_add_executable(padnavigator
     flippablepad.cpp flippablepad.h
