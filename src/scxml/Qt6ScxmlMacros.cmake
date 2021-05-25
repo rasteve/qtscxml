@@ -53,6 +53,11 @@ function(qt6_add_statecharts target_or_outfiles)
     set(qscxmlcOutputDir ${CMAKE_CURRENT_BINARY_DIR})
     if (ARGS_OUTPUT_DIR)
         set(qscxmlcOutputDir ${ARGS_OUTPUT_DIR})
+        if (NOT EXISTS "${qscxmlcOutputDir}" OR NOT IS_DIRECTORY "${qscxmlcOutputDir}")
+            message(WARNING
+                "qt6_add_statecharts: output dir does not exist: \"" ${qscxmlcOutputDir} "\". "
+                "Statechart code generation may fail on some platforms." )
+        endif()
     endif()
 
     foreach(it ${scxml_files})
