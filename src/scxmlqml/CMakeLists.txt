@@ -1,4 +1,8 @@
-qt_internal_add_module(ScxmlQml
+qt_internal_add_qml_module(ScxmlQml
+    URI "QtScxml"
+    VERSION "${PROJECT_VERSION}"
+    PLUGIN_TARGET declarative_scxml
+    CLASS_NAME QScxmlStateMachinePlugin
     SOURCES
         eventconnection.cpp eventconnection_p.h
         invokedservices.cpp invokedservices_p.h
@@ -14,13 +18,3 @@ qt_internal_add_module(ScxmlQml
     LIBRARIES
         Qt::CorePrivate
 )
-
-set_target_properties(ScxmlQml PROPERTIES
-    QT_QML_MODULE_INSTALL_QMLTYPES TRUE
-    QT_QML_MODULE_VERSION ${PROJECT_VERSION}
-    QT_QML_MODULE_URI QtScxml
-    QT_QMLTYPES_FILENAME plugins.qmltypes
-    QT_QML_MODULE_INSTALL_DIR "${INSTALL_QMLDIR}/QtScxml"
-)
-
-qt6_qml_type_registration(ScxmlQml)

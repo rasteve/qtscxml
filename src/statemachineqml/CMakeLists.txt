@@ -1,4 +1,8 @@
-qt_internal_add_module(StateMachineQml
+qt_internal_add_qml_module(StateMachineQml
+    URI "QtQml.StateMachine"
+    VERSION "${PROJECT_VERSION}"
+    PLUGIN_TARGET qtqmlstatemachine
+    CLASS_NAME QtQmlStateMachinePlugin
     SOURCES
         qstatemachineqmlglobals_p.h
         finalstate_p.h finalstate.cpp
@@ -17,13 +21,3 @@ qt_internal_add_module(StateMachineQml
     LIBRARIES
         Qt::QmlPrivate
 )
-
-set_target_properties(StateMachineQml PROPERTIES
-    QT_QML_MODULE_INSTALL_QMLTYPES TRUE
-    QT_QML_MODULE_VERSION ${PROJECT_VERSION}
-    QT_QML_MODULE_URI QtQml.StateMachine
-    QT_QMLTYPES_FILENAME plugins.qmltypes
-    QT_QML_MODULE_INSTALL_DIR "${INSTALL_QMLDIR}/QtQml/StateMachine"
-)
-
-qt6_qml_type_registration(StateMachineQml)

@@ -31,9 +31,6 @@ qt_internal_add_module(Scxml
         Qt::CorePrivate
 )
 
-# This allows QML element registration outside of this module with the "QML_ELEMENT" & friends
-qt6_extract_metatypes(Scxml)
-
 # Install the public qscxlmc.prf file that is used by the qmake
 set(scxml_mkspecs "${CMAKE_CURRENT_SOURCE_DIR}/../../mkspecs/features/qscxmlc.prf")
 set(mkspecs_install_dir "${INSTALL_MKSPECSDIR}")
