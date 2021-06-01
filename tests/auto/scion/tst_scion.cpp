@@ -384,6 +384,11 @@ QDebug operator<<(QDebug debug, const QScxmlEvent &event)
     obj.insert(QLatin1String("invokeid"), event.invokeId());
     return debug << obj;
 }
+
+QDebug operator<<(QDebug debug, const QList<QScxmlEvent> &events)
+{
+    return QtPrivate::printSequentialContainer(debug, "QList", events);
+}
 QT_END_NAMESPACE
 
 static int verifyEvent(const QList<QScxmlEvent> &receivedEvents, const QJsonObject &event,
