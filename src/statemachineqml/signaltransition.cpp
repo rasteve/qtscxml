@@ -87,9 +87,33 @@ bool SignalTransition::eventTest(QEvent *event)
 
 void SignalTransition::onTransition(QEvent *event)
 {
-    if (m_signalExpression) {
+    if (QQmlEnginePrivate *engine = m_signalExpression
+            ? QQmlEnginePrivate::get(m_signalExpression->engine())
+            : nullptr) {
+
         QStateMachine::SignalEvent *e = static_cast<QStateMachine::SignalEvent*>(event);
-        m_signalExpression->evaluate(e->arguments());
+
+        QVarLengthArray<void *, 2> argValues;
+        QVarLengthArray<QMetaType, 2> argTypes;
+
+        QVariantList eventArguments = e->arguments();
+        const int argCount = eventArguments.length();
+        argValues.reserve(argCount + 1);
+        argTypes.reserve(argCount + 1);
+
+        // We're not interested in the return value
+        argValues.append(nullptr);
+        argTypes.append(QMetaType());
+
+        for (QVariant &arg : eventArguments) {
+            argValues.append(arg.data());
+            argTypes.append(arg.metaType());
+        }
+
+        engine->referenceScarceResources();
+        m_signalExpression->QQmlJavaScriptExpression::evaluate(
+                    argValues.data(), argTypes.constData(), argCount);
+        engine->dereferenceScarceResources();
     }
     QSignalTransition::onTransition(event);
 }
