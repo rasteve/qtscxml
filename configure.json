@@ -1,6 +1,0 @@
-{
-    "subconfigs": [
-        "src/scxml",
-        "src/statemachine"
-    ]
-}
