@@ -13,6 +13,8 @@ qt_internal_add_qml_module(ScxmlQml
         qscxmlqmlglobals_p.h
     DEFINES
         QT_BUILD_SCXMLQML_LIB
+    DEPENDENCIES
+        QtQml
     PUBLIC_LIBRARIES
         Qt::Core
         Qt::Qml
