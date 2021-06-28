@@ -52,22 +52,7 @@
 //
 
 #include <QtCore/qglobal.h>
-
-QT_BEGIN_NAMESPACE
-
-#if !defined(QT_STATIC)
-#  if defined(QT_BUILD_STATEMACHINEQML_LIB)
-#    define Q_STATEMACHINEQML_EXPORT Q_DECL_EXPORT
-#  else
-#    define Q_STATEMACHINEQML_EXPORT Q_DECL_IMPORT
-#  endif
-#else
-#  define Q_STATEMACHINEQML_EXPORT
-#endif
-
-#define Q_STATEMACHINEQML_PRIVATE_EXPORT Q_STATEMACHINEQML_EXPORT
-
-QT_END_NAMESPACE
+#include <QtStateMachineQml/private/qtstatemachineqmlexports_p.h>
 
 void Q_STATEMACHINEQML_PRIVATE_EXPORT qml_register_types_QtQml_StateMachine();
 

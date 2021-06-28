@@ -53,11 +53,15 @@
 
 #include "qscxmlglobals.h"
 
+#if defined(BUILD_QSCXMLC)
+#  define Q_SCXML_PRIVATE_EXPORT
+#else
+#  include <QtScxml/private/qtscxmlexports_p.h>
+#endif
+
 #include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
-
-#define Q_SCXML_PRIVATE_EXPORT Q_SCXML_EXPORT
 
 Q_DECLARE_LOGGING_CATEGORY(qscxmlLog)
 Q_DECLARE_LOGGING_CATEGORY(scxmlLog)

@@ -42,19 +42,11 @@
 #include <QtCore/qglobal.h>
 #include <QtScxml/qtscxml-config.h>
 
-QT_BEGIN_NAMESPACE
-
-#if defined(QT_STATIC) || defined(BUILD_QSCXMLC)
+#if defined(BUILD_QSCXMLC)
 #  define Q_SCXML_EXPORT
 #else
-#  ifdef QT_BUILD_SCXML_LIB
-#    define Q_SCXML_EXPORT Q_DECL_EXPORT
-#  else
-#    define Q_SCXML_EXPORT Q_DECL_IMPORT
-#  endif
+#  include <QtScxml/qtscxmlexports.h>
 #endif
-
-QT_END_NAMESPACE
 
 #endif // QSCXMLGLOBALS_H
 

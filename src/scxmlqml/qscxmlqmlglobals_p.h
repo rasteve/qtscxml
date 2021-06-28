@@ -52,22 +52,7 @@
 //
 
 #include <QtCore/qglobal.h>
-
-QT_BEGIN_NAMESPACE
-
-#if !defined(QT_STATIC)
-#  if defined(QT_BUILD_SCXMLQML_LIB)
-#    define Q_SCXMLQML_EXPORT Q_DECL_EXPORT
-#  else
-#    define Q_SCXMLQML_EXPORT Q_DECL_IMPORT
-#  endif
-#else
-#  define Q_SCXMLQML_EXPORT
-#endif
-
-#define Q_SCXMLQML_PRIVATE_EXPORT Q_SCXMLQML_EXPORT
-
-QT_END_NAMESPACE
+#include <QtScxmlQml/private/qtscxmlqmlexports_p.h>
 
 void Q_SCXMLQML_PRIVATE_EXPORT qml_register_types_QtScxml();
 

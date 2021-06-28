@@ -43,18 +43,10 @@
 #include <QtCore/qglobal.h>
 #include <QtStateMachine/qtstatemachine-config.h>
 
-QT_BEGIN_NAMESPACE
-
-#if defined(QT_STATIC) || defined(BUILD_QSTATEMACHINE)
+#if defined(BUILD_QSTATEMACHINE)
 #  define Q_STATEMACHINE_EXPORT
 #else
-#  ifdef QT_BUILD_STATEMACHINE_LIB
-#    define Q_STATEMACHINE_EXPORT Q_DECL_EXPORT
-#  else
-#    define Q_STATEMACHINE_EXPORT Q_DECL_IMPORT
-#  endif
+#  include <QtStateMachine/qtstatemachineexports.h>
 #endif
-
-QT_END_NAMESPACE
 
 #endif // QSTATEMACHINEGLOBAL_H
