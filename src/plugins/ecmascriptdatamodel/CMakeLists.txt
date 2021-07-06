@@ -11,7 +11,7 @@ qt_internal_add_plugin(QScxmlEcmaScriptDataModelPlugin
         qscxmlecmascriptdatamodelplugin.cpp qscxmlecmascriptdatamodelplugin_p.h
         qscxmlecmascriptdatamodel_p.h qscxmlecmascriptdatamodel.cpp
         qscxmlecmascriptplatformproperties.cpp qscxmlecmascriptplatformproperties_p.h
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::Core
         Qt::Scxml
         Qt::Qml
