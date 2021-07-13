@@ -7,6 +7,7 @@ qt_internal_include_in_repo_target_set(qtscxml)
 qt_get_tool_target_name(target_name qscxmlc)
 qt_internal_add_tool(${target_name}
     TOOLS_TARGET Scxml
+    INSTALL_DIR "${INSTALL_LIBEXECDIR}"
     SOURCES
         ../../src/scxml/qscxmlcompiler.cpp ../../src/scxml/qscxmlcompiler.h ../../src/scxml/qscxmlcompiler_p.h
         ../../src/scxml/qscxmlerror.cpp ../../src/scxml/qscxmlerror.h
