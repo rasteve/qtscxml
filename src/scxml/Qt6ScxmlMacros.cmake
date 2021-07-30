@@ -38,8 +38,8 @@
 
 function(qt6_add_statecharts target_or_outfiles)
     set(options)
-    set(oneValueArgs OUTPUT_DIR NAMESPACE)
-    set(multiValueArgs QSCXMLC_ARGUMENTS)
+    set(oneValueArgs OUTPUT_DIR OUTPUT_DIRECTORY NAMESPACE)
+    set(multiValueArgs QSCXMLC_ARGUMENTS OPTIONS)
 
     cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
@@ -50,9 +50,21 @@ function(qt6_add_statecharts target_or_outfiles)
         set(namespace "--namespace" ${ARGS_NAMESPACE})
     endif()
 
-    set(qscxmlcOutputDir ${CMAKE_CURRENT_BINARY_DIR})
     if (ARGS_OUTPUT_DIR)
-        set(qscxmlcOutputDir ${ARGS_OUTPUT_DIR})
+        message(AUTHOR_WARNING
+            "OUTPUT_DIR is deprecated. Please use OUTPUT_DIRECTORY instead.")
+        set(ARGS_OUTPUT_DIRECTORY ${ARGS_OUTPUT_DIR})
+    endif()
+
+    if (ARGS_QSCXMLC_ARGUMENTS)
+        message(AUTHOR_WARNING
+            "QSCXMLC_ARGUMENTS is deprecated. Please use OPTIONS instead.")
+        set(ARGS_OPTIONS ${ARGS_QSCXMLC_ARGUMENTS})
+    endif()
+
+    set(qscxmlcOutputDir ${CMAKE_CURRENT_BINARY_DIR})
+    if (ARGS_OUTPUT_DIRECTORY)
+        set(qscxmlcOutputDir ${ARGS_OUTPUT_DIRECTORY})
         if (NOT EXISTS "${qscxmlcOutputDir}" OR NOT IS_DIRECTORY "${qscxmlcOutputDir}")
             message(WARNING
                 "qt6_add_statecharts: output dir does not exist: \"" ${qscxmlcOutputDir} "\". "
@@ -70,7 +82,7 @@ function(qt6_add_statecharts target_or_outfiles)
         add_custom_command(OUTPUT ${outfile_cpp} ${outfile_h}
                            ${QT_TOOL_PATH_SETUP_COMMAND}
                            COMMAND ${QT_CMAKE_EXPORT_NAMESPACE}::qscxmlc
-                           ARGS ${namespace} ${ARGS_QSCXMLC_ARGUMENTS} --output ${outfile} ${infile}
+                           ARGS ${namespace} ${ARGS_OPTIONS} --output ${outfile} ${infile}
                            MAIN_DEPENDENCY ${infile}
                            VERBATIM)
         list(APPEND outfiles ${outfile_cpp})

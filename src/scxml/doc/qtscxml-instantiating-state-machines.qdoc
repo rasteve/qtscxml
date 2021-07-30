@@ -100,10 +100,10 @@
     This will tell qmake to run \e qscxmlc which generates MyStatemachine.h
     and MyStatemachine.cpp, and adds them to appropriately to the project
     headers and sources. By default, the generated files are saved in
-    the build directory. The qmake \e QSCXMLC_DIR or cmake \e OUTPUT_DIR variable
-    can be set to specify another directory. The qmake \e QSCXMLC_NAMESPACE
-    or cmake \e NAMESPACE variable can be set to put the state machine code into a
-    C++ namespace.
+    the build directory. The qmake \e QSCXMLC_DIR or cmake \e OUTPUT_DIRECTORY
+    variable can be set to specify another directory. The qmake
+    \e QSCXMLC_NAMESPACE or cmake \e NAMESPACE variable can be set to put the
+    state machine code into a C++ namespace.
 
     After instantiating a state machine, you can connect to any state's
     active property as follows. For example, if the state machine for a

@@ -73,8 +73,7 @@
 
     \section1 Command-Line Options
 
-    The \c qscxmlc tool supports the following command-line options, which can be specified using
-    the \c QSCXMLC_ARGUMENTS variable in the project file:
+    The \c qscxmlc tool supports the following command-line options:
 
     \table
       \header
@@ -105,20 +104,24 @@
             a state is currently active.
     \endtable
 
-    In addition to \c QSCXMLC_ARGUMENTS options, the \c qmake and \c CMake project files support
-    the following options:
+    The \c qmake and \c CMake project files support the following options:
 
     \table
       \header
         \li Option
         \li Description
       \row
-        \li \c {QSCXMLC_DIR|OUTPUT_DIR <directory>}
-        \li \c QSCXMLC_DIR (qmake) or \c OUTPUT_DIR (cmake) specifies the directory for the output
-            files.
+        \li \c {QSCXMLC_DIR|OUTPUT_DIRECTORY <directory>}
+        \li \c QSCXMLC_DIR (qmake) or \c OUTPUT_DIRECTORY (cmake) specifies the directory for
+               the output files. OUTPUT_DIR (cmake) has been deprecated.
       \row
         \li \c {QSCXMLC_NAMESPACE|NAMESPACE <namespace>}
         \li \c QSCXMLC_NAMESPACE (qmake) or \c NAMESPACE (cmake) specifies the namespace for the
             generated classes.
+      \row
+        \li \c {QSCXMLC_ARGUMENTS|OPTIONS <options>}
+        \li \c QSCXMLC_ARGUMENTS (qmake) or \c OPTIONS (cmake) allows specifying additional
+            options for the \c qscxmlc compiler. QSCXMLC_ARGUMENTS with cmake has been
+            deprecated.
     \endtable
 */

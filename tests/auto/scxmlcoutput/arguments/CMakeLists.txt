@@ -8,5 +8,5 @@ qt_internal_add_test(tst_scxmlcoutput_arguments
 # This testcase tests providing the namespace
 qt6_add_statecharts(tst_scxmlcoutput_arguments
     ../shared/ids1.scxml
-    QSCXMLC_ARGUMENTS --classname MyClass
+    OPTIONS --classname MyClass
 )
