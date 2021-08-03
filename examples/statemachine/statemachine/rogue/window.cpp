@@ -63,12 +63,12 @@ Window::Window()
     QFont font;
     const QStringList families = QFontDatabase::families();
     if (families.contains("Monospace")) {
-        font = QFont("Monospace");
+        font = QFont(QStringList{"Monospace"});
     }
     else {
         for (const QString &family : families) {
             if (QFontDatabase::isFixedPitch(family)) {
-                font = QFont(family);
+                font = QFont(QStringList{family});
                 break;
             }
         }

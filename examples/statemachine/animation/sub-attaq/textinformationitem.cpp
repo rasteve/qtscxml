@@ -53,7 +53,7 @@
 TextInformationItem::TextInformationItem (QGraphicsItem *parent)
     : QGraphicsTextItem(parent)
 {
-    setFont(QFont("Comic Sans MS", 15));
+    setFont(QFont(QStringList{"Comic Sans MS"}, 15));
 }
 
 void TextInformationItem::setMessage(const QString &text, bool centerPosition)

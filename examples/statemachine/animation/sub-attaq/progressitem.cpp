@@ -55,7 +55,7 @@
 ProgressItem::ProgressItem(QGraphicsItem *parent)
     : QGraphicsTextItem(parent)
 {
-    setFont(QFont("Comic Sans MS"));
+    setFont(QFont(QStringList{"Comic Sans MS"}));
     setPos(parentItem()->boundingRect().topRight() - QPointF(180, -5));
 }
 
