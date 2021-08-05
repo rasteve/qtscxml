@@ -6,7 +6,7 @@ qt_internal_include_in_repo_target_set(qtscxmlqml)
 
 qt_internal_add_plugin(QScxmlEcmaScriptDataModelPlugin
     OUTPUT_NAME qscxmlecmascriptdatamodel
-    TYPE scxmldatamodel
+    PLUGIN_TYPE scxmldatamodel
     SOURCES
         qscxmlecmascriptdatamodelplugin.cpp qscxmlecmascriptdatamodelplugin_p.h
         qscxmlecmascriptdatamodel_p.h qscxmlecmascriptdatamodel.cpp
