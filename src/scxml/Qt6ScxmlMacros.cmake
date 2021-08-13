@@ -87,7 +87,10 @@ function(qt6_add_statecharts target_or_outfiles)
                            VERBATIM)
         list(APPEND outfiles ${outfile_cpp})
     endforeach()
-    set_source_files_properties(${outfiles} PROPERTIES SKIP_AUTOMOC TRUE)
+    set_source_files_properties(${outfiles} PROPERTIES
+        SKIP_AUTOMOC TRUE
+        SKIP_AUTOUIC TRUE
+    )
     if (TARGET ${target_or_outfiles})
         target_include_directories(${target_or_outfiles} PRIVATE ${qscxmlcOutputDir})
         target_sources(${target_or_outfiles} PRIVATE ${outfiles})
