@@ -15,10 +15,6 @@ qt_internal_add_plugin(QScxmlEcmaScriptDataModelPlugin
         Qt::Core
         Qt::Scxml
         Qt::Qml
-    PRIVATE_MODULE_INTERFACE
-        Qt::CorePrivate
-        Qt::QmlPrivate
-        Qt::ScxmlPrivate
     INCLUDE_DIRECTORIES
         $<TARGET_PROPERTY:Qt::QmlPrivate,INTERFACE_INCLUDE_DIRECTORIES>
         $<TARGET_PROPERTY:Qt::Scxml,INTERFACE_INCLUDE_DIRECTORIES>
