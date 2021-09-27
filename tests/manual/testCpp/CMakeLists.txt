@@ -1,4 +1,3 @@
-
 #####################################################################
 ## testCpp Tool:
 #####################################################################
@@ -11,6 +10,7 @@ qt_internal_add_tool(${target_name}
         Qt::Qml
         Qt::Scxml
 )
+qt_internal_return_unless_building_tools()
 
 # Statecharts:
 qt6_add_statecharts(testCpp out.scxml)

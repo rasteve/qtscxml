@@ -1,4 +1,3 @@
-
 #####################################################################
 ## qscxmlc Tool:
 #####################################################################
@@ -31,6 +30,7 @@ qt_internal_add_tool(${target_name}
     LIBRARIES
         Qt::CorePrivate
 )
+qt_internal_return_unless_building_tools()
 
 set_property(SOURCE ../../src/scxml/qscxmlerror.h PROPERTY SKIP_AUTOMOC ON)
 set_property(SOURCE ../../src/scxml/qscxmlcompiler.cpp PROPERTY SKIP_AUTOMOC ON)

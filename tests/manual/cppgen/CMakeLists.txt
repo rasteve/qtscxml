@@ -1,4 +1,3 @@
-
 #####################################################################
 ## tst_cppgen Tool:
 #####################################################################
@@ -12,6 +11,7 @@ qt_internal_add_tool(${target_name}
         Qt::Scxml
         Qt::Test
 )
+qt_internal_return_unless_building_tools()
 
 #### Keys ignored in scope 1:.:.:cppgen.pro:<TRUE>:
 # TEMPLATE = "app"
