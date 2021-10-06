@@ -487,7 +487,7 @@ class DynamicStateMachinePrivate : public QScxmlStateMachinePrivate
 {
     struct DynamicMetaObject : public QAbstractDynamicMetaObject
     {
-        QAbstractDynamicMetaObject *toDynamicMetaObject(QObject *) override
+        QMetaObject *toDynamicMetaObject(QObject *) override
         {
             return this;
         }
