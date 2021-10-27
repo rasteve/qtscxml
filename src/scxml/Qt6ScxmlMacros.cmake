@@ -72,6 +72,9 @@ function(qt6_add_statecharts target_or_outfiles)
         endif()
     endif()
 
+    _qt_internal_wrap_tool_command(qscxmlc_command SET
+        "$<TARGET_FILE:${QT_CMAKE_EXPORT_NAMESPACE}::qscxmlc>")
+
     foreach(it ${scxml_files})
         get_filename_component(outfilename ${it} NAME_WE)
         get_filename_component(infile ${it} ABSOLUTE)
@@ -80,9 +83,9 @@ function(qt6_add_statecharts target_or_outfiles)
         set(outfile_h ${qscxmlcOutputDir}/${outfilename}.h)
 
         add_custom_command(OUTPUT ${outfile_cpp} ${outfile_h}
-                           ${QT_TOOL_PATH_SETUP_COMMAND}
-                           COMMAND ${QT_CMAKE_EXPORT_NAMESPACE}::qscxmlc
-                           ARGS ${namespace} ${ARGS_OPTIONS} --output ${outfile} ${infile}
+                           ${qscxmlc_command} ${namespace} ${ARGS_OPTIONS}
+                               --output ${outfile} ${infile}
+                           DEPENDS ${QT_CMAKE_EXPORT_NAMESPACE}::qscxmlc
                            MAIN_DEPENDENCY ${infile}
                            VERBATIM)
         list(APPEND outfiles ${outfile_cpp})
