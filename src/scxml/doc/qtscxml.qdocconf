@@ -52,3 +52,6 @@ manifestmeta.highlighted.names = "QtScxml/Qt SCXML Traffic Light QML Example (Dy
 navigation.landingpage = "Qt SCXML"
 navigation.cppclassespage = "Qt SCXML C++ Classes"
 navigation.qmltypespage = "Qt SCXML QML Types"
+
+# Fail the documentation build if there are more warnings than the limit
+warninglimit = 0
