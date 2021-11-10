@@ -43,7 +43,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmltype EventConnection
-    \instantiates QScxmlEventConnection
+//!    \instantiates QScxmlEventConnection
     \inqmlmodule QtScxml
     \since QtScxml 5.8
 

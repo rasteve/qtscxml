@@ -44,7 +44,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmltype InvokedServices
-    \instantiates QScxmlInvokedServices
+//!    \instantiates QScxmlInvokedServices
     \inqmlmodule QtScxml
     \since QtScxml 5.8
 
