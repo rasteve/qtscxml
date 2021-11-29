@@ -54,6 +54,7 @@
 #include "qstatemachineqmlglobals_p.h"
 #include "childrenprivate_p.h"
 
+#include <QtCore/qproperty.h>
 #include <QtStateMachine/QState>
 #include <QtQml/QQmlParserStatus>
 #include <QtQml/QQmlListProperty>
