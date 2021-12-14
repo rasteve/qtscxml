@@ -1,7 +1,7 @@
 # Generated from animation.pro.
 
-add_subdirectory(animatedtiles)
-add_subdirectory(moveblocks)
-add_subdirectory(states)
-add_subdirectory(stickman)
-add_subdirectory(sub-attaq)
+qt_internal_add_example(animatedtiles)
+qt_internal_add_example(moveblocks)
+qt_internal_add_example(states)
+qt_internal_add_example(stickman)
+qt_internal_add_example(sub-attaq)

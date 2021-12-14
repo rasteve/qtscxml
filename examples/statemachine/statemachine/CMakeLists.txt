@@ -1,10 +1,10 @@
 # Generated from statemachine.pro.
 
-add_subdirectory(factorial)
-add_subdirectory(pingpong)
+qt_internal_add_example(factorial)
+qt_internal_add_example(pingpong)
 if(TARGET Qt::Widgets)
-    add_subdirectory(eventtransitions)
-    add_subdirectory(rogue)
-    add_subdirectory(trafficlight)
-    add_subdirectory(twowaybutton)
+    qt_internal_add_example(eventtransitions)
+    qt_internal_add_example(rogue)
+    qt_internal_add_example(trafficlight)
+    qt_internal_add_example(twowaybutton)
 endif()

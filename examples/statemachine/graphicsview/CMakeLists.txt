@@ -1,3 +1,3 @@
 # Generated from graphicsview.pro.
 
-add_subdirectory(padnavigator)
+qt_internal_add_example(padnavigator)
