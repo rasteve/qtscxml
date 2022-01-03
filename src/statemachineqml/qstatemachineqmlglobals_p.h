@@ -54,6 +54,10 @@
 #include <QtCore/qglobal.h>
 #include <QtStateMachineQml/private/qtstatemachineqmlexports_p.h>
 
+QT_BEGIN_NAMESPACE
+
 void Q_STATEMACHINEQML_PRIVATE_EXPORT qml_register_types_QtQml_StateMachine();
+
+QT_END_NAMESPACE
 
 #endif // QSTATEMACHINEQMLGLOBALS_P_H
