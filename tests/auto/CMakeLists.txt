@@ -8,6 +8,7 @@ if(TARGET Qt::Gui AND TARGET Qt::Qml)
         add_subdirectory(scion)
         add_subdirectory(statemachine)
         add_subdirectory(statemachineinfo)
+        add_subdirectory(cmake)
     endif()
     # More checks inside
     add_subdirectory(qml)
