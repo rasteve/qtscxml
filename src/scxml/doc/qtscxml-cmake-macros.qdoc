@@ -32,6 +32,8 @@
 \title qt_add_statecharts
 \target qt6_add_statecharts
 
+\cmakecommandsince 6.1
+
 \section1 Description
 
 The \c qt6_add_statecharts macro instructs CMake to invoke the qscxmlc tool to
