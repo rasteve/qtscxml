@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2020 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the QtWidgets module of the Qt Toolkit.
@@ -53,6 +53,7 @@
 
 #include <QtGui/qevent.h>
 #include <QtStateMachine/qabstracttransition.h>
+#include <QtCore/private/qglobal_p.h>
 
 QT_REQUIRE_CONFIG(qeventtransition);
 

@@ -56,6 +56,7 @@
 #include <QStateMachine>
 #include <QQmlInfo>
 #include <QQmlListProperty>
+#include <private/qglobal_p.h>
 
 enum class ChildrenMode {
     None              = 0x0,

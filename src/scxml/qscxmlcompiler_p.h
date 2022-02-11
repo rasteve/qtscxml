@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2021 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the QtScxml module of the Qt Toolkit.
@@ -60,6 +60,7 @@
 #include <QtCore/qstringlist.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qxmlstream.h>
+#include <QtCore/private/qglobal_p.h>
 
 #include <memory>
 
