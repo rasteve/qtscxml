@@ -1,5 +1,3 @@
-# Generated from statemachine.pro.
-
 qt_internal_add_example(factorial)
 qt_internal_add_example(pingpong)
 if(TARGET Qt::Widgets)

@@ -1,24 +1,15 @@
-# Generated from stickman.pro.
-
 cmake_minimum_required(VERSION 3.16)
 project(stickman LANGUAGES CXX)
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
 
 if(NOT DEFINED INSTALL_EXAMPLESDIR)
-  set(INSTALL_EXAMPLESDIR "examples")
+    set(INSTALL_EXAMPLESDIR "examples")
 endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/widgets/animation/stickman")
 
-find_package(Qt6 COMPONENTS Core)
-find_package(Qt6 COMPONENTS Gui)
-find_package(Qt6 COMPONENTS StateMachine)
-find_package(Qt6 COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui StateMachine Widgets)
 
 qt_add_executable(stickman
     animation.cpp animation.h
@@ -29,17 +20,18 @@ qt_add_executable(stickman
     rectbutton.cpp rectbutton.h
     stickman.cpp stickman.h
 )
+
 set_target_properties(stickman PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
 )
+
 target_link_libraries(stickman PUBLIC
     Qt::Core
     Qt::Gui
     Qt::StateMachine
     Qt::Widgets
 )
-
 
 # Resources:
 set(stickman_resource_files

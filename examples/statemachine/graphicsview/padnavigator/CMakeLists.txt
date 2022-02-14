@@ -1,16 +1,11 @@
-# Generated from padnavigator.pro.
-
 cmake_minimum_required(VERSION 3.16)
 project(padnavigator LANGUAGES CXX)
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 if(NOT DEFINED INSTALL_EXAMPLESDIR)
-  set(INSTALL_EXAMPLESDIR "examples")
+    set(INSTALL_EXAMPLESDIR "examples")
 endif()
 
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/widgets/graphicsview/padnavigator")
@@ -26,17 +21,18 @@ qt_add_executable(padnavigator
     roundrectitem.cpp roundrectitem.h
     splashitem.cpp splashitem.h
 )
+
 set_target_properties(padnavigator PROPERTIES
     WIN32_EXECUTABLE FALSE
     MACOSX_BUNDLE TRUE
 )
+
 target_link_libraries(padnavigator PUBLIC
     Qt::Core
     Qt::Gui
     Qt::StateMachine
     Qt::Widgets
 )
-
 
 # Resources:
 set(padnavigator_resource_files

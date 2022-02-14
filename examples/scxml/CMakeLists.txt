@@ -1,5 +1,3 @@
-# Generated from scxml.pro.
-
 if (TARGET Qt::Network AND QT_FEATURE_scxml_ecmascriptdatamodel)
     qt_internal_add_example(ftpclient)
 endif()

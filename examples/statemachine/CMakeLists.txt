@@ -1,5 +1,3 @@
-# Generated from widgets.pro.
-
 add_subdirectory(statemachine)
 
 if(TARGET Qt::Widgets)
