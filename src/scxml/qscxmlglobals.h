@@ -48,5 +48,9 @@
 #  include <QtScxml/qtscxmlexports.h>
 #endif
 
+// Silence syncqt
+QT_BEGIN_NAMESPACE
+QT_END_NAMESPACE
+
 #endif // QSCXMLGLOBALS_H
 
