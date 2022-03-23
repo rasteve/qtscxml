@@ -33,28 +33,23 @@
     The State Machine framework provides classes for creating and executing
     state graphs.
 
-    \section1 Getting Started
+    \section1 Using the Module
 
-    To include the definitions of the module's classes, use the following directive:
+    \section2 QML API
 
-    \code
-    #include <QStateMachine>
-    \endcode
+    \include {module-use.qdocinc} {using the qml api} {QtQml.StateMachine}
 
-    To import the QML types into your application, use the following import statement
-    in your .qml file:
+    \section2 C++ API
 
-    \qml
-    import QtQml.StateMachine
-    \endqml
+    \include {module-use.qdocinc} {using the c++ api}
 
-    To link against the module:
+    \section3 Building with CMake
 
-    When using CMake add to \e CMakeLists.txt:
-    \include qtstatemachine-module-use.qdocinc cmakebuild
+    \include {module-use.qdocinc} {building with cmake} {StateMachine}
 
-    When using qmake add to the project \e .pro file:
-    \include qtstatemachine-module-use.qdocinc qmakebuild
+    \section3 Building with qmake
+
+    \include {module-use.qdocinc} {building with cmake} {statemachine}
 
     \section1 Articles and Guides
 
