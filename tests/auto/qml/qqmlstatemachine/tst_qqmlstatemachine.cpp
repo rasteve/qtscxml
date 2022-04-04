@@ -121,7 +121,7 @@ void tst_qqmlstatemachine::tst_bindings()
     // Generating QQmlScriptString requires proper qml context setup, and here we
     // use same the element that we are testing to create the testing material
     QQmlEngine engine;
-    QQmlComponent component(&engine, QUrl(QLatin1String("qrc:///data/signaltransition.qml")));
+    QQmlComponent component(&engine, testFileUrl("signaltransition.qml"));
     std::unique_ptr<QObject> obj(component.create());
     SignalTransition *st1 = qobject_cast<SignalTransition*>(obj->findChild<QObject*>("st1"));
     SignalTransition *st2 = qobject_cast<SignalTransition*>(obj->findChild<QObject*>("st2"));
