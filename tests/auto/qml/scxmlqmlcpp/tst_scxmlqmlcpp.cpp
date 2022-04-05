@@ -26,6 +26,8 @@
 **
 ****************************************************************************/
 
+#include "../../shared/util.h"
+
 #include <QtTest>
 #include <QtTest/private/qpropertytesthelper_p.h>
 #include <QtScxml/QScxmlStateMachine>
@@ -39,12 +41,12 @@
 #include <QtQml/QQmlComponent>
 #include <memory>
 
-class tst_scxmlqmlcpp: public QObject
+class tst_scxmlqmlcpp : public QQmlDataTest
 {
     Q_OBJECT
 
 private slots:
-    void initTestCase();
+    void initTestCase() override;
 
     void eventConnectionStateMachineBinding();
     void eventConnectionEventsBinding();
@@ -66,6 +68,7 @@ private:
 
 void tst_scxmlqmlcpp::initTestCase()
 {
+    QQmlDataTest::initTestCase();
     m_stateMachine1.reset(QScxmlStateMachine::fromFile("no_real_file_needed"));
     m_stateMachine2.reset(QScxmlStateMachine::fromFile("no_real_file_needed"));
 }
@@ -134,16 +137,13 @@ void tst_scxmlqmlcpp::stateMachineLoaderSourceStateMachineBinding()
 {
     // Test source and stateMachine together as they interact with each other
 
-    QUrl source1(QStringLiteral("qrc:///statemachine.scxml"));
-    QUrl source2(QStringLiteral("qrc:///topmachine.scxml"));
+    QUrl source1(testFileUrl("statemachine.scxml"));
+    QUrl source2(testFileUrl("topmachine.scxml"));
     // The 'setSource' of the statemachineloader assumes a valid qml context
     QQmlEngine engine;
-    QQmlComponent component(&engine);
-    component.setData(
-                "import QtQuick;\n"
-                "import QtScxml;\n"
-                "Item { StateMachineLoader { objectName: \'sml\'; } }",
-                QUrl());
+    const QUrl smlUrl = testFileUrl("stateMachineLoader.qml");
+    QQmlComponent component(&engine, smlUrl);
+    QVERIFY2(component.isReady(), qPrintable(component.errorString()));
     std::unique_ptr<QObject> root(component.create());
     QScxmlStateMachineLoader *sml =
             qobject_cast<QScxmlStateMachineLoader*>(root->findChild<QObject*>("sml"));
@@ -160,21 +160,32 @@ void tst_scxmlqmlcpp::stateMachineLoaderSourceStateMachineBinding()
     // -- StateMachineLoader::stateMachine
     // The statemachine can be set indirectly by setting the 'source'
     QSignalSpy smSpy(sml, &QScxmlStateMachineLoader::stateMachineChanged);
-    QUrl sourceNonexistent(QStringLiteral("qrc:///file_doesnt_exist.scxml"));
-    QUrl sourceBroken(QStringLiteral("qrc:///brokenstatemachine.scxml"));
+    QUrl sourceNonexistent(testFileUrl("file_doesnt_exist.scxml"));
+    QUrl sourceBroken(testFileUrl("brokenstatemachine.scxml"));
 
     QVERIFY(sml->stateMachine() != nullptr);
     QTest::ignoreMessage(QtWarningMsg,
-                        "<Unknown File>:3:8: QML StateMachineLoader: Cannot open 'qrc:///file_doesnt_exist.scxml' for reading.");
+                        qPrintable(smlUrl.toString() + ":5:5: QML StateMachineLoader: " +
+                        "Cannot open '" + sourceNonexistent.toString() + "' for reading."));
     sml->setSource(sourceNonexistent);
     QVERIFY(sml->stateMachine() == nullptr);
     QCOMPARE(smSpy.count(), 1);
+
+    QString sourceBrokenNoScheme;
+    if (sourceBroken.scheme() == QStringLiteral("qrc"))
+        sourceBrokenNoScheme = QStringLiteral(":") + sourceBroken.path();
+    else
+        sourceBrokenNoScheme = sourceBroken.toLocalFile();
     QTest::ignoreMessage(QtWarningMsg,
-                        "<Unknown File>:3:8: QML StateMachineLoader: :/brokenstatemachine.scxml:59:1: error: initial state 'working' not found for <scxml> element");
+                         qPrintable(smlUrl.toString() + ":5:5: QML StateMachineLoader: " +
+                        sourceBrokenNoScheme + ":59:1: error: initial state 'working' " +
+                        "not found for <scxml> element"));
+
     QTest::ignoreMessage(QtWarningMsg,
                         "SCXML document has errors");
     QTest::ignoreMessage(QtWarningMsg,
-                        "<Unknown File>:3:8: QML StateMachineLoader: Something went wrong while parsing 'qrc:///brokenstatemachine.scxml':\n");
+                         qPrintable(smlUrl.toString() + ":5:5: QML StateMachineLoader: Something " +
+                        "went wrong while parsing '" + sourceBroken.toString() + "':\n"));
     sml->setSource(sourceBroken);
     QVERIFY(sml->stateMachine() == nullptr);
     QCOMPARE(smSpy.count(), 1);

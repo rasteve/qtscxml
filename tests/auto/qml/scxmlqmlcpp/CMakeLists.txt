@@ -1,24 +1,31 @@
+# Collect test data
+file(GLOB_RECURSE test_data_glob
+    RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+    data/*)
+list(APPEND test_data ${test_data_glob})
+
 qt_internal_add_test(tst_scxmlqmlcpp
     SOURCES
+        ../../shared/util.cpp ../../shared/util.h
         tst_scxmlqmlcpp.cpp
     LIBRARIES
         Qt::Scxml
         Qt::ScxmlQmlPrivate
         Qt::CorePrivate
         Qt::TestPrivate
+    TESTDATA ${test_data}
 )
 
-qt_internal_add_resource(tst_scxmlqmlcpp "tst_compiled"
-    PREFIX
-        "/"
-    FILES
-        "submachineA.scxml"
-        "submachineB.scxml"
-        "topmachine.scxml"
-        "statemachine.scxml"
-        "brokenstatemachine.scxml"
+qt_internal_extend_target(tst_scxmlqmlcpp CONDITION ANDROID OR IOS
+    DEFINES
+        QT_QMLTEST_DATADIR=\\\":/data\\\"
+)
+
+qt_internal_extend_target(tst_scxmlqmlcpp CONDITION NOT ANDROID AND NOT IOS
+    DEFINES
+        QT_QMLTEST_DATADIR=\\\"${CMAKE_CURRENT_SOURCE_DIR}/data\\\"
 )
 
 qt6_add_statecharts(tst_scxmlqmlcpp
-    topmachine.scxml
+    "data/topmachine.scxml"
 )
