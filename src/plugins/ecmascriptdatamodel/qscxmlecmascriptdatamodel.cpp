@@ -53,8 +53,7 @@
 
 QT_BEGIN_NAMESPACE
 
-Q_LOGGING_CATEGORY(qscxmlLog, "qt.scxml.statemachine")
-Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
+Q_LOGGING_CATEGORY(qscxmlEsLog, "qt.scxml.statemachine")
 
 using namespace QScxmlExecutableContent;
 
@@ -124,7 +123,7 @@ public:
         QJSEngine *engine = assertEngine();
         dataModel = engine->globalObject();
 
-        qCDebug(qscxmlLog) << m_stateMachine << "initializing the datamodel";
+        qCDebug(qscxmlEsLog) << m_stateMachine << "initializing the datamodel";
         setupSystemVariables();
     }
 
@@ -271,7 +270,7 @@ public:
 private: // Uses private API
     static void setReadonlyProperty(QJSValue *object, const QString &name, const QJSValue &value)
     {
-        qCDebug(qscxmlLog) << "setting read-only property" << name;
+        qCDebug(qscxmlEsLog) << "setting read-only property" << name;
         QV4::ExecutionEngine *engine = QJSValuePrivate::engine(object);
         Q_ASSERT(engine);
         QV4::Scope scope(engine);
@@ -281,7 +280,7 @@ private: // Uses private API
             return;
 
         if (!QJSValuePrivate::checkEngine(engine, value)) {
-            qCWarning(qscxmlLog, "EcmaScriptDataModel::setReadonlyProperty(%s) failed: cannot set value created in a different engine", name.toUtf8().constData());
+            qCWarning(qscxmlEsLog, "EcmaScriptDataModel::setReadonlyProperty(%s) failed: cannot set value created in a different engine", name.toUtf8().constData());
             return;
         }
 
