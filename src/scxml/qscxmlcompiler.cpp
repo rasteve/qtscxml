@@ -56,6 +56,8 @@
 #include <private/qmetaobjectbuilder_p.h>
 #endif // BUILD_QSCXMLC
 
+#include <QtCore/qmap.h>
+
 #include <functional>
 
 namespace {

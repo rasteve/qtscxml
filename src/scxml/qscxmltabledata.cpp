@@ -41,6 +41,8 @@
 #include "qscxmlcompiler_p.h"
 #include "qscxmlexecutablecontent_p.h"
 
+#include <QtCore/qmap.h>
+
 QT_USE_NAMESPACE
 
 /*!

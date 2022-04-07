@@ -57,6 +57,9 @@
 #include <QtCore/private/qobject_p.h>
 #include <QtCore/private/qmetaobject_p.h>
 #include <QtCore/private/qproperty_p.h>
+#include <QtCore/qhash.h>
+#include <QtCore/qmap.h>
+#include <QtCore/qvariant.h>
 #include <QtCore/qmetaobject.h>
 #include "qscxmlglobals_p.h"
 
