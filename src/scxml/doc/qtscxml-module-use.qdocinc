@@ -27,7 +27,7 @@
 
 //! [cmakebuild]
     \code
-    find_package(Qt6 COMPONENTS Scxml REQUIRED)
+    find_package(Qt6 REQUIRED COMPONENTS Scxml)
     target_link_libraries(mytarget PRIVATE Qt6::Scxml)
     \endcode
 //! [cmakebuild]
