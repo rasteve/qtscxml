@@ -1,6 +1,6 @@
 #############################################################################
 ##
-## Copyright (C) 2021 The Qt Company Ltd.
+## Copyright (C) 2022 The Qt Company Ltd.
 ## Contact: https://www.qt.io/licensing/
 ##
 ## This file is part of the release tools of the Qt Toolkit.
@@ -29,6 +29,11 @@
 from conans import ConanFile
 import re
 from pathlib import Path
+from typing import Dict, Any
+
+_qtscxml_features = [
+    "scxml-ecmascriptdatamodel",
+]
 
 
 def _parse_qt_version_by_key(key: str) -> str:
@@ -54,3 +59,11 @@ class QtScxml(ConanFile):
     exports_sources = "*", "!conan*.*"
     python_requires = f"qt-conan-common/{_get_qt_minor_version()}@qt/everywhere"
     python_requires_extend = "qt-conan-common.QtLeafModule"
+
+    def get_qt_leaf_module_options(self) -> Dict[str, Any]:
+        """Implements abstractmethod from qt-conan-common.QtLeafModule"""
+        return self._shared.convert_qt_features_to_conan_options(_qtscxml_features)
+
+    def get_qt_leaf_module_default_options(self) -> Dict[str, Any]:
+        """Implements abstractmethod from qt-conan-common.QtLeafModule"""
+        return self._shared.convert_qt_features_to_default_conan_options(_qtscxml_features)
