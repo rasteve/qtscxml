@@ -15,12 +15,6 @@
 
     \section1 Getting Started
 
-    To include the definitions of the module's classes, use the following directive:
-
-    \code
-    #include <QScxmlStateMachine>
-    \endcode
-
     To import the QML types into your application, use the following import statement
     in your .qml file:
 

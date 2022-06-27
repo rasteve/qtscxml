@@ -11,12 +11,6 @@
     \qtvariable scxml
     \qtcmakepackage Scxml
 
-    To include the definitions of the module's classes, use the following directive:
-
-    \code
-    #include <QScxmlStateMachine>
-    \endcode
-
     To use the module with cmake, use the \c{find_package()} command to locate the
     needed module components in the \c{Qt6} package:
     \include qtscxml-module-use.qdocinc cmakebuild
