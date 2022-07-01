@@ -41,6 +41,7 @@ function(qt6_add_statecharts target_or_outfiles)
     _qt_internal_wrap_tool_command(qscxmlc_command SET
         "$<TARGET_FILE:${QT_CMAKE_EXPORT_NAMESPACE}::qscxmlc>")
 
+    set(outfiles)
     foreach(it ${scxml_files})
         get_filename_component(outfilename ${it} NAME_WE)
         get_filename_component(infile ${it} ABSOLUTE)
