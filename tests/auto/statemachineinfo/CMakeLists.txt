@@ -9,7 +9,7 @@
 qt_internal_add_test(tst_statemachineinfo
     SOURCES
         tst_statemachineinfo.cpp
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::Gui
         Qt::Qml
         Qt::ScxmlPrivate

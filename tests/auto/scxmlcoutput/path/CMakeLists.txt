@@ -4,7 +4,7 @@
 qt_internal_add_test(tst_scxmlcoutput_path
     SOURCES
         tst_scxmlcoutput.cpp
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::Scxml
 )
 

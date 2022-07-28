@@ -9,7 +9,7 @@
 qt_internal_add_test(tst_dynamicmetaobject
     SOURCES
         tst_dynamicmetaobject.cpp
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::Gui
         Qt::Qml
         Qt::Scxml

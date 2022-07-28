@@ -9,6 +9,6 @@
 qt_internal_add_test(tst_qstate
     SOURCES
         tst_qstate.cpp
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::StateMachine
 )

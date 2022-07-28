@@ -9,7 +9,7 @@
 qt_internal_add_test(tst_compiled
     SOURCES
         tst_compiled.cpp
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::Gui
         Qt::Qml
         Qt::Scxml

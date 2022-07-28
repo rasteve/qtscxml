@@ -12,7 +12,7 @@ qt_internal_add_test(tst_statemachineqml
     QMLTEST
     SOURCES
         tst_statemachineqml.cpp
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::Gui
     TESTDATA ${test_data}
 )

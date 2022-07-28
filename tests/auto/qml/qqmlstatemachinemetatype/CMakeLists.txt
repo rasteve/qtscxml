@@ -17,7 +17,7 @@ qt_internal_add_test(tst_qqmlstatemachinemetatype
         tst_qqmlstatemachinemetatype.cpp
     INCLUDE_DIRECTORIES
         ../../shared
-    PUBLIC_LIBRARIES
+    LIBRARIES
         Qt::CorePrivate
         Qt::Gui
         Qt::GuiPrivate
