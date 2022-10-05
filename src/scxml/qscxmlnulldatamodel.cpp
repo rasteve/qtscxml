@@ -63,7 +63,7 @@ public:
         ResolvedEvaluatorInfo resolved;
         if (expr.startsWith(QStringLiteral("In(")) && expr.endsWith(QLatin1Char(')'))) {
             resolved.error = false;
-            resolved.str =  expr.mid(3, expr.length() - 4);
+            resolved.str =  expr.mid(3, expr.size() - 4);
         } else {
             resolved.error = true;
             resolved.str =  QStringLiteral("%1 in %2").arg(expr, td->string(info.context));

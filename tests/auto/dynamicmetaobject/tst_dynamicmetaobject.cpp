@@ -52,7 +52,7 @@ void tst_DynamicMetaObject::dynamicPartCheck()
 
     QScopedPointer<QScxmlStateMachine> stateMachine(QScxmlStateMachine::fromFile(scxmlFileName));
     QVERIFY(!stateMachine.isNull());
-    QVERIFY(!stateMachine->parseErrors().count());
+    QVERIFY(!stateMachine->parseErrors().size());
 
     const QMetaObject *metaObject = stateMachine->metaObject();
 

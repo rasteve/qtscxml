@@ -314,7 +314,7 @@ void tst_QStateMachine::transitionToRootState()
 
     machine.start();
 
-    QTRY_COMPARE(machine.configuration().count(), 1);
+    QTRY_COMPARE(machine.configuration().size(), 1);
     QTRY_VERIFY(machine.configuration().contains(initialState));
     TEST_ACTIVE_CHANGED(initialState, 1);
 
@@ -380,7 +380,7 @@ void tst_QStateMachine::transitionEntersParent()
     QTRY_COMPARE(entryController->property("grandParentEntered").toBool(), false);
     QTRY_COMPARE(entryController->property("parentEntered").toBool(), false);
     QTRY_COMPARE(entryController->property("stateEntered").toBool(), false);
-    QTRY_COMPARE(machine.configuration().count(), 2);
+    QTRY_COMPARE(machine.configuration().size(), 2);
     QTRY_VERIFY(machine.configuration().contains(greatGrandParent));
     QTRY_VERIFY(machine.configuration().contains(initialStateOfGreatGrandParent));
 
@@ -396,7 +396,7 @@ void tst_QStateMachine::transitionEntersParent()
     QTRY_COMPARE(entryController->property("grandParentEntered").toBool(), true);
     QTRY_COMPARE(entryController->property("parentEntered").toBool(), true);
     QTRY_COMPARE(entryController->property("stateEntered").toBool(), true);
-    QTRY_COMPARE(machine.configuration().count(), 4);
+    QTRY_COMPARE(machine.configuration().size(), 4);
     QTRY_VERIFY(machine.configuration().contains(greatGrandParent));
     QTRY_VERIFY(machine.configuration().contains(grandParent));
     QTRY_VERIFY(machine.configuration().contains(parent));
@@ -472,17 +472,17 @@ void tst_QStateMachine::customGlobalErrorState()
     machine.start();
 
     QTRY_COMPARE(machine.errorState(), static_cast<QAbstractState*>(customErrorState));
-    QTRY_COMPARE(machine.configuration().count(), 1);
+    QTRY_COMPARE(machine.configuration().size(), 1);
     QTRY_VERIFY(machine.configuration().contains(initialState));
 
     machine.postEvent(new QEvent(QEvent::Type(QEvent::User + 1)));
-    QCOMPARE(machine.configuration().count(), 1);
+    QCOMPARE(machine.configuration().size(), 1);
     QVERIFY(machine.configuration().contains(initialState));
 
     QCoreApplication::processEvents();
 
     QTRY_COMPARE(machine.isRunning(), true);
-    QTRY_COMPARE(machine.configuration().count(), 1);
+    QTRY_COMPARE(machine.configuration().size(), 1);
     QTRY_VERIFY(machine.configuration().contains(customErrorState));
     QTRY_COMPARE(customErrorState->error, QStateMachine::NoInitialStateError);
     QTRY_COMPARE(customErrorState->errorString, QString::fromLatin1("Missing initial state in compound state 'brokenState'"));
@@ -518,7 +518,7 @@ void tst_QStateMachine::customLocalErrorStateInBrokenState()
     QCoreApplication::processEvents();
 
     QTRY_COMPARE(machine.isRunning(), true);
-    QTRY_COMPARE(machine.configuration().count(), 1);
+    QTRY_COMPARE(machine.configuration().size(), 1);
     QTRY_VERIFY(machine.configuration().contains(customErrorState));
     QTRY_COMPARE(customErrorState->error, QStateMachine::NoInitialStateError);
 }
@@ -588,7 +588,7 @@ void tst_QStateMachine::customLocalErrorStateInParentOfBrokenState()
     QCoreApplication::processEvents();
 
     QTRY_COMPARE(machine.isRunning(), true);
-    QTRY_COMPARE(machine.configuration().count(), 1);
+    QTRY_COMPARE(machine.configuration().size(), 1);
     QTRY_VERIFY(machine.configuration().contains(customErrorState));
 }
 
@@ -627,7 +627,7 @@ void tst_QStateMachine::customLocalErrorStateOverridesParent()
     machine.postEvent(new QEvent(QEvent::Type(QEvent::User + 1)));
     QCoreApplication::processEvents();
 
-    QTRY_COMPARE(machine.configuration().count(), 1);
+    QTRY_COMPARE(machine.configuration().size(), 1);
     QTRY_VERIFY(machine.configuration().contains(customErrorStateForBrokenState));
     QTRY_COMPARE(customErrorStateForBrokenState->error, QStateMachine::NoInitialStateError);
     QTRY_COMPARE(customErrorStateForParent->error, QStateMachine::NoError);
@@ -667,7 +667,7 @@ void tst_QStateMachine::errorStateHasChildren()
     QCoreApplication::processEvents();
 
     QTRY_COMPARE(machine.isRunning(), true);
-    QTRY_COMPARE(machine.configuration().count(), 2);
+    QTRY_COMPARE(machine.configuration().size(), 2);
     QTRY_VERIFY(machine.configuration().contains(customErrorState));
     QTRY_VERIFY(machine.configuration().contains(childOfErrorState));
 }
@@ -789,7 +789,7 @@ void tst_QStateMachine::errorStateEntersParentFirst()
     QTRY_COMPARE(entryController->property("grandParentEntered").toBool(), false);
     QTRY_COMPARE(entryController->property("parentEntered").toBool(), false);
     QTRY_COMPARE(entryController->property("errorStateEntered").toBool(), false);
-    QTRY_COMPARE(machine.configuration().count(), 2);
+    QTRY_COMPARE(machine.configuration().size(), 2);
     QTRY_VERIFY(machine.configuration().contains(greatGrandParent));
     QTRY_VERIFY(machine.configuration().contains(initialStateOfGreatGrandParent));
 
@@ -805,7 +805,7 @@ void tst_QStateMachine::errorStateEntersParentFirst()
     QTRY_COMPARE(entryController->property("grandParentEntered").toBool(), true);
     QTRY_COMPARE(entryController->property("parentEntered").toBool(), true);
     QTRY_COMPARE(entryController->property("errorStateEntered").toBool(), true);
-    QTRY_COMPARE(machine.configuration().count(), 4);
+    QTRY_COMPARE(machine.configuration().size(), 4);
     QTRY_VERIFY(machine.configuration().contains(greatGrandParent));
     QTRY_VERIFY(machine.configuration().contains(grandParent));
     QTRY_VERIFY(machine.configuration().contains(parent));
@@ -922,7 +922,7 @@ void tst_QStateMachine::historyStateHasNowhereToGo()
     QCoreApplication::processEvents();
 
     QTRY_COMPARE(machine.isRunning(), true);
-    QTRY_COMPARE(machine.configuration().count(), 1);
+    QTRY_COMPARE(machine.configuration().size(), 1);
     QTRY_VERIFY(machine.configuration().contains(machine.errorState()));
     QTRY_COMPARE(machine.error(), QStateMachine::NoDefaultStateInHistoryStateError);
     QTRY_COMPARE(machine.errorString(), QString::fromLatin1("Missing default state in history state 'historyState'"));
@@ -950,15 +950,15 @@ void tst_QStateMachine::historyStateAfterRestart()
         QSignalSpy startedSpy(&machine, &QStateMachine::started);
         QTRY_VERIFY(startedSpy.isValid());
         machine.start();
-        QTRY_COMPARE(startedSpy.count(), 1);
+        QTRY_COMPARE(startedSpy.size(), 1);
         TEST_RUNNING_CHANGED(true);
-        QTRY_COMPARE(machine.configuration().count(), 1);
+        QTRY_COMPARE(machine.configuration().size(), 1);
         QTRY_VERIFY(machine.configuration().contains(s1));
 
         // s1 -> s2h -> s21 (default state)
         machine.postEvent(new QEvent(QEvent::User));
         QCoreApplication::processEvents();
-        QTRY_COMPARE(machine.configuration().count(), 2);
+        QTRY_COMPARE(machine.configuration().size(), 2);
         QTRY_VERIFY(machine.configuration().contains(s2));
         // This used to fail on the 2nd run because the
         // history had not been cleared.
@@ -967,27 +967,27 @@ void tst_QStateMachine::historyStateAfterRestart()
         // s21 -> s22
         machine.postEvent(new QEvent(QEvent::User));
         QCoreApplication::processEvents();
-        QTRY_COMPARE(machine.configuration().count(), 2);
+        QTRY_COMPARE(machine.configuration().size(), 2);
         QTRY_VERIFY(machine.configuration().contains(s2));
         QTRY_VERIFY(machine.configuration().contains(s22));
 
         // s2 -> s1 (s22 saved in s2h)
         machine.postEvent(new QEvent(QEvent::User));
         QCoreApplication::processEvents();
-        QTRY_COMPARE(machine.configuration().count(), 1);
+        QTRY_COMPARE(machine.configuration().size(), 1);
         QTRY_VERIFY(machine.configuration().contains(s1));
 
         // s1 -> s2h -> s22 (saved state)
         machine.postEvent(new QEvent(QEvent::User));
         QCoreApplication::processEvents();
-        QTRY_COMPARE(machine.configuration().count(), 2);
+        QTRY_COMPARE(machine.configuration().size(), 2);
         QTRY_VERIFY(machine.configuration().contains(s2));
         QTRY_VERIFY(machine.configuration().contains(s22));
 
         QSignalSpy stoppedSpy(&machine, &QStateMachine::stopped);
         QTRY_VERIFY(stoppedSpy.isValid());
         machine.stop();
-        QTRY_COMPARE(stoppedSpy.count(), 1);
+        QTRY_COMPARE(stoppedSpy.size(), 1);
         TEST_RUNNING_CHANGED(false);
     }
 }
@@ -1306,36 +1306,36 @@ void tst_QStateMachine::stateEntryAndExit()
 
         machine.start();
 
-        QTRY_COMPARE(startedSpy.count(), 1);
-        QTRY_COMPARE(finishedSpy.count(), 1);
-        QTRY_COMPARE(stoppedSpy.count(), 0);
+        QTRY_COMPARE(startedSpy.size(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
+        QTRY_COMPARE(stoppedSpy.size(), 0);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
-        QCOMPARE(machine.configuration().count(), 1);
+        QCOMPARE(machine.configuration().size(), 1);
         QVERIFY(machine.configuration().contains(s3));
 
         // s1 is entered
-        QCOMPARE(s1->events.count(), 2);
+        QCOMPARE(s1->events.size(), 2);
         QCOMPARE(s1->events.at(0).first, 0);
         QCOMPARE(s1->events.at(0).second, TestState::Entry);
         // s1 is exited
         QCOMPARE(s1->events.at(1).first, 1);
         QCOMPARE(s1->events.at(1).second, TestState::Exit);
         // t is triggered
-        QCOMPARE(t->triggers.count(), 1);
+        QCOMPARE(t->triggers.size(), 1);
         QCOMPARE(t->triggers.at(0), 2);
         // s2 is entered
-        QCOMPARE(s2->events.count(), 2);
+        QCOMPARE(s2->events.size(), 2);
         QCOMPARE(s2->events.at(0).first, 3);
         QCOMPARE(s2->events.at(0).second, TestState::Entry);
         // s2 is exited
         QCOMPARE(s2->events.at(1).first, 4);
         QCOMPARE(s2->events.at(1).second, TestState::Exit);
 
-        QCOMPARE(s1EnteredSpy.count(), 1);
-        QCOMPARE(s1ExitedSpy.count(), 1);
-        QCOMPARE(tTriggeredSpy.count(), 1);
-        QCOMPARE(s2EnteredSpy.count(), 1);
-        QCOMPARE(s2ExitedSpy.count(), 1);
+        QCOMPARE(s1EnteredSpy.size(), 1);
+        QCOMPARE(s1ExitedSpy.size(), 1);
+        QCOMPARE(tTriggeredSpy.size(), 1);
+        QCOMPARE(s2EnteredSpy.size(), 1);
+        QCOMPARE(s2ExitedSpy.size(), 1);
     }
     // Two top-level states, one has two child states
     {
@@ -1364,28 +1364,28 @@ void tst_QStateMachine::stateEntryAndExit()
         globalTick = 0;
         machine.start();
 
-        QTRY_COMPARE(startedSpy.count(), 1);
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(startedSpy.size(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
-        QCOMPARE(machine.configuration().count(), 1);
+        QCOMPARE(machine.configuration().size(), 1);
         QVERIFY(machine.configuration().contains(s3));
 
         // s1 is entered
-        QCOMPARE(s1->events.count(), 2);
+        QCOMPARE(s1->events.size(), 2);
         QCOMPARE(s1->events.at(0).first, 0);
         QCOMPARE(s1->events.at(0).second, TestState::Entry);
         // s11 is entered
-        QCOMPARE(s11->events.count(), 2);
+        QCOMPARE(s11->events.size(), 2);
         QCOMPARE(s11->events.at(0).first, 1);
         QCOMPARE(s11->events.at(0).second, TestState::Entry);
         // s11 is exited
         QCOMPARE(s11->events.at(1).first, 2);
         QCOMPARE(s11->events.at(1).second, TestState::Exit);
         // t1 is triggered
-        QCOMPARE(t1->triggers.count(), 1);
+        QCOMPARE(t1->triggers.size(), 1);
         QCOMPARE(t1->triggers.at(0), 3);
         // s12 is entered
-        QCOMPARE(s12->events.count(), 2);
+        QCOMPARE(s12->events.size(), 2);
         QCOMPARE(s12->events.at(0).first, 4);
         QCOMPARE(s12->events.at(0).second, TestState::Entry);
         // s12 is exited
@@ -1395,10 +1395,10 @@ void tst_QStateMachine::stateEntryAndExit()
         QCOMPARE(s1->events.at(1).first, 6);
         QCOMPARE(s1->events.at(1).second, TestState::Exit);
         // t2 is triggered
-        QCOMPARE(t2->triggers.count(), 1);
+        QCOMPARE(t2->triggers.size(), 1);
         QCOMPARE(t2->triggers.at(0), 7);
         // s2 is entered
-        QCOMPARE(s2->events.count(), 2);
+        QCOMPARE(s2->events.size(), 2);
         QCOMPARE(s2->events.at(0).first, 8);
         QCOMPARE(s2->events.at(0).second, TestState::Entry);
         // s2 is exited
@@ -1440,7 +1440,7 @@ void tst_QStateMachine::assignProperty()
         QSignalSpy propertiesAssignedSpy(s1, &QState::propertiesAssigned);
         QVERIFY(propertiesAssignedSpy.isValid());
         machine.start();
-        QTRY_COMPARE(propertiesAssignedSpy.count(), 1);
+        QTRY_COMPARE(propertiesAssignedSpy.size(), 1);
         TEST_ACTIVE_CHANGED(s1, 8);
     }
 
@@ -1504,7 +1504,7 @@ void tst_QStateMachine::assignPropertyWithAnimation()
         QSignalSpy finishedSpy(&machine, &QStateMachine::finished);
         QVERIFY(finishedSpy.isValid());
         machine.start();
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
         QCOMPARE(obj.property("foo").toInt(), 456);
         QCOMPARE(obj.property("bar").toInt(), 789);
@@ -1540,7 +1540,7 @@ void tst_QStateMachine::assignPropertyWithAnimation()
         QVERIFY(finishedSpy.isValid());
         QVERIFY(runningSpy.isValid());
         machine.start();
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
         QCOMPARE(obj.property("foo").toInt(), 456);
         QCOMPARE(obj.property("bar").toInt(), 789);
@@ -1576,7 +1576,7 @@ void tst_QStateMachine::assignPropertyWithAnimation()
         QVERIFY(finishedSpy.isValid());
         QVERIFY(runningSpy.isValid());
         machine.start();
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
         QCOMPARE(obj.property("foo").toInt(), 456);
         QCOMPARE(obj.property("bar").toInt(), 654);
@@ -1635,7 +1635,7 @@ void tst_QStateMachine::assignPropertyWithAnimation()
         QVERIFY(finishedSpy.isValid());
         QVERIFY(runningSpy.isValid());
         machine.start();
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
         QCOMPARE(obj.property("foo").toInt(), 321);
         QCOMPARE(obj.property("bar").toInt(), 789);
@@ -1773,7 +1773,7 @@ void tst_QStateMachine::postEvent()
         QVERIFY(finishedSpy.isValid());
         QVERIFY(runningSpy.isValid());
         machine.start();
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
         QCOMPARE(machine.configuration().size(), 1);
         QVERIFY(machine.configuration().contains(s2));
@@ -1785,7 +1785,7 @@ void tst_QStateMachine::postEvent()
         s1->addTransition(new StringTransition("b", s3));
         finishedSpy.clear();
         machine.start();
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         QCOMPARE(machine.configuration().size(), 1);
         QVERIFY(machine.configuration().contains(s3));
         TEST_ACTIVE_CHANGED(s1, 4);
@@ -1809,7 +1809,7 @@ void tst_QStateMachine::cancelDelayedEvent()
     QVERIFY(startedSpy.isValid());
     QVERIFY(runningSpy.isValid());
     machine.start();
-    QTRY_COMPARE(startedSpy.count(), 1);
+    QTRY_COMPARE(startedSpy.size(), 1);
     TEST_RUNNING_CHANGED(true);
     TEST_ACTIVE_CHANGED(s1, 1);
     QCOMPARE(machine.configuration().size(), 1);
@@ -1829,7 +1829,7 @@ void tst_QStateMachine::cancelDelayedEvent()
 
     QSignalSpy finishedSpy(&machine, &QStateMachine::finished);
     QVERIFY(finishedSpy.isValid());
-    QTRY_COMPARE(finishedSpy.count(), 1);
+    QTRY_COMPARE(finishedSpy.size(), 1);
     TEST_RUNNING_CHANGED(false);
     TEST_ACTIVE_CHANGED(s1, 2);
     QCOMPARE(machine.configuration().size(), 1);
@@ -1850,7 +1850,7 @@ void tst_QStateMachine::postDelayedEventAndStop()
     QSignalSpy startedSpy(&machine, &QStateMachine::started);
     QVERIFY(startedSpy.isValid());
     machine.start();
-    QTRY_COMPARE(startedSpy.count(), 1);
+    QTRY_COMPARE(startedSpy.size(), 1);
     TEST_RUNNING_CHANGED(true);
     TEST_ACTIVE_CHANGED(s1, 1);
     QCOMPARE(machine.configuration().size(), 1);
@@ -1861,14 +1861,14 @@ void tst_QStateMachine::postDelayedEventAndStop()
     QSignalSpy stoppedSpy(&machine, &QStateMachine::stopped);
     QVERIFY(stoppedSpy.isValid());
     machine.stop();
-    QTRY_COMPARE(stoppedSpy.count(), 1);
+    QTRY_COMPARE(stoppedSpy.size(), 1);
     TEST_RUNNING_CHANGED(false);
     TEST_ACTIVE_CHANGED(s1, 1);
     QCOMPARE(machine.configuration().size(), 1);
     QVERIFY(machine.configuration().contains(s1));
 
     machine.start();
-    QTRY_COMPARE(startedSpy.count(), 2);
+    QTRY_COMPARE(startedSpy.size(), 2);
     TEST_RUNNING_CHANGED(true);
     TEST_ACTIVE_CHANGED(s1, 3);
     QCOMPARE(machine.configuration().size(), 1);
@@ -1877,11 +1877,11 @@ void tst_QStateMachine::postDelayedEventAndStop()
     int id2 = machine.postDelayedEvent(new StringEvent("a"), 1000);
     QVERIFY(id2 != -1);
     machine.stop();
-    QTRY_COMPARE(stoppedSpy.count(), 2);
+    QTRY_COMPARE(stoppedSpy.size(), 2);
     TEST_RUNNING_CHANGED(false);
     TEST_ACTIVE_CHANGED(s1, 3);
     machine.start();
-    QTRY_COMPARE(startedSpy.count(), 3);
+    QTRY_COMPARE(startedSpy.size(), 3);
     TEST_RUNNING_CHANGED(true);
     QTestEventLoop::instance().enterLoop(2);
     QCOMPARE(machine.configuration().size(), 1);
@@ -1936,7 +1936,7 @@ void tst_QStateMachine::postDelayedEventFromThread()
     QSignalSpy finishedSpy(&machine, &QStateMachine::finished);
     QVERIFY(finishedSpy.isValid());
     machine.start();
-    QTRY_COMPARE(finishedSpy.count(), 1);
+    QTRY_COMPARE(finishedSpy.size(), 1);
     TEST_RUNNING_CHANGED_STARTED_STOPPED;
     TEST_ACTIVE_CHANGED(s1, 2);
     QVERIFY(poster.firstEventWasCancelled);
@@ -1953,15 +1953,15 @@ void tst_QStateMachine::stopAndPostEvent()
     QSignalSpy startedSpy(&machine, &QStateMachine::started);
     QVERIFY(startedSpy.isValid());
     machine.start();
-    QTRY_COMPARE(startedSpy.count(), 1);
+    QTRY_COMPARE(startedSpy.size(), 1);
     TEST_RUNNING_CHANGED(true);
     TEST_ACTIVE_CHANGED(s1, 1);
     QSignalSpy stoppedSpy(&machine, &QStateMachine::stopped);
     QVERIFY(stoppedSpy.isValid());
     machine.stop();
-    QCOMPARE(stoppedSpy.count(), 0);
+    QCOMPARE(stoppedSpy.size(), 0);
     machine.postEvent(new QEvent(QEvent::User));
-    QTRY_COMPARE(stoppedSpy.count(), 1);
+    QTRY_COMPARE(stoppedSpy.size(), 1);
     TEST_RUNNING_CHANGED(false);
     TEST_ACTIVE_CHANGED(s1, 1);
     QCoreApplication::processEvents();
@@ -1985,7 +1985,7 @@ void tst_QStateMachine::stateFinished()
     QSignalSpy finishedSpy(&machine, &QStateMachine::finished);
     QVERIFY(finishedSpy.isValid());
     machine.start();
-    QTRY_COMPARE(finishedSpy.count(), 1);
+    QTRY_COMPARE(finishedSpy.size(), 1);
     TEST_RUNNING_CHANGED_STARTED_STOPPED;
     TEST_ACTIVE_CHANGED(s1, 2);
     TEST_ACTIVE_CHANGED(s1_1, 2);
@@ -2029,17 +2029,17 @@ void tst_QStateMachine::parallelStates()
     QVERIFY(finishedSpy.isValid());
     globalTick = 0;
     machine.start();
-    QTRY_COMPARE(finishedSpy.count(), 1);
+    QTRY_COMPARE(finishedSpy.size(), 1);
     TEST_RUNNING_CHANGED_STARTED_STOPPED;
     QCOMPARE(machine.configuration().size(), 1);
     QVERIFY(machine.configuration().contains(s2));
 
-    QCOMPARE(s1->events.count(), 2);
+    QCOMPARE(s1->events.size(), 2);
     // s1 is entered
     QCOMPARE(s1->events.at(0).first, 0);
     QCOMPARE(s1->events.at(0).second, TestState::Entry);
     // s1_1 is entered
-    QCOMPARE(s1_1->events.count(), 2);
+    QCOMPARE(s1_1->events.size(), 2);
     QCOMPARE(s1_1->events.at(0).first, 1);
     QCOMPARE(s1_1->events.at(0).second, TestState::Entry);
     // s1_2 is entered
@@ -2082,13 +2082,13 @@ void tst_QStateMachine::parallelRootState()
     machine.start();
     QTest::ignoreMessage(QtWarningMsg, "Unrecoverable error detected in running state machine: "
                                        "Child mode of state machine '' is not 'ExclusiveStates'.");
-    QTRY_COMPARE(startedSpy.count(), 1);
+    QTRY_COMPARE(startedSpy.size(), 1);
     QCOMPARE(machine.configuration().size(), 4);
     QVERIFY(machine.configuration().contains(s1));
     QVERIFY(machine.configuration().contains(s1_f));
     QVERIFY(machine.configuration().contains(s2));
     QVERIFY(machine.configuration().contains(s2_f));
-    QTRY_COMPARE(finishedSpy.count(), 1);
+    QTRY_COMPARE(finishedSpy.size(), 1);
     TEST_RUNNING_CHANGED_STARTED_STOPPED;
     TEST_ACTIVE_CHANGED(s1, 1);
     TEST_ACTIVE_CHANGED(s2, 1);
@@ -2224,7 +2224,7 @@ void tst_QStateMachine::allSourceToTargetConfigurations()
     TEST_ACTIVE_CHANGED(s21, 8);
     TEST_ACTIVE_CHANGED(s211, 8);
 
-    QTRY_COMPARE(finishedSpy.count(), 1);
+    QTRY_COMPARE(finishedSpy.size(), 1);
     TEST_RUNNING_CHANGED_STARTED_STOPPED;
 }
 
@@ -2323,7 +2323,7 @@ void tst_QStateMachine::signalTransitions()
 
         emitter.emitSignalWithNoArg();
 
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
         TEST_ACTIVE_CHANGED(s0, 2);
         emitter.emitSignalWithNoArg();
@@ -2333,7 +2333,7 @@ void tst_QStateMachine::signalTransitions()
         machine.start();
         QCoreApplication::processEvents();
         emitter.emitSignalWithIntArg(123);
-        QTRY_COMPARE(finishedSpy.count(), 2);
+        QTRY_COMPARE(finishedSpy.size(), 2);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
         TEST_ACTIVE_CHANGED(s0, 4);
 
@@ -2342,7 +2342,7 @@ void tst_QStateMachine::signalTransitions()
         trans->setSignal(SIGNAL(signalWithNoArg()));
         QCOMPARE(trans->signal(), QByteArray(SIGNAL(signalWithNoArg())));
         emitter.emitSignalWithNoArg();
-        QTRY_COMPARE(finishedSpy.count(), 3);
+        QTRY_COMPARE(finishedSpy.size(), 3);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
         TEST_ACTIVE_CHANGED(s0, 6);
 
@@ -2351,7 +2351,7 @@ void tst_QStateMachine::signalTransitions()
         QCoreApplication::processEvents();
         trans->setSenderObject(&emitter2);
         emitter2.emitSignalWithNoArg();
-        QTRY_COMPARE(finishedSpy.count(), 4);
+        QTRY_COMPARE(finishedSpy.size(), 4);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
         TEST_ACTIVE_CHANGED(s0, 8);
 
@@ -2387,7 +2387,7 @@ void tst_QStateMachine::signalTransitions()
         TEST_ACTIVE_CHANGED(s0, 1);
         emitter.emitSignalWithNoArg();
 
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
         TEST_ACTIVE_CHANGED(s0, 2);
 
@@ -2397,7 +2397,7 @@ void tst_QStateMachine::signalTransitions()
         QCoreApplication::processEvents();
         TEST_ACTIVE_CHANGED(s0, 3);
         emitter.emitSignalWithIntArg(123);
-        QTRY_COMPARE(finishedSpy.count(), 2);
+        QTRY_COMPARE(finishedSpy.size(), 2);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
         TEST_ACTIVE_CHANGED(s0, 4);
     }
@@ -2420,7 +2420,7 @@ void tst_QStateMachine::signalTransitions()
         TEST_ACTIVE_CHANGED(s0, 1);
         emitter.emitSignalWithIntArg(123);
 
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
         TEST_ACTIVE_CHANGED(s0, 2);
         QCOMPARE(trans->eventTestSenderReceived(), (QObject*)&emitter);
@@ -2453,7 +2453,7 @@ void tst_QStateMachine::signalTransitions()
         QString testString = QString::fromLatin1("hello");
         emitter.emitSignalWithStringArg(testString);
 
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
         TEST_ACTIVE_CHANGED(s0, 2);
         QCOMPARE(trans->eventTestSenderReceived(), (QObject*)&emitter);
@@ -2494,7 +2494,7 @@ void tst_QStateMachine::signalTransitions()
 
         emitter.emitSignalWithNoArg();
 
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
         TEST_ACTIVE_CHANGED(s0, 2);
     }
@@ -2582,22 +2582,22 @@ void tst_QStateMachine::signalTransitions()
 
         machine.start();
         TEST_ACTIVE_CHANGED(s0, 1);
-        QTRY_COMPARE(startedSpy.count(), 1);
+        QTRY_COMPARE(startedSpy.size(), 1);
         TEST_RUNNING_CHANGED(true);
         emitter.emitSignalWithNoArg();
         TEST_ACTIVE_CHANGED(s0, 2);
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED(false);
         QCOMPARE(machine.configuration().size(), 1);
         QVERIFY(machine.configuration().contains(s1));
 
         machine.start();
         TEST_ACTIVE_CHANGED(s0, 3);
-        QTRY_COMPARE(startedSpy.count(), 2);
+        QTRY_COMPARE(startedSpy.size(), 2);
         TEST_RUNNING_CHANGED(true);
         emitter.emitSignalWithIntArg(123);
         TEST_ACTIVE_CHANGED(s0, 4);
-        QTRY_COMPARE(finishedSpy.count(), 2);
+        QTRY_COMPARE(finishedSpy.size(), 2);
         TEST_RUNNING_CHANGED(false);
         QCOMPARE(machine.configuration().size(), 1);
         QVERIFY(machine.configuration().contains(s2));
@@ -2605,11 +2605,11 @@ void tst_QStateMachine::signalTransitions()
         machine.start();
         QCoreApplication::processEvents();
         TEST_ACTIVE_CHANGED(s0, 5);
-        QTRY_COMPARE(startedSpy.count(), 3);
+        QTRY_COMPARE(startedSpy.size(), 3);
         TEST_RUNNING_CHANGED(true);
         emitter.emitSignalWithStringArg("hello");
         TEST_ACTIVE_CHANGED(s0, 6);
-        QTRY_COMPARE(finishedSpy.count(), 3);
+        QTRY_COMPARE(finishedSpy.size(), 3);
         TEST_RUNNING_CHANGED(false);
         QCOMPARE(machine.configuration().size(), 1);
         QVERIFY(machine.configuration().contains(s3));
@@ -2639,14 +2639,14 @@ void tst_QStateMachine::signalTransitions()
         machine.start();
         QCoreApplication::processEvents();
         TEST_ACTIVE_CHANGED(s0, 1);
-        QTRY_COMPARE(startedSpy.count(), 1);
-        QCOMPARE(finishedSpy.count(), 0);
+        QTRY_COMPARE(startedSpy.size(), 1);
+        QCOMPARE(finishedSpy.size(), 0);
         TEST_RUNNING_CHANGED(true);
 
         emitter.emitSignalWithNoArg();
 
         TEST_ACTIVE_CHANGED(s0, 2);
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED(false);
     }
 }
@@ -2710,7 +2710,7 @@ void tst_QStateMachine::eventTransitions()
         QCoreApplication::processEvents();
 
         QTest::mousePress(&button, Qt::LeftButton);
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
 
         QTest::mousePress(&button, Qt::LeftButton);
@@ -2720,14 +2720,14 @@ void tst_QStateMachine::eventTransitions()
         machine.start();
         QCoreApplication::processEvents();
         QTest::mouseRelease(&button, Qt::LeftButton);
-        QTRY_COMPARE(finishedSpy.count(), 2);
+        QTRY_COMPARE(finishedSpy.size(), 2);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
 
         machine.start();
         QCoreApplication::processEvents();
         trans->setEventType(QEvent::MouseButtonPress);
         QTest::mousePress(&button, Qt::LeftButton);
-        QTRY_COMPARE(finishedSpy.count(), 3);
+        QTRY_COMPARE(finishedSpy.size(), 3);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
 
         QPushButton button2;
@@ -2735,7 +2735,7 @@ void tst_QStateMachine::eventTransitions()
         QCoreApplication::processEvents();
         trans->setEventSource(&button2);
         QTest::mousePress(&button2, Qt::LeftButton);
-        QTRY_COMPARE(finishedSpy.count(), 4);
+        QTRY_COMPARE(finishedSpy.size(), 4);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
     }
     for (int x = 0; x < 2; ++x) {
@@ -2771,7 +2771,7 @@ void tst_QStateMachine::eventTransitions()
         QTest::mousePress(&button, Qt::LeftButton);
         QCoreApplication::processEvents();
 
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
     }
     {
@@ -2800,7 +2800,7 @@ void tst_QStateMachine::eventTransitions()
         QTest::mousePress(&button, Qt::LeftButton);
         QCoreApplication::processEvents();
 
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED(false);
     }
 
@@ -2827,7 +2827,7 @@ void tst_QStateMachine::eventTransitions()
         QTest::keyPress(&button, Qt::Key_A);
         QCoreApplication::processEvents();
 
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED(false);
     }
     {
@@ -2857,7 +2857,7 @@ void tst_QStateMachine::eventTransitions()
         QTest::keyPress(&button, Qt::Key_A);
         QCoreApplication::processEvents();
 
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED(false);
     }
     // Multiple transitions for same (object,event)
@@ -2931,19 +2931,19 @@ void tst_QStateMachine::eventTransitions()
         machine.setInitialState(s0);
 
         machine.start();
-        QTRY_COMPARE(startedSpy.count(), 1);
+        QTRY_COMPARE(startedSpy.size(), 1);
         TEST_RUNNING_CHANGED(true);
         QTest::mousePress(&button, Qt::LeftButton);
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED(false);
         QCOMPARE(machine.configuration().size(), 1);
         QVERIFY(machine.configuration().contains(s1));
 
         machine.start();
-        QTRY_COMPARE(startedSpy.count(), 2);
+        QTRY_COMPARE(startedSpy.size(), 2);
         TEST_RUNNING_CHANGED(true);
         QTest::mouseRelease(&button, Qt::LeftButton);
-        QTRY_COMPARE(finishedSpy.count(), 2);
+        QTRY_COMPARE(finishedSpy.size(), 2);
         TEST_RUNNING_CHANGED(false);
         QCOMPARE(machine.configuration().size(), 1);
         QVERIFY(machine.configuration().contains(s2));
@@ -2965,7 +2965,7 @@ void tst_QStateMachine::eventTransitions()
         machine.setInitialState(s0);
         machine.start();
         QTest::ignoreMessage(QtWarningMsg, "QObject event transitions are not supported for custom types");
-        QTRY_COMPARE(startedSpy.count(), 1);
+        QTRY_COMPARE(startedSpy.size(), 1);
         TEST_RUNNING_CHANGED(true);
     }
     // custom transition
@@ -2991,7 +2991,7 @@ void tst_QStateMachine::eventTransitions()
         QTest::mousePress(&button, Qt::LeftButton);
         QCoreApplication::processEvents();
 
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED(false);
 
         QCOMPARE(trans->eventSourceReceived(), (QObject*)&button);
@@ -3019,12 +3019,12 @@ void tst_QStateMachine::graphicsSceneEventTransitions()
     QVERIFY(finishedSpy.isValid());
     QVERIFY(runningSpy.isValid());
     machine.start();
-    QTRY_COMPARE(startedSpy.count(), 1);
-    QCOMPARE(finishedSpy.count(), 0);
+    QTRY_COMPARE(startedSpy.size(), 1);
+    QCOMPARE(finishedSpy.size(), 0);
     TEST_RUNNING_CHANGED(true);
     QGraphicsSceneMouseEvent mouseEvent(QEvent::GraphicsSceneMouseMove);
     scene.sendEvent(textItem, &mouseEvent);
-    QTRY_COMPARE(finishedSpy.count(), 1);
+    QTRY_COMPARE(finishedSpy.size(), 1);
     TEST_RUNNING_CHANGED(false);
 }
 #endif
@@ -3122,7 +3122,7 @@ void tst_QStateMachine::historyStates()
         QCOMPARE(machine.configuration().size(), 1);
         QVERIFY(machine.configuration().contains(s2));
 
-        QTRY_COMPARE(finishedSpy.count(), 1);
+        QTRY_COMPARE(finishedSpy.size(), 1);
         TEST_RUNNING_CHANGED_STARTED_STOPPED;
     }
 }
@@ -3143,16 +3143,16 @@ void tst_QStateMachine::startAndStop()
     QVERIFY(!machine.isRunning());
     QTest::ignoreMessage(QtWarningMsg, "QStateMachine::start: No initial state set for machine. Refusing to start.");
     machine.start();
-    QCOMPARE(startedSpy.count(), 0);
-    QCOMPARE(stoppedSpy.count(), 0);
-    QCOMPARE(finishedSpy.count(), 0);
-    QCOMPARE(runningSpy.count(), 0);
+    QCOMPARE(startedSpy.size(), 0);
+    QCOMPARE(stoppedSpy.size(), 0);
+    QCOMPARE(finishedSpy.size(), 0);
+    QCOMPARE(runningSpy.size(), 0);
     QVERIFY(!machine.isRunning());
     machine.stop();
-    QCOMPARE(startedSpy.count(), 0);
-    QCOMPARE(stoppedSpy.count(), 0);
-    QCOMPARE(finishedSpy.count(), 0);
-    QCOMPARE(runningSpy.count(), 0);
+    QCOMPARE(startedSpy.size(), 0);
+    QCOMPARE(stoppedSpy.size(), 0);
+    QCOMPARE(finishedSpy.size(), 0);
+    QCOMPARE(runningSpy.size(), 0);
 
     QState *s1 = new QState(&machine);
     DEFINE_ACTIVE_SPY(s1);
@@ -3160,34 +3160,34 @@ void tst_QStateMachine::startAndStop()
     machine.start();
     TEST_ACTIVE_CHANGED(s1, 1);
     QTRY_COMPARE(machine.isRunning(), true);
-    QTRY_COMPARE(startedSpy.count(), 1);
-    QCOMPARE(stoppedSpy.count(), 0);
-    QCOMPARE(finishedSpy.count(), 0);
+    QTRY_COMPARE(startedSpy.size(), 1);
+    QCOMPARE(stoppedSpy.size(), 0);
+    QCOMPARE(finishedSpy.size(), 0);
     TEST_RUNNING_CHANGED(true);
-    QCOMPARE(machine.configuration().count(), 1);
+    QCOMPARE(machine.configuration().size(), 1);
     QVERIFY(machine.configuration().contains(s1));
 
     QTest::ignoreMessage(QtWarningMsg, "QStateMachine::start(): already running");
     machine.start();
-    QCOMPARE(runningSpy.count(), 0);
+    QCOMPARE(runningSpy.size(), 0);
 
     machine.stop();
     TEST_ACTIVE_CHANGED(s1, 1);
     QTRY_COMPARE(machine.isRunning(), false);
-    QTRY_COMPARE(stoppedSpy.count(), 1);
-    QCOMPARE(startedSpy.count(), 1);
-    QCOMPARE(finishedSpy.count(), 0);
+    QTRY_COMPARE(stoppedSpy.size(), 1);
+    QCOMPARE(startedSpy.size(), 1);
+    QCOMPARE(finishedSpy.size(), 0);
     TEST_RUNNING_CHANGED(false);
 
-    QCOMPARE(machine.configuration().count(), 1);
+    QCOMPARE(machine.configuration().size(), 1);
     QVERIFY(machine.configuration().contains(s1));
 
     machine.start();
     TEST_ACTIVE_CHANGED(s1, 3);
     machine.stop();
     TEST_ACTIVE_CHANGED(s1, 3);
-    QTRY_COMPARE(startedSpy.count(), 2);
-    QTRY_COMPARE(stoppedSpy.count(), 2);
+    QTRY_COMPARE(startedSpy.size(), 2);
+    QTRY_COMPARE(stoppedSpy.size(), 2);
     TEST_RUNNING_CHANGED_STARTED_STOPPED;
 }
 
@@ -3207,16 +3207,16 @@ void tst_QStateMachine::setRunning()
     QVERIFY(!machine.isRunning());
     QTest::ignoreMessage(QtWarningMsg, "QStateMachine::start: No initial state set for machine. Refusing to start.");
     machine.setRunning(true);
-    QCOMPARE(startedSpy.count(), 0);
-    QCOMPARE(stoppedSpy.count(), 0);
-    QCOMPARE(finishedSpy.count(), 0);
-    QCOMPARE(runningSpy.count(), 0);
+    QCOMPARE(startedSpy.size(), 0);
+    QCOMPARE(stoppedSpy.size(), 0);
+    QCOMPARE(finishedSpy.size(), 0);
+    QCOMPARE(runningSpy.size(), 0);
     QVERIFY(!machine.isRunning());
     machine.setRunning(false);
-    QCOMPARE(startedSpy.count(), 0);
-    QCOMPARE(stoppedSpy.count(), 0);
-    QCOMPARE(finishedSpy.count(), 0);
-    QCOMPARE(runningSpy.count(), 0);
+    QCOMPARE(startedSpy.size(), 0);
+    QCOMPARE(stoppedSpy.size(), 0);
+    QCOMPARE(finishedSpy.size(), 0);
+    QCOMPARE(runningSpy.size(), 0);
 
     QState *s1 = new QState(&machine);
     DEFINE_ACTIVE_SPY(s1);
@@ -3224,38 +3224,38 @@ void tst_QStateMachine::setRunning()
     machine.setRunning(true);
     TEST_ACTIVE_CHANGED(s1, 1);
     QTRY_COMPARE(machine.isRunning(), true);
-    QTRY_COMPARE(startedSpy.count(), 1);
-    QCOMPARE(stoppedSpy.count(), 0);
-    QCOMPARE(finishedSpy.count(), 0);
+    QTRY_COMPARE(startedSpy.size(), 1);
+    QCOMPARE(stoppedSpy.size(), 0);
+    QCOMPARE(finishedSpy.size(), 0);
     TEST_RUNNING_CHANGED(true);
-    QCOMPARE(machine.configuration().count(), 1);
+    QCOMPARE(machine.configuration().size(), 1);
     QVERIFY(machine.configuration().contains(s1));
 
     QTest::ignoreMessage(QtWarningMsg, "QStateMachine::start(): already running");
     machine.setRunning(true);
     TEST_ACTIVE_CHANGED(s1, 1);
-    QCOMPARE(runningSpy.count(), 0);
+    QCOMPARE(runningSpy.size(), 0);
 
     machine.setRunning(false);
     TEST_ACTIVE_CHANGED(s1, 1);
     QTRY_COMPARE(machine.isRunning(), false);
-    QTRY_COMPARE(stoppedSpy.count(), 1);
-    QCOMPARE(startedSpy.count(), 1);
-    QCOMPARE(finishedSpy.count(), 0);
+    QTRY_COMPARE(stoppedSpy.size(), 1);
+    QCOMPARE(startedSpy.size(), 1);
+    QCOMPARE(finishedSpy.size(), 0);
     TEST_RUNNING_CHANGED(false);
-    QCOMPARE(machine.configuration().count(), 1);
+    QCOMPARE(machine.configuration().size(), 1);
     QVERIFY(machine.configuration().contains(s1));
 
     machine.setRunning(false);
-    QCOMPARE(runningSpy.count(), 0);
+    QCOMPARE(runningSpy.size(), 0);
     TEST_ACTIVE_CHANGED(s1, 1);
 
     machine.start();
     TEST_ACTIVE_CHANGED(s1, 3);
     machine.setRunning(false);
     TEST_ACTIVE_CHANGED(s1, 3);
-    QTRY_COMPARE(startedSpy.count(), 2);
-    QTRY_COMPARE(stoppedSpy.count(), 2);
+    QTRY_COMPARE(startedSpy.size(), 2);
+    QTRY_COMPARE(stoppedSpy.size(), 2);
     TEST_RUNNING_CHANGED_STARTED_STOPPED;
     QState *s1_1 = new QState(s1);
     QFinalState *s1_2 = new QFinalState(s1);
@@ -3264,13 +3264,13 @@ void tst_QStateMachine::setRunning()
     QFinalState *s2 = new QFinalState(&machine);
     s1->addTransition(s1, SIGNAL(finished()), s2);
     machine.setRunning(false);
-    QCOMPARE(runningSpy.count(), 0);
+    QCOMPARE(runningSpy.size(), 0);
     machine.setRunning(true);
     TEST_ACTIVE_CHANGED(s1, 6);
     TEST_RUNNING_CHANGED_STARTED_STOPPED;
-    QTRY_COMPARE(startedSpy.count(), 3);
-    QCOMPARE(stoppedSpy.count(), 2);
-    QCOMPARE(finishedSpy.count(), 1);
+    QTRY_COMPARE(startedSpy.size(), 3);
+    QCOMPARE(stoppedSpy.size(), 2);
+    QCOMPARE(finishedSpy.size(), 1);
 }
 
 void tst_QStateMachine::targetStateWithNoParent()
@@ -3296,10 +3296,10 @@ void tst_QStateMachine::targetStateWithNoParent()
     QTest::ignoreMessage(QtWarningMsg, "Unrecoverable error detected in running state machine: "
                                        "Child mode of state machine '' is not 'ExclusiveStates'.");
     TEST_ACTIVE_CHANGED(s1, 2);
-    QTRY_COMPARE(startedSpy.count(), 1);
+    QTRY_COMPARE(startedSpy.size(), 1);
     QCOMPARE(machine.isRunning(), false);
-    QCOMPARE(stoppedSpy.count(), 1);
-    QCOMPARE(finishedSpy.count(), 0);
+    QCOMPARE(stoppedSpy.size(), 1);
+    QCOMPARE(finishedSpy.size(), 0);
     TEST_RUNNING_CHANGED_STARTED_STOPPED;
     QCOMPARE(machine.error(), QStateMachine::StateMachineChildModeSetToParallelError);
 }
@@ -3867,13 +3867,13 @@ void tst_QStateMachine::propertiesAssignedSignalTransitionsReuseAnimationGroup()
     TEST_ACTIVE_CHANGED(s1, 2);
     TEST_ACTIVE_CHANGED(s2, 2);
     TEST_ACTIVE_CHANGED(s3, 2);
-    QTRY_COMPARE(machineFinishedSpy.count(), 1);
+    QTRY_COMPARE(machineFinishedSpy.size(), 1);
     TEST_RUNNING_CHANGED_STARTED_STOPPED;
     QVERIFY(!machine.isRunning());
     QCOMPARE(machine.configuration().size(), 1);
     QVERIFY(machine.configuration().contains(s4));
     QCOMPARE(object->property("foo").toInt(), 789);
-    QCOMPARE(animationFinishedSpy.count(), 2);
+    QCOMPARE(animationFinishedSpy.size(), 2);
 
 }
 
@@ -4536,9 +4536,9 @@ void tst_QStateMachine::nestedStateMachines()
     QVERIFY(finishedSpy.isValid());
     QVERIFY(runningSpy.isValid());
     machine.start();
-    QTRY_COMPARE(startedSpy.count(), 1);
+    QTRY_COMPARE(startedSpy.size(), 1);
     TEST_RUNNING_CHANGED(true);
-    QTRY_COMPARE(machine.configuration().count(), 1+2*3);
+    QTRY_COMPARE(machine.configuration().size(), 1+2*3);
     QVERIFY(machine.configuration().contains(group));
     for (int i = 0; i < 3; ++i)
         QVERIFY(machine.configuration().contains(subMachines[i]));
@@ -4549,7 +4549,7 @@ void tst_QStateMachine::nestedStateMachines()
     for (int i = 0; i < 3; ++i)
         subMachines[i]->postEvent(new QEvent(QEvent::User));
 
-    QTRY_COMPARE(finishedSpy.count(), 1);
+    QTRY_COMPARE(finishedSpy.size(), 1);
     TEST_RUNNING_CHANGED(false);
     TEST_ACTIVE_CHANGED(group, 2);
 }
@@ -4565,7 +4565,7 @@ void tst_QStateMachine::goToState()
     QSignalSpy runningSpy(&machine, &QStateMachine::runningChanged);
     QVERIFY(runningSpy.isValid());
     machine.start();
-    QTRY_COMPARE(startedSpy.count(), 1);
+    QTRY_COMPARE(startedSpy.size(), 1);
     TEST_RUNNING_CHANGED(true);
 
     QStateMachinePrivate::get(&machine)->goToState(s2);
@@ -4607,7 +4607,7 @@ void tst_QStateMachine::goToStateFromSourceWithTransition()
     QSignalSpy startedSpy(&machine, &QStateMachine::started);
     QVERIFY(startedSpy.isValid());
     machine.start();
-    QTRY_COMPARE(startedSpy.count(), 1);
+    QTRY_COMPARE(startedSpy.size(), 1);
     TEST_RUNNING_CHANGED(true);
 
     QStateMachinePrivate::get(&machine)->goToState(s2);
@@ -4652,7 +4652,7 @@ void tst_QStateMachine::clonedSignals()
 
     QSignalSpy transitionSpy(t1, &CloneSignalTransition::triggered);
     emitter.emitSignalWithDefaultArg();
-    QTRY_COMPARE(transitionSpy.count(), 1);
+    QTRY_COMPARE(transitionSpy.size(), 1);
 
     QCOMPARE(t1->eventSignalIndex, emitter.metaObject()->indexOfSignal("signalWithDefaultArg()"));
     TEST_ACTIVE_CHANGED(s1, 2);
@@ -4707,7 +4707,7 @@ void tst_QStateMachine::postEventFromOtherThread()
     QSignalSpy finishedSpy(&machine, &QStateMachine::finished);
     QVERIFY(finishedSpy.isValid());
     machine.start();
-    QTRY_COMPARE(finishedSpy.count(), 1);
+    QTRY_COMPARE(finishedSpy.size(), 1);
     TEST_RUNNING_CHANGED_STARTED_STOPPED;
 }
 
@@ -4772,9 +4772,9 @@ void tst_QStateMachine::stopInTransitionToFinalState()
     QVERIFY(runningSpy.isValid());
     machine.start();
     // Stopping should take precedence over finished.
-    QTRY_COMPARE(stoppedSpy.count(), 1);
-    QCOMPARE(finishedSpy.count(), 0);
-    QCOMPARE(s2EnteredSpy.count(), 1);
+    QTRY_COMPARE(stoppedSpy.size(), 1);
+    QCOMPARE(finishedSpy.size(), 0);
+    QCOMPARE(s2EnteredSpy.size(), 1);
     TEST_RUNNING_CHANGED_STARTED_STOPPED;
     QCOMPARE(machine.configuration().size(), 1);
     QVERIFY(machine.configuration().contains(s2));
@@ -4817,7 +4817,7 @@ void tst_QStateMachine::stopInEventTest()
     QVERIFY(startedSpy.isValid());
     machine.start();
     TEST_ACTIVE_CHANGED(s1, 1);
-    QTRY_COMPARE(startedSpy.count(), 1);
+    QTRY_COMPARE(startedSpy.size(), 1);
     TEST_RUNNING_CHANGED(true);
 
     QSignalSpy stoppedSpy(&machine, &QStateMachine::stopped);
@@ -4826,8 +4826,8 @@ void tst_QStateMachine::stopInEventTest()
     QVERIFY(finishedSpy.isValid());
     machine.postEvent(new QEvent(QEvent::User), QStateMachine::EventPriority(eventPriority));
 
-    QTRY_COMPARE(stoppedSpy.count(), 1);
-    QCOMPARE(finishedSpy.count(), 0);
+    QTRY_COMPARE(stoppedSpy.size(), 1);
+    QCOMPARE(finishedSpy.size(), 0);
     TEST_RUNNING_CHANGED(false);
     QCOMPARE(machine.configuration().size(), 1);
     QVERIFY(machine.configuration().contains(s1));
@@ -4867,7 +4867,7 @@ void tst_QStateMachine::testIncrementReceivers()
 
     QMetaObject::invokeMethod(&testObject, "mySignal", Qt::QueuedConnection);
 
-    QTRY_COMPARE(finishedSpy.count(), 1);
+    QTRY_COMPARE(finishedSpy.size(), 1);
     TEST_RUNNING_CHANGED(false);
     QCOMPARE(testObject.signalList.size(), 1);
     QCOMPARE(testObject.signalList.at(0), QMetaMethod::fromSignal(&IncrementReceiversTest::mySignal));
@@ -4890,7 +4890,7 @@ void tst_QStateMachine::initialStateIsEnteredBeforeStartedEmitted()
     QVERIFY(runningSpy.isValid());
     QSignalSpy finishedSpy(&machine, &QStateMachine::finished);
     machine.start();
-    QTRY_COMPARE(finishedSpy.count(), 1);
+    QTRY_COMPARE(finishedSpy.size(), 1);
     TEST_RUNNING_CHANGED_STARTED_STOPPED;
     TEST_ACTIVE_CHANGED(s1, 2);
 }
@@ -5063,25 +5063,25 @@ void tst_QStateMachine::transitionWithNoTarget()
 
     machine.start();
     QTRY_VERIFY(machine.configuration().contains(s1));
-    QCOMPARE(s1EnteredSpy.count(), 1);
-    QCOMPARE(s1ExitedSpy.count(), 0);
-    QCOMPARE(t1TriggeredSpy.count(), 0);
+    QCOMPARE(s1EnteredSpy.size(), 1);
+    QCOMPARE(s1ExitedSpy.size(), 0);
+    QCOMPARE(t1TriggeredSpy.size(), 0);
     QCOMPARE(object->property("a").toInt(), 2);
 
     object->setProperty("a", 3);
 
     machine.postEvent(new QEvent(QEvent::User));
-    QTRY_COMPARE(t1TriggeredSpy.count(), 1);
-    QCOMPARE(s1EnteredSpy.count(), 1);
-    QCOMPARE(s1ExitedSpy.count(), 0);
+    QTRY_COMPARE(t1TriggeredSpy.size(), 1);
+    QCOMPARE(s1EnteredSpy.size(), 1);
+    QCOMPARE(s1ExitedSpy.size(), 0);
     // the assignProperty should not be re-executed, nor should the old value
     // be restored
     QCOMPARE(object->property("a").toInt(), 3);
 
     machine.postEvent(new QEvent(QEvent::User));
-    QTRY_COMPARE(t1TriggeredSpy.count(), 2);
-    QCOMPARE(s1EnteredSpy.count(), 1);
-    QCOMPARE(s1ExitedSpy.count(), 0);
+    QTRY_COMPARE(t1TriggeredSpy.size(), 2);
+    QCOMPARE(s1EnteredSpy.size(), 1);
+    QCOMPARE(s1ExitedSpy.size(), 0);
     QCOMPARE(object->property("a").toInt(), 3);
 
     delete object;
@@ -5099,7 +5099,7 @@ void tst_QStateMachine::initialStateIsFinal()
     QSignalSpy finishedSpy(&machine, &QStateMachine::finished);
     machine.start();
     QTRY_VERIFY(machine.configuration().contains(f));
-    QTRY_COMPARE(finishedSpy.count(), 1);
+    QTRY_COMPARE(finishedSpy.size(), 1);
     TEST_RUNNING_CHANGED_STARTED_STOPPED;
 }
 
@@ -6094,13 +6094,13 @@ void tst_QStateMachine::signalTransitionSenderInDifferentThread2()
     QSignalSpy startedSpy(&machine, &QStateMachine::started);
     QSignalSpy finishedSpy(&machine, &QStateMachine::finished);
     machine.start();
-    QTRY_COMPARE(startedSpy.count(), 1);
+    QTRY_COMPARE(startedSpy.size(), 1);
     TEST_RUNNING_CHANGED(true);
 
     emitter.emitSignalWithNoArg();
     // The second emission should not get "lost".
     emitter.emitSignalWithDefaultArg();
-    QTRY_COMPARE(finishedSpy.count(), 1);
+    QTRY_COMPARE(finishedSpy.size(), 1);
     TEST_RUNNING_CHANGED(false);
 
     thread.quit();
@@ -6505,9 +6505,9 @@ void tst_QStateMachine::conflictingTransition2()
     QTRY_COMPARE(machine.configuration().contains(&p0s3), true);
     QTRY_COMPARE(machine.configuration().contains(&s1), false);
 
-    QCOMPARE(t1Spy.count(), 0);
-    QCOMPARE(t2Spy.count(), 0);
-    QCOMPARE(t3Spy.count(), 0);
+    QCOMPARE(t1Spy.size(), 0);
+    QCOMPARE(t2Spy.size(), 0);
+    QCOMPARE(t3Spy.size(), 0);
 
     emitter.emitSignalWithNoArg();
 
@@ -6518,9 +6518,9 @@ void tst_QStateMachine::conflictingTransition2()
     QTRY_COMPARE(machine.configuration().contains(&p0s3), true);
     QTRY_COMPARE(machine.configuration().contains(&s1), false);
 
-    QCOMPARE(t1Spy.count(), 1);
-    QCOMPARE(t2Spy.count(), 1);
-    QCOMPARE(t3Spy.count(), 0); // t3 got preempted by t2
+    QCOMPARE(t1Spy.size(), 1);
+    QCOMPARE(t2Spy.size(), 1);
+    QCOMPARE(t3Spy.size(), 0); // t3 got preempted by t2
 
     QVERIFY(machine.isRunning());
 }
@@ -6672,8 +6672,8 @@ void tst_QStateMachine::dontProcessSlotsWhenMachineIsNotRunning()
     machine.start();
     QSignalSpy emittedSpy(&emitter, &SignalEmitter::signalWithNoArg);
     QSignalSpy finishedSpy(&machine, &QStateMachine::finished);
-    QTRY_COMPARE_WITH_TIMEOUT(emittedSpy.count(), 2, 100);
-    QTRY_COMPARE(finishedSpy.count(), 1);
+    QTRY_COMPARE_WITH_TIMEOUT(emittedSpy.size(), 2, 100);
+    QTRY_COMPARE(finishedSpy.size(), 1);
     QTRY_VERIFY(emitter.thread.isFinished());
 }
 
@@ -6696,7 +6696,7 @@ void tst_QStateMachine::cancelDelayedEventWithChrono()
     QVERIFY(startedSpy.isValid());
     QVERIFY(runningSpy.isValid());
     machine.start();
-    QTRY_COMPARE(startedSpy.count(), 1);
+    QTRY_COMPARE(startedSpy.size(), 1);
     TEST_RUNNING_CHANGED(true);
     TEST_ACTIVE_CHANGED(s1, 1);
     QCOMPARE(machine.configuration().size(), 1);
@@ -6716,7 +6716,7 @@ void tst_QStateMachine::cancelDelayedEventWithChrono()
 
     QSignalSpy finishedSpy(&machine, &QStateMachine::finished);
     QVERIFY(finishedSpy.isValid());
-    QTRY_COMPARE(finishedSpy.count(), 1);
+    QTRY_COMPARE(finishedSpy.size(), 1);
     TEST_RUNNING_CHANGED(false);
     TEST_ACTIVE_CHANGED(s1, 2);
     QCOMPARE(machine.configuration().size(), 1);
@@ -6739,7 +6739,7 @@ void tst_QStateMachine::postDelayedEventWithChronoAndStop()
     QSignalSpy startedSpy(&machine, &QStateMachine::started);
     QVERIFY(startedSpy.isValid());
     machine.start();
-    QTRY_COMPARE(startedSpy.count(), 1);
+    QTRY_COMPARE(startedSpy.size(), 1);
     TEST_RUNNING_CHANGED(true);
     TEST_ACTIVE_CHANGED(s1, 1);
     QCOMPARE(machine.configuration().size(), 1);
@@ -6750,14 +6750,14 @@ void tst_QStateMachine::postDelayedEventWithChronoAndStop()
     QSignalSpy stoppedSpy(&machine, &QStateMachine::stopped);
     QVERIFY(stoppedSpy.isValid());
     machine.stop();
-    QTRY_COMPARE(stoppedSpy.count(), 1);
+    QTRY_COMPARE(stoppedSpy.size(), 1);
     TEST_RUNNING_CHANGED(false);
     TEST_ACTIVE_CHANGED(s1, 1);
     QCOMPARE(machine.configuration().size(), 1);
     QVERIFY(machine.configuration().contains(s1));
 
     machine.start();
-    QTRY_COMPARE(startedSpy.count(), 2);
+    QTRY_COMPARE(startedSpy.size(), 2);
     TEST_RUNNING_CHANGED(true);
     TEST_ACTIVE_CHANGED(s1, 3);
     QCOMPARE(machine.configuration().size(), 1);
@@ -6766,11 +6766,11 @@ void tst_QStateMachine::postDelayedEventWithChronoAndStop()
     int id2 = machine.postDelayedEvent(new StringEvent("a"), std::chrono::seconds{1});
     QVERIFY(id2 != -1);
     machine.stop();
-    QTRY_COMPARE(stoppedSpy.count(), 2);
+    QTRY_COMPARE(stoppedSpy.size(), 2);
     TEST_RUNNING_CHANGED(false);
     TEST_ACTIVE_CHANGED(s1, 3);
     machine.start();
-    QTRY_COMPARE(startedSpy.count(), 3);
+    QTRY_COMPARE(startedSpy.size(), 3);
     TEST_RUNNING_CHANGED(true);
     QTestEventLoop::instance().enterLoop(2);
     QCOMPARE(machine.configuration().size(), 1);
@@ -6828,7 +6828,7 @@ void tst_QStateMachine::postDelayedEventWithChronoFromThread()
     QSignalSpy finishedSpy(&machine, &QStateMachine::finished);
     QVERIFY(finishedSpy.isValid());
     machine.start();
-    QTRY_COMPARE(finishedSpy.count(), 1);
+    QTRY_COMPARE(finishedSpy.size(), 1);
     TEST_RUNNING_CHANGED_STARTED_STOPPED;
     TEST_ACTIVE_CHANGED(s1, 2);
     QVERIFY(poster.firstEventWasCancelled);
@@ -6904,9 +6904,9 @@ void tst_QStateMachine::bindings()
     QVERIFY(!active);
     machine.start();
     // startState should get "enter/active == true" + "exit/active == false"
-    QTRY_COMPARE(startState_activeSpy.count(), 2);
+    QTRY_COMPARE(startState_activeSpy.size(), 2);
     // endState should get "enter/active == true"
-    QTRY_COMPARE(endState_activeSpy.count(), 1);
+    QTRY_COMPARE(endState_activeSpy.size(), 1);
     // Verify that the "active" value changed via binding
     QVERIFY(active);
 

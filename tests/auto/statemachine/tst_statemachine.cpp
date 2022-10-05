@@ -73,7 +73,7 @@ void tst_StateMachine::stateNames()
 
     QScopedPointer<QScxmlStateMachine> stateMachine(QScxmlStateMachine::fromFile(scxmlFileName));
     QVERIFY(!stateMachine.isNull());
-    QCOMPARE(stateMachine->parseErrors().count(), 0);
+    QCOMPARE(stateMachine->parseErrors().size(), 0);
 
     QCOMPARE(stateMachine->stateNames(compressed), expectedStates);
 }
@@ -364,7 +364,7 @@ void tst_StateMachine::doneDotStateEvent()
 
     stateMachine->start();
     finishedSpy.wait(5000);
-    QCOMPARE(finishedSpy.count(), 1);
+    QCOMPARE(finishedSpy.size(), 1);
     QCOMPARE(stateMachine->activeStateNames(true).size(), 1);
     QVERIFY(stateMachine->activeStateNames(true).contains(QLatin1String("success")));
 }
@@ -381,12 +381,12 @@ void tst_StateMachine::running()
 
     stateMachine->start();
 
-    QCOMPARE(runningChangedSpy.count(), 1);
+    QCOMPARE(runningChangedSpy.size(), 1);
     QCOMPARE(stateMachine->isRunning(), true);
 
     stateMachine->stop();
 
-    QCOMPARE(runningChangedSpy.count(), 2);
+    QCOMPARE(runningChangedSpy.size(), 2);
     QCOMPARE(stateMachine->isRunning(), false);
 }
 
@@ -401,7 +401,7 @@ void tst_StateMachine::invokeStateMachine()
     QTRY_VERIFY(stateMachine->activeStateNames().contains(QString("anyplace")));
 
     QList<QScxmlInvokableService *> services = stateMachine->invokedServices();
-    QCOMPARE(services.length(), 1);
+    QCOMPARE(services.size(), 1);
     QVariant subMachineVariant = services[0]->property("stateMachine");
     QVERIFY(subMachineVariant.isValid());
     QScxmlStateMachine *subMachine = qvariant_cast<QScxmlStateMachine *>(subMachineVariant);
@@ -420,7 +420,7 @@ void tst_StateMachine::multipleInvokableServices()
     QCOMPARE(stateMachine->isRunning(), true);
 
     finishedSpy.wait(5000);
-    QCOMPARE(finishedSpy.count(), 1);
+    QCOMPARE(finishedSpy.size(), 1);
     QCOMPARE(stateMachine->activeStateNames(true).size(), 1);
     QVERIFY(stateMachine->activeStateNames(true).contains(QLatin1String("success")));
 }
@@ -433,7 +433,7 @@ void tst_StateMachine::logWithoutExpr()
     QTest::ignoreMessage(QtDebugMsg, "\"Hi2\" : \"\"");
     stateMachine->start();
     QSignalSpy logSpy(stateMachine.data(), SIGNAL(log(QString,QString)));
-    QTRY_COMPARE(logSpy.count(), 1);
+    QTRY_COMPARE(logSpy.size(), 1);
 }
 
 void tst_StateMachine::bindings()
@@ -504,24 +504,24 @@ void tst_StateMachine::bindings()
     // Test executes statemachine and observes as the invoked services change
     TopMachine topSm;
     QSignalSpy invokedSpy(&topSm, SIGNAL(invokedServicesChanged(const QList<QScxmlInvokableService *>)));
-    QCOMPARE(topSm.invokedServices().count(), 0);
+    QCOMPARE(topSm.invokedServices().size(), 0);
     // at some point during the topSm execution there are 3 invoked services
     topSm.start();
-    QTRY_COMPARE(topSm.invokedServices().count(), 3);
-    QCOMPARE(invokedSpy.count(), 1);
+    QTRY_COMPARE(topSm.invokedServices().size(), 3);
+    QCOMPARE(invokedSpy.size(), 1);
     // after completion invoked services drop back to 0
     QTRY_COMPARE(topSm.isRunning(), false);
-    QCOMPARE(topSm.invokedServices().count(), 0);
-    QCOMPARE(invokedSpy.count(), 2);
+    QCOMPARE(topSm.invokedServices().size(), 0);
+    QCOMPARE(invokedSpy.size(), 2);
     // bind *to* the invokedservices property and check that we observe same changes
     // during the topSm execution
     QProperty<qsizetype> invokedServicesObserver;
-    invokedServicesObserver.setBinding([&](){ return topSm.invokedServices().count(); });
+    invokedServicesObserver.setBinding([&](){ return topSm.invokedServices().size(); });
     QCOMPARE(invokedServicesObserver, 0);
     topSm.start();
     QTRY_COMPARE(invokedServicesObserver, 3);
-    QCOMPARE(topSm.invokedServices().count(), 3);
-    QCOMPARE(invokedSpy.count(), 3);
+    QCOMPARE(topSm.invokedServices().size(), 3);
+    QCOMPARE(invokedSpy.size(), 3);
 
     // -- QScxmlDataModel::stateMachine
     QScxmlNullDataModel dataModel1;

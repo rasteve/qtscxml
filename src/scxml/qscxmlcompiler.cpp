@@ -264,7 +264,7 @@ private:
             if (!isLetter(c) && c != QLatin1Char('_'))
                 return false;
         }
-        for (int ei = id.length(); i != ei; ++i) {
+        for (int ei = id.size(); i != ei; ++i) {
             const QChar c = id.at(i);
             if (isLetter(c) || c.isDigit() || c == QLatin1Char('.') || c == QLatin1Char('-')
                     || c == QLatin1Char('_') || isNameTail(c))
@@ -336,12 +336,12 @@ private:
             if (part.isEmpty())
                 return false;
 
-            if (wildCardMode == AllowWildCards && part.length() == 1
+            if (wildCardMode == AllowWildCards && part.size() == 1
                     && part.at(0) == QLatin1Char('*')) {
                 continue;
             }
 
-            for (int i = 0, ei = part.length(); i != ei; ++i) {
+            for (int i = 0, ei = part.size(); i != ei; ++i) {
                 const QChar c = part.at(i);
                 if (!isLetter(c) && !c.isDigit() && c != QLatin1Char('-') && c != QLatin1Char('_')
                         && c != QLatin1Char(':')) {
@@ -1409,7 +1409,7 @@ bool QScxmlCompilerPrivate::preReadElementScxml()
         } else {
             int lastColon = datamodel.lastIndexOf(QLatin1Char(':'));
             if (lastColon == -1) {
-                lastColon = datamodel.length();
+                lastColon = datamodel.size();
             } else {
                 scxml->cppDataModelHeaderName = datamodel.mid(lastColon + 1).toString();
             }
@@ -2165,7 +2165,7 @@ bool QScxmlCompilerPrivate::readElement()
         return parseSubElement(i, m_reader, m_fileName);
     }
 
-    if (elementKind != ParserState::Scxml && !m_stack.count()) {
+    if (elementKind != ParserState::Scxml && !m_stack.size()) {
         addError(QStringLiteral("misplaced %1").arg(currentTag.toString()));
         return false;
     }
@@ -2382,12 +2382,12 @@ QScxmlCompilerPrivate::ParserState &QScxmlCompilerPrivate::current()
 
 QScxmlCompilerPrivate::ParserState &QScxmlCompilerPrivate::previous()
 {
-    return m_stack[m_stack.count() - 2];
+    return m_stack[m_stack.size() - 2];
 }
 
 bool QScxmlCompilerPrivate::hasPrevious() const
 {
-    return m_stack.count() > 1;
+    return m_stack.size() > 1;
 }
 
 bool QScxmlCompilerPrivate::checkAttributes(const QXmlStreamAttributes &attributes,

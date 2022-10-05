@@ -49,14 +49,14 @@ void tst_Parser::error()
     QVERIFY(!stateMachine.isNull());
 
     const QList<QScxmlError> errors = stateMachine->parseErrors();
-    if (errors.count() != expectedErrors.count()) {
+    if (errors.size() != expectedErrors.size()) {
         for (const QScxmlError &error : errors) {
             qDebug() << error.toString();
         }
     }
-    QCOMPARE(errors.count(), expectedErrors.count());
+    QCOMPARE(errors.size(), expectedErrors.size());
 
-    for (int i = 0; i < errors.count(); ++i)
+    for (int i = 0; i < errors.size(); ++i)
         QCOMPARE(errors.at(i).toString(), expectedErrors.at(i));
 }
 

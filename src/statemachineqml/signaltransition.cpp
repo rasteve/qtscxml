@@ -37,7 +37,7 @@ bool SignalTransition::eventTest(QEvent *event)
     QStateMachine::SignalEvent *e = static_cast<QStateMachine::SignalEvent*>(event);
 
     // Set arguments as context properties
-    int count = e->arguments().count();
+    int count = e->arguments().size();
     QMetaMethod metaMethod = e->sender()->metaObject()->method(e->signalIndex());
     const auto parameterNames = metaMethod.parameterNames();
     for (int i = 0; i < count; i++)
@@ -159,7 +159,7 @@ void SignalTransition::connectTriggered()
     QQmlData *ddata = QQmlData::get(this);
     QQmlRefPointer<QQmlContextData> ctxtdata = ddata ? ddata->outerContext : nullptr;
 
-    Q_ASSERT(m_bindings.count() == 1);
+    Q_ASSERT(m_bindings.size() == 1);
     const QV4::CompiledData::Binding *binding = m_bindings.at(0);
     Q_ASSERT(binding->type() == QV4::CompiledData::Binding::Type_Script);
 
@@ -185,7 +185,7 @@ void SignalTransition::connectTriggered()
 
 void SignalTransitionParser::verifyBindings(const QQmlRefPointer<QV4::ExecutableCompilationUnit> &compilationUnit, const QList<const QV4::CompiledData::Binding *> &props)
 {
-    for (int ii = 0; ii < props.count(); ++ii) {
+    for (int ii = 0; ii < props.size(); ++ii) {
         const QV4::CompiledData::Binding *binding = props.at(ii);
 
         QString propName = compilationUnit->stringAt(binding->propertyNameIndex);

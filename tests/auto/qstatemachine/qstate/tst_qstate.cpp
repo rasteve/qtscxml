@@ -169,7 +169,7 @@ void tst_QState::transitions()
     QAbstractTransition *t1_1 = s1.addTransition(this, &tst_QState::destroyed, &s2);
     QVERIFY(t1 != 0);
     QVERIFY(t1_1 != 0);
-    QCOMPARE(s1.transitions().count(), 2);
+    QCOMPARE(s1.transitions().size(), 2);
     QCOMPARE(s1.transitions().first(), t1);
     QCOMPARE(s1.transitions().last(), t1_1);
     QVERIFY(s2.transitions().isEmpty());
@@ -179,11 +179,11 @@ void tst_QState::transitions()
     QVERIFY(s1.transitions().isEmpty());
 
     s1.addTransition(t1);
-    QCOMPARE(s1.transitions().count(), 1);
+    QCOMPARE(s1.transitions().size(), 1);
     QCOMPARE(s1.transitions().first(), t1);
 
     QAbstractTransition *t2 = new QEventTransition(&s1);
-    QCOMPARE(s1.transitions().count(), 2);
+    QCOMPARE(s1.transitions().size(), 2);
     QVERIFY(s1.transitions().contains(t1));
     QVERIFY(s1.transitions().contains(t2));
 
@@ -191,7 +191,7 @@ void tst_QState::transitions()
     QState *s21 = new QState(&s2);
     QAbstractTransition *t3 = s21->addTransition(this, SIGNAL(destroyed()), &s2);
     QVERIFY(s2.transitions().isEmpty());
-    QCOMPARE(s21->transitions().count(), 1);
+    QCOMPARE(s21->transitions().size(), 1);
     QCOMPARE(s21->transitions().first(), t3);
 }
 

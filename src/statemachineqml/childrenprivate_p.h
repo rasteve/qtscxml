@@ -119,7 +119,7 @@ public:
 
     static qsizetype count(QQmlListProperty<QObject> *prop)
     {
-        return static_cast<Self *>(prop->data)->children.count();
+        return static_cast<Self *>(prop->data)->children.size();
     }
 
     static QObject *at(QQmlListProperty<QObject> *prop, qsizetype index)

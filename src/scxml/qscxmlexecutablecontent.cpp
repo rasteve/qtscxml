@@ -214,7 +214,7 @@ static int parseTime(QStringView t, bool *ok = nullptr)
         ++startPos;
     }
     int pos = startPos;
-    for (int endPos = t.length(); pos < endPos; ++pos) {
+    for (int endPos = t.size(); pos < endPos; ++pos) {
         auto c = t[pos];
         if (c < QLatin1Char('0') || c > QLatin1Char('9'))
             break;
@@ -225,9 +225,9 @@ static int parseTime(QStringView t, bool *ok = nullptr)
     }
     int value = t.mid(startPos, pos - startPos).toInt(ok);
     if (ok && !*ok) return -1;
-    if (t.length() == pos + 1 && t[pos] == QLatin1Char('s')) {
+    if (t.size() == pos + 1 && t[pos] == QLatin1Char('s')) {
         value *= 1000;
-    } else if (t.length() != pos + 2 || t[pos] != QLatin1Char('m') || t[pos + 1] != QLatin1Char('s')) {
+    } else if (t.size() != pos + 2 || t[pos] != QLatin1Char('m') || t[pos + 1] != QLatin1Char('s')) {
         if (ok) *ok = false;
         return -1;
     }

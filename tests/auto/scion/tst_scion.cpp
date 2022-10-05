@@ -401,7 +401,7 @@ static int verifyEvent(const QList<QScxmlEvent> &receivedEvents, const QJsonObje
     const QString invokeId = verifyInvokeId ? event.value(QLatin1String("invokeid")).toString()
                                             : QString();
 
-    while (position < receivedEvents.length()) {
+    while (position < receivedEvents.size()) {
         const QScxmlEvent &receivedEvent = receivedEvents[position];
         if ((verifyName && receivedEvent.name() != name)
                 || (verifyEventType && receivedEvent.eventType() != eventType)

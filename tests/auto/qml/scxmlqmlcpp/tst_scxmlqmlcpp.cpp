@@ -80,14 +80,14 @@ void tst_scxmlqmlcpp::invokedServicesChildrenBinding()
     QScxmlInvokedServices invokedServices;
     invokedServices.setStateMachine(&topSm);
     QCOMPARE(invokedServices.children().count(), 0);
-    QCOMPARE(topSm.invokedServices().count(), 0);
+    QCOMPARE(topSm.invokedServices().size(), 0);
     // at some point during the topSm execution there are 3 invoked services
     // of the same name ('3' filters out as '1' at QML binding)
     topSm.start();
-    QTRY_COMPARE(topSm.invokedServices().count(), 3);
+    QTRY_COMPARE(topSm.invokedServices().size(), 3);
     QCOMPARE(invokedServices.children().count(), 1);
     // after completion invoked services drop back to 0
-    QTRY_COMPARE(topSm.invokedServices().count(), 0);
+    QTRY_COMPARE(topSm.invokedServices().size(), 0);
     QCOMPARE(invokedServices.children().count(), 0);
     // bind *to* the invokedservices property and check that we observe same changes
     // during the topSm execution
@@ -96,7 +96,7 @@ void tst_scxmlqmlcpp::invokedServicesChildrenBinding()
     QCOMPARE(serviceCounter, 0);
     topSm.start();
     QTRY_COMPARE(serviceCounter, 1);
-    QCOMPARE(topSm.invokedServices().count(), 3);
+    QCOMPARE(topSm.invokedServices().size(), 3);
 }
 
 void tst_scxmlqmlcpp::stateMachineLoaderInitialValuesBinding()
@@ -144,7 +144,7 @@ void tst_scxmlqmlcpp::stateMachineLoaderSourceStateMachineBinding()
                         "Cannot open '" + sourceNonexistent.toString() + "' for reading."));
     sml->setSource(sourceNonexistent);
     QVERIFY(sml->stateMachine() == nullptr);
-    QCOMPARE(smSpy.count(), 1);
+    QCOMPARE(smSpy.size(), 1);
 
     QString sourceBrokenNoScheme;
     if (sourceBroken.scheme() == QStringLiteral("qrc"))
@@ -163,12 +163,12 @@ void tst_scxmlqmlcpp::stateMachineLoaderSourceStateMachineBinding()
                         "went wrong while parsing '" + sourceBroken.toString() + "':\n"));
     sml->setSource(sourceBroken);
     QVERIFY(sml->stateMachine() == nullptr);
-    QCOMPARE(smSpy.count(), 1);
+    QCOMPARE(smSpy.size(), 1);
 
     QProperty<bool> hasStateMachine([&](){ return sml->stateMachine() ? true : false; });
     QVERIFY(hasStateMachine == false);
     sml->setSource(source1);
-    QCOMPARE(smSpy.count(), 2);
+    QCOMPARE(smSpy.size(), 2);
     QVERIFY(hasStateMachine == true);
 }
 
