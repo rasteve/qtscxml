@@ -475,7 +475,7 @@ public:
     void visit(InstructionSequence *sequence)
     {
         Q_ASSERT(sequence);
-        for (Instruction *instruction : qAsConst(*sequence)) {
+        for (Instruction *instruction : std::as_const(*sequence)) {
             Q_ASSERT(instruction);
             instruction->accept(this);
         }

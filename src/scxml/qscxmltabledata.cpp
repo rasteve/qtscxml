@@ -112,13 +112,13 @@ public:
         m_parents.reserve(32);
         m_allTransitions.resize(doc->allTransitions.size());
         m_docTransitionIndices.reserve(doc->allTransitions.size());
-        for (auto *t : qAsConst(doc->allTransitions)) {
+        for (auto *t : std::as_const(doc->allTransitions)) {
             m_docTransitionIndices.insert(t, m_docTransitionIndices.size());
         }
         m_docStatesIndices.reserve(doc->allStates.size());
         m_transitionsForState.resize(doc->allStates.size());
         m_allStates.resize(doc->allStates.size());
-        for (DocumentModel::AbstractState *s : qAsConst(doc->allStates)) {
+        for (DocumentModel::AbstractState *s : std::as_const(doc->allStates)) {
             m_docStatesIndices.insert(s, m_docStatesIndices.size());
         }
 
@@ -227,7 +227,7 @@ protected: // visitor
         }
 
         QList<DocumentModel::AbstractState *> childStates;
-        for (DocumentModel::StateOrTransition *sot : qAsConst(node->children)) {
+        for (DocumentModel::StateOrTransition *sot : std::as_const(node->children)) {
             if (DocumentModel::AbstractState *s = sot->asAbstractState()) {
                 childStates.append(s);
             }
@@ -284,13 +284,13 @@ protected: // visitor
         newState.exitInstructions = generate(state->onExit);
         if (!state->invokes.isEmpty()) {
             QList<int> factoryIds;
-            for (DocumentModel::Invoke *invoke : qAsConst(state->invokes)) {
+            for (DocumentModel::Invoke *invoke : std::as_const(state->invokes)) {
                 auto ctxt = createContext(QStringLiteral("invoke"));
                 QList<QScxmlExecutableContent::StringId> namelist;
-                for (const QString &name : qAsConst(invoke->namelist))
+                for (const QString &name : std::as_const(invoke->namelist))
                     namelist += addString(name);
                 QList<QScxmlExecutableContent::ParameterInfo> params;
-                for (DocumentModel::Param *param : qAsConst(invoke->params)) {
+                for (DocumentModel::Param *param : std::as_const(invoke->params)) {
                     QScxmlExecutableContent::ParameterInfo p;
                     p.name = addString(param->name);
                     p.expr = createEvaluatorVariant(QStringLiteral("param"), QStringLiteral("expr"),
@@ -328,7 +328,7 @@ protected: // visitor
         visit(state->children);
 
         QList<DocumentModel::AbstractState *> childStates;
-        for (DocumentModel::StateOrTransition *sot : qAsConst(state->children)) {
+        for (DocumentModel::StateOrTransition *sot : std::as_const(state->children)) {
             if (auto s = sot->asAbstractState()) {
                 childStates.append(s);
             }
@@ -386,7 +386,7 @@ protected: // visitor
         newTransition.targets = addStates(transition->targetStates);
 
         QList<int> eventIds;
-        for (const QString &event : qAsConst(transition->events))
+        for (const QString &event : std::as_const(transition->events))
             eventIds.push_back(addString(event));
 
         newTransition.events = addArray(eventIds);

@@ -512,7 +512,7 @@ void CppDumper::writeImplStart()
         << Qt::endl;
 
     QStringList includes;
-    for (DocumentModel::ScxmlDocument *doc : qAsConst(m_translationUnit->allDocuments)) {
+    for (DocumentModel::ScxmlDocument *doc : std::as_const(m_translationUnit->allDocuments)) {
         switch (doc->root->dataModel) {
         case DocumentModel::Scxml::NullDataModel:
             includes += l("QScxmlNullDataModel");
@@ -534,7 +534,7 @@ void CppDumper::writeImplStart()
     cpp << Qt::endl
         << QStringLiteral("#include <qscxmlinvokableservice.h>") << Qt::endl
         << QStringLiteral("#include <qscxmltabledata.h>") << Qt::endl;
-    for (const QString &inc : qAsConst(includes)) {
+    for (const QString &inc : std::as_const(includes)) {
         cpp << l("#include <") << inc << l(">") << Qt::endl;
     }
     cpp << Qt::endl

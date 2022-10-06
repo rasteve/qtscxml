@@ -53,7 +53,7 @@ public:
 
         doc->isVerified = true;
         m_doc = doc;
-        for (DocumentModel::AbstractState *state : qAsConst(doc->allStates)) {
+        for (DocumentModel::AbstractState *state : std::as_const(doc->allStates)) {
             if (state->id.isEmpty()) {
                 continue;
 #ifndef QT_NO_DEBUG
@@ -84,7 +84,7 @@ private:
             }
         } else {
             QList<DocumentModel::AbstractState *> initialStates;
-            for (const QString &initial : qAsConst(scxml->initial)) {
+            for (const QString &initial : std::as_const(scxml->initial)) {
                 if (DocumentModel::AbstractState *s = m_stateById.value(initial))
                     initialStates.append(s);
                 else
@@ -122,7 +122,7 @@ private:
             } else {
                 Q_ASSERT(state->type == DocumentModel::State::Normal);
                 QList<DocumentModel::AbstractState *> initialStates;
-                for (const QString &initialState : qAsConst(state->initial)) {
+                for (const QString &initialState : std::as_const(state->initial)) {
                     if (DocumentModel::AbstractState *s = m_stateById.value(initialState)) {
                         initialStates.append(s);
                     } else {
@@ -173,7 +173,7 @@ private:
 
         if (int size = transition->targets.size())
             transition->targetStates.reserve(size);
-        for (const QString &target : qAsConst(transition->targets)) {
+        for (const QString &target : std::as_const(transition->targets)) {
             if (DocumentModel::AbstractState *s = m_stateById.value(target)) {
                 if (transition->targetStates.contains(s)) {
                     error(transition->xmlLocation, QStringLiteral("duplicate target '%1'").arg(target));
@@ -184,7 +184,7 @@ private:
                 error(transition->xmlLocation, QStringLiteral("unknown state '%1' in target").arg(target));
             }
         }
-        for (const QString &event : qAsConst(transition->events))
+        for (const QString &event : std::as_const(transition->events))
             checkEvent(event, transition->xmlLocation, AllowWildCards);
 
         m_parentNodes.append(transition);
@@ -199,7 +199,7 @@ private:
     bool visit(DocumentModel::HistoryState *state) override
     {
         bool seenTransition = false;
-        for (DocumentModel::StateOrTransition *sot : qAsConst(state->children)) {
+        for (DocumentModel::StateOrTransition *sot : std::as_const(state->children)) {
             if (DocumentModel::State *s = sot->asState()) {
                 error(s->xmlLocation, QStringLiteral("history state cannot have substates"));
             } else if (DocumentModel::Transition *t = sot->asTransition()) {
@@ -369,7 +369,7 @@ private:
         const auto &allChildren = allChildrenOfContainer(container);
 
         QList<DocumentModel::AbstractState *> childStates;
-        for (DocumentModel::StateOrTransition *child : qAsConst(allChildren)) {
+        for (DocumentModel::StateOrTransition *child : std::as_const(allChildren)) {
             if (DocumentModel::State *s = child->asState())
                 return s;
             else if (DocumentModel::HistoryState *h = child->asHistoryState())
@@ -384,7 +384,7 @@ private:
         const auto &allChildren = allChildrenOfContainer(container);
 
         QList<DocumentModel::AbstractState *> childStates;
-        for (DocumentModel::StateOrTransition *child : qAsConst(allChildren)) {
+        for (DocumentModel::StateOrTransition *child : std::as_const(allChildren)) {
             if (DocumentModel::State *s = child->asState())
                 childStates.append(s);
             else if (DocumentModel::HistoryState *h = child->asHistoryState())
@@ -1161,7 +1161,7 @@ void DocumentModel::Param::accept(DocumentModel::NodeVisitor *visitor)
 void DocumentModel::DoneData::accept(DocumentModel::NodeVisitor *visitor)
 {
     if (visitor->visit(this)) {
-        for (Param *param : qAsConst(params))
+        for (Param *param : std::as_const(params))
             param->accept(visitor);
     }
     visitor->endVisit(this);
@@ -1234,7 +1234,7 @@ void DocumentModel::State::accept(DocumentModel::NodeVisitor *visitor)
         visitor->visit(onExit);
         if (doneData)
             doneData->accept(visitor);
-        for (Invoke *invoke : qAsConst(invokes))
+        for (Invoke *invoke : std::as_const(invokes))
             invoke->accept(visitor);
     }
     visitor->endVisit(this);

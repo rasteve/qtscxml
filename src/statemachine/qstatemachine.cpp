@@ -517,7 +517,7 @@ QList<QAbstractTransition*> QStateMachinePrivate::selectTransitions(QEvent *even
     Q_Q(const QStateMachine);
 
     QVarLengthArray<QAbstractState *> configuration_sorted;
-    for (QAbstractState *s : qAsConst(configuration)) {
+    for (QAbstractState *s : std::as_const(configuration)) {
         if (isAtomic(s))
             configuration_sorted.append(s);
     }
@@ -525,7 +525,7 @@ QList<QAbstractTransition*> QStateMachinePrivate::selectTransitions(QEvent *even
 
     QList<QAbstractTransition*> enabledTransitions;
     const_cast<QStateMachine *>(q)->beginSelectTransitions(event);
-    for (QAbstractState *state : qAsConst(configuration_sorted)) {
+    for (QAbstractState *state : std::as_const(configuration_sorted)) {
         QList<QState *> lst = getProperAncestors(state, nullptr);
         if (QState *grp = toStandardState(state))
             lst.prepend(grp);
@@ -592,7 +592,7 @@ void QStateMachinePrivate::removeConflictingTransitions(QList<QAbstractTransitio
     filteredTransitions.reserve(enabledTransitions.size());
     std::sort(enabledTransitions.begin(), enabledTransitions.end(), transitionStateEntryLessThan);
 
-    for (QAbstractTransition *t1 : qAsConst(enabledTransitions)) {
+    for (QAbstractTransition *t1 : std::as_const(enabledTransitions)) {
         bool t1Preempted = false;
         const QSet<QAbstractState*> exitSetT1 = computeExitSet_Unordered(t1, cache);
         QList<QAbstractTransition*>::iterator t2It = filteredTransitions.begin();
@@ -750,7 +750,7 @@ QSet<QAbstractState*> QStateMachinePrivate::computeExitSet_Unordered(QAbstractTr
         Q_ASSERT(domain != nullptr);
     }
 
-    for (QAbstractState* s : qAsConst(configuration)) {
+    for (QAbstractState* s : std::as_const(configuration)) {
         if (isDescendant(s, domain))
             statesToExit.insert(s);
     }
@@ -1078,9 +1078,9 @@ void QStateMachinePrivate::addDescendantStatesToEnter(QAbstractState *state,
             if (defaultHistoryContent.isEmpty()) {
                 setError(QStateMachine::NoDefaultStateInHistoryStateError, h);
             } else {
-                for (QAbstractState *s : qAsConst(defaultHistoryContent))
+                for (QAbstractState *s : std::as_const(defaultHistoryContent))
                     addDescendantStatesToEnter(s, statesToEnter, statesForDefaultEntry);
-                for (QAbstractState *s : qAsConst(defaultHistoryContent))
+                for (QAbstractState *s : std::as_const(defaultHistoryContent))
                     addAncestorStatesToEnter(s, state->parentState(), statesToEnter, statesForDefaultEntry);
 #ifdef QSTATEMACHINE_DEBUG
                 qDebug() << q_func() << ": initial history targets for" << state << ':' << defaultHistoryContent;

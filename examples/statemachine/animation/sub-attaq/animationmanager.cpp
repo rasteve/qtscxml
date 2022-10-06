@@ -37,14 +37,14 @@ void AnimationManager::unregisterAllAnimations()
 
 void AnimationManager::pauseAll()
 {
-    for (QAbstractAnimation *animation : qAsConst(animations)) {
+    for (QAbstractAnimation *animation : std::as_const(animations)) {
         if (animation->state() == QAbstractAnimation::Running)
             animation->pause();
     }
 }
 void AnimationManager::resumeAll()
 {
-    for (QAbstractAnimation *animation : qAsConst(animations)) {
+    for (QAbstractAnimation *animation : std::as_const(animations)) {
         if (animation->state() == QAbstractAnimation::Paused)
             animation->resume();
     }

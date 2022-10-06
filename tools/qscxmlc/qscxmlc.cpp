@@ -68,7 +68,7 @@ static void collectAllDocuments(DocumentModel::ScxmlDocument *doc,
                                 QList<DocumentModel::ScxmlDocument *> *docs)
 {
     docs->append(doc);
-    for (DocumentModel::ScxmlDocument *subDoc : qAsConst(doc->allSubDocuments))
+    for (DocumentModel::ScxmlDocument *subDoc : std::as_const(doc->allSubDocuments))
         collectAllDocuments(subDoc, docs);
 }
 
@@ -192,7 +192,7 @@ int run(const QStringList &arguments)
 
     docs.pop_front();
 
-    for (DocumentModel::ScxmlDocument *doc : qAsConst(docs)) {
+    for (DocumentModel::ScxmlDocument *doc : std::as_const(docs)) {
         auto name = doc->root->name;
         auto prefix = name;
         if (name.isEmpty()) {

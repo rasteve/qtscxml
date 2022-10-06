@@ -93,11 +93,11 @@ QBindable<QScxmlStateMachine*> QScxmlEventConnection::bindableStateMachine()
 
 void QScxmlEventConnection::doConnect()
 {
-    for (const QMetaObject::Connection &connection : qAsConst(m_connections))
+    for (const QMetaObject::Connection &connection : std::as_const(m_connections))
         disconnect(connection);
     m_connections.clear();
     if (m_stateMachine) {
-        for (const QString &event : qAsConst(m_events.value())) {
+        for (const QString &event : std::as_const(m_events.value())) {
             m_connections.append(m_stateMachine->connectToEvent(event, this,
                                                                 &QScxmlEventConnection::occurred));
         }

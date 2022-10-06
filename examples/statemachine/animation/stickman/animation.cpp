@@ -110,7 +110,7 @@ void Animation::save(QIODevice *device) const
     QDataStream stream(device);
     stream << m_name;
     stream << m_frames.size();
-    for (const Frame *frame : qAsConst(m_frames)) {
+    for (const Frame *frame : std::as_const(m_frames)) {
         stream << frame->nodeCount();
         for (int i = 0; i < frame->nodeCount(); ++i)
             stream << frame->nodePos(i);

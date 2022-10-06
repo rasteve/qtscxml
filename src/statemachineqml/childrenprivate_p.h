@@ -130,7 +130,7 @@ public:
     static void clear(QQmlListProperty<QObject> *prop)
     {
         auto &children = static_cast<Self *>(prop->data)->children;
-        for (QObject *oldItem : qAsConst(children))
+        for (QObject *oldItem : std::as_const(children))
             Handler::unparentItem(prop, oldItem);
 
         children.clear();

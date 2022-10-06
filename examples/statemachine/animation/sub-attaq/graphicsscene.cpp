@@ -229,21 +229,21 @@ void GraphicsScene::onSubMarineExecutionFinished()
 
 void GraphicsScene::clearScene()
 {
-    for (SubMarine *sub : qAsConst(submarines)) {
+    for (SubMarine *sub : std::as_const(submarines)) {
         // make sure to not go into onSubMarineExecutionFinished
         sub->disconnect(this);
         sub->destroy();
         sub->deleteLater();
     }
 
-    for (Torpedo *torpedo : qAsConst(torpedos)) {
+    for (Torpedo *torpedo : std::as_const(torpedos)) {
         // make sure to not go into onTorpedoExecutionFinished
         torpedo->disconnect(this);
         torpedo->destroy();
         torpedo->deleteLater();
     }
 
-    for (Bomb *bomb : qAsConst(bombs)) {
+    for (Bomb *bomb : std::as_const(bombs)) {
         // make sure to not go into onBombExecutionFinished
         bomb->disconnect(this);
         bomb->destroy();
