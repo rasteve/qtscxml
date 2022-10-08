@@ -79,20 +79,20 @@ void tst_scxmlqmlcpp::invokedServicesChildrenBinding()
     TopMachine topSm;
     QScxmlInvokedServices invokedServices;
     invokedServices.setStateMachine(&topSm);
-    QCOMPARE(invokedServices.children().count(), 0);
+    QCOMPARE(invokedServices.children().size(), 0);
     QCOMPARE(topSm.invokedServices().size(), 0);
     // at some point during the topSm execution there are 3 invoked services
     // of the same name ('3' filters out as '1' at QML binding)
     topSm.start();
     QTRY_COMPARE(topSm.invokedServices().size(), 3);
-    QCOMPARE(invokedServices.children().count(), 1);
+    QCOMPARE(invokedServices.children().size(), 1);
     // after completion invoked services drop back to 0
     QTRY_COMPARE(topSm.invokedServices().size(), 0);
-    QCOMPARE(invokedServices.children().count(), 0);
+    QCOMPARE(invokedServices.children().size(), 0);
     // bind *to* the invokedservices property and check that we observe same changes
     // during the topSm execution
     QProperty<qsizetype> serviceCounter;
-    serviceCounter.setBinding([&](){ return invokedServices.children().count(); });
+    serviceCounter.setBinding([&](){ return invokedServices.children().size(); });
     QCOMPARE(serviceCounter, 0);
     topSm.start();
     QTRY_COMPARE(serviceCounter, 1);

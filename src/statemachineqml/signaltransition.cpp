@@ -61,7 +61,7 @@ void SignalTransition::onTransition(QEvent *event)
         QVarLengthArray<QMetaType, 2> argTypes;
 
         QVariantList eventArguments = e->arguments();
-        const int argCount = eventArguments.length();
+        const int argCount = eventArguments.size();
         argValues.reserve(argCount + 1);
         argTypes.reserve(argCount + 1);
 

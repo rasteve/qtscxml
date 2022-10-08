@@ -47,12 +47,12 @@ void testManipulableQmlListBasics(TestedClass& testedClass,
     listRef.append(data1);
     QVERIFY2(listRef.count() == 1, qPrintable(id));
     if (changedSpy)
-        QVERIFY2(changedSpy->count() == 1, qPrintable(id + ", actual: " + QString::number(changedSpy->count())));
+        QVERIFY2(changedSpy->size() == 1, qPrintable(id + ", actual: " + QString::number(changedSpy->size())));
     QVERIFY2(listRef.at(0) == data1, qPrintable(id));
     listRef.clear();
     QVERIFY2(listRef.count() == 0, qPrintable(id));
     if (changedSpy)
-        QVERIFY2(changedSpy->count() == 2, qPrintable(id + ", actual: " + QString::number(changedSpy->count())));
+        QVERIFY2(changedSpy->size() == 2, qPrintable(id + ", actual: " + QString::number(changedSpy->size())));
 
     // Bind to the property and verify that the bindings reflect the listproperty changes
     QProperty<bool> data1InList([&](){
@@ -78,35 +78,35 @@ void testManipulableQmlListBasics(TestedClass& testedClass,
 
     listRef.append(data1);
     if (changedSpy)
-        QVERIFY2(changedSpy->count() == 3, qPrintable(id + ", actual: " + QString::number(changedSpy->count())));
+        QVERIFY2(changedSpy->size() == 3, qPrintable(id + ", actual: " + QString::number(changedSpy->size())));
     QVERIFY2(data1InList, qPrintable(id));
     QVERIFY2(!data2InList, qPrintable(id));
 
     listRef.append(data2);
     if (changedSpy)
-        QVERIFY2(changedSpy->count() == 4, qPrintable(id + ", actual: " + QString::number(changedSpy->count())));
+        QVERIFY2(changedSpy->size() == 4, qPrintable(id + ", actual: " + QString::number(changedSpy->size())));
     QVERIFY2(data1InList, qPrintable(id));
     QVERIFY2(data2InList, qPrintable(id));
-    QVERIFY2(listRef.count() == 2, qPrintable(id + ", actual: " + QString::number(changedSpy->count())));
+    QVERIFY2(listRef.count() == 2, qPrintable(id + ", actual: " + QString::number(changedSpy->size())));
 
     listRef.clear();
     if (changedSpy)
-        QVERIFY2(changedSpy->count() == 5, qPrintable(id + ", actual: " + QString::number(changedSpy->count())));
+        QVERIFY2(changedSpy->size() == 5, qPrintable(id + ", actual: " + QString::number(changedSpy->size())));
     QVERIFY2(!data1InList, qPrintable(id));
     QVERIFY2(!data2InList, qPrintable(id));
-    QVERIFY2(listRef.count() == 0, qPrintable(id + ", actual: " + QString::number(changedSpy->count())));
+    QVERIFY2(listRef.count() == 0, qPrintable(id + ", actual: " + QString::number(changedSpy->size())));
 
     listRef.append(data1);
     listRef.replace(0, data2);
     if (changedSpy)
-        QVERIFY2(changedSpy->count() == 7, qPrintable(id + ", actual: " + QString::number(changedSpy->count())));
+        QVERIFY2(changedSpy->size() == 7, qPrintable(id + ", actual: " + QString::number(changedSpy->size())));
     QVERIFY2(!data1InList, qPrintable(id));
     QVERIFY2(data2InList, qPrintable(id));
-    QVERIFY2(listRef.count() == 1, qPrintable(id + ", actual: " + QString::number(changedSpy->count())));
+    QVERIFY2(listRef.count() == 1, qPrintable(id + ", actual: " + QString::number(changedSpy->size())));
 
     listRef.removeLast();
     if (changedSpy)
-        QVERIFY2(changedSpy->count() == 8, qPrintable(id + ", actual: " + QString::number(changedSpy->count())));
+        QVERIFY2(changedSpy->size() == 8, qPrintable(id + ", actual: " + QString::number(changedSpy->size())));
     QVERIFY2(!data1InList, qPrintable(id));
     QVERIFY2(!data2InList, qPrintable(id));
 
