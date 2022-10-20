@@ -729,6 +729,9 @@ void QScxmlStateMachinePrivate::attach(QScxmlStateMachineInfo *info)
 
 void QScxmlStateMachinePrivate::updateMetaCache()
 {
+    // This function creates a mapping from state index/name to their signal indexes.
+    // The state index may differ from its signal index as we don't generate history
+    // and invalid states, effectively skipping them
     m_stateIndexToSignalIndex.clear();
     m_stateNameToSignalIndex.clear();
 
@@ -2361,7 +2364,11 @@ void QScxmlStateMachine::stop()
 bool QScxmlStateMachine::isActive(int stateIndex) const
 {
     Q_D(const QScxmlStateMachine);
-    return d->m_configuration.contains(stateIndex);
+    // Here we need to find the actual internal state index that corresponds with the
+    // index of the compiled metaobject (which is same as its mapped signal index).
+    // See updateMetaCache()
+    const int mappedStateIndex = d->m_stateIndexToSignalIndex.key(stateIndex, -1);
+    return d->m_configuration.contains(mappedStateIndex);
 }
 
 QT_END_NAMESPACE
