@@ -9,7 +9,8 @@ function(add_qt_statecharts target)
         return()
     endif()
 
-    qt_parse_all_arguments(arg "add_qt_statecharts" "" "" "FILES" ${ARGN})
+    cmake_parse_arguments(PARSE_ARGV 1 arg "" "" "FILES")
+    _qt_internal_validate_all_args_are_parsed(arg)
 
     qt6_add_statecharts(${target} ${arg_FILES})
 endfunction()
