@@ -23,4 +23,8 @@ Item {
         guard: 2 + 2
     }
 
+    SignalTransition {
+        // Do not crash on SignalTransition without signal
+        onTriggered: () => {}
+    }
 }
