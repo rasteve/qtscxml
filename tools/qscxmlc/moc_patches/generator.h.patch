@@ -1,15 +1,6 @@
---- .upstream/generator.h	2021-01-20 17:08:05.000000000 +0200
-+++ generator.h	2021-03-19 15:52:02.000000000 +0200
-@@ -3,7 +3,7 @@
- ** Copyright (C) 2016 The Qt Company Ltd.
- ** Contact: https://www.qt.io/licensing/
- **
--** This file is part of the tools applications of the Qt Toolkit.
-+** This file is part of the QtScxml module of the Qt Toolkit.
- **
- ** $QT_BEGIN_LICENSE:GPL-EXCEPT$
- ** Commercial License Usage
-@@ -31,20 +31,33 @@
+--- .upstream/generator.h	2022-07-14 10:20:51.543950028 +0200
++++ generator.h	2023-02-02 10:46:55.601993965 +0100
+@@ -6,20 +6,33 @@
  
  #include "moc.h"
  
@@ -45,7 +36,7 @@
  private:
      bool registerableMetaType(const QByteArray &propertyType);
      void registerClassInfoStrings();
-@@ -63,7 +76,10 @@
+@@ -38,7 +51,10 @@
      void generateMetacall();
      void generateStaticMetacall();
      void generateSignal(FunctionDef *def, int index);
