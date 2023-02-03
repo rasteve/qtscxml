@@ -559,10 +559,10 @@ void CppDumper::writeImplBody(const GeneratedTableData &table,
         dataModelInitialization = l("stateMachine.setDataModel(&dataModel);");
         break;
     case DocumentModel::Scxml::JSDataModel:
-        dataModelField = l("QScxmlDataModel *dataModel;");
+        dataModelField = l("std::unique_ptr<QScxmlDataModel> dataModel;");
         dataModelInitialization = l(
-        "   dataModel = QScxmlDataModel::createScxmlDataModel(QStringLiteral(\"ecmascriptdatamodel\"));\n"
-        "   stateMachine.setDataModel(dataModel);\n"
+        "   dataModel.reset(QScxmlDataModel::createScxmlDataModel(QStringLiteral(\"ecmascriptdatamodel\")));\n"
+        "   stateMachine.setDataModel(dataModel.get());\n"
         );
         break;
     case DocumentModel::Scxml::CppDataModel:
