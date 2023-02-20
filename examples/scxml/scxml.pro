@@ -6,7 +6,6 @@ qtHaveModule(widgets) {
     SUBDIRS +=  mediaplayer-widgets-static
     SUBDIRS +=  mediaplayer-widgets-dynamic
     SUBDIRS +=  calculator-widgets
-    SUBDIRS +=  pinball
     SUBDIRS +=  sudoku
 }
 
