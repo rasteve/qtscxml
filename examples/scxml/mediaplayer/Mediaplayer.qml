@@ -5,10 +5,20 @@ import QtQuick
 import QtQuick.Window
 import QtScxml
 
+import MediaPlayerStateMachine
+import MediaPlayerDataModel
+
 Window {
     id: root
-    property StateMachine stateMachine: scxmlLoader.stateMachine
-    property alias source: scxmlLoader.source
+
+    MediaPlayerDataModel {
+        id: model
+    }
+
+    property StateMachine stateMachine: MediaPlayerStateMachine {
+        onDataModelChanged: start()
+        dataModel: model
+    }
 
     visible: true
     width: 750
@@ -62,10 +72,6 @@ Window {
         anchors.top:  parent.top
         text: "Stopped"
         color: stateMachine.playing ? "green" : "red"
-    }
-
-    StateMachineLoader {
-        id: scxmlLoader
     }
 
     EventConnection {

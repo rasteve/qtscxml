@@ -87,7 +87,7 @@ void TheDataModel::evaluateToVoid(QScxmlExecutableContent::EvaluatorId id, bool 
    statements, and in \e cond or \e expr attributes you can use any C++ expression that can be
    converted to the respective bool or QVariant. And, as the \c this pointer is also captured, you
    can call or access the data model (the \e media attribute in the example above). For the full
-   example, see \l {Qt SCXML: Media Player QML Example (C++ Data Model)}.
+   example, see \l {Qt SCXML: Media Player Example}.
  */
 
 /*!

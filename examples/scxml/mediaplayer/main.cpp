@@ -6,18 +6,17 @@
 #include <QQmlContext>
 
 #include "mediaplayer.h"
+#include "thedatamodel.h"
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
+    qmlRegisterType<TheDataModel>("MediaPlayerDataModel", 1, 0, "MediaPlayerDataModel");
     qmlRegisterType<MediaPlayerStateMachine>("MediaPlayerStateMachine", 1, 0, "MediaPlayerStateMachine");
 
     QQmlApplicationEngine engine;
-    engine.load(QUrl(QStringLiteral("qrc:///mediaplayer-qml-static.qml")));
-    if (engine.rootObjects().isEmpty())
-        return -1;
+    engine.load(QUrl(QStringLiteral("qrc:///Mediaplayer.qml")));
 
     return app.exec();
 }
-
