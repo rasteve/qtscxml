@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
                                             "CalculatorStateMachine");
 
     QQmlApplicationEngine engine;
-    engine.load(QUrl(QStringLiteral("qrc:/calculator-qml.qml")));
+    engine.load(QUrl(QStringLiteral("qrc:/calculator.qml")));
     if (engine.rootObjects().isEmpty())
         return -1;
 

@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
 
 /*!
-    \example calculator-qml
-    \title Qt SCXML Calculator QML Example
+    \example calculator
+    \title Qt SCXML Calculator Example
     \ingroup examples-qtscxml
 
-    \image calculator-qml.png
+    \image calculator.png
 
     \brief A Qt Quick application that implements the Calculator example
     presented in the SCXML Specification.
@@ -21,20 +21,18 @@
 
     \include examples-run.qdocinc
 
-    \include calculator-compiling.qdocinc
-
     \section1 Instantiating the State Machine
 
     We make the generated \c CalculatorStateMachine class available to QML by
-    registering it as a QML type in the \e calculator-qml.cpp file:
+    registering it as a QML type in the \e calculator.cpp file:
 
-    \quotefromfile calculator-qml/calculator-qml.cpp
+    \quotefromfile calculator/calculator.cpp
     \skipto statemachine.h
     \printuntil }
 
     To use the CalculatorStateMachine type in a QML file, we import it:
 
-    \quotefromfile calculator-qml/calculator-qml.qml
+    \quotefromfile calculator/calculator.qml
     \skipto CalculatorStateMachine
     \printline CalculatorStateMachine
 
