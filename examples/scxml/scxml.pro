@@ -13,8 +13,7 @@ qtHaveModule(quick) {
     SUBDIRS +=  trafficlight-qml-dynamic
     SUBDIRS +=  trafficlight-qml-simple
     SUBDIRS +=  mediaplayer
-    SUBDIRS +=  invoke-static
-    SUBDIRS +=  invoke-dynamic
+    SUBDIRS +=  invoke
 }
 
 SUBDIRS += ftpclient

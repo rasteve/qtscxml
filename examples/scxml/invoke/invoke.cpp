@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<Directions>("Directions", 1, 0, "Directions");
 
     QQmlApplicationEngine engine;
-    engine.load(QUrl(QStringLiteral("qrc:/invoke-static.qml")));
+    engine.load(QUrl(QStringLiteral("qrc:/invoke.qml")));
     if (engine.rootObjects().isEmpty())
         return -1;
 
