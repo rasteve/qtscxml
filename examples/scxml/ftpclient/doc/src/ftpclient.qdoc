@@ -3,7 +3,7 @@
 
 /*!
     \example ftpclient
-    \title Qt SCXML FTP Client Example
+    \title SCXML FTP Client
     \ingroup examples-qtscxml
 
     \brief Implements a simple FTP client using a state machine.

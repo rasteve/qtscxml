@@ -3,12 +3,12 @@
 
 /*!
     \example calculator
-    \title Qt SCXML Calculator Example
+    \title SCXML Calculator
     \ingroup examples-qtscxml
 
     \image calculator.png
 
-    \brief A Qt Quick application that implements the Calculator example
+    \brief An application that implements the Calculator example
     presented in the SCXML Specification.
 
     \e {Calculator} uses Qt SCXML to implement the

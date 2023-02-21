@@ -3,7 +3,7 @@
 
 /*!
     \example trafficlight-widgets-dynamic
-    \title Qt SCXML Traffic Light Example (Dynamic)
+    \title SCXML Traffic Light Example (Dynamic, Widgets)
     \ingroup examples-qtscxml
 
     \brief A widget-based application that uses a dynamically loaded state
@@ -11,7 +11,7 @@
 
     \image trafficlight.png
 
-    \e{Traffic Light Example (Dynamic)} demonstrates how to connect to the
+    \e{Traffic Light} demonstrates how to connect to the
     active properties of a state in a dynamically loaded state machine.
 
     The UI is created using Qt Widgets.

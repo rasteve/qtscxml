@@ -3,7 +3,7 @@
 
 /*!
     \example sudoku
-    \title Qt SCXML Sudoku Example
+    \title SCXML Sudoku
     \ingroup examples-qtscxml
     \brief Demonstrates the use of separate javascript file with SCXML.
 

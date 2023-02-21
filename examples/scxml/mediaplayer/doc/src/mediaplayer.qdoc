@@ -3,14 +3,14 @@
 
 /*!
     \example mediaplayer
-    \title Qt SCXML Media Player Example
+    \title SCXML Media Player
     \ingroup examples-qtscxml
 
     \image mediaplayer.png
 
     \brief Sends data to and receives it from a C++ data model.
 
-    \e {Media Player Example} demonstrates how to access
+    \e {Media Player} demonstrates how to access
     data from a C++ data model. The data model enables writing C++ code for
     \e expr attributes and \c <script> elements. The \e {data part} of the data
     model is backed by a subclass of QScxmlCppDataModel, for which the Qt SCXML

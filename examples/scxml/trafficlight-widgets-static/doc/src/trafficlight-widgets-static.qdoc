@@ -3,7 +3,7 @@
 
 /*!
     \example trafficlight-widgets-static
-    \title Qt SCXML Traffic Light Example (Static)
+    \title SCXML Traffic Light (Static, Widgets)
     \ingroup examples-qtscxml
 
     \brief A widget-based application that uses a compiled state machine to

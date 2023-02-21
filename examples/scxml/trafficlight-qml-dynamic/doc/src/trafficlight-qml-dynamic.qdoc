@@ -3,7 +3,7 @@
 
 /*!
     \example trafficlight-qml-dynamic
-    \title Qt SCXML Traffic Light QML Example (Dynamic)
+    \title SCXML Traffic Light (Dynamic, QML)
     \ingroup examples-qtscxml
 
     \brief A Qt Quick application that uses a dynamically loaded state machine
@@ -11,7 +11,7 @@
 
     \image trafficlight.png
 
-    \e{Traffic Light QML Example (Dynamic)} demonstrates how to connect to the
+    \e{Traffic Light QML} demonstrates how to connect to the
     active properties of a state in a dynamically loaded state machine.
 
     The UI is created using Qt Quick.

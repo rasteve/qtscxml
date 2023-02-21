@@ -3,7 +3,7 @@
 
 /*!
     \example trafficlight-qml-static
-    \title Qt SCXML  Traffic Light QML Example (Static)
+    \title SCXML Traffic Light (Static, QML)
     \ingroup examples-qtscxml
 
     \brief A Qt Quick application that uses a compiled state machine to
@@ -11,7 +11,7 @@
 
     \image trafficlight.png
 
-    \e{Traffic Light QML Example (Static)} demonstrates how to connect to the
+    \e{Traffic Light} demonstrates how to connect to the
     active properties of a state in a state machine that is compiled to a class.
 
     The UI is created using Qt Quick.
