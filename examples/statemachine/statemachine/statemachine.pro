@@ -1,12 +1,8 @@
 TEMPLATE      = subdirs
-SUBDIRS       = \
-                factorial \
-                pingpong
+
+SUBDIRS       = pingpong
 
 qtHaveModule(widgets) {
-    SUBDIRS +=  \
-                eventtransitions \
-                rogue \
-                trafficlight \
-                twowaybutton
+    SUBDIRS +=  rogue \
+                trafficlight
 }
