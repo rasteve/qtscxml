@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
 
 /*!
-    \example statemachine/trafficlight
+    \example trafficlight
     \title Traffic Light Example
     \ingroup examples-qtstatemachine
 
@@ -16,20 +16,20 @@
     one light to another (red to yellow to green to yellow to red again) at
     certain intervals.
 
-    \snippet statemachine/trafficlight/main.cpp 0
+    \snippet trafficlight/main.cpp 0
 
     The LightWidget class represents a single light of the traffic light. It
     provides an \c on property and two slots, turnOn() and turnOff(), to turn
     the light on and off, respectively. The widget paints itself in the color
     that's passed to the constructor.
 
-    \snippet statemachine/trafficlight/main.cpp 1
+    \snippet trafficlight/main.cpp 1
 
     The TrafficLightWidget class represents the visual part of the traffic
     light; it's a widget that contains three lights arranged vertically, and
     provides accessor functions for these.
 
-    \snippet statemachine/trafficlight/main.cpp 2
+    \snippet trafficlight/main.cpp 2
 
     The createLightState() function creates a state that turns a light on when
     the state is entered, and off when the state is exited. The state uses a
@@ -38,7 +38,7 @@
 
     \image trafficlight-example1.png
 
-    \snippet statemachine/trafficlight/main.cpp 3
+    \snippet trafficlight/main.cpp 3
 
     The TrafficLight class combines the TrafficLightWidget with a state
     machine.  The state graph has four states: red-to-yellow, yellow-to-green,
@@ -49,7 +49,7 @@
 
     \image trafficlight-example2.png
 
-    \snippet statemachine/trafficlight/main.cpp 4
+    \snippet trafficlight/main.cpp 4
 
     The main() function constructs a TrafficLight and shows it.
 
