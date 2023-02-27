@@ -14,16 +14,16 @@ set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/scxml/calculator")
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Scxml)
 
-qt_add_executable(calculator
+qt_add_executable(calculatorscxml
     calculator.cpp
 )
 
-set_target_properties(calculator PROPERTIES
+set_target_properties(calculatorscxml PROPERTIES
     WIN32_EXECUTABLE TRUE
     MACOSX_BUNDLE TRUE
 )
 
-target_link_libraries(calculator PUBLIC
+target_link_libraries(calculatorscxml PUBLIC
     Qt::Core
     Qt::Gui
     Qt::Qml
@@ -36,7 +36,7 @@ set(calculator_resource_files
     "calculator.qml"
 )
 
-qt6_add_resources(calculator "calculator"
+qt6_add_resources(calculatorscxml "calculator"
     PREFIX
         "/"
     FILES
@@ -44,11 +44,11 @@ qt6_add_resources(calculator "calculator"
 )
 
 # Statecharts:
-qt6_add_statecharts(calculator
+qt6_add_statecharts(calculatorscxml
     statemachine.scxml
 )
 
-install(TARGETS calculator
+install(TARGETS calculatorscxml
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
     BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"
     LIBRARY DESTINATION "${INSTALL_EXAMPLEDIR}"
