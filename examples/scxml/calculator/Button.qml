@@ -1,4 +1,4 @@
-// Copyright (C) 2016 The Qt Company Ltd.
+// Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 import QtQuick
@@ -22,7 +22,7 @@ Rectangle {
         height: parent.textHeight
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
-        font.pixelSize: height * fontHeight
+        font.pixelSize: height * button.fontHeight
         color: "#1b1c1d"
         font.family: "Open Sans Regular"
     }

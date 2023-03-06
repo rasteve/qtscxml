@@ -1,10 +1,12 @@
-// Copyright (C) 2016 The Qt Company Ltd.
+// Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
-import CalculatorStateMachine
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Window
 import QtScxml
+import Calculator
 
 Window {
     id: window
@@ -64,6 +66,8 @@ Window {
             id: operations
             model: ["÷", "×", "+", "-"]
             Button {
+                required property int index
+                required property string modelData
                 y: 0
                 x: index * width
                 width: parent.width / 4
@@ -87,6 +91,8 @@ Window {
             id: digits
             model: ["7", "8", "9", "4", "5", "6", "1", "2", "3", "0", ".", "C"]
             Button {
+                required property int index
+                required property string modelData
                 x: (index % 3) * width
                 y: Math.floor(index / 3 + 1) * height
                 width: parent.width / 4

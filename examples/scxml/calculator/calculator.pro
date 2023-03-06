@@ -1,10 +1,23 @@
 QT += qml scxml
 
 CONFIG += c++11
+CONFIG += qmltypes
 
 SOURCES += calculator.cpp
 
-RESOURCES += calculator.qrc
+HEADERS += calculator-qml.h
+
+QML_IMPORT_NAME = Calculator
+QML_IMPORT_MAJOR_VERSION = 1
+
+qml_resources.files = \
+    qmldir \
+    MainWindow.qml \
+    Button.qml
+
+qml_resources.prefix = /qt/qml/Calculator
+
+RESOURCES += qml_resources
 
 STATECHARTS = statemachine.scxml
 
