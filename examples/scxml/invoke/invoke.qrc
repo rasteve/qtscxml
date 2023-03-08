@@ -1,8 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>invoke.qml</file>
-        <file alias="MainView.qml">MainView.qml</file>
-        <file alias="SubView.qml">SubView.qml</file>
-        <file alias="Button.qml">Button.qml</file>
-    </qresource>
-</RCC>

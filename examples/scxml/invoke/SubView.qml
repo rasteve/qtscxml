@@ -1,26 +1,31 @@
-// Copyright (C) 2016 The Qt Company Ltd.
+// Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
+pragma ComponentBehavior: Bound
+
 import QtQuick
+import QtScxml
 
 Item {
-    // "anywhere" is a context property, so we always have to check if it's null
+    id: root
+    required property StateMachine anywhere
+
     Button {
         id: here
-        enabled: anywhere ? anywhere.here : false
+        enabled: root.anywhere ? root.anywhere.here : false
         text: "Go There"
         width: parent.width / 2
         height: parent.height
-        onClicked: anywhere.submitEvent("goThere")
+        onClicked: root.anywhere.submitEvent("goThere")
     }
 
     Button {
         id: there
-        enabled: anywhere ? anywhere.there : false
+        enabled: root.anywhere ? root.anywhere.there : false
         text: "Go Here"
         width: parent.width / 2
         height: parent.height
         x: width
-        onClicked: anywhere.submitEvent("goHere")
+        onClicked: root.anywhere.submitEvent("goHere")
     }
 }

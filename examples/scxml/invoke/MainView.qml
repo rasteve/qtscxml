@@ -1,18 +1,24 @@
-// Copyright (C) 2016 The Qt Company Ltd.
+// Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Window
 import QtScxml
+import InvokeExample
 
 Window {
     id: window
     visible: true
-    property StateMachine stateMachine
-
     color: "black"
     width: 400
     height: 300
+
+    DirectionsStateMachine {
+        id: stateMachine
+        running: true
+    }
 
     Item {
         width: parent.width / 2
@@ -39,7 +45,9 @@ Window {
     }
 
     Loader {
-        source: "SubView.qml"
+        sourceComponent: SubView {
+            anywhere: services.children.anywhere ? services.children.anywhere.stateMachine : null
+        }
         active: stateMachine.somewhere
 
         x: parent.width / 2
@@ -48,11 +56,8 @@ Window {
 
         InvokedServices {
             id: services
-            stateMachine: window.stateMachine
+            stateMachine: stateMachine
         }
-
-        property var anywhere: services.children.anywhere ? services.children.anywhere.stateMachine
-                                                          : undefined
     }
 }
 

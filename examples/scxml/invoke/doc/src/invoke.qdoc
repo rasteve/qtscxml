@@ -1,4 +1,4 @@
-// Copyright (C) 2016 The Qt Company Ltd.
+// Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
 
 /*!
@@ -20,7 +20,7 @@
     \section1 Invoking the State Machine
 
     In \e statemachine.scxml, we specify a state machine with the name
-    \e Directions of type \e http://www.w3.org/TR/scxml/ to invoke:
+    \e DirectionsStateMachine of type \e http://www.w3.org/TR/scxml/ to invoke:
 
     \quotefromfile invoke/statemachine.scxml
     \skipto scxml
@@ -56,12 +56,19 @@
     \e statemachine.cpp, which are then added appropriately as headers and sources for
     compilation.
 
+    \section1 Declaring the state machine as QML element
+
+    The state machine is declared as a QML element as follows:
+    \quotefromfile invoke/invoke-qml.h
+    \skipto struct
+    \printuntil }
+
     \section1 Instantiating the State Machine
 
-    We instantiate the generated \c Directions class in the \e invoke.cpp
+    We instantiate the generated \c DirectionsStateMachine element in the \e MainView.qml
     file, as follows:
 
-    \quotefromfile invoke/invoke.cpp
-    \skipto statemachine.h
+    \quotefromfile invoke/MainView.qml
+    \skipto DirectionsStateMachine
     \printuntil }
 */
