@@ -1,12 +1,12 @@
-// Copyright (C) 2016 The Qt Company Ltd.
+// Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
+
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Window
 import QtScxml
-
-import MediaPlayerStateMachine
-import MediaPlayerDataModel
+import Mediaplayer
 
 Window {
     id: root
@@ -15,8 +15,9 @@ Window {
         id: model
     }
 
-    property StateMachine stateMachine: MediaPlayerStateMachine {
-        onDataModelChanged: start()
+    MediaPlayerStateMachine {
+        id: stateMachine
+        onDataModelChanged: stateMachine.start()
         dataModel: model
     }
 
@@ -41,17 +42,20 @@ Window {
         highlight: Rectangle { color: "lightsteelblue" }
         currentIndex: -1
         delegate: Rectangle {
+            id: delegateRect
+            required property string media
+            required property int index
             height: 40
             width: parent.width
             color: "transparent"
             MouseArea {
                 anchors.fill: parent;
-                onClicked: tap(index)
+                onClicked: root.tap(delegateRect.index)
             }
             Text {
                 id: txt
                 anchors.fill: parent
-                text: media
+                text: delegateRect.media
                 verticalAlignment: Text.AlignVCenter
             }
         }
@@ -75,7 +79,7 @@ Window {
     }
 
     EventConnection {
-        stateMachine: root.stateMachine
+        stateMachine: stateMachine
         events: ["playbackStarted", "playbackStopped"]
         onOccurred: (event)=> {
             var media = event.data.media;
