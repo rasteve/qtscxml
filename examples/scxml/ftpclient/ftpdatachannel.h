@@ -1,13 +1,14 @@
-// Copyright (C) 2016 The Qt Company Ltd.
+// Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #ifndef FTPDATACHANNEL_H
 #define FTPDATACHANNEL_H
 
-#include <QObject>
-#include <QScopedPointer>
-#include <QTcpServer>
-#include <QTcpSocket>
+#include <QtCore/qobject.h>
+#include <QtNetwork/qtcpserver.h>
+#include <QtNetwork/qtcpsocket.h>
+
+#include <memory>
 
 class FtpDataChannel : public QObject
 {
@@ -39,7 +40,7 @@ signals:
 
 private:
     QTcpServer m_server;
-    QScopedPointer<QTcpSocket> m_socket;
+    std::unique_ptr<QTcpSocket> m_socket;
 };
 
 #endif // FTPDATACHANNEL_H

@@ -1,11 +1,11 @@
-// Copyright (C) 2016 The Qt Company Ltd.
+// Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #include "ftpcontrolchannel.h"
 #include "ftpdatachannel.h"
 #include "simpleftp.h"
 
-#include <QCoreApplication>
+#include <QtCore/qcoreapplication.h>
 
 #include <iostream>
 
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 
     // Connect to our own local FTP server
     controlChannel.connectToServer(server);
-    QObject::connect(&controlChannel, &FtpControlChannel::opened,
+    QObject::connect(&controlChannel, &FtpControlChannel::opened, &dataChannel,
                      [&](const QHostAddress &address, int) {
         dataChannel.listen(address);
         commands[1].args = dataChannel.portspec();

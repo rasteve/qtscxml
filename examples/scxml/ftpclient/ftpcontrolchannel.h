@@ -1,12 +1,12 @@
-// Copyright (C) 2016 The Qt Company Ltd.
+// Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #ifndef FTPCONTROLCHANNEL_H
 #define FTPCONTROLCHANNEL_H
 
-#include <QHostAddress>
-#include <QObject>
-#include <QTcpSocket>
+#include <QtNetwork/qhostaddress.h>
+#include <QtNetwork/qtcpsocket.h>
+#include <QtCore/qobject.h>
 
 class FtpControlChannel : public QObject
 {

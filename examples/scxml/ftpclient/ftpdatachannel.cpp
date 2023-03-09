@@ -1,4 +1,4 @@
-// Copyright (C) 2016 The Qt Company Ltd.
+// Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #include "ftpdatachannel.h"
@@ -7,7 +7,7 @@ FtpDataChannel::FtpDataChannel(QObject *parent) : QObject(parent)
 {
     connect(&m_server, &QTcpServer::newConnection, this, [this]() {
         m_socket.reset(m_server.nextPendingConnection());
-        connect(m_socket.data(), &QTcpSocket::readyRead, [this]() {
+        connect(m_socket.get(), &QTcpSocket::readyRead, this, [this]() {
             emit dataReceived(m_socket->readAll());
         });
     });
