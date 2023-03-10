@@ -6,6 +6,10 @@
 ## tst_compiled Test:
 #####################################################################
 
+if(WASM)
+    return()
+endif()
+
 qt_internal_add_test(tst_compiled
     SOURCES
         tst_compiled.cpp

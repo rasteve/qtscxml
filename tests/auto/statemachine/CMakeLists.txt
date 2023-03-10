@@ -6,6 +6,10 @@
 ## tst_statemachine Test:
 #####################################################################
 
+if(WASM)
+    return()
+endif()
+
 qt_internal_add_test(tst_statemachine
     SOURCES
         tst_statemachine.cpp
