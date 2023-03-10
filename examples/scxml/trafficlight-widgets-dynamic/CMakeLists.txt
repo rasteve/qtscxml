@@ -1,10 +1,8 @@
-# Copyright (C) 2022 The Qt Company Ltd.
+# Copyright (C) 2023 The Qt Company Ltd.
 # SPDX-License-Identifier: BSD-3-Clause
 
 cmake_minimum_required(VERSION 3.16)
 project(trafficlight-widgets-dynamic LANGUAGES CXX)
-
-set(CMAKE_AUTOMOC ON)
 
 if(NOT DEFINED INSTALL_EXAMPLESDIR)
     set(INSTALL_EXAMPLESDIR "examples")
@@ -13,6 +11,8 @@ endif()
 set(INSTALL_EXAMPLEDIR "${INSTALL_EXAMPLESDIR}/scxml/trafficlight-widgets-dynamic")
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Scxml Widgets)
+
+qt_standard_project_setup()
 
 qt_add_executable(trafficlight-widgets-dynamic
     ../trafficlight-common/trafficlight.cpp ../trafficlight-common/trafficlight.h
@@ -24,7 +24,7 @@ set_target_properties(trafficlight-widgets-dynamic PROPERTIES
     MACOSX_BUNDLE TRUE
 )
 
-target_link_libraries(trafficlight-widgets-dynamic PUBLIC
+target_link_libraries(trafficlight-widgets-dynamic PRIVATE
     Qt6::Core
     Qt6::Gui
     Qt6::Scxml

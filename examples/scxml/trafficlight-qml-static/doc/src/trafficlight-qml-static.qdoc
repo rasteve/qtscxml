@@ -1,4 +1,4 @@
-// Copyright (C) 2016 The Qt Company Ltd.
+// Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
 
 /*!
@@ -24,7 +24,7 @@
 
     We instantiate the state machine as follows:
 
-    \quotefromfile trafficlight-qml-static/trafficlight-qml-static.qml
+    \quotefromfile trafficlight-qml-static/MainView.qml
 
     \skipto TrafficLight
     \printuntil }
@@ -33,7 +33,7 @@
 
     We connect to the states as follows:
 
-    \quotefromfile trafficlight-common/Lights.ui.qml
+    \quotefromfile trafficlight-qml-static/Lights.ui.qml
     \skipto states
     \printuntil ]
 */

@@ -1,4 +1,4 @@
-// Copyright (C) 2016 The Qt Company Ltd.
+// Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
 
 /*!
@@ -37,7 +37,7 @@
 
     We dynamically create the state machine in the main QML file:
 
-    \quotefromfile trafficlight-qml-dynamic/trafficlight-qml-dynamic.qml
+    \quotefromfile trafficlight-qml-dynamic/MainView.qml
     \skipto import QtScxml
     \printuntil /^\}/
 
@@ -45,7 +45,7 @@
 
     We connect to the states as follows:
 
-    \quotefromfile trafficlight-common/Lights.ui.qml
+    \quotefromfile trafficlight-qml-dynamic/Lights.ui.qml
     \skipto states
     \printuntil ]
 */

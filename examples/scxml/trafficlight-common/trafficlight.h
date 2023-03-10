@@ -1,12 +1,12 @@
-// Copyright (C) 2016 The Qt Company Ltd.
+// Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
 #ifndef TRAFFICLIGHT_H
 #define TRAFFICLIGHT_H
 
-#include <QAbstractButton>
-#include <QScxmlStateMachine>
-#include <QWidget>
+#include <QtWidgets/qwidget.h>
+#include <QtWidgets/qabstractbutton.h>
+#include <QtScxml/qscxmlstatemachine.h>
 
 class TrafficLight : public QWidget
 {

@@ -1,4 +1,4 @@
-// Copyright (C) 2016 The Qt Company Ltd.
+// Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
 
 /*!
@@ -24,7 +24,7 @@
 
     We instantiate the state machine as follows:
 
-    \quotefromfile trafficlight-qml-simple/TrafficLight.qml
+    \quotefromfile trafficlight-qml-simple/MainView.qml
 
     \skipto TrafficLightStateMachine {
     \printuntil }
@@ -33,7 +33,7 @@
 
     We connect to the states as follows:
 
-    \quotefromfile trafficlight-qml-simple/TrafficLight.qml
+    \quotefromfile trafficlight-qml-simple/MainView.qml
     \skipto Light {
     \printuntil /^ {4}\}/
 */

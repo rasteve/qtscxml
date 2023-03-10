@@ -1,28 +1,17 @@
-// Copyright (C) 2016 The Qt Company Ltd.
+// Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
-#include <QGuiApplication>
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
-#include <QScxmlStateMachine>
+#include <QtGui/qguiapplication.h>
+#include <QtQml/qqmlapplicationengine.h>
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    /* Register QScxmlStateMachine as TrafficLightStateMachine. This is required to have a type
-     * for the state machine and allows full code completion in the static case, since we
-     * share the QML code. */
-    qmlRegisterUncreatableType<QScxmlStateMachine>("TrafficLightStateMachine",
-                                                   1, 0,
-                                                   "TrafficLightStateMachine",
-                                                   QLatin1String("TrafficLightStateMachine is not creatable."));
-
     QQmlApplicationEngine engine;
-    engine.load(QUrl(QStringLiteral("qrc:///trafficlight-qml-dynamic.qml")));
-    if (engine.rootObjects().isEmpty())
-        return -1;
+    QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed, &app,
+                     [](){ QCoreApplication::exit(EXIT_FAILURE); }, Qt::QueuedConnection);
+    engine.loadFromModule("TrafficLightApplication", "MainView");
 
     return app.exec();
 }
-
