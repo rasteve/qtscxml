@@ -5,6 +5,7 @@
     \example calculator
     \title SCXML Calculator
     \ingroup examples-qtscxml
+    \meta tag {state machine}
 
     \image calculator.png
 

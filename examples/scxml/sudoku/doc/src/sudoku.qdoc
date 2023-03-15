@@ -5,6 +5,8 @@
     \example sudoku
     \title SCXML Sudoku
     \ingroup examples-qtscxml
+    \meta tag {state machine}
+
     \brief Demonstrates the use of separate javascript file with SCXML.
 
     \include examples-run.qdocinc

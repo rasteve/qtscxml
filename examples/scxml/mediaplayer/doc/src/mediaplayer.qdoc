@@ -5,6 +5,7 @@
     \example mediaplayer
     \title SCXML Media Player
     \ingroup examples-qtscxml
+    \meta tag {state machine}
 
     \image mediaplayer.png
 
