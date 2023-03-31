@@ -1,11 +1,11 @@
 TEMPLATE = subdirs
 
-SUBDIRS += pingpong \
+SUBDIRS += pingpong
 
 qtHaveModule(widgets) {
     SUBDIRS += rogue \
                trafficlight
     qtConfig(animation) {
-        SUBDIRS += moveblocks \
+        SUBDIRS += moveblocks
     }
 }
