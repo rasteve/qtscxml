@@ -1,24 +1,27 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
-#include <QtCore>
-#include <QtStateMachine>
+#include <QtCore/QCoreApplication>
+#include <QtCore/QDebug>
+#include <QtCore/QEvent>
+#include <QtStateMachine/QAbstractTransition>
+#include <QtStateMachine/QState>
+#include <QtStateMachine/QStateMachine>
 
-#include <iostream>
+static constexpr QEvent::Type PingEventType = QEvent::Type(QEvent::User + 2);
+static constexpr QEvent::Type PongEventType = QEvent::Type(QEvent::User + 3);
 
 //! [0]
 class PingEvent : public QEvent
 {
 public:
-    PingEvent() : QEvent(QEvent::Type(QEvent::User+2))
-        {}
+    PingEvent() : QEvent(PingEventType) { }
 };
 
 class PongEvent : public QEvent
 {
 public:
-    PongEvent() : QEvent(QEvent::Type(QEvent::User+3))
-        {}
+    PongEvent() : QEvent(PongEventType) { }
 };
 //! [0]
 
@@ -26,14 +29,13 @@ public:
 class Pinger : public QState
 {
 public:
-    Pinger(QState *parent)
-        : QState(parent) {}
+    explicit Pinger(QState *parent) : QState(parent) { }
 
 protected:
     void onEntry(QEvent *) override
     {
-        machine()->postEvent(new PingEvent());
-        std::cout << "ping?" << std::endl;
+        machine()->postEvent(new PingEvent);
+        qInfo() << "ping?";
     }
 };
 //! [1]
@@ -45,13 +47,12 @@ public:
     PongTransition() {}
 
 protected:
-    bool eventTest(QEvent *e) override {
-        return (e->type() == QEvent::User+3);
-    }
+    bool eventTest(QEvent *e) override { return (e->type() == PingEventType); }
+
     void onTransition(QEvent *) override
     {
-        machine()->postDelayedEvent(new PingEvent(), 500);
-        std::cout << "ping?" << std::endl;
+        machine()->postDelayedEvent(new PingEvent, 500);
+        qInfo() << "ping?";
     }
 };
 //! [3]
@@ -63,13 +64,12 @@ public:
     PingTransition() {}
 
 protected:
-    bool eventTest(QEvent *e) override {
-        return (e->type() == QEvent::User+2);
-    }
+    bool eventTest(QEvent *e) override { return e->type() == PingEventType; }
+
     void onTransition(QEvent *) override
     {
-        machine()->postDelayedEvent(new PongEvent(), 500);
-        std::cout << "pong!" << std::endl;
+        machine()->postDelayedEvent(new PongEvent, 500);
+        qInfo() << "pong!";
     }
 };
 //! [2]
@@ -80,18 +80,18 @@ int main(int argc, char **argv)
     QCoreApplication app(argc, argv);
 
     QStateMachine machine;
-    QState *group = new QState(QState::ParallelStates);
+    auto group = new QState(QState::ParallelStates);
     group->setObjectName("group");
 //! [4]
 
 //! [5]
-    Pinger *pinger = new Pinger(group);
+    auto pinger = new Pinger(group);
     pinger->setObjectName("pinger");
-    pinger->addTransition(new PongTransition());
+    pinger->addTransition(new PongTransition);
 
-    QState *ponger = new QState(group);
+    auto ponger = new QState(group);
     ponger->setObjectName("ponger");
-    ponger->addTransition(new PingTransition());
+    ponger->addTransition(new PingTransition);
 //! [5]
 
 //! [6]
