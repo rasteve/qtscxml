@@ -4,16 +4,9 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
-#include <QWidget>
+#include <QtWidgets/QWidget>
 
-QT_BEGIN_NAMESPACE
-class QState;
-class QStateMachine;
-class QTransition;
-QT_END_NAMESPACE
-
-#define WIDTH 35
-#define HEIGHT 20
+QT_FORWARD_DECLARE_CLASS(QStateMachine);
 
 //![0]
 class Window : public QWidget
@@ -41,8 +34,12 @@ private:
     void buildMachine();
     void setupMap();
 
+    static constexpr int WIDTH = 35;
+    static constexpr int HEIGHT = 20;
+
     QChar map[WIDTH][HEIGHT];
-    int pX, pY;
+    int pX = 5;
+    int pY = 5;
 
     QStateMachine *machine;
     QString myStatus;

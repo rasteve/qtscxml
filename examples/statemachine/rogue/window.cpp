@@ -1,16 +1,22 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
-#include <QtWidgets>
-
 #include "window.h"
+
+#include <QtCore/QRandomGenerator>
+#include <QtGui/QFont>
+#include <QtGui/QPainter>
+#include <QtStateMachine/QFinalState>
+#include <QtStateMachine/QKeyEventTransition>
+#include <QtWidgets/QApplication>
+
+#include <cmath>
+
 #include "movementtransition.h"
 
 //![0]
 Window::Window()
 {
-    pX = 5;
-    pY = 5;
 //![0]
     QFont font("Monospace");
     font.setStyleHint(QFont::TypeWriter);
@@ -64,22 +70,22 @@ void Window::paintEvent(QPaintEvent * /* event */)
             double x2 = static_cast<double>(x);
             double y2 = static_cast<double>(y);
 
-            if (x2<x1) {
-                x2+=0.5;
-            } else if (x2>x1) {
-                 x2-=0.5;
+            if (x2 < x1) {
+                x2 += 0.5;
+            } else if (x2 > x1) {
+                x2 -= 0.5;
             }
 
-            if (y2<y1) {
-                 y2+=0.5;
-            } else if (y2>y1) {
-                 y2-=0.5;
+            if (y2 < y1) {
+                y2 += 0.5;
+            } else if (y2 > y1) {
+                y2 -= 0.5;
             }
 
             double dx = x2 - x1;
             double dy = y2 - y1;
 
-            double length = qSqrt(dx*dx+dy*dy);
+            double length = std::hypot(dx, dy);
 
             dx /= length;
             dy /= length;
@@ -88,15 +94,14 @@ void Window::paintEvent(QPaintEvent * /* event */)
             double yi = y1;
 
             while (length > 0) {
-                int cx = static_cast<int>(xi+0.5);
-                int cy = static_cast<int>(yi+0.5);
+                int cx = static_cast<int>(xi + 0.5);
+                int cy = static_cast<int>(yi + 0.5);
 
                 if (x2 == cx && y2 == cy)
                     break;
 
-                if (!(x1==cx && y1==cy)
-                    && (map[cx][cy] == '#' || (length-10) > 0)) {
-                    painter.setPen(QColor(60,60,60));
+                if (!(x1 == cx && y1 == cy) && (map[cx][cy] == '#' || (length - 10) > 0)) {
+                    painter.setPen(QColor(60, 60, 60));
                     break;
                 }
 
@@ -125,31 +130,28 @@ void Window::buildMachine()
 {
     machine = new QStateMachine;
 
-    QState *inputState = new QState(machine);
+    auto inputState = new QState(machine);
     inputState->assignProperty(this, "status", "Move the rogue with 2, 4, 6, and 8");
 
-    MovementTransition *transition = new MovementTransition(this);
+    auto transition = new MovementTransition(this);
     inputState->addTransition(transition);
 //![2]
 
 //![3]
-    QState *quitState = new QState(machine);
+    auto quitState = new QState(machine);
     quitState->assignProperty(this, "status", "Really quit(y/n)?");
 
-    QKeyEventTransition *yesTransition = new
-        QKeyEventTransition(this, QEvent::KeyPress, Qt::Key_Y);
+    auto yesTransition = new QKeyEventTransition(this, QEvent::KeyPress, Qt::Key_Y);
     yesTransition->setTargetState(new QFinalState(machine));
     quitState->addTransition(yesTransition);
 
-    QKeyEventTransition *noTransition =
-        new QKeyEventTransition(this, QEvent::KeyPress, Qt::Key_N);
+    auto noTransition = new QKeyEventTransition(this, QEvent::KeyPress, Qt::Key_N);
     noTransition->setTargetState(inputState);
     quitState->addTransition(noTransition);
 //![3]
 
 //![4]
-    QKeyEventTransition *quitTransition =
-        new QKeyEventTransition(this, QEvent::KeyPress, Qt::Key_Q);
+    auto quitTransition = new QKeyEventTransition(this, QEvent::KeyPress, Qt::Key_Q);
     quitTransition->setTargetState(quitState);
     inputState->addTransition(quitTransition);
 //![4]
@@ -157,8 +159,7 @@ void Window::buildMachine()
 //![5]
     machine->setInitialState(inputState);
 
-    connect(machine, &QStateMachine::finished,
-            qApp, &QApplication::quit);
+    connect(machine, &QStateMachine::finished, qApp, &QApplication::quit);
 
     machine->start();
 }

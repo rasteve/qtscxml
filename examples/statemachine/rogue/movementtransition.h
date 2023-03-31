@@ -4,8 +4,9 @@
 #ifndef MOVEMENTTRANSITION_H
 #define MOVEMENTTRANSITION_H
 
-#include <QtStateMachine>
-#include <QtWidgets>
+#include <QtGui/QKeyEvent>
+#include <QtStateMachine/QEventTransition>
+#include <QtStateMachine/QStateMachine>
 
 #include "window.h"
 
@@ -15,9 +16,9 @@ class MovementTransition : public QEventTransition
     Q_OBJECT
 
 public:
-    MovementTransition(Window *window) :
-        QEventTransition(window, QEvent::KeyPress) {
-        this->window = window;
+    explicit MovementTransition(Window *window)
+        : QEventTransition(window, QEvent::KeyPress), window(window)
+    {
     }
 //![0]
 
@@ -26,9 +27,9 @@ protected:
     bool eventTest(QEvent *event) override {
         if (event->type() == QEvent::StateMachineWrapped &&
             static_cast<QStateMachine::WrappedEvent *>(event)->event()->type() == QEvent::KeyPress) {
-            QEvent *wrappedEvent = static_cast<QStateMachine::WrappedEvent *>(event)->event();
+            auto wrappedEvent = static_cast<QStateMachine::WrappedEvent *>(event)->event();
 
-            QKeyEvent *keyEvent = static_cast<QKeyEvent *>(wrappedEvent);
+            auto keyEvent = static_cast<QKeyEvent *>(wrappedEvent);
             int key = keyEvent->key();
 
             return key == Qt::Key_2 || key == Qt::Key_8 || key == Qt::Key_6 ||
@@ -41,8 +42,8 @@ protected:
 
 //![2]
     void onTransition(QEvent *event) override {
-        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(
-            static_cast<QStateMachine::WrappedEvent *>(event)->event());
+        auto keyEvent = static_cast<QKeyEvent *>(
+                static_cast<QStateMachine::WrappedEvent *>(event)->event());
 
         int key = keyEvent->key();
         switch (key) {

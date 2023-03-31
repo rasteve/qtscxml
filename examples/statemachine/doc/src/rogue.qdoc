@@ -87,8 +87,8 @@
     The \c map is an array with the characters that are currently
     displayed. We set up the array in \c setupMap(), and update it
     when the rogue is moved. \c pX and \c pY is the current position
-    of the rogue. \c WIDTH and \c HEIGHT are macros specifying the
-    dimensions of the map.
+    of the rogue, initially set to (5, 5). \c WIDTH and \c HEIGHT are
+    constants specifying the dimensions of the map.
 
     The \c paintEvent() function is left out of this walkthrough. We
     also do not discuss other code that does not concern the state
@@ -105,9 +105,8 @@
     \dots
     \snippet rogue/window.cpp 1
 
-    The player starts off at position (5, 5). We then set up the map
-    and statemachine. Let's proceed with the \c buildMachine()
-    function:
+    Here we set up the map and statemachine. Let's proceed with the
+    \c buildMachine() function:
 
     \snippet rogue/window.cpp 2
 
