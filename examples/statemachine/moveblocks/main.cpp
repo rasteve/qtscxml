@@ -1,26 +1,27 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause
 
-#include <QtCore>
-#include <QtWidgets>
-#include <QtStateMachine>
+#include <QtCore/QEvent>
+#include <QtCore/QParallelAnimationGroup>
+#include <QtCore/QPropertyAnimation>
+#include <QtCore/QRandomGenerator>
+#include <QtCore/QSequentialAnimationGroup>
+#include <QtCore/QTimer>
+#include <QtGui/QPainter>
+#include <QtStateMachine/QAbstractTransition>
+#include <QtStateMachine/QState>
+#include <QtStateMachine/QStateMachine>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QGraphicsView>
+#include <QtWidgets/QGraphicsWidget>
 
 //![15]
 class StateSwitchEvent: public QEvent
 {
 public:
-    StateSwitchEvent()
-        : QEvent(Type(StateSwitchType))
-    {
-    }
+    explicit StateSwitchEvent(int rand) : QEvent(StateSwitchType), m_rand(rand) { }
 
-    explicit StateSwitchEvent(int rand)
-        : QEvent(Type(StateSwitchType)),
-          m_rand(rand)
-    {
-    }
-
-    enum { StateSwitchType = QEvent::User + 256 };
+    static constexpr QEvent::Type StateSwitchType = QEvent::Type(QEvent::User + 256);
 
     int rand() const { return m_rand; }
 
@@ -33,8 +34,7 @@ private:
 class QGraphicsRectWidget : public QGraphicsWidget
 {
 public:
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *,
-               QWidget *) override
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override
     {
         painter->fillRect(rect(), Qt::blue);
     }
@@ -44,11 +44,7 @@ public:
 class StateSwitchTransition: public QAbstractTransition
 {
 public:
-    StateSwitchTransition(int rand)
-        : QAbstractTransition(),
-          m_rand(rand)
-    {
-    }
+    explicit StateSwitchTransition(int rand) : QAbstractTransition(), m_rand(rand) { }
 
 protected:
 //![14]
@@ -70,9 +66,7 @@ class StateSwitcher : public QState
 {
     Q_OBJECT
 public:
-    StateSwitcher(QStateMachine *machine)
-        : QState(machine), m_stateCount(0), m_lastIndex(0)
-    { }
+    explicit StateSwitcher(QStateMachine *machine) : QState(machine) { }
 //![10]
 
 //![11]
@@ -89,7 +83,7 @@ public:
 
 //![12]
     void addState(QState *state, QAbstractAnimation *animation) {
-        StateSwitchTransition *trans = new StateSwitchTransition(++m_stateCount);
+        auto trans = new StateSwitchTransition(++m_stateCount);
         trans->setTargetState(state);
         addTransition(trans);
         trans->addAnimation(animation);
@@ -97,18 +91,16 @@ public:
 //![12]
 
 private:
-    int m_stateCount;
-    int m_lastIndex;
+    int m_stateCount = 0;
+    int m_lastIndex = 0;
 };
 
 //![13]
-QState *createGeometryState(QObject *w1, const QRect &rect1,
-                            QObject *w2, const QRect &rect2,
-                            QObject *w3, const QRect &rect3,
-                            QObject *w4, const QRect &rect4,
-                            QState *parent)
+static QState *createGeometryState(QObject *w1, const QRect &rect1, QObject *w2, const QRect &rect2,
+                                   QObject *w3, const QRect &rect3, QObject *w4, const QRect &rect4,
+                                   QState *parent)
 {
-    QState *result = new QState(parent);
+    auto result = new QState(parent);
     result->assignProperty(w1, "geometry", rect1);
     result->assignProperty(w2, "geometry", rect2);
     result->assignProperty(w3, "geometry", rect3);
@@ -123,7 +115,7 @@ class GraphicsView : public QGraphicsView
 {
     Q_OBJECT
 public:
-    GraphicsView(QGraphicsScene *scene, QWidget *parent = nullptr)
+    explicit GraphicsView(QGraphicsScene *scene, QWidget *parent = nullptr)
         : QGraphicsView(scene, parent)
     {
     }
@@ -142,10 +134,10 @@ int main(int argc, char **argv)
     QApplication app(argc, argv);
 
 //![1]
-    QGraphicsRectWidget *button1 = new QGraphicsRectWidget;
-    QGraphicsRectWidget *button2 = new QGraphicsRectWidget;
-    QGraphicsRectWidget *button3 = new QGraphicsRectWidget;
-    QGraphicsRectWidget *button4 = new QGraphicsRectWidget;
+    auto button1 = new QGraphicsRectWidget;
+    auto button2 = new QGraphicsRectWidget;
+    auto button3 = new QGraphicsRectWidget;
+    auto button4 = new QGraphicsRectWidget;
     button2->setZValue(1);
     button3->setZValue(2);
     button4->setZValue(3);
@@ -164,7 +156,7 @@ int main(int argc, char **argv)
 //![2]
     QStateMachine machine;
 
-    QState *group = new QState();
+    auto group = new QState;
     group->setObjectName("group");
     QTimer timer;
     timer.setInterval(1250);
@@ -173,66 +165,57 @@ int main(int argc, char **argv)
 //![2]
 
 //![3]
-    QState *state1;
-    QState *state2;
-    QState *state3;
-    QState *state4;
-    QState *state5;
-    QState *state6;
-    QState *state7;
-
-    state1 = createGeometryState(button1, QRect(100, 0, 50, 50),
-                                 button2, QRect(150, 0, 50, 50),
-                                 button3, QRect(200, 0, 50, 50),
-                                 button4, QRect(250, 0, 50, 50),
-                                 group);
+    auto state1 = createGeometryState(button1, QRect(100, 0, 50, 50),
+                                      button2, QRect(150, 0, 50, 50),
+                                      button3, QRect(200, 0, 50, 50),
+                                      button4, QRect(250, 0, 50, 50),
+                                      group);
 //![3]
-    state2 = createGeometryState(button1, QRect(250, 100, 50, 50),
-                                 button2, QRect(250, 150, 50, 50),
-                                 button3, QRect(250, 200, 50, 50),
-                                 button4, QRect(250, 250, 50, 50),
-                                 group);
-    state3 = createGeometryState(button1, QRect(150, 250, 50, 50),
-                                 button2, QRect(100, 250, 50, 50),
-                                 button3, QRect(50, 250, 50, 50),
-                                 button4, QRect(0, 250, 50, 50),
-                                 group);
-    state4 = createGeometryState(button1, QRect(0, 150, 50, 50),
-                                 button2, QRect(0, 100, 50, 50),
-                                 button3, QRect(0, 50, 50, 50),
-                                 button4, QRect(0, 0, 50, 50),
-                                 group);
-    state5 = createGeometryState(button1, QRect(100, 100, 50, 50),
-                                 button2, QRect(150, 100, 50, 50),
-                                 button3, QRect(100, 150, 50, 50),
-                                 button4, QRect(150, 150, 50, 50),
-                                 group);
-    state6 = createGeometryState(button1, QRect(50, 50, 50, 50),
-                                 button2, QRect(200, 50, 50, 50),
-                                 button3, QRect(50, 200, 50, 50),
-                                 button4, QRect(200, 200, 50, 50),
-                                 group);
+    auto state2 = createGeometryState(button1, QRect(250, 100, 50, 50),
+                                      button2, QRect(250, 150, 50, 50),
+                                      button3, QRect(250, 200, 50, 50),
+                                      button4, QRect(250, 250, 50, 50),
+                                      group);
+    auto state3 = createGeometryState(button1, QRect(150, 250, 50, 50),
+                                      button2, QRect(100, 250, 50, 50),
+                                      button3, QRect(50, 250, 50, 50),
+                                      button4, QRect(0, 250, 50, 50),
+                                      group);
+    auto state4 = createGeometryState(button1, QRect(0, 150, 50, 50),
+                                      button2, QRect(0, 100, 50, 50),
+                                      button3, QRect(0, 50, 50, 50),
+                                      button4, QRect(0, 0, 50, 50),
+                                      group);
+    auto state5 = createGeometryState(button1, QRect(100, 100, 50, 50),
+                                      button2, QRect(150, 100, 50, 50),
+                                      button3, QRect(100, 150, 50, 50),
+                                      button4, QRect(150, 150, 50, 50),
+                                      group);
+    auto state6 = createGeometryState(button1, QRect(50, 50, 50, 50),
+                                      button2, QRect(200, 50, 50, 50),
+                                      button3, QRect(50, 200, 50, 50),
+                                      button4, QRect(200, 200, 50, 50),
+                                      group);
 //![4]
-    state7 = createGeometryState(button1, QRect(0, 0, 50, 50),
-                                 button2, QRect(250, 0, 50, 50),
-                                 button3, QRect(0, 250, 50, 50),
-                                 button4, QRect(250, 250, 50, 50),
-                                 group);
+    auto state7 = createGeometryState(button1, QRect(0, 0, 50, 50),
+                                      button2, QRect(250, 0, 50, 50),
+                                      button3, QRect(0, 250, 50, 50),
+                                      button4, QRect(250, 250, 50, 50),
+                                      group);
     group->setInitialState(state1);
 //![4]
 
 //![5]
     QParallelAnimationGroup animationGroup;
-    QSequentialAnimationGroup *subGroup;
 
-    QPropertyAnimation *anim = new QPropertyAnimation(button4, "geometry");
+    auto anim = new QPropertyAnimation(button4, "geometry");
     anim->setDuration(1000);
     anim->setEasingCurve(QEasingCurve::OutElastic);
     animationGroup.addAnimation(anim);
 //![5]
 
 //![6]
-    subGroup = new QSequentialAnimationGroup(&animationGroup);
+    auto subGroup = new QSequentialAnimationGroup(&animationGroup);
     subGroup->addPause(100);
     anim = new QPropertyAnimation(button3, "geometry");
     anim->setDuration(1000);
@@ -255,7 +238,7 @@ int main(int argc, char **argv)
     subGroup->addAnimation(anim);
 
 //![7]
-    StateSwitcher *stateSwitcher = new StateSwitcher(&machine);
+    auto stateSwitcher = new StateSwitcher(&machine);
     stateSwitcher->setObjectName("stateSwitcher");
     group->addTransition(&timer, &QTimer::timeout, stateSwitcher);
     stateSwitcher->addState(state1, &animationGroup);
