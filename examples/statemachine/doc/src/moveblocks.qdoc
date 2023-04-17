@@ -3,7 +3,7 @@
 
 /*!
     \example moveblocks
-    \title Move Blocks Example
+    \title Move Blocks
     \ingroup examples-qtstatemachine
 
     \brief The Move Blocks example shows how to animate items in a

@@ -3,7 +3,7 @@
 
 /*!
     \example rogue
-    \title Rogue Example
+    \title Rogue
     \ingroup examples-qtstatemachine
 
     \brief The Rogue example shows how to use the Qt state machine for event

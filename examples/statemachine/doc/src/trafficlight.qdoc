@@ -3,7 +3,7 @@
 
 /*!
     \example trafficlight
-    \title Traffic Light Example
+    \title Traffic Light
     \ingroup examples-qtstatemachine
 
     \brief The Traffic Light example shows how to use \l{Qt State Machine Overview}

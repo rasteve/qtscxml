@@ -3,7 +3,7 @@
 
 /*!
     \example pingpong
-    \title Ping Pong States Example
+    \title Ping Pong States
     \ingroup examples-qtstatemachine
 
     \brief The Ping Pong States example shows how to use parallel states together
