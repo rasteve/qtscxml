@@ -12,23 +12,10 @@ Window::Window()
     pX = 5;
     pY = 5;
 //![0]
-
-    QFont font;
-    const QStringList families = QFontDatabase::families();
-    if (families.contains("Monospace")) {
-        font = QFont(QStringList{"Monospace"});
-    }
-    else {
-        for (const QString &family : families) {
-            if (QFontDatabase::isFixedPitch(family)) {
-                font = QFont(QStringList{family});
-                break;
-            }
-        }
-    }
+    QFont font("Monospace");
+    font.setStyleHint(QFont::TypeWriter);
     font.setPointSize(12);
     setFont(font);
-
 //![1]
     setupMap();
     buildMachine();
