@@ -99,7 +99,7 @@ public:
         typedef QtPrivate::FunctionPointer<PointerToMemberFunction> SlotType;
         return connectToStateImpl(
                     scxmlStateName, receiver, nullptr,
-                    new QtPrivate::QSlotObject<PointerToMemberFunction,
+                    new QtPrivate::QFunctorSlotObject<PointerToMemberFunction,
                     typename SlotType::Arguments, void>(method),
                     type);
     }
@@ -124,7 +124,7 @@ public:
     connectToState(const QString &scxmlStateName, const QObject *context, Functor functor,
                    Qt::ConnectionType type = Qt::AutoConnection)
     {
-        QtPrivate::QSlotObjectBase *slotObj = new QtPrivate::QFunctorSlotObject<Functor, 1,
+        QtPrivate::QSlotObjectBase *slotObj = new QtPrivate::QFunctorSlotObject<Functor,
                 QtPrivate::List<bool>, void>(functor);
         return connectToStateImpl(scxmlStateName, context, reinterpret_cast<void **>(&functor),
                                   slotObj, type);
@@ -213,7 +213,7 @@ public:
         typedef QtPrivate::FunctionPointer<PointerToMemberFunction> SlotType;
         return connectToEventImpl(
                     scxmlEventSpec, receiver, nullptr,
-                    new QtPrivate::QSlotObject<PointerToMemberFunction,
+                    new QtPrivate::QFunctorSlotObject<PointerToMemberFunction,
                     typename SlotType::Arguments, void>(method),
                     type);
     }
@@ -238,7 +238,7 @@ public:
     connectToEvent(const QString &scxmlEventSpec, const QObject *context, Functor functor,
                    Qt::ConnectionType type = Qt::AutoConnection)
     {
-        QtPrivate::QSlotObjectBase *slotObj = new QtPrivate::QFunctorSlotObject<Functor, 1,
+        QtPrivate::QSlotObjectBase *slotObj = new QtPrivate::QFunctorSlotObject<Functor,
                 QtPrivate::List<QScxmlEvent>, void>(functor);
         return connectToEventImpl(scxmlEventSpec, context, reinterpret_cast<void **>(&functor),
                                   slotObj, type);
