@@ -5,7 +5,6 @@
 \group examples-qtscxml
 \title Qt SCXML Examples
 \brief Examples for the Qt SCXML module.
-\ingroup all-examples
 
 The Qt SCXML example applications demonstrate the functionality provided by the
 \l{Qt SCXML} module.
