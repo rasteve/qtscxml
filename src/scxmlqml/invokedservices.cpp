@@ -78,12 +78,12 @@ void QScxmlInvokedServices::setStateMachine(QScxmlStateMachine *stateMachine)
     m_stateMachine = stateMachine;
 
     if (m_stateMachine.value()) {
-        m_serviceConnection = QObject::connect(
-                    m_stateMachine.value(), &QScxmlStateMachine::invokedServicesChanged,
-                    [this](){
-            m_children.notify();
-            emit childrenChanged();
-        });
+        m_serviceConnection =
+                QObject::connect(m_stateMachine.value(),
+                                 &QScxmlStateMachine::invokedServicesChanged, this, [this]() {
+                                     m_children.notify();
+                                     emit childrenChanged();
+                                 });
     }
     m_stateMachine.notify();
     m_children.notify();

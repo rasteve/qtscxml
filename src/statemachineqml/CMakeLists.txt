@@ -19,6 +19,7 @@ qt_internal_add_qml_module(StateMachineQml
         statemachineforeign_p.h
     DEFINES
         QT_BUILD_STATEMACHINEQML_LIB
+        QT_NO_CONTEXTLESS_CONNECT
     DEPENDENCIES
         QtQml
     PUBLIC_LIBRARIES

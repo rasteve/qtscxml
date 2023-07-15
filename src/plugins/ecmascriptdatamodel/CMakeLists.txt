@@ -14,6 +14,8 @@ qt_internal_add_plugin(QScxmlEcmaScriptDataModelPlugin
         qscxmlecmascriptdatamodelplugin.cpp qscxmlecmascriptdatamodelplugin_p.h
         qscxmlecmascriptdatamodel_p.h qscxmlecmascriptdatamodel.cpp
         qscxmlecmascriptplatformproperties.cpp qscxmlecmascriptplatformproperties_p.h
+    DEFINES
+        QT_NO_CONTEXTLESS_CONNECT
     LIBRARIES
         Qt::Core
         Qt::Scxml
