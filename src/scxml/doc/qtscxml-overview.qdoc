@@ -5,6 +5,7 @@
     \page qtscxml-overview.html
     \title Qt SCXML Overview
     \brief Describes the Qt SCXML module.
+    \ingroup explanation
 
     The Qt SCXML module provides classes for embedding state machines created
     from State Chart XML (SCXML) files in Qt applications. The SCXML files

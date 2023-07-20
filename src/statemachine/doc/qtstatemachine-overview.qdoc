@@ -6,6 +6,7 @@
   \title Qt State Machine Overview
   \brief An overview of the State Machine framework for constructing and executing state graphs.
   \ingroup technology-apis
+  \ingroup explanation
 
   \tableofcontents
 

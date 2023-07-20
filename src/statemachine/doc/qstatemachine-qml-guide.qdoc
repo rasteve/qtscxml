@@ -6,6 +6,7 @@
   \title Qt State Machine QML Guide
   \brief Overview of the Qt State Machine QML for constructing and executing state graphs.
   \ingroup technology-apis
+  \ingroup explanation
 
   \tableofcontents
 

@@ -7,6 +7,7 @@
   \brief An overview of the State Machine framework for constructing and
   executing state graphs with the C++ API.
   \ingroup technology-apis
+  \ingroup explanation
 
   \tableofcontents
 
