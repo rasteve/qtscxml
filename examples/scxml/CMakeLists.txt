@@ -1,7 +1,7 @@
 # Copyright (C) 2022 The Qt Company Ltd.
 # SPDX-License-Identifier: BSD-3-Clause
 
-if (TARGET Qt::Network AND QT_FEATURE_scxml_ecmascriptdatamodel)
+if (TARGET Qt::Network AND QT_FEATURE_scxml_ecmascriptdatamodel AND NOT ANDROID)
     qt_internal_add_example(ftpclient)
 endif()
 
