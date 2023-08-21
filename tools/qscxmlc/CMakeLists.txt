@@ -19,7 +19,7 @@ qt_internal_add_tool(${target_name}
         ../../src/scxml/qscxmltabledata.cpp ../../src/scxml/qscxmltabledata.h
         generator.cpp generator.h
         main.cpp
-        moc.h
+        moc.cpp moc.h
         outputrevision.h
         qscxmlc.cpp qscxmlc.h
         scxmlcppdumper.cpp scxmlcppdumper.h

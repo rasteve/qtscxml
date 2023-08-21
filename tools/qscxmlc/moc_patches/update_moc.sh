@@ -79,7 +79,7 @@ update_moc() {
 
 MODE="$1"
 MOC_DIR="$2"
-FILES=( "outputrevision.h" "moc.h" "generator.h" "generator.cpp" )
+FILES=( "outputrevision.h" "moc.cpp" "moc.h" "generator.h" "generator.cpp" )
 
 [[ -f moc_patches/update_moc.sh ]] || usage "Error: script must be run from the tools/qscxmlc/ directory."
 [[ -n "$MOC_DIR" ]] || usage "Error: You did not specify a moc directory."

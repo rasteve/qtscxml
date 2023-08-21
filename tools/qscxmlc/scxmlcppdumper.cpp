@@ -533,7 +533,9 @@ void CppDumper::writeImplStart()
     cpp << l("#include \"") << headerName << l("\"") << Qt::endl;
     cpp << Qt::endl
         << QStringLiteral("#include <qscxmlinvokableservice.h>") << Qt::endl
-        << QStringLiteral("#include <qscxmltabledata.h>") << Qt::endl;
+        << QStringLiteral("#include <qscxmltabledata.h>") << Qt::endl
+        << QStringLiteral("#include <QtCore/qtmochelpers.h>") << Qt::endl;
+
     for (const QString &inc : std::as_const(includes)) {
         cpp << l("#include <") << inc << l(">") << Qt::endl;
     }
