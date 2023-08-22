@@ -4,6 +4,7 @@
 /*!
     \example trafficlight-widgets-static
     \title SCXML Traffic Light (Static, Widgets)
+    \examplecategory {Data Processing & I/O}
     \ingroup examples-qtscxml
 
     \brief A widget-based application that uses a compiled state machine to

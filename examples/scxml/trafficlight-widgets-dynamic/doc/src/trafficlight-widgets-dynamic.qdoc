@@ -4,6 +4,7 @@
 /*!
     \example trafficlight-widgets-dynamic
     \title SCXML Traffic Light (Dynamic, Widgets)
+    \examplecategory {Data Processing & I/O}
     \ingroup examples-qtscxml
 
     \brief A widget-based application that uses a dynamically loaded state

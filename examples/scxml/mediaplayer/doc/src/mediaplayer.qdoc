@@ -4,6 +4,7 @@
 /*!
     \example mediaplayer
     \title SCXML Media Player
+    \examplecategory {Data Processing & I/O}
     \ingroup examples-qtscxml
     \meta tag {state machine}
 

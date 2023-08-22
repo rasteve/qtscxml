@@ -4,6 +4,7 @@
 /*!
     \example trafficlight-qml-static
     \title SCXML Traffic Light (Static, QML)
+    \examplecategory {Data Processing & I/O}
     \ingroup examples-qtscxml
 
     \brief A Qt Quick application that uses a compiled state machine to

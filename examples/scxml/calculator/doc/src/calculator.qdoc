@@ -4,6 +4,7 @@
 /*!
     \example calculator
     \title SCXML Calculator
+    \examplecategory {Data Processing & I/O}
     \ingroup examples-qtscxml
     \meta tag {state machine}
 

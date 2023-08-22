@@ -4,6 +4,7 @@
 /*!
     \example invoke
     \title SCXML Invoke
+    \examplecategory {Data Processing & I/O}
     \ingroup examples-qtscxml
 
     \brief Invokes a compiled nested state machine.

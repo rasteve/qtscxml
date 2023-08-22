@@ -4,6 +4,7 @@
 /*!
     \example sudoku
     \title SCXML Sudoku
+    \examplecategory {Data Processing & I/O}
     \ingroup examples-qtscxml
     \meta tag {state machine}
 
