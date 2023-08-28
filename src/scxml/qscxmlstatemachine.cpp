@@ -675,7 +675,8 @@ void QScxmlStateMachinePrivate::updateMetaCache()
     m_stateIndexToSignalIndex.clear();
     m_stateNameToSignalIndex.clear();
 
-    if (!m_tableData.value())
+    const QScxmlTableData *tableData = m_tableData.valueBypassingBindings();
+    if (!tableData)
         return;
 
     if (!m_stateTable)
@@ -687,7 +688,7 @@ void QScxmlStateMachinePrivate::updateMetaCache()
         const auto &s = m_stateTable->state(i);
         if (!s.isHistoryState() && s.type != StateTable::State::Invalid) {
             m_stateIndexToSignalIndex.insert(i, signalIndex);
-            m_stateNameToSignalIndex.insert(m_tableData.value()->string(s.name),
+            m_stateNameToSignalIndex.insert(tableData->string(s.name),
                                             signalIndex + methodOffset);
 
             ++signalIndex;
@@ -1650,10 +1651,11 @@ void QScxmlStateMachine::setDataModel(QScxmlDataModel *model)
 {
     Q_D(QScxmlStateMachine);
 
-    if (d->m_dataModel.value() == nullptr && model != nullptr) {
+    if (d->m_dataModel.valueBypassingBindings() == nullptr && model != nullptr) {
         // the binding is removed only on the first valid set
-        // as the later attempts are ignored (removed when value is set below)
-        d->m_dataModel = model;
+        // as the later attempts are ignored
+        d->m_dataModel.removeBindingUnlessInWrapper();
+        d->m_dataModel.setValueBypassingBindings(model);
         model->setStateMachine(this);
         d->m_dataModel.notify();
         emit dataModelChanged(model);
@@ -1706,16 +1708,18 @@ void QScxmlStateMachine::setTableData(QScxmlTableData *tableData)
 {
     Q_D(QScxmlStateMachine);
 
-    if (d->m_tableData.value() == tableData) {
-        d->m_tableData.removeBindingUnlessInWrapper();
+    d->m_tableData.removeBindingUnlessInWrapper();
+    if (d->m_tableData.valueBypassingBindings() == tableData)
         return;
-    }
 
-    d->m_tableData = tableData;
+    d->m_tableData.setValueBypassingBindings(tableData);
     if (tableData) {
         d->m_stateTable = reinterpret_cast<const QScxmlExecutableContent::StateTable *>(
                     tableData->stateMachineTable());
-        if (objectName().isEmpty()) {
+        // cannot use objectName() here, because it creates binding loop
+        const QString currentObjectName = d->extraData
+                ? d->extraData->objectName.valueBypassingBindings() : QString();
+        if (currentObjectName.isEmpty()) {
             setObjectName(tableData->name());
         }
         if (d->m_stateTable->maxServiceId != QScxmlExecutableContent::StateTable::InvalidIndex) {

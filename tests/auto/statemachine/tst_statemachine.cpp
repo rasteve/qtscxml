@@ -38,6 +38,8 @@ private Q_SLOTS:
     void logWithoutExpr();
 
     void bindings();
+
+    void setTableDataUpdatesObjectNames();
 };
 
 void tst_StateMachine::stateNames_data()
@@ -449,11 +451,16 @@ void tst_StateMachine::bindings()
         return;
     }
 
+    using StateMachinePtr = std::unique_ptr<QScxmlStateMachine>;
+
     // -- QScxmlStateMachine::initialValues
     QVariantMap map1{{"map", 1}};
     QVariantMap map2{{"map", 2}};
     QTestPrivate::testReadWritePropertyBasics<QScxmlStateMachine, QVariantMap>(
-                *stateMachine1, map1, map2, "initialValues");
+            *stateMachine1, map1, map2, "initialValues",
+            []() {
+                return StateMachinePtr{QScxmlStateMachine::fromFile(QString("not_a_real_file"))};
+            });
     if (QTest::currentTestFailed()) {
         qWarning() << "QScxmlStateMachine::initialValues bindable test failed.";
         return;
@@ -468,7 +475,10 @@ void tst_StateMachine::bindings()
     MockLoader loader1;
     MockLoader loader2;
     QTestPrivate::testReadWritePropertyBasics<QScxmlStateMachine, QScxmlCompiler::Loader*>(
-                *stateMachine1, &loader1, &loader2, "loader");
+            *stateMachine1, &loader1, &loader2, "loader",
+            []() {
+                return StateMachinePtr{QScxmlStateMachine::fromFile(QString("not_a_real_file"))};
+            });
     if (QTest::currentTestFailed()) {
         qWarning() << "QScxmlStateMachine::loader bindable test failed.";
         return;
@@ -483,18 +493,25 @@ void tst_StateMachine::bindings()
     QScxmlNullDataModel model1;
     // data can only change once
     QTestPrivate::testWriteOncePropertyBasics<QScxmlStateMachine, QScxmlDataModel*>(
-                *stateMachine2, nullptr, &model1, "dataModel");
+            *stateMachine2, nullptr, &model1, "dataModel", true,
+            []() {
+                return StateMachinePtr{QScxmlStateMachine::fromFile(QString("not_a_real_file"))};
+            });
     if (QTest::currentTestFailed()) {
         qWarning() << "QScxmlStateMachine::dataModel bindable test failed.";
         return;
     }
 
     // -- QScxmlStateMachine::tableData
-    // Use the statemachine to generate the tabledDatas for testing
+    // Use the statemachine to generate the tableData for testing
     std::unique_ptr<QScxmlStateMachine> stateMachine4(
                 QScxmlStateMachine::fromFile(QString(":/tst_statemachine/invoke.scxml")));
     QTestPrivate::testReadWritePropertyBasics<QScxmlStateMachine, QScxmlTableData*>(
-                *stateMachine2, stateMachine1.get()->tableData(), stateMachine4.get()->tableData(), "tableData");
+            *stateMachine2, stateMachine1.get()->tableData(), stateMachine4.get()->tableData(),
+            "tableData",
+            []() {
+                return StateMachinePtr{QScxmlStateMachine::fromFile(QString("not_a_real_file"))};
+            });
     if (QTest::currentTestFailed()) {
         qWarning() << "QScxmlStateMachine::tableData bindable test failed.";
         return;
@@ -528,12 +545,34 @@ void tst_StateMachine::bindings()
     std::unique_ptr<QScxmlStateMachine> stateMachine5(
                 QScxmlStateMachine::fromFile(QString("not_a_real_file")));
     // data can only change once
-    QTestPrivate::testWriteOncePropertyBasics<QScxmlDataModel, QScxmlStateMachine*>(
+    QTestPrivate::testWriteOncePropertyBasics<QScxmlNullDataModel, QScxmlStateMachine*>(
                 dataModel1, nullptr, stateMachine5.get(), "stateMachine");
     if (QTest::currentTestFailed()) {
         qWarning() << "QScxmlDataModel::stateMachine bindable test failed.";
         return;
     }
+}
+
+void tst_StateMachine::setTableDataUpdatesObjectNames()
+{
+    std::unique_ptr<QScxmlStateMachine> stateMachine1(
+            QScxmlStateMachine::fromFile(QString(":/tst_statemachine/emptylog.scxml")));
+    const QString sm1ObjectName = stateMachine1->objectName();
+    std::unique_ptr<QScxmlStateMachine> stateMachine2(
+            QScxmlStateMachine::fromFile(QString(":/tst_statemachine/eventoccurred.scxml")));
+    const QString sm2ObjectName = stateMachine2->objectName();
+    QCOMPARE_NE(sm1ObjectName, sm2ObjectName);
+
+    std::unique_ptr<QScxmlStateMachine> sm(
+            QScxmlStateMachine::fromFile(QString("not_a_real_file")));
+    QVERIFY(sm->objectName().isEmpty());
+    // no name set, so update object name
+    sm->setTableData(stateMachine1->tableData());
+    QCOMPARE_EQ(sm->objectName(), sm1ObjectName);
+
+    // object name already set, so do not update
+    sm->setTableData(stateMachine2->tableData());
+    QCOMPARE_EQ(sm->objectName(), sm1ObjectName); // did not change
 }
 
 QTEST_MAIN(tst_StateMachine)

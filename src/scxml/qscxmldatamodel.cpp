@@ -95,10 +95,11 @@ void QScxmlDataModel::setStateMachine(QScxmlStateMachine *stateMachine)
 {
     Q_D(QScxmlDataModel);
 
-    if (d->m_stateMachine.value() == nullptr && stateMachine != nullptr) {
+    if (d->m_stateMachine.valueBypassingBindings() == nullptr && stateMachine != nullptr) {
         // the binding is removed only on the first valid set
-        // as the later attempts are ignored (removed when value is set below)
-        d->m_stateMachine = stateMachine;
+        // as the later attempts are ignored
+        d->m_stateMachine.removeBindingUnlessInWrapper();
+        d->m_stateMachine.setValueBypassingBindings(stateMachine);
         stateMachine->setDataModel(this);
         d->m_stateMachine.notify();
     }
