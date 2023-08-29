@@ -136,7 +136,7 @@
     stateMachine->submitEvent("tap", QVariantMap({
         { "artist", "Fatboy Slim" },
         { "title", "The Rockafeller Skank" }
-    });
+    }));
     \endcode
 
     This will generate a "tap" event with the map contents available in
