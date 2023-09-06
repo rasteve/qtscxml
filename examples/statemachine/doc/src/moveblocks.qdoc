@@ -5,6 +5,7 @@
     \example moveblocks
     \title Move Blocks
     \ingroup examples-qtstatemachine
+    \examplecategory {Data Processing & I/O}
 
     \brief The Move Blocks example shows how to animate items in a
     QGraphicsScene using a QStateMachine with a custom transition.

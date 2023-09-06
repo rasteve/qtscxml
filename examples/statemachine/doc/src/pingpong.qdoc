@@ -5,6 +5,7 @@
     \example pingpong
     \title Ping Pong States
     \ingroup examples-qtstatemachine
+    \examplecategory {Data Processing & I/O}
 
     \brief The Ping Pong States example shows how to use parallel states together
     with custom events and transitions in \l{Qt State Machine Overview}{Qt State Machine Framework}.
