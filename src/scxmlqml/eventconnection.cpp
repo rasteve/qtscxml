@@ -56,11 +56,11 @@ QStringList QScxmlEventConnection::events() const
 
 void QScxmlEventConnection::setEvents(const QStringList &events)
 {
-    if (events == m_events.value()) {
-        m_events.removeBindingUnlessInWrapper();
+    m_events.removeBindingUnlessInWrapper();
+    if (events == m_events.valueBypassingBindings()) {
         return;
     }
-    m_events = events;
+    m_events.setValueBypassingBindings(events);
     doConnect();
     m_events.notify();
 }
@@ -77,11 +77,10 @@ QScxmlStateMachine *QScxmlEventConnection::stateMachine() const
 
 void QScxmlEventConnection::setStateMachine(QScxmlStateMachine *stateMachine)
 {
-    if (stateMachine == m_stateMachine.value()) {
-        m_stateMachine.removeBindingUnlessInWrapper();
+    m_stateMachine.removeBindingUnlessInWrapper();
+    if (stateMachine == m_stateMachine.valueBypassingBindings())
         return;
-    }
-    m_stateMachine = stateMachine;
+    m_stateMachine.setValueBypassingBindings(stateMachine);
     doConnect();
     m_stateMachine.notify();
 }
@@ -96,10 +95,12 @@ void QScxmlEventConnection::doConnect()
     for (const QMetaObject::Connection &connection : std::as_const(m_connections))
         disconnect(connection);
     m_connections.clear();
-    if (m_stateMachine) {
-        for (const QString &event : std::as_const(m_events.value())) {
-            m_connections.append(m_stateMachine->connectToEvent(event, this,
-                                                                &QScxmlEventConnection::occurred));
+    const auto stateMachine = m_stateMachine.valueBypassingBindings();
+    if (stateMachine) {
+        const auto events = m_events.valueBypassingBindings();
+        for (const QString &event : events) {
+            m_connections.append(stateMachine->connectToEvent(event, this,
+                                                              &QScxmlEventConnection::occurred));
         }
     }
 }
