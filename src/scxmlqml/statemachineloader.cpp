@@ -90,13 +90,15 @@ QVariantMap QScxmlStateMachineLoader::initialValues() const
 
 void QScxmlStateMachineLoader::setInitialValues(const QVariantMap &initialValues)
 {
-    if (initialValues == m_initialValues.value()) {
-        m_initialValues.removeBindingUnlessInWrapper();
+    m_initialValues.removeBindingUnlessInWrapper();
+    if (initialValues == m_initialValues.valueBypassingBindings())
         return;
-    }
-    m_initialValues = initialValues;
-    if (m_stateMachine.value())
-        m_stateMachine.value()->setInitialValues(initialValues);
+
+    m_initialValues.setValueBypassingBindings(initialValues);
+
+    const auto stateMachine = m_stateMachine.valueBypassingBindings();
+    if (stateMachine)
+        stateMachine->setInitialValues(initialValues);
     m_initialValues.notify();
 }
 
@@ -112,16 +114,17 @@ QScxmlDataModel *QScxmlStateMachineLoader::dataModel() const
 
 void QScxmlStateMachineLoader::setDataModel(QScxmlDataModel *dataModel)
 {
-    if (dataModel == m_dataModel.value()) {
-        m_dataModel.removeBindingUnlessInWrapper();
+    m_dataModel.removeBindingUnlessInWrapper();
+    if (dataModel == m_dataModel.valueBypassingBindings()) {
         return;
     }
-    m_dataModel = dataModel;
-    if (m_stateMachine.value()) {
+    m_dataModel.setValueBypassingBindings(dataModel);
+    const auto stateMachine = m_stateMachine.valueBypassingBindings();
+    if (stateMachine) {
         if (dataModel)
-            m_stateMachine.value()->setDataModel(dataModel);
+            stateMachine->setDataModel(dataModel);
         else
-            m_stateMachine.value()->setDataModel(m_implicitDataModel);
+            stateMachine->setDataModel(m_implicitDataModel);
     }
     m_dataModel.notify();
 }
