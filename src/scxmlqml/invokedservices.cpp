@@ -69,17 +69,16 @@ QScxmlStateMachine *QScxmlInvokedServices::stateMachine() const
 
 void QScxmlInvokedServices::setStateMachine(QScxmlStateMachine *stateMachine)
 {
-    if (stateMachine == m_stateMachine.value()) {
-        m_stateMachine.removeBindingUnlessInWrapper();
+    m_stateMachine.removeBindingUnlessInWrapper();
+    if (stateMachine == m_stateMachine.valueBypassingBindings())
         return;
-    }
 
     QObject::disconnect(m_serviceConnection);
-    m_stateMachine = stateMachine;
+    m_stateMachine.setValueBypassingBindings(stateMachine);
 
-    if (m_stateMachine.value()) {
+    if (stateMachine) {
         m_serviceConnection =
-                QObject::connect(m_stateMachine.value(),
+                QObject::connect(stateMachine,
                                  &QScxmlStateMachine::invokedServicesChanged, this, [this]() {
                                      m_children.notify();
                                      emit childrenChanged();
