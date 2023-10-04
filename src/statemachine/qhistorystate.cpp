@@ -172,11 +172,10 @@ QAbstractTransition *QHistoryState::defaultTransition() const
 void QHistoryState::setDefaultTransition(QAbstractTransition *transition)
 {
     Q_D(QHistoryState);
-    if (d->defaultTransition.value() == transition) {
-        d->defaultTransition.removeBindingUnlessInWrapper();
+    d->defaultTransition.removeBindingUnlessInWrapper();
+    if (d->defaultTransition.valueBypassingBindings() == transition)
         return;
-    }
-    d->defaultTransition = transition;
+    d->defaultTransition.setValueBypassingBindings(transition);
     if (transition)
         transition->setParent(this);
     d->defaultTransition.notify();
@@ -219,14 +218,13 @@ void QHistoryState::setDefaultState(QAbstractState *state)
                  "to this history state's group (%p)", state, parentState());
         return;
     }
-    if (!d->defaultTransition.value()
-            || !isSoleEntry(d->defaultTransition->targetStates(), state)) {
-        if (!d->defaultTransition.value()
-                || !qobject_cast<DefaultStateTransition*>(d->defaultTransition)) {
+    // evaluate the binding once
+    auto *defaultTransition = d->defaultTransition.value();
+    if (!defaultTransition || !isSoleEntry(defaultTransition->targetStates(), state)) {
+        if (!defaultTransition || !qobject_cast<DefaultStateTransition*>(defaultTransition))
             d->defaultTransition.setValue(new DefaultStateTransition(this, state));
-        } else {
-            d->defaultTransition->setTargetState(state);
-        }
+        else
+            defaultTransition->setTargetState(state);
         emit defaultStateChanged(QHistoryState::QPrivateSignal());
     }
 }

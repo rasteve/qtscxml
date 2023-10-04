@@ -149,12 +149,11 @@ QEvent::Type QEventTransition::eventType() const
 void QEventTransition::setEventType(QEvent::Type type)
 {
     Q_D(QEventTransition);
-    if (d->eventType.value() == type) {
-        d->eventType.removeBindingUnlessInWrapper();
+    d->eventType.removeBindingUnlessInWrapper();
+    if (d->eventType.valueBypassingBindings() == type)
         return;
-    }
     d->unregister();
-    d->eventType = type;
+    d->eventType.setValueBypassingBindings(type);
     d->maybeRegister();
     d->eventType.notify();
 }
@@ -181,12 +180,11 @@ QObject *QEventTransition::eventSource() const
 void QEventTransition::setEventSource(QObject *object)
 {
     Q_D(QEventTransition);
-    if (d->object.value() == object) {
-        d->object.removeBindingUnlessInWrapper();
+    d->object.removeBindingUnlessInWrapper();
+    if (d->object.valueBypassingBindings() == object)
         return;
-    }
     d->unregister();
-    d->object = object;
+    d->object.setValueBypassingBindings(object);
     d->maybeRegister();
     d->object.notify();
 }

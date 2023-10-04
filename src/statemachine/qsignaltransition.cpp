@@ -144,12 +144,11 @@ const QObject *QSignalTransition::senderObject() const
 void QSignalTransition::setSenderObject(const QObject *sender)
 {
     Q_D(QSignalTransition);
-    if (sender == d->senderObject.value()) {
-        d->senderObject.removeBindingUnlessInWrapper();
+    d->senderObject.removeBindingUnlessInWrapper();
+    if (sender == d->senderObject.valueBypassingBindings())
         return;
-    }
     d->unregister();
-    d->senderObject = sender;
+    d->senderObject.setValueBypassingBindings(sender);
     d->maybeRegister();
     d->senderObject.notify();
     emit senderObjectChanged(QPrivateSignal());
@@ -176,12 +175,11 @@ QByteArray QSignalTransition::signal() const
 void QSignalTransition::setSignal(const QByteArray &signal)
 {
     Q_D(QSignalTransition);
-    if (signal == d->signal.value()) {
-        d->signal.removeBindingUnlessInWrapper();
+    d->signal.removeBindingUnlessInWrapper();
+    if (signal == d->signal.valueBypassingBindings())
         return;
-    }
     d->unregister();
-    d->signal = signal;
+    d->signal.setValueBypassingBindings(signal);
     d->maybeRegister();
     d->signal.notify();
     emit signalChanged(QPrivateSignal());

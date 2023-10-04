@@ -2199,8 +2199,10 @@ void QStateMachinePrivate::unregisterTransition(QAbstractTransition *transition)
 void QStateMachinePrivate::maybeRegisterSignalTransition(QSignalTransition *transition)
 {
     Q_Q(QStateMachine);
+    const QObject *senderObject =
+            QSignalTransitionPrivate::get(transition)->senderObject.valueBypassingBindings();
     if ((state == Running) && (configuration.contains(transition->sourceState())
-            || (transition->senderObject() && (transition->senderObject()->thread() != q->thread())))) {
+            || (senderObject && (senderObject->thread() != q->thread())))) {
         registerSignalTransition(transition);
     }
 }
@@ -2210,10 +2212,11 @@ void QStateMachinePrivate::registerSignalTransition(QSignalTransition *transitio
     Q_Q(QStateMachine);
     if (QSignalTransitionPrivate::get(transition)->signalIndex != -1)
         return; // already registered
-    const QObject *sender = QSignalTransitionPrivate::get(transition)->senderObject;
+    const QObject *sender =
+            QSignalTransitionPrivate::get(transition)->senderObject.valueBypassingBindings();
     if (!sender)
         return;
-    QByteArray signal = QSignalTransitionPrivate::get(transition)->signal;
+    QByteArray signal = QSignalTransitionPrivate::get(transition)->signal.valueBypassingBindings();
     if (signal.isEmpty())
         return;
     if (signal.startsWith('0'+QSIGNAL_CODE))
@@ -2270,7 +2273,8 @@ void QStateMachinePrivate::unregisterSignalTransition(QSignalTransition *transit
     int signalIndex = QSignalTransitionPrivate::get(transition)->signalIndex;
     if (signalIndex == -1)
         return; // not registered
-    const QObject *sender = QSignalTransitionPrivate::get(transition)->senderObject;
+    const QObject *sender =
+            QSignalTransitionPrivate::get(transition)->senderObject.valueBypassingBindings();
     QSignalTransitionPrivate::get(transition)->signalIndex = -1;
 
     connectionsMutex.lock();
@@ -2325,21 +2329,23 @@ void QStateMachinePrivate::registerEventTransition(QEventTransition *transition)
     Q_Q(QStateMachine);
     if (QEventTransitionPrivate::get(transition)->registered)
         return;
-    if (transition->eventType() >= QEvent::User) {
+    const QEvent::Type eventType =
+            QEventTransitionPrivate::get(transition)->eventType.valueBypassingBindings();
+    if (eventType >= QEvent::User) {
         qWarning("QObject event transitions are not supported for custom types");
         return;
     }
-    QObject *object = QEventTransitionPrivate::get(transition)->object;
+    QObject *object = QEventTransitionPrivate::get(transition)->object.valueBypassingBindings();
     if (!object)
         return;
     QObjectPrivate *od = QObjectPrivate::get(object);
     if (!od->extraData || !od->extraData->eventFilters.contains(q))
         object->installEventFilter(q);
-    ++qobjectEvents[object][transition->eventType()];
+    ++qobjectEvents[object][eventType];
     QEventTransitionPrivate::get(transition)->registered = true;
 #ifdef QSTATEMACHINE_DEBUG
     qDebug() << q << ": added event transition from" << transition->sourceState()
-             << ": ( object =" << object << ", event =" << transition->eventType()
+             << ": ( object =" << object << ", event =" << eventType
              << ", targets =" << transition->targetStates() << ')';
 #endif
 }
@@ -2349,11 +2355,13 @@ void QStateMachinePrivate::unregisterEventTransition(QEventTransition *transitio
     Q_Q(QStateMachine);
     if (!QEventTransitionPrivate::get(transition)->registered)
         return;
-    QObject *object = QEventTransitionPrivate::get(transition)->object;
+    QObject *object = QEventTransitionPrivate::get(transition)->object.valueBypassingBindings();
     QHash<QEvent::Type, int> &events = qobjectEvents[object];
-    Q_ASSERT(events.value(transition->eventType()) > 0);
-    if (--events[transition->eventType()] == 0) {
-        events.remove(transition->eventType());
+    const QEvent::Type eventType =
+            QEventTransitionPrivate::get(transition)->eventType.valueBypassingBindings();
+    Q_ASSERT(events.value(eventType) > 0);
+    if (--events[eventType] == 0) {
+        events.remove(eventType);
         int sum = 0;
         QHash<QEvent::Type, int>::const_iterator it;
         for (it = events.constBegin(); it != events.constEnd(); ++it)

@@ -6861,19 +6861,19 @@ void tst_QStateMachine::bindings()
         return;
     }
 
-    // -- QState::initialState
+    // -- QState::initialState. Cannot be tested for bindable loops.
     QAbstractState *is1 = new QState(state1);
     QAbstractState *is2 = new QState(state1);
     QTestPrivate::testReadWritePropertyBasics<QState, QAbstractState*>(
-                *state1, is1, is2, "initialState");
+                *state1, is1, is2, "initialState", []() { return nullptr; });
     if (QTest::currentTestFailed()) {
         qWarning() << "QState::initialState bindable test failed.";
         return;
     }
 
-    // -- QState::errorState
+    // -- QState::errorState. Cannot be tested for bindable loops.
     QTestPrivate::testReadWritePropertyBasics<QState, QAbstractState*>(
-                *state1, is1, is2, "errorState");
+                *state1, is1, is2, "errorState", []() { return nullptr; });
     if (QTest::currentTestFailed()) {
         qWarning() << "QState::errorState bindable test failed.";
         return;
@@ -6935,7 +6935,8 @@ void tst_QStateMachine::bindings()
     auto transitionType1 = QAbstractTransition::InternalTransition;
     auto transitionType2 = QAbstractTransition::ExternalTransition;
     QTestPrivate::testReadWritePropertyBasics<QAbstractTransition, QAbstractTransition::TransitionType>(
-                signalTransition, transitionType1, transitionType2, "transitionType");
+                signalTransition, transitionType1, transitionType2, "transitionType",
+                []() { return std::make_unique<QSignalTransition>(); });
     if (QTest::currentTestFailed()) {
         qWarning() << "QAbstractTransition::transitionType bindable test failed.";
         return;
