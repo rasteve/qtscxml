@@ -175,7 +175,8 @@ void tst_QState::transitions()
     QVERIFY(s2.transitions().isEmpty());
 
     s1.removeTransition(t1);
-    s1.removeTransition(t1_1);
+    s1.removeTransition(t1_1); // Releases ownership!
+    delete t1_1;               // So, delete manually.
     QVERIFY(s1.transitions().isEmpty());
 
     s1.addTransition(t1);
