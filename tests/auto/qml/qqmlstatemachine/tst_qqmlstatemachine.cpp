@@ -116,10 +116,18 @@ void tst_qqmlstatemachine::tst_bindings()
     QVariant signal2;
     QMetaObject::invokeMethod(obj.get(), "getSignal1", Q_RETURN_ARG(QVariant, signal1));
     QMetaObject::invokeMethod(obj.get(), "getSignal2", Q_RETURN_ARG(QVariant, signal2));
+    // The setter needs an active engine, so we use a helper component to create
+    // a helper instance for testing binding loops.
+    QQmlComponent helperComponent(&engine, testFileUrl("signaltransitionhelper.qml"));
     // QJSValue does not implement operator== so we supply own comparator
     QTestPrivate::testReadWritePropertyBasics<SignalTransition, QJSValue>(
                 *st1, signal1.value<QJSValue>(), signal2.value<QJSValue>(), "signal",
-                [](QJSValue d1, QJSValue d2) { return d1.strictlyEquals(d2); });
+                [](QJSValue d1, QJSValue d2) { return d1.strictlyEquals(d2); },
+                [](const QJSValue &val) { return QTest::toString(val); },
+                [&helperComponent]() {
+                    return std::unique_ptr<SignalTransition>(
+                        qobject_cast<SignalTransition*>(helperComponent.create()));
+                });
     if (QTest::currentTestFailed()) {
         qWarning() << "SignalTransition::signal bindable test failed.";
         return;
