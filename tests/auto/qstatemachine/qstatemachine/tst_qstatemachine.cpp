@@ -4746,9 +4746,9 @@ void tst_QStateMachine::eventFilterForApplication()
 void tst_QStateMachine::eventClassesExported()
 {
     // make sure this links
-    QStateMachine::WrappedEvent *wrappedEvent = new QStateMachine::WrappedEvent(0, 0);
+    auto wrappedEvent = std::make_unique<QStateMachine::WrappedEvent>(nullptr, nullptr);
     Q_UNUSED(wrappedEvent);
-    QStateMachine::SignalEvent *signalEvent = new QStateMachine::SignalEvent(0, 0, QList<QVariant>());
+    auto signalEvent = std::make_unique<QStateMachine::SignalEvent>(nullptr, 0, QList<QVariant>());
     Q_UNUSED(signalEvent);
 }
 
