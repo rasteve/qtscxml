@@ -112,8 +112,8 @@ void tst_scxmlqmlcpp::stateMachineLoaderSourceStateMachineBinding()
 {
     // Test source and stateMachine together as they interact with each other
 
-    QUrl source1(testFileUrl("statemachine.scxml"));
-    QUrl source2(testFileUrl("topmachine.scxml"));
+    QUrl source1(testFileUrl("submachineA.scxml"));
+    QUrl source2(testFileUrl("submachineB.scxml"));
     // The 'setSource' of the statemachineloader assumes a valid qml context
     QQmlEngine engine;
     const QUrl smlUrl = testFileUrl("stateMachineLoader.qml");
@@ -124,9 +124,15 @@ void tst_scxmlqmlcpp::stateMachineLoaderSourceStateMachineBinding()
             qobject_cast<QScxmlStateMachineLoader*>(root->findChild<QObject*>("sml"));
     QVERIFY(sml != nullptr);
 
+    QQmlComponent otherComponent(&engine, testFileUrl("smlHelper.qml"));
+
     // -- StateMachineLoader::source
     QTestPrivate::testReadWritePropertyBasics<QScxmlStateMachineLoader, QUrl>(
-                *sml, source1, source2, "source");
+                *sml, source1, source2, "source",
+                [&otherComponent]() {
+                    return std::unique_ptr<QScxmlStateMachineLoader>(
+                            qobject_cast<QScxmlStateMachineLoader*>(otherComponent.create()));
+                });
     if (QTest::currentTestFailed()) {
         qWarning() << "QScxmlStateMachineLoader::source property testing failed";
         return;
