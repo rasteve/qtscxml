@@ -97,6 +97,8 @@ set(tst_parser_resource_files
     "data/syntaxErrors9.scxml.errors"
     "data/test1.scxml"
     "data/test1.scxml.errors"
+    "data/emptyScript.scxml"
+    "data/emptyScript.scxml.errors"
 )
 
 qt_internal_add_resource(tst_scxml_parser "tst_parser"
