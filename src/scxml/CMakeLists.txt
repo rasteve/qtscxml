@@ -34,7 +34,6 @@ qt_internal_add_module(Scxml
         Qt::Core
     PRIVATE_MODULE_INTERFACE
         Qt::CorePrivate
-    GENERATE_CPP_EXPORTS
 )
 
 # Install the public qscxlmc.prf file that is used by the qmake
