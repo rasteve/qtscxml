@@ -36,9 +36,7 @@ QT_BEGIN_NAMESPACE
 /*!
     \qmlsignal EventConnection::occurred(event)
 
-    This signal is emitted when the event \a event occurrs.
-
-    The corresponding signal handler is \c onOccurred.
+    This signal is emitted when the event \a event occurs.
 
     \sa QScxmlEvent
 */
