@@ -729,7 +729,11 @@ QString CppDumper::generateMetaObject(const QString &className,
     ClassDef classDef;
     classDef.classname = className.toUtf8();
     classDef.qualified = classDef.classname;
-    classDef.superclassList << qMakePair(QByteArray("QScxmlStateMachine"), FunctionDef::Public);
+    classDef.superclassList << SuperClass {
+        QByteArray("QScxmlStateMachine"),
+        QByteArray(QT_STRINGIFY(QT_PREPEND_NAMESPACE(QScxmlStateMachine))),
+        FunctionDef::Public
+    };
     classDef.hasQObject = true;
     FunctionDef constructor;
     constructor.name = className.toUtf8();

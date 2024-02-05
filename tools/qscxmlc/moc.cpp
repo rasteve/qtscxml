@@ -27,6 +27,15 @@ static QByteArray normalizeType(const QByteArray &ba)
     return ba.size() ? normalizeTypeInternal(ba.constBegin(), ba.constEnd()) : ba;
 }
 
+const QByteArray &Moc::toFullyQualified(const QByteArray &name) const noexcept
+{
+    if (auto it = knownQObjectClasses.find(name); it != knownQObjectClasses.end())
+        return it.value();
+    if (auto it = knownGadgets.find(name); it != knownGadgets.end())
+        return it.value();
+    return name;
+}
+
 bool Moc::parseClassHead(ClassDef *def)
 {
     // figure out whether this is a class declaration, or only a
@@ -88,17 +97,17 @@ bool Moc::parseClassHead(ClassDef *def)
             else
                 test(PUBLIC);
             test(VIRTUAL);
-            const QByteArray type = parseType().name;
+            const Type type = parseType();
             // ignore the 'class Foo : BAR(Baz)' case
             if (test(LPAREN)) {
                 until(RPAREN);
             } else {
-                def->superclassList += qMakePair(type, access);
+                def->superclassList.push_back({type.name, toFullyQualified(type.name), access});
             }
         } while (test(COMMA));
 
         if (!def->superclassList.isEmpty()
-            && knownGadgets.contains(def->superclassList.constFirst().first)) {
+            && knownGadgets.contains(def->superclassList.constFirst().classname)) {
             // Q_GADGET subclasses are treated as Q_GADGETs
             knownGadgets.insert(def->classname, def->qualified);
             knownGadgets.insert(def->qualified, def->qualified);
@@ -424,35 +433,29 @@ bool Moc::parseFunction(FunctionDef *def, bool inMacro)
             error();
     }
     bool scopedFunctionName = false;
-    if (test(LPAREN)) {
-        def->name = def->type.name;
-        scopedFunctionName = def->type.isScoped;
-        def->type = Type("int");
-    } else {
-        // we might have modifiers and attributes after a tag
-        // note that testFunctionAttribute is handled further below,
-        // and revisions and attributes must come first
-        while (testForFunctionModifiers(def)) {}
-        Type tempType = parseType();;
-        while (!tempType.name.isEmpty() && lookup() != LPAREN) {
-            if (testFunctionAttribute(def->type.firstToken, def))
-                ; // fine
-            else if (def->type.firstToken == Q_SIGNALS_TOKEN)
-                error();
-            else if (def->type.firstToken == Q_SLOTS_TOKEN)
-                error();
-            else {
-                if (!def->tag.isEmpty())
-                    def->tag += ' ';
-                def->tag += def->type.name;
-            }
-            def->type = tempType;
-            tempType = parseType();
+    // we might have modifiers and attributes after a tag
+    // note that testFunctionAttribute is handled further below,
+    // and revisions and attributes must come first
+    while (testForFunctionModifiers(def)) {}
+    Type tempType = parseType();;
+    while (!tempType.name.isEmpty() && lookup() != LPAREN) {
+        if (testFunctionAttribute(def->type.firstToken, def))
+            ; // fine
+        else if (def->type.firstToken == Q_SIGNALS_TOKEN)
+            error();
+        else if (def->type.firstToken == Q_SLOTS_TOKEN)
+            error();
+        else {
+            if (!def->tag.isEmpty())
+                def->tag += ' ';
+            def->tag += def->type.name;
         }
-        next(LPAREN, "Not a signal or slot declaration");
-        def->name = tempType.name;
-        scopedFunctionName = tempType.isScoped;
+        def->type = tempType;
+        tempType = parseType();
     }
+    next(LPAREN, "Not a signal or slot declaration");
+    def->name = tempType.name;
+    scopedFunctionName = tempType.isScoped;
 
     if (!test(RPAREN)) {
         parseFunctionArguments(def);
@@ -544,7 +547,8 @@ bool Moc::parseMaybeFunction(const ClassDef *cdef, FunctionDef *def)
             def->isConstructor = !tilde;
             def->type = Type();
         } else {
-            def->type = Type("int");
+            // missing type name? => Skip
+            return false;
         }
     } else {
         // ### TODO: The condition before testForFunctionModifiers shoulnd't be necessary,
@@ -712,8 +716,10 @@ void Moc::parse()
                             switch (next()) {
                             case NAMESPACE:
                                 if (test(IDENTIFIER)) {
-                                    while (test(SCOPE))
+                                    while (test(SCOPE)) {
+                                        test(INLINE); // ignore inline namespaces
                                         next(IDENTIFIER);
+                                    }
                                     if (test(EQ)) {
                                         // namespace Foo = Bar::Baz;
                                         until(SEMIC);
@@ -1171,6 +1177,7 @@ void Moc::generate(FILE *out, FILE *jsonOutput)
     fprintf(out, "\n#include <QtCore/qtmochelpers.h>\n");
 
     fprintf(out, "\n#include <memory>\n\n");  // For std::addressof
+    fprintf(out, "\n#include <QtCore/qxptype_traits.h>\n"); // is_detected
 
     fprintf(out, "#if !defined(Q_MOC_OUTPUT_REVISION)\n"
             "#error \"The header file '%s' doesn't include <QObject>.\"\n", fn.constData());
@@ -1862,7 +1869,7 @@ bool Moc::until(Token target) {
 void Moc::checkSuperClasses(ClassDef *def)
 {
     Q_ASSERT(!def->superclassList.isEmpty());
-    const QByteArray &firstSuperclass = def->superclassList.at(0).first;
+    const QByteArray &firstSuperclass = def->superclassList.at(0).classname;
 
     if (!knownQObjectClasses.contains(firstSuperclass)) {
         // enable once we /require/ include paths
@@ -1888,7 +1895,7 @@ void Moc::checkSuperClasses(ClassDef *def)
     const auto end = def->superclassList.cend();
     auto it = def->superclassList.cbegin() + 1;
     for (; it != end; ++it) {
-        const QByteArray &superClass = it->first;
+        const QByteArray &superClass = it->classname;
         if (knownQObjectClasses.contains(superClass)) {
             const QByteArray msg
                     = "Class "
@@ -2043,11 +2050,11 @@ QJsonObject ClassDef::toJson() const
     QJsonArray superClasses;
 
     for (const auto &super: std::as_const(superclassList)) {
-        const auto name = super.first;
-        const auto access = super.second;
         QJsonObject superCls;
-        superCls["name"_L1] = QString::fromUtf8(name);
-        FunctionDef::accessToJson(&superCls, access);
+        superCls["name"_L1] = QString::fromUtf8(super.classname);
+        if (super.classname != super.qualified)
+            superCls["fullyQualifiedName"_L1] = QString::fromUtf8(super.qualified);
+        FunctionDef::accessToJson(&superCls, super.access);
         superClasses.append(superCls);
     }
 

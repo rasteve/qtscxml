@@ -1,5 +1,5 @@
---- .upstream/generator.cpp	2023-07-06 09:09:24.454402160 +0200
-+++ generator.cpp	2023-08-22 14:06:36.819992506 +0200
+--- .upstream/generator.cpp	2024-02-01 11:08:00.055494626 +0100
++++ generator.cpp	2024-02-05 14:18:32.229391845 +0100
 @@ -4,7 +4,9 @@
  // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only WITH Qt-GPL-exception-1.0
  
@@ -57,7 +57,7 @@
 -       requireCompleteTypes(requireCompleteTypes)
 - {
 -     if (cdef->superclassList.size())
--         purestSuperClass = cdef->superclassList.constFirst().first;
+-         purestSuperClass = cdef->superclassList.constFirst().classname;
 +// -- QtScxml
 +Generator::Generator(ClassDef *classDef, const QList<QByteArray> &metaTypes,
 +                     const QHash<QByteArray, QByteArray> &knownQObjectClasses,
@@ -72,7 +72,7 @@
 +      requireCompleteTypes(requireCompleteTypes)
 +{
 +    if (cdef->superclassList.size())
-+        purestSuperClass = cdef->superclassList.constFirst().first;
++        purestSuperClass = cdef->superclassList.constFirst().classname;
  }
 +// -- QtScxml
  
@@ -153,7 +153,7 @@
              qualifiedClassNameIdentifier.constData());
  
      // for all superclasses but the first one
-@@ -632,7 +674,9 @@
+@@ -631,7 +673,9 @@
  //
  // Generate plugin meta data
  //
@@ -163,7 +163,7 @@
  
  //
  // Generate function to make sure the non-class signals exist in the parent classes
-@@ -1084,6 +1128,13 @@
+@@ -1100,6 +1144,13 @@
              const FunctionDef &f = methodList.at(methodindex);
              Q_ASSERT(!f.normalizedType.isEmpty());
              fprintf(out, "        case %d: ", methodindex);
@@ -177,7 +177,7 @@
              if (f.normalizedType != "void")
                  fprintf(out, "{ %s _r = ", noRef(f.normalizedType).constData());
              fprintf(out, "_t->");
-@@ -1162,6 +1213,10 @@
+@@ -1178,6 +1229,10 @@
              const FunctionDef &f = cdef->signalList.at(methodindex);
              if (f.wasCloned || !f.inPrivateClass.isEmpty() || f.isStatic)
                  continue;
@@ -188,7 +188,7 @@
              anythingUsed = true;
              fprintf(out, "        {\n");
              fprintf(out, "            using _t = %s (%s::*)(",f.type.rawName.constData() , cdef->classname.constData());
-@@ -1184,7 +1239,7 @@
+@@ -1200,7 +1255,7 @@
              else
                  fprintf(out, ");\n");
              fprintf(out, "            if (_t _q_method = &%s::%s; *reinterpret_cast<_t *>(_a[1]) == _q_method) {\n",
@@ -197,7 +197,7 @@
              fprintf(out, "                *result = %d;\n", methodindex);
              fprintf(out, "                return;\n");
              fprintf(out, "            }\n        }\n");
-@@ -1279,8 +1334,11 @@
+@@ -1295,8 +1350,11 @@
                      fprintf(out, "        case %d: *reinterpret_cast< %s*>(_v) = %s%s().value(); break;\n",
                              propindex, p.type.constData(), prefix.constData(), p.bind.constData());
                  else if (!p.read.isEmpty())
@@ -211,7 +211,7 @@
                  else
                      fprintf(out, "        case %d: *reinterpret_cast< %s*>(_v) = %s%s; break;\n",
                              propindex, p.type.constData(), prefix.constData(), p.member.constData());
-@@ -1412,6 +1470,10 @@
+@@ -1428,6 +1486,10 @@
  {
      if (def->wasCloned || def->isAbstract)
          return;
@@ -222,7 +222,7 @@
      fprintf(out, "\n// SIGNAL %d\n%s %s::%s(",
              index, def->type.name.constData(), cdef->qualified.constData(), def->name.constData());
  
-@@ -1460,10 +1522,8 @@
+@@ -1476,10 +1538,8 @@
      if (def->normalizedType == "void") {
          fprintf(out, "nullptr");
      } else {
@@ -235,7 +235,7 @@
      }
      int i;
      for (i = 1; i < offset; ++i)
-@@ -1478,6 +1538,36 @@
+@@ -1494,6 +1554,36 @@
      fprintf(out, "}\n");
  }
  
@@ -272,7 +272,7 @@
  static CborError jsonValueToCbor(CborEncoder *parent, const QJsonValue &v);
  static CborError jsonObjectToCbor(CborEncoder *parent, const QJsonObject &o)
  {
-@@ -1613,7 +1703,11 @@
+@@ -1629,7 +1719,11 @@
  
  #define CBOR_ENCODER_WRITER_CONTROL     1
  #define CBOR_ENCODER_WRITE_FUNCTION     CborDevice::callback
