@@ -2252,13 +2252,15 @@ QBindable<QList<QScxmlInvokableService*>> QScxmlStateMachine::bindableInvokedSer
 */
 
 /*!
-  Starts this state machine. The machine will reset its configuration and
-  transition to the initial state. When a final top-level state
+  Starts this state machine. When a final top-level state
   is entered, the machine will emit the finished() signal.
 
   \note A state machine will not run without a running event loop, such as
   the main application event loop started with QCoreApplication::exec() or
   QApplication::exec().
+
+  \note Calling start() after stop() will not result in a full reset of its
+  configuration yet, hence it is strongly advised not to do it.
 
   \sa runningChanged(), setRunning(), stop(), finished()
 */
