@@ -2262,11 +2262,17 @@ QBindable<QList<QScxmlInvokableService*>> QScxmlStateMachine::bindableInvokedSer
   \note Calling start() after stop() will not result in a full reset of its
   configuration yet, hence it is strongly advised not to do it.
 
+  \note Starting a finished machine yields a warning.
+
   \sa runningChanged(), setRunning(), stop(), finished()
 */
 void QScxmlStateMachine::start()
 {
     Q_D(QScxmlStateMachine);
+
+    if (d->isFinished()) {
+        qCWarning(qscxmlLog) << this << "Can't start finished machine";
+    }
 
     if (!parseErrors().isEmpty())
         return;

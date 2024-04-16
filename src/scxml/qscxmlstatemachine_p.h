@@ -391,6 +391,7 @@ private:
     }
 
     bool isPaused() const { return m_runningState == Paused; }
+    bool isFinished() const { return m_runningState == Finished; }
 
     QScxmlInternal::StateMachineInfoProxy *m_infoSignalProxy;
 
