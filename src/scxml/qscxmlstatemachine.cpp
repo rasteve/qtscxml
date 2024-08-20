@@ -43,7 +43,7 @@ Q_LOGGING_CATEGORY(scxmlLog, "scxml.statemachine")
 
 /*!
     \qmltype ScxmlStateMachine
-    \instantiates QScxmlStateMachine
+    \nativetype QScxmlStateMachine
     \inqmlmodule QtScxml
     \since 5.7
 
