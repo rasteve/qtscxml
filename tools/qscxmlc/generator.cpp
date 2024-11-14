@@ -293,8 +293,7 @@ void Generator::generateCode()
 // Build the strings using QtMocHelpers::StringData
 //
 
-    fprintf(out, "\n#ifdef QT_MOC_HAS_STRINGDATA\n"
-                 "struct qt_meta_stringdata_%s_t {};\n"
+    fprintf(out, "\nstruct qt_meta_stringdata_%s_t {};\n"
                  "constexpr auto qt_meta_stringdata_%s = QtMocHelpers::stringData(",
             qualifiedClassNameIdentifier.constData(), qualifiedClassNameIdentifier.constData());
     {
@@ -315,10 +314,7 @@ void Generator::generateCode()
 // -- QtScxml
 
     }
-    fprintf(out, "\n);\n"
-            "#else  // !QT_MOC_HAS_STRINGDATA\n");
-    fprintf(out, "#error \"qtmochelpers.h not found or too old.\"\n");
-    fprintf(out, "#endif // !QT_MOC_HAS_STRINGDATA\n");
+    fprintf(out, "\n);\n");
     fprintf(out, "} // unnamed namespace\n\n");
 
 //
