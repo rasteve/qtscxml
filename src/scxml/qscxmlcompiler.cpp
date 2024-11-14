@@ -453,7 +453,11 @@ class DynamicStateMachinePrivate : public QScxmlStateMachinePrivate
 {
     struct DynamicMetaObject : public QAbstractDynamicMetaObject
     {
+#if QT_VERSION >= QT_VERSION_CHECK(7, 0, 0)
+        const QMetaObject *toDynamicMetaObject(QObject *) const override
+#else
         QMetaObject *toDynamicMetaObject(QObject *) override
+#endif
         {
             return this;
         }
